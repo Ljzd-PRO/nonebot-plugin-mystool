@@ -1,8 +1,8 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message
+from nonebot.adapters.onebot.v12 import PrivateMessageEvent, Message
 from nonebot.params import CommandArg, T_State, Arg, ArgPlainText
 from nonebot.plugin import PluginMetadata
-import requests
+import requests.utils
 import httpx
 
 from .utils import *
@@ -11,13 +11,13 @@ __plugin_meta__ = PluginMetadata(
     name="原神签到、米游币获取、米游币兑换插件",
     description="通过手机号获取cookie，每日自动原神签到、获取米游币，可制定米游币兑换计划",
     usage=(
-        "get_cookie 跟随指引获取cookie\n"
+        "get_cookie 跟随指引获取cookie"
         "get_myb 订阅每日自动获取米游币计划\n"
-        "get_yuanshen 订阅每日自动原神签到计划\n"
+        "get_yuanshen 订阅每日自动原神签到计划"
         "myb_info 查看米游币数量\n"
-        "yuanshen_info 查看当日原神签到奖励，当月原石、摩拉获取\n"
+        "yuanshen_info 查看当日原神签到奖励，当月原石、摩拉获取"
         "myb_exchange 制定米游币兑换计划\n"
-        "myb_exchange_info 查看当前米游币兑换计划\n"
+        "myb_exchange_info 查看当前米游币兑换计划"
         "myb_delete 删除你的所有兑换计划\n"
     )
 )
@@ -29,24 +29,20 @@ get_cookie.__help__ = {
 }
 
 get_cookie.handle()
-# get_cookie.send('过程分为三步：\n1.发送手机号\n2.登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送\n3.刷新页面，再次获取验证码并发送\n过程中随时输入退出即可退出')
 @get_cookie.got('手机号', prompt='请输入您的手机号')
 async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('手机号')):
-    if phone == '退出':
-        await get_cookie.finish("已成功退出")
+    if len(phone) != 11:
+        await get_cookie.reject("手机号应为11位")
     else:
-        if len(phone) != 11:
-            await get_cookie.reject("手机号应为11位")
-        else:
-            state['phone'] = phone
+        state['phone'] = phone
 
-@get_cookie.got('验证码1', prompt='请在浏览器打开https://user.mihoyo.com/#/login/captcha，输入手机号，获取验证码并发送（不要登录！）')
+@get_cookie.got('验证码1', prompt='请在浏览器打开user.mihoyo.com，输入手机号，获取验证码并发送（不要登录！）')
 async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
     if len(captcha1) != 6:
         await get_cookie.reject("验证码应为6位")
     else:
         await get_cookie_1(state['phone'], captcha1, state)
-        
+
 
 @get_cookie.got('验证码2', prompt='请刷新浏览器，再次输入手机号，获取验证码并发送（不要登录！）')
 async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码2')):
@@ -56,7 +52,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         await get_cookie_2(state['phone'], captcha1, state)
     print(state['cookie'])
     await get_cookie.finish("cookie获取成功")
-        
+
 
 async def get_cookie_1(phone, captcha, state: T_State) -> None:
     login_1_headers = {
@@ -84,37 +80,38 @@ async def get_cookie_1(phone, captcha, state: T_State) -> None:
     }
 
     try:
-        login_1_req = httpx.post(
+        login_1_req = await httpx.post(
             "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha", headers=login_1_headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(phone, captcha))
     except:
-        await get_cookie.finish("登录遇到问题，请稍后重试")
-
+        return
     login_1_cookie = requests.utils.dict_from_cookiejar(
         login_1_req.cookies)
 
     if "login_ticket" not in login_1_cookie:
-        await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
+        print("由于Cookie缺少login_ticket，无法继续")
+        return
 
     for cookie in ("login_uid", "stuid", "ltuid", "account_id"):
         if cookie in login_1_cookie:
             bbs_uid = login_1_cookie[cookie]
             break
     if bbs_uid == None:
-        await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
-        
-    
+        print("由于Cookie缺少uid，无法继续")
+        return
+
     state['cookie'] = login_1_cookie
 
-    await get_cookie.send("正在获取stoken...")
+    print("正在获取stoken...")
     try:
-        get_stoken_req = httpx.get(
+        get_stoken_req = await httpx.get(
             "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}".format(login_1_cookie["login_ticket"], bbs_uid))
         stoken = list(filter(
             lambda data: data["name"] == "stoken", get_stoken_req.json()["data"]["list"]))[0]["token"]
         state['cookie']['stoken'] = stoken
-        await get_cookie.send("获取stoken成功")
     except:
-        await get_cookie.finish(">获取stoken失败，一种可能是登录失效，请稍后再试")
+        print("获取stoken失败，一种可能是登录失效")
+        return
+
 
 
 async def get_cookie_2(phone, captcha, state: T_State) -> None:
@@ -131,7 +128,7 @@ async def get_cookie_2(phone, captcha, state: T_State) -> None:
         "Accept-Language": "zh-CN,zh-Hans;q=0.9"
     }
     try:
-        login_2_req = requests.post(
+        login_2_req = await httpx.post(
             "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile", headers=login_2_headers, json={
                 "is_bh2": False,
                 "mobile": phone,
@@ -140,16 +137,16 @@ async def get_cookie_2(phone, captcha, state: T_State) -> None:
                 "token_type": 6
             })
     except:
-        await get_cookie.finish(" 登录失败，请稍后再试")
-
+        print("登录失败")
+        return
     login_2_cookie = requests.utils.dict_from_cookiejar(
         login_2_req.cookies)
 
     if "cookie_token" not in login_2_cookie:
-        await get_cookie.finish("> 由于Cookie缺少cookie_token，无法继续，清歌稍后再试")
-    
+        print("由于Cookie缺少cookie_token，无法继续")
+        return
+
     login_1_cookie = state['cookie']
     state['cookie'] = login_2_cookie
     state['cookie']['login_ticket'] = login_1_cookie["login_ticket"]
     state['cookie']['stoken'] = login_1_cookie["stoken"]
-    await get_cookie.finish("cookie获取成功")
