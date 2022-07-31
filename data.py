@@ -72,16 +72,17 @@ class UserData:
             pass
         return None
 
-    def set_all(userdata:dict):
+    def set_all(userdata: dict):
         """
         写入用户数据文件(整体覆盖)
 
         参数:
             userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(os.path.join(PATH, "data", "userdata.json"), "w", encoding=ENCODING))
+        json.dump(userdata, open(os.path.join(PATH, "data",
+                  "userdata.json"), "w", encoding=ENCODING))
 
-    def set_account(account:dict, qq: int, by: int | str) -> bool:
+    def set_account(account: dict, qq: int, by: int | str) -> bool:
         """
         设置用户的某个米游社帐号信息
 
@@ -105,7 +106,7 @@ class UserData:
             pass
         return None
 
-    def set_cookie(cookie:dict, qq: int, by: int | str) -> dict | None:
+    def set_cookie(cookie: dict, qq: int, by: int | str) -> dict | None:
         """
         设置用户的某个米游社帐号的Cookie
 
@@ -129,7 +130,7 @@ class UserData:
             pass
         return None
 
-    def set_phone(phone:int, qq: int, account_name: str) -> int | None:
+    def set_phone(phone: int, qq: int, account_name: str) -> int | None:
         """
         设置用户的某个米游社帐号的绑定手机号
 
