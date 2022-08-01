@@ -173,12 +173,12 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning("mys_tool: 配置文件不存在，将重新生成配置文件...")
+        logger.warning("mys_tool: 用户数据文件不存在，将重新生成配置文件...")
     else:
         try:
             UserData.read_all()
         except json.JSONDecodeError:
-            logger.warning("mys_tool: 配置文件格式错误，将重新生成配置文件...")
+            logger.warning("mys_tool: 用户数据文件格式错误，将重新生成配置文件...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
         json.dump({}, fp)
