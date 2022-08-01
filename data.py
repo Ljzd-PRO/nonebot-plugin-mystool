@@ -2,6 +2,7 @@ import json
 import nonebot
 from pathlib import Path
 from nonebot.log import logger
+from utils import *
 
 PATH = Path(__file__).parent.absolute()
 ENCODING = "utf-8"
@@ -10,30 +11,81 @@ USERDATA_PATH = PATH / "data" / "userdata.json"
 driver = nonebot.get_driver()
 
 
+class AccountUID:
+    """
+    米哈游游戏UID数据
+    """
+
+    def __init__(self) -> None:
+        self.ys: int = None
+        self.bh3: int = None
+        self.bh2: int = None
+        self.wd: int = None
+
+    def get(self, uid: dict[str, int]):
+        self.ys: int = uid["ys"]
+        self.bh3: int = uid["bh3"]
+        self.bh2: int = uid["bh2"]
+        self.wd: int = uid["wd"]
+
+    @property
+    def to_dict(self) -> dict:
+        return {
+            "ys": self.ys,
+            "bh3": self.bh3,
+            "bh2": self.bh2,
+            "wd": self.wd,
+        }
+
+
+class UserAccount:
+    """
+    用户的米哈游账户数据
+    """
+
+    def __init__(self) -> None:
+        self.name: str = None
+        self.phone: int = None
+        self.cookie: dict[str, str] = None
+        self.uid: AccountUID = AccountUID()
+        self.deviceID: str = None
+
+    def get(self, account: dict):
+        self.name: str = account["name"]
+        self.phone: int = account["phone"]
+        self.cookie: dict[str, str] = account["cookie"]
+        self.uid = AccountUID(account["uid"])
+        self.deviceID: str = account["xrpcDeviceID"]
+
+    @property
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "phone": self.phone,
+            "cookie": self.cookie,
+            "uid": self.uid.to_dict,
+            "xrpcDeviceID": self.deviceID,
+        }
+
+
 class UserData:
     """
     用户数据相关
     """
-    ACCOUNT_SAMPLE = {
-        "name": None,
-        "phone": None,
-        "cookie": None
-    }
-    '''米哈游帐号数据样例'''
-    USER_SAMPLE = {
+    __USER_SAMPLE = {
         "accounts": []
     }
     '''QQ用户数据样例'''
 
-    def read_all() -> dict:
+    def __read_all() -> dict:
         """
         获取所有用户数据
         """
         return json.load(open(USERDATA_PATH), encoding=ENCODING)
 
-    def read_account(qq: int, by: int | str) -> dict | None:
+    def read_account(qq: int, by: int | str):
         """
-        获取用户所拥有的所有米游社帐号信息
+        获取用户的某个米游社帐号数据
 
         参数:
             qq: 要查找的用户的QQ号
@@ -44,50 +96,34 @@ class UserData:
         else:
             by_type = "phone"
         try:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
+            for account in UserData.__read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
-                    return account
+                    userAccount = UserAccount()
+                    userAccount.get(account)
+                    return userAccount
         except KeyError:
             pass
         return None
 
-    def read_cookie(qq: int, by: int | str) -> dict[str, str] | None:
+    def read_account_all(qq: int) -> list[UserAccount]:
         """
-        获取用户的某个米游社帐号的Cookie
+        获取用户的所有米游社帐号数据
 
         参数:
             qq: 要查找的用户的QQ号
-            by: 索引依据，可为备注名或手机号
         """
-        if isinstance(by, str):
-            by_type = "name"
-        else:
-            by_type = "phone"
+        accounts = []
         try:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
-                if account[by_type] == by:
-                    return account["cookie"]
+            accounts_raw = UserData.__read_all()[qq]["accounts"]
         except KeyError:
             pass
-        return None
+        for account_raw in accounts_raw:
+            account = UserAccount()
+            account.get(account_raw)
+            accounts.append(account)
+        return accounts
 
-    def read_phone(qq: int, account_name: str) -> int | None:
-        """
-        获取用户的某个米游社帐号的绑定手机号
-
-        参数:
-            qq: 要查找的用户的QQ号
-            account_name: 帐号备注名
-        """
-        try:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
-                if account["name"] == account_name:
-                    return account["phone"]
-        except KeyError:
-            pass
-        return None
-
-    def set_all(userdata: dict):
+    def __set_all(userdata: dict):
         """
         写入用户数据文件(整体覆盖)
 
@@ -99,20 +135,22 @@ class UserData:
     @classmethod
     def __create_user(cls, userdata: dict, qq: int) -> dict:
         """
-        创建用户
+        创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(qq, cls.USER_SAMPLE)
+        userdata.setdefault(qq, cls.__USER_SAMPLE)
         return userdata
 
-    @classmethod
-    def __create_account(cls, userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
-        account = cls.ACCOUNT_SAMPLE.copy()
+    def __create_account(userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
+        """
+        创建米哈游账户数据，返回创建后整体的userdata
+        """
+        account = UserAccount().to_dict
         account["name"] = name
         account["phone"] = phone
         userdata[qq]["accounts"].append(account)
         return userdata
 
-    def set_account(account: dict, qq: int, by: int | str):
+    def set_account(account: UserAccount, qq: int, by: int | str):
         """
         设置用户的某个米游社帐号信息
 
@@ -121,7 +159,8 @@ class UserData:
             qq: 要设置的用户的QQ号
             by: 索引依据，可为备注名或手机号
         """
-        userdata = UserData.read_all()
+        account_raw = account.to_dict
+        userdata = UserData.__read_all()
         if isinstance(by, str):
             by_type = "name"
         else:
@@ -131,12 +170,12 @@ class UserData:
 
         for num in range(0, len(userdata[str(qq)]["accounts"])):
             if userdata[str(qq)]["accounts"][num][by_type] == by:
-                userdata[str(qq)]["accounts"][num] = account
-                UserData.set_all(userdata)
+                userdata[str(qq)]["accounts"][num] = account_raw
+                UserData.__set_all(userdata)
                 return
         # 若找不到，进行新建
-        userdata[str(qq)]["accounts"].append(account)
-        UserData.set_all(userdata)
+        userdata[str(qq)]["accounts"].append(account_raw)
+        UserData.__set_all(userdata)
 
     def set_cookie(cookie: dict[str, str], qq: int, by: int | str):
         """
@@ -147,7 +186,7 @@ class UserData:
             qq: 要设置的用户的QQ号
             by: 索引依据，可为备注名或手机号
         """
-        userdata = UserData.read_all()
+        userdata = UserData.__read_all()
         name, phone = None
         if isinstance(by, str):
             by_type = "name"
@@ -157,10 +196,10 @@ class UserData:
             userdata = UserData.__create_user(userdata, qq)
 
         def action() -> bool:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
+            for account in UserData.__read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
-                    UserData.set_all(userdata)
+                    UserData.__set_all(userdata)
                     return True
             return False
 
@@ -173,12 +212,13 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning("mys_tool: 用户数据文件不存在，将重新生成配置文件...")
+        logger.warning("mys_tool: 配置文件不存在，将重新生成配置文件...")
     else:
         try:
-            UserData.read_all()
-        except json.JSONDecodeError:
-            logger.warning("mys_tool: 用户数据文件格式错误，将重新生成配置文件...")
+            if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
+                raise ValueError
+        except json.JSONDecodeError and ValueError:
+            logger.warning("mys_tool: 配置文件格式错误，将重新生成配置文件...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
         json.dump({}, fp)
