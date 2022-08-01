@@ -10,6 +10,17 @@ class UserData:
     """
     用户数据相关
     """
+    ACCOUNT_SAMPLE = {
+        "name": None,
+        "phone": None,
+        "cookie": None
+    }
+    '''米哈游帐号数据样例'''
+    USER_SAMPLE = {
+        "accounts": []
+    }
+    '''QQ用户数据样例'''
+
     def read_all() -> dict:
         """
         获取所有用户数据
@@ -106,7 +117,7 @@ class UserData:
             pass
         return False
 
-    def set_cookie(cookie: dict, qq: int, by: int | str) -> dict | None:
+    def set_cookie(cookie: dict, qq: int, by: int | str) -> bool:
         """
         设置用户的某个米游社帐号的Cookie
 
@@ -130,7 +141,7 @@ class UserData:
             pass
         return False
 
-    def set_phone(phone: int, qq: int, account_name: str) -> int | None:
+    def set_phone(phone: int, qq: int, account_name: str) -> bool:
         """
         设置用户的某个米游社帐号的绑定手机号
 
