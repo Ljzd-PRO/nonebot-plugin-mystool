@@ -1,9 +1,13 @@
 import json
-import os
+import nonebot
 from pathlib import Path
+from nonebot.log import logger
 
 PATH = Path(__file__).parent.absolute()
 ENCODING = "utf-8"
+USERDATA_PATH = PATH / "data" / "userdata.json"
+
+driver = nonebot.get_driver()
 
 
 class UserData:
@@ -25,7 +29,7 @@ class UserData:
         """
         获取所有用户数据
         """
-        return json.load(open(os.path.join(PATH, "data", "userdata.json"), encoding=ENCODING))
+        return json.load(open(USERDATA_PATH), encoding=ENCODING)
 
     def read_account(qq: int, by: int | str) -> dict | None:
         """
@@ -90,18 +94,19 @@ class UserData:
         参数:
             userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(os.path.join(PATH, "data",
-                  "userdata.json"), "w", encoding=ENCODING))
+        json.dump(userdata, open(USERDATA_PATH, "w", encoding=ENCODING))
 
-    def __create_user(userdata: dict, qq: int) -> dict:
+    @classmethod
+    def __create_user(cls, userdata: dict, qq: int) -> dict:
         """
         创建用户
         """
-        userdata.setdefault(qq, UserData.USER_SAMPLE)
+        userdata.setdefault(qq, cls.USER_SAMPLE)
         return userdata
 
-    def __create_account(userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
-        account = UserData.ACCOUNT_SAMPLE.copy()
+    @classmethod
+    def __create_account(cls, userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
+        account = cls.ACCOUNT_SAMPLE.copy()
         account["name"] = name
         account["phone"] = phone
         userdata[qq]["accounts"].append(account)
@@ -162,3 +167,18 @@ class UserData:
         if not action():
             userdata = UserData.__create_account(userdata, qq, name, phone)
         action()
+
+
+@driver.on_startup
+def create_files():
+    if not USERDATA_PATH.exists():
+        USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+        logger.warning("mys_tool: 配置文件不存在，将重新生成配置文件...")
+    else:
+        try:
+            UserData.read_all()
+        except json.JSONDecodeError:
+            logger.warning("mys_tool: 配置文件格式错误，将重新生成配置文件...")
+
+    with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
+        json.dump({}, fp)
