@@ -47,7 +47,7 @@ class UserData:
             pass
         return None
 
-    def read_cookie(qq: int, by: int | str) -> dict | None:
+    def read_cookie(qq: int, by: int | str) -> dict[str, str] | None:
         """
         获取用户的某个米游社帐号的Cookie
 
@@ -93,7 +93,21 @@ class UserData:
         json.dump(userdata, open(os.path.join(PATH, "data",
                   "userdata.json"), "w", encoding=ENCODING))
 
-    def set_account(account: dict, qq: int, by: int | str) -> bool:
+    def __create_user(userdata: dict, qq: int) -> dict:
+        """
+        创建用户
+        """
+        userdata.setdefault(qq, UserData.USER_SAMPLE)
+        return userdata
+
+    def __create_account(userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
+        account = UserData.ACCOUNT_SAMPLE.copy()
+        account["name"] = name
+        account["phone"] = phone
+        userdata[qq]["accounts"].append(account)
+        return userdata
+
+    def set_account(account: dict, qq: int, by: int | str):
         """
         设置用户的某个米游社帐号信息
 
@@ -107,17 +121,19 @@ class UserData:
             by_type = "name"
         else:
             by_type = "phone"
-        try:
-            for num in range(0, len(userdata[str(qq)]["accounts"])):
-                if userdata[str(qq)]["accounts"][num][by_type] == by:
-                    userdata[str(qq)]["accounts"][num] = account
-                    UserData.set_all(userdata)
-                    return True
-        except KeyError:
-            pass
-        return False
+        if qq not in userdata:
+            userdata = UserData.__create_user(userdata, qq)
 
-    def set_cookie(cookie: dict, qq: int, by: int | str) -> bool:
+        for num in range(0, len(userdata[str(qq)]["accounts"])):
+            if userdata[str(qq)]["accounts"][num][by_type] == by:
+                userdata[str(qq)]["accounts"][num] = account
+                UserData.set_all(userdata)
+                return
+        # 若找不到，进行新建
+        userdata[str(qq)]["accounts"].append(account)
+        UserData.set_all(userdata)
+
+    def set_cookie(cookie: dict[str, str], qq: int, by: int | str):
         """
         设置用户的某个米游社帐号的Cookie
 
@@ -127,36 +143,22 @@ class UserData:
             by: 索引依据，可为备注名或手机号
         """
         userdata = UserData.read_all()
+        name, phone = None
         if isinstance(by, str):
             by_type = "name"
         else:
             by_type = "phone"
-        try:
+        if qq not in userdata:
+            userdata = UserData.__create_user(userdata, qq)
+
+        def action() -> bool:
             for account in UserData.read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
                     UserData.set_all(userdata)
                     return True
-        except KeyError:
-            pass
-        return False
+            return False
 
-    def set_phone(phone: int, qq: int, account_name: str) -> bool:
-        """
-        设置用户的某个米游社帐号的绑定手机号
-
-        参数:
-            phone: 手机号
-            qq: 要设置的用户的QQ号
-            account_name: 帐号备注名
-        """
-        userdata = UserData.read_all()
-        try:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
-                if account["name"] == account_name:
-                    account["phone"] = phone
-                    UserData.set_all(userdata)
-                    return True
-        except KeyError:
-            pass
-        return False
+        if not action():
+            userdata = UserData.__create_account(userdata, qq, name, phone)
+        action()
