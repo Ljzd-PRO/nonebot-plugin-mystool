@@ -104,7 +104,7 @@ class UserData:
                     return True
         except KeyError:
             pass
-        return None
+        return False
 
     def set_cookie(cookie: dict, qq: int, by: int | str) -> dict | None:
         """
@@ -128,7 +128,7 @@ class UserData:
                     return True
         except KeyError:
             pass
-        return None
+        return False
 
     def set_phone(phone: int, qq: int, account_name: str) -> int | None:
         """
@@ -148,4 +148,4 @@ class UserData:
                     return True
         except KeyError:
             pass
-        return None
+        return False
