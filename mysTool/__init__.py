@@ -1,10 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message
-from nonebot.params import CommandArg, T_State, Arg, ArgPlainText
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.params import T_State, ArgPlainText
 from nonebot.plugin import PluginMetadata
 import requests
 import httpx
-
+from .config import mysTool_config as conf
 from .utils import *
 
 __plugin_meta__ = PluginMetadata(
@@ -60,7 +60,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         await get_cookie.finish("验证码应为6位数字，程序已退出")
     else:
         await get_cookie_1(state['phone'], captcha1, state)
-        
+
 
 @get_cookie.got('验证码2', prompt='请刷新浏览器，再次输入手机号，获取验证码并发送（不要登录！）')
 async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlainText('验证码2')):
@@ -76,20 +76,20 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     else:
         await get_cookie_2(state['phone'], captcha2, state)
     print(state['cookie'])
-        
+
 
 async def get_cookie_1(phone, captcha, state: T_State):
     login_1_headers = {
         "Host": "webapi.account.mihoyo.com",
         "Connection": "keep-alive",
-        "sec-ch-ua": UA,
+        "sec-ch-ua": conf.device.UA,
         "DNT": "1",
-        "x-rpc-device_model": X_RPC_DEVICE_MODEL,
+        "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL,
         "sec-ch-ua-mobile": "?0",
-        "User-Agent": USER_AGENT_PC,
+        "User-Agent": conf.device.USER_AGENT_PC,
         "x-rpc-device_id": generateDeviceID(),
         "Accept": "application/json, text/plain, */*",
-        "x-rpc-device_name": X_RPC_DEVICE_NAME,
+        "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME,
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "x-rpc-client_type": "4",
         "sec-ch-ua-platform": "\"macOS\"",
@@ -121,7 +121,7 @@ async def get_cookie_1(phone, captcha, state: T_State):
             break
     if bbs_uid == None:
         await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
-        
+
     state['cookie'] = login_1_cookie
 
     try:
@@ -142,7 +142,7 @@ async def get_cookie_2(phone, captcha, state: T_State):
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive",
         "Accept": "application/json, text/plain, */*",
-        "User-Agent": USER_AGENT_PC,
+        "User-Agent": conf.device.USER_AGENT_PC,
         "Referer": "https://bbs.mihoyo.com/",
         "Accept-Language": "zh-CN,zh-Hans;q=0.9"
     }
@@ -163,7 +163,7 @@ async def get_cookie_2(phone, captcha, state: T_State):
 
     if "cookie_token" not in login_2_cookie:
         await get_cookie.finish("由于Cookie缺少cookie_token，无法继续，清歌稍后再试")
-    
+
     login_1_cookie = state['cookie']
     state['cookie'] = login_2_cookie
     state['cookie']['login_ticket'] = login_1_cookie["login_ticket"]
