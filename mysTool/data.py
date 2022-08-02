@@ -2,7 +2,7 @@ import json
 import nonebot
 from nonebot.log import logger
 from utils import *
-from .config import mysTool_config
+from .config import mysTool_config as conf
 
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "data" / "userdata.json"
@@ -211,13 +211,13 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning(mysTool_config.LOG_HEAD + "用户数据文件不存在，将重新生成...")
+        logger.warning(conf.LOG_HEAD + "用户数据文件不存在，将重新生成...")
     else:
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
                 raise ValueError
         except json.JSONDecodeError and ValueError:
-            logger.warning(mysTool_config.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
+            logger.warning(conf.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
         json.dump({}, fp, indent=4, ensure_ascii=False)
