@@ -1,10 +1,9 @@
 import json
 import nonebot
-from pathlib import Path
 from nonebot.log import logger
 from utils import *
+from .config import mysTool_config
 
-PATH = Path(__file__).parent.absolute()
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "data" / "userdata.json"
 
@@ -130,7 +129,7 @@ class UserData:
         参数:
             userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(USERDATA_PATH, "w", encoding=ENCODING))
+        json.dump(userdata, open(USERDATA_PATH, "w", encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
     def __create_user(cls, userdata: dict, qq: int) -> dict:
@@ -212,13 +211,13 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning("mys_tool: 配置文件不存在，将重新生成配置文件...")
+        logger.warning(mysTool_config.LOG_HEAD + "用户数据文件不存在，将重新生成...")
     else:
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
                 raise ValueError
         except json.JSONDecodeError and ValueError:
-            logger.warning("mys_tool: 配置文件格式错误，将重新生成配置文件...")
+            logger.warning(mysTool_config.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
-        json.dump({}, fp)
+        json.dump({}, fp, indent=4, ensure_ascii=False)
