@@ -1,5 +1,6 @@
 import json
 import nonebot
+from typing import Union
 from nonebot.log import logger
 from utils import *
 from .config import mysTool_config as conf
@@ -82,7 +83,7 @@ class UserData:
         """
         return json.load(open(USERDATA_PATH), encoding=ENCODING)
 
-    def read_account(qq: int, by: int | str):
+    def read_account(qq: int, by: Union[int, str]):
         """
         获取用户的某个米游社帐号数据
 
@@ -149,7 +150,7 @@ class UserData:
         userdata[qq]["accounts"].append(account)
         return userdata
 
-    def set_account(account: UserAccount, qq: int, by: int | str):
+    def set_account(account: UserAccount, qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号信息
 
@@ -176,7 +177,7 @@ class UserData:
         userdata[str(qq)]["accounts"].append(account_raw)
         UserData.__set_all(userdata)
 
-    def set_cookie(cookie: dict[str, str], qq: int, by: int | str):
+    def set_cookie(cookie: dict[str, str], qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号的Cookie
 
