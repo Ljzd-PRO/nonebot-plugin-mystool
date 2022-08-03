@@ -12,6 +12,7 @@ __plugin_meta__ = PluginMetadata(
     description="通过手机号获取cookie，每日自动原神签到、获取米游币，可制定米游币兑换计划",
     usage=(
         "get_cookie 跟随指引获取cookie\n"
+        "get_address 获取地址ID"
         "get_myb 订阅每日自动获取米游币计划\n"
         "get_yuanshen 订阅每日自动原神签到计划\n"
         "myb_info 查看米游币数量\n"
@@ -22,7 +23,7 @@ __plugin_meta__ = PluginMetadata(
     )
 )
 
-get_cookie = on_command('myb', aliases={'cookie填写', 'cookie'}, priority=4, block=True)
+get_cookie = on_command('cookie', aliases={'cookie填写', 'cookie'}, priority=4, block=True)
 get_cookie.__help__ = {
     "usage":     "get_cookie",
     "introduce": "通过电话获取验证码方式获取cookie"
@@ -31,7 +32,6 @@ get_cookie.__help__ = {
 @get_cookie.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
     state['qq_account'] = event.user_id
-    print(state['qq_account'])
     await get_cookie.send('获取cookie过程分为三步：\n1.发送手机号\n2.登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送\n3.刷新页面，再次获取验证码并发送\n过程中随时输入退出即可退出')
 
 @get_cookie.got('手机号', prompt='请输入您的手机号')
@@ -168,5 +168,5 @@ async def get_cookie_2(phone, captcha, state: T_State):
     state['cookie'] = login_2_cookie
     state['cookie']['login_ticket'] = login_1_cookie["login_ticket"]
     state['cookie']['stoken'] = login_1_cookie["stoken"]
-    print(state['cookie'])
+    ... #写入cookie
     await get_cookie.finish("cookie获取成功")
