@@ -49,6 +49,7 @@ class UserAccount:
         self.cookie: dict[str, str] = None
         self.uid: AccountUID = AccountUID()
         self.deviceID: str = None
+        self.addressID: str = None
 
     def get(self, account: dict):
         self.name: str = account["name"]
@@ -56,6 +57,7 @@ class UserAccount:
         self.cookie: dict[str, str] = account["cookie"]
         self.uid = AccountUID(account["uid"])
         self.deviceID: str = account["xrpcDeviceID"]
+        self.addressID: str = account["addressID"]
 
     @property
     def to_dict(self) -> dict:
@@ -65,6 +67,7 @@ class UserAccount:
             "cookie": self.cookie,
             "uid": self.uid.to_dict,
             "xrpcDeviceID": self.deviceID,
+            "addressID": self.addressID
         }
 
 
