@@ -43,7 +43,9 @@ class Config(BaseModel, extra=Extra.ignore):
     NTP_SERVER: str = "ntp.aliyun.com"
     '''NTP服务器，用于获取网络时间'''
     MAX_RETRY_TIMES = 5
-    """网络请求失败后最多重试次数"""
+    '''网络请求失败后最多重试次数'''
+    SLEEP_TIME = 3
+    '''网络请求冷却时间'''
     device: DeviceConfig = DeviceConfig()
 
 
