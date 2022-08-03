@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.params import T_State, ArgPlainText
 from nonebot.plugin import PluginMetadata
-import requests
+import requests.utils
 import httpx
 from .config import mysTool_config as conf
 from .utils import *
@@ -84,12 +84,12 @@ async def get_cookie_1(phone, captcha, state: T_State):
         "Connection": "keep-alive",
         "sec-ch-ua": conf.device.UA,
         "DNT": "1",
-        "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL,
+        "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_PC,
         "sec-ch-ua-mobile": "?0",
         "User-Agent": conf.device.USER_AGENT_PC,
         "x-rpc-device_id": generateDeviceID(),
         "Accept": "application/json, text/plain, */*",
-        "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME,
+        "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_PC,
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "x-rpc-client_type": "4",
         "sec-ch-ua-platform": "\"macOS\"",
