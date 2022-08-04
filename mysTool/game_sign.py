@@ -3,6 +3,7 @@ import traceback
 from nonebot.log import logger
 from .config import mysTool_config as conf
 from .utils import *
+from .data import UserAccount
 
 ACT_ID = {
     "ys": "e202009291139501"
@@ -63,9 +64,9 @@ class Award:
 class Sign:
 
 
-    def __init__(self, cookie:dict, deviceID:str) -> None:
-        self.cookie = cookie
-        self.deviceID = deviceID
+    def __init__(self, account: UserAccount) -> None:
+        self.cookie = account.cookie
+        self.deviceID = account.deviceID
 
     async def reward(self, game:str):
         res: httpx.Response = await httpx.get(URL_REWARD[game], headers=HEADERS_REWARD)
@@ -78,5 +79,5 @@ class Sign:
             print("网络连接失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def sign(game:str):
+    async def info(game:str):
         ...
