@@ -17,14 +17,20 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
     await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入退出即可退出")
     qq_account = event.user_id
     user_account = UserData.read_account_all(qq_account)
+    state['qq_account'] = qq_account
     if len(user_account) == 0:
         await get_address.finish("你没有配置cookie，请先配置cookie！")
     elif len(user_account) == 1:
         account = user_account[0]
     else:
-        get_address.send('您有多个账号，您要配置一下哪个账号的地址ID？')
-        ... # 发送账号
-        ...
+        phone = get_address.got('您有多个账号，您要配置一下哪个账号的地址ID？')
+        phones = [user_account[i].phone for i in len(user_account)]
+        await get_address.send(','.join(phones))
+        if phone in phones:
+            account = UserData.read_account(qq_account, phone)
+        else:
+            get_address.reject('您输入的账号不在以上账号内，清授信输入')
+    state['account'] = account
     get_address__(account, state)
 
 
@@ -34,11 +40,9 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
         get_address.finish("已成功退出")
     if address_id in state['address_id']:
         state["address_id"] = address_id
-
-        account = UserData.read_account(..., ...) # QQ、手机号
+        account = state["account"]
         account.addressID = address_id
-        UserData.set_account(account, ..., ...) # QQ、手机号
-
+        UserData.set_account(account, state['qq_account'], account.phone)
         get_address.finish("地址写入完成")
     else:
         get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
