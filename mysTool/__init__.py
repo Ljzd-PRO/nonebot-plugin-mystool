@@ -76,9 +76,9 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     try:
         int(captcha2)
     except:
-        await get_cookie.reject("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     if len(captcha2) != 6:
-        await get_cookie.reject("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
         await get_cookie_2(state['phone'], captcha2, state)
     print(state['cookie'])
