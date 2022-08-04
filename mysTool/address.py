@@ -93,7 +93,7 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
         if phone in phones:
             account = UserData.read_account(qq_account, phone)
         else:
-            get_address.reject('您输入的账号不在以上账号内，清授信输入')
+            get_address.reject('您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
     get_address__(account, state)
 
