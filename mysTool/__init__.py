@@ -6,13 +6,14 @@ import requests.utils
 import httpx
 from .config import mysTool_config as conf
 from .utils import *
+from .data import UserData
 
 __plugin_meta__ = PluginMetadata(
     name="原神签到、米游币获取、米游币兑换插件",
     description="通过手机号获取cookie，每日自动原神签到、获取米游币，可制定米游币兑换计划",
     usage=(
         "get_cookie 跟随指引获取cookie\n"
-        "get_address 获取地址ID"
+        "get_address 获取地址ID\n"
         "get_myb 订阅每日自动获取米游币计划\n"
         "get_yuanshen 订阅每日自动原神签到计划\n"
         "myb_info 查看米游币数量\n"
@@ -41,38 +42,43 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainTex
     try:
         phone_num = int(phone)
     except:
-        await get_cookie.finish("手机号应为11位数字，程序已退出")
+        await get_cookie.finish("手机号应为11位数字，请重新输入")
     if len(phone) != 11:
-        await get_cookie.finish("手机号应为11位数字，程序已退出")
+        await get_cookie.finish("手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone_num
 
-@get_cookie.got('验证码1', prompt='请在浏览器打开https://user.mihoyo.com/#/login/captcha，输入手机号，获取验证码并发送（不要登录！）')
+@get_cookie.handle()
+async def _(event: PrivateMessageEvent, state: T_State):
+    await get_cookie.send('登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送（不要登录！）')
+
+@get_cookie.got("验证码1",prompt='请输入验证码')
 async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
-    await get_cookie.send("请输入验证码")
     if captcha1 == '退出':
         await get_cookie.finish("已成功退出")
     try:
         int(captcha1)
     except:
-        await get_cookie.finish("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     if len(captcha1) != 6:
-        await get_cookie.finish("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
         await get_cookie_1(state['phone'], captcha1, state)
 
+@get_cookie.handle()
+async def _(event: PrivateMessageEvent, state: T_State):
+    await get_cookie.send('请刷新浏览器，再次输入手机号，获取验证码并发送（不要登录！）')
 
-@get_cookie.got('验证码2', prompt='请刷新浏览器，再次输入手机号，获取验证码并发送（不要登录！）')
+@get_cookie.got('验证码2', prompt='请输入验证码')
 async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlainText('验证码2')):
-    await get_cookie.send("请输入验证码")
     if captcha2 == '退出':
         await get_cookie.finish("已成功退出")
     try:
         int(captcha2)
     except:
-        await get_cookie.finish("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，程序已退出")
     if len(captcha2) != 6:
-        await get_cookie.finish("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，程序已退出")
     else:
         await get_cookie_2(state['phone'], captcha2, state)
     print(state['cookie'])
@@ -162,11 +168,11 @@ async def get_cookie_2(phone, captcha, state: T_State):
         login_2_req.cookies.jar)
 
     if "cookie_token" not in login_2_cookie:
-        await get_cookie.finish("由于Cookie缺少cookie_token，无法继续，清歌稍后再试")
+        await get_cookie.finish("由于Cookie缺少cookie_token，无法继续，请稍后再试")
 
     login_1_cookie = state['cookie']
     state['cookie'] = login_2_cookie
     state['cookie']['login_ticket'] = login_1_cookie["login_ticket"]
     state['cookie']['stoken'] = login_1_cookie["stoken"]
-    ... #写入cookie
+    UserData.set_cookie(state['cookie'], state['qq_account'], state['phone'])
     await get_cookie.finish("cookie获取成功")
