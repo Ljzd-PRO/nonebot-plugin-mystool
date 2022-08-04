@@ -2,8 +2,9 @@ import nonebot
 import json
 from nonebot.log import logger
 from pydantic import BaseModel, Extra, ValidationError
-from utils import *
+from pathlib import Path
 
+PATH = Path(__file__).parent.absolute()
 config_path = PATH / "data" / "config.json"
 
 # 模拟设备设置
