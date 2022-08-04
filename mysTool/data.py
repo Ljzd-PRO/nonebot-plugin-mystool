@@ -2,7 +2,7 @@ import json
 import nonebot
 from typing import Union
 from nonebot.log import logger
-from utils import *
+from .utils import *
 from .config import mysTool_config as conf
 
 ENCODING = "utf-8"
