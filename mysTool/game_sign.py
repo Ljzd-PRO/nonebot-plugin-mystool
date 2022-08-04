@@ -9,7 +9,7 @@ from typing import Literal
 ACT_ID = {
     "ys": "e202009291139501"
 }
-URL_REWARD = {
+URLS = {
     "ys": {
         "reward": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id={}".format(ACT_ID["ys"]),
         "info": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={actID}&region={region}&uid={uid}",
@@ -17,7 +17,6 @@ URL_REWARD = {
     }
 }
 URL_GAME_ROLE = "https://api-takumi.mihoyo.com/binding/api/getUserGameRoles?point_sn=myb&action_ticket={actionTicket}&game_biz={game_biz}"
-URL_SIGN = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
 
 HEADERS_REWARD = {
     "Host": "api-takumi.mihoyo.com",
@@ -54,6 +53,7 @@ class Award:
     """
     签到奖励数据
     """
+
     def __init__(self, awards_dict: dict) -> None:
         self.awards_dict = awards_dict
 
@@ -74,6 +74,7 @@ class Info:
     """
     签到记录数据
     """
+
     def __init__(self, info_dict: dict) -> None:
         self.info_dict = info_dict
 
@@ -117,6 +118,7 @@ class Sign:
     """
     签到相关(需先初始化对象)
     """
+
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
         self.deviceID = account.deviceID
@@ -125,7 +127,7 @@ class Sign:
         """
         获取签到奖励信息
         """
-        res: httpx.Response = await httpx.get(URL_REWARD[game]["reward"], headers=HEADERS_REWARD)
+        res: httpx.Response = await httpx.get(URLS[game]["reward"], headers=HEADERS_REWARD)
         try:
             return Award(res.json()["data"]["awards"])
         except KeyError:
@@ -135,13 +137,13 @@ class Sign:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def info(account: UserAccount, game: Literal["ys"]):
+    async def info(self, game: Literal["ys"]):
         """
         获取签到记录
         """
         headers = HEADERS_OTHER.copy()
-        headers["x-rpc-device_id"] = account.deviceID
-        res: httpx.Response = await httpx.get(URL_REWARD[game]["info"], headers=headers, cookies=account.cookie)
+        headers["x-rpc-device_id"] = self.deviceID
+        res: httpx.Response = await httpx.get(URLS[game]["info"], headers=headers, cookies=self.cookie)
         try:
             return Info(res.json()["data"])
         except KeyError:
