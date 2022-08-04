@@ -42,7 +42,6 @@ class UserAccount:
     """
     用户的米哈游账户数据
     """
-
     def __init__(self) -> None:
         self.name: str = None
         self.phone: int = None
@@ -53,6 +52,16 @@ class UserAccount:
         self.bbsUID: str = None
 
     def get(self, account: dict):
+        # 适配旧版本的dict
+        sample = UserAccount().to_dict
+        if account.keys() != sample.keys():
+            add = sample.keys() - account.keys()
+            remove = account.keys() - sample.keys()
+            for key in add:
+                account.setdefault(key, sample[key])
+            for key in remove:
+                account.pop(key)
+
         self.name: str = account["name"]
         self.phone: int = account["phone"]
         self.cookie: dict[str, str] = account["cookie"]
