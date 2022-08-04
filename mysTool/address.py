@@ -118,7 +118,7 @@ async def get_address__(account: UserAccount, state: T_State):
         address_list: list[Address] = get(account)
     except:
         await get_address.finish("请求失败")
-    if not address_list:
+    if address_list:
         await get_address.send("以下为查询结果：")
         for address in address_list:
             address_string = f"""\
