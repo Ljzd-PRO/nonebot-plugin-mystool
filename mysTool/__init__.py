@@ -156,14 +156,15 @@ async def get_cookie_2(phone, captcha, state: T_State):
         login_2_req = httpx.post(
             "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile", headers=login_2_headers, json={
                 "is_bh2": False,
-                "mobile": phone,
+                "mobile": str(phone),
                 "captcha": captcha,
                 "action_type": "login",
                 "token_type": 6
             })
     except:
-        await get_cookie.finish(" 登录失败，请稍后再试")
+        await get_cookie.finish("登录失败，请稍后再试")
 
+    a = login_2_req.text
     login_2_cookie = requests.utils.dict_from_cookiejar(
         login_2_req.cookies.jar)
 
