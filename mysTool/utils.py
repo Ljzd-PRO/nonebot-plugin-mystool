@@ -1,7 +1,6 @@
 import random
 import string
 import time
-import httpx
 import ntplib
 import hashlib
 import nonebot
@@ -14,6 +13,7 @@ driver = nonebot.get_driver()
 PATH = Path(__file__).parent.absolute()
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
+URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
@@ -35,7 +35,16 @@ HEADERS_ACTION_TICKET = {
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
     "x-rpc-platform": conf.device.X_RPC_PLATFORM
 }
-
+HEADERS_GAME_RECORD = {
+    "Host": "api-takumi-record.mihoyo.com",
+    "Origin": "https://webstatic.mihoyo.com",
+    "Connection": "keep-alive",
+    "Accept": "application/json, text/plain, */*",
+    "User-Agent": conf.device.USER_AGENT_MOBILE,
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Referer": "https://webstatic.mihoyo.com/",
+    "Accept-Encoding": "gzip, deflate, br"
+}
 
 class NtpTime():
     """
@@ -126,10 +135,3 @@ def get_DS():
         f"salt=b253c83ab2609b1b600eddfe974df47b&t={t}&r={a}".encode(
             encoding="utf-8")).hexdigest()
     return f"{t},{a},{re}"
-
-
-async def get_action_ticket(cookie: dict) -> str:
-    headers = HEADERS_ACTION_TICKET.copy()
-    headers["DS"] = get_DS()
-    res: httpx.Response = await httpx.get(URL_ACTION_TICKET, headers=headers, cookies=cookie)
-    return res["data"]["ticket"]
