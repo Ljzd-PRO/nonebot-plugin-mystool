@@ -17,19 +17,19 @@ class AccountUID:
     """
 
     def __init__(self) -> None:
-        self.ys: int = None
-        self.bh3: int = None
-        self.bh2: int = None
-        self.wd: int = None
+        self.ys: str = None
+        self.bh3: str = None
+        self.bh2: str = None
+        self.wd: str = None
 
-    def get(self, uid: dict[str, int]):
-        self.ys: int = uid["ys"]
-        self.bh3: int = uid["bh3"]
-        self.bh2: int = uid["bh2"]
-        self.wd: int = uid["wd"]
+    def get(self, uid: dict[str, str]):
+        self.ys: str = uid["ys"]
+        self.bh3: str = uid["bh3"]
+        self.bh2: str = uid["bh2"]
+        self.wd: str = uid["wd"]
 
     @property
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str]:
         return {
             "ys": self.ys,
             "bh3": self.bh3,
@@ -47,17 +47,19 @@ class UserAccount:
         self.name: str = None
         self.phone: int = None
         self.cookie: dict[str, str] = None
-        self.uid: AccountUID = AccountUID()
+        self.gameUID: AccountUID = AccountUID()
         self.deviceID: str = None
         self.addressID: str = None
+        self.bbsUID: str = None
 
     def get(self, account: dict):
         self.name: str = account["name"]
         self.phone: int = account["phone"]
         self.cookie: dict[str, str] = account["cookie"]
-        self.uid = AccountUID(account["uid"])
+        self.gameUID = AccountUID(account["gameUID"])
         self.deviceID: str = account["xrpcDeviceID"]
         self.addressID: str = account["addressID"]
+        self.bbsUID: str = account["bbsUID"]
 
     @property
     def to_dict(self) -> dict:
@@ -65,9 +67,10 @@ class UserAccount:
             "name": self.name,
             "phone": self.phone,
             "cookie": self.cookie,
-            "uid": self.uid.to_dict,
+            "gameUID": self.gameUID.to_dict,
             "xrpcDeviceID": self.deviceID,
-            "addressID": self.addressID
+            "addressID": self.addressID,
+            "bbsUID": self.bbsUID
         }
 
 
@@ -133,7 +136,8 @@ class UserData:
         参数:
             userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(USERDATA_PATH, "w", encoding=ENCODING), indent=4, ensure_ascii=False)
+        json.dump(userdata, open(USERDATA_PATH, "w",
+                  encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
     def __create_user(cls, userdata: dict, qq: int) -> dict:
@@ -202,13 +206,16 @@ class UserData:
             for account in UserData.__read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
+                    for item in ("login_uid", "stuid", "ltuid", "account_id"):
+                        if item in cookie:
+                            account["gameUID"] = cookie[item]
+                            break
                     UserData.__set_all(userdata)
                     return True
             return False
 
-        if not action():
+        while not action():
             userdata = UserData.__create_account(userdata, qq, name, phone)
-        action()
 
 
 @driver.on_startup
