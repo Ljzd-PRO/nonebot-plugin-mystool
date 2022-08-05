@@ -96,7 +96,7 @@ class UserData:
         """
         获取所有用户数据
         """
-        return json.load(open(USERDATA_PATH), encoding=ENCODING)
+        return json.load(open(USERDATA_PATH))
 
     def read_account(qq: int, by: Union[int, str]):
         """
