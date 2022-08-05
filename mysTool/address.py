@@ -148,7 +148,7 @@ async def get_address__(account: UserAccount, state: T_State):
     state['address_id'] = []
 
     try:
-        address_list: list[Address] = get(account)
+        address_list: list[Address] = await get(account)
     except:
         await get_address.finish("请求失败")
     if address_list:
