@@ -70,7 +70,7 @@ class GetCookie:
             if item in self.cookie:
                 self.bbsUID = self.cookie[item]
                 break
-        if self.bbsUID is None:
+        if not self.bbsUID:
             return -1
 
         return True
@@ -134,7 +134,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
     if len(captcha1) != 6:
         await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
-        status: int = await state['getCookie'].get_1(captcha1)
+        status: int = state['getCookie'].get_1(captcha1)
         if status == 0:
             await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
         elif status == 1:
@@ -157,7 +157,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     if len(captcha2) != 6:
         await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
-        status: bool = await state["getCookie"].get_2(captcha2)
+        status: bool = state["getCookie"].get_2(captcha2)
         if not status:
             await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
 
