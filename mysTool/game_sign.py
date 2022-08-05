@@ -12,11 +12,15 @@ ACT_ID = {
 URLS = {
     "ys": {
         "reward": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id={}".format(ACT_ID["ys"]),
-        "info": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={actID}&region={region}&uid={uid}",
+        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={actID}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
+    },
+    "bh3": {
+        "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["ys"]),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={actID}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
+        "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     }
 }
-URL_GAME_ROLE = "https://api-takumi.mihoyo.com/binding/api/getUserGameRoles?point_sn=myb&action_ticket={actionTicket}&game_biz={game_biz}"
 
 HEADERS_REWARD = {
     "Host": "api-takumi.mihoyo.com",
@@ -124,7 +128,7 @@ class GameSign:
         self.deviceID = account.deviceID
         self.signResult: dict = None
 
-    async def reward(self, game: Literal["ys"]):
+    async def reward(self, game: Literal["ys", "bh3"]):
         """
         获取签到奖励信息
         """
@@ -139,7 +143,7 @@ class GameSign:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def info(self, game: Literal["ys"]):
+    async def info(self, game: Literal["ys", "bh3"]):
         """
         获取签到记录
         """
@@ -156,7 +160,7 @@ class GameSign:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def sign(self, game: Literal["ys"]):
+    async def sign(self, game: Literal["ys", "bh3"]):
         """
         签到
 
@@ -169,7 +173,7 @@ class GameSign:
             res = await client.get(URLS[game]["sign"], headers=headers, cookies=self.cookie)
         try:
             self.signResult = res.json()
-            if self.signResult["data"]["success"] == 0:
+            if (game == "ys" and self.signResult["data"]["success"] == 0) or (game == "bh3" and self.signResult["data"]["message"] == ""):
                 return True
             else:
                 return False
