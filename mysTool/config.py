@@ -9,6 +9,11 @@ config_path = PATH / "data" / "config.json"
 
 # 模拟设备设置
 class DeviceConfig(BaseModel, extra=Extra.ignore):
+    """
+    设备信息
+
+    DS算法与设备信息有关联，非必要请勿修改
+    """
     USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.25.1"
     '''移动端 User-Agent'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
