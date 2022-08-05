@@ -110,9 +110,9 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainTex
     try:
         phone_num = int(phone)
     except:
-        await get_cookie.finish("手机号应为11位数字，请重新输入")
+        await get_cookie.reject("手机号应为11位数字，请重新输入")
     if len(phone) != 11:
-        await get_cookie.finish("手机号应为11位数字，请重新输入")
+        await get_cookie.reject("手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone_num
         state['getCookie'] = GetCookie(event.user_id, phone_num)
@@ -153,9 +153,9 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     try:
         int(captcha2)
     except:
-        await get_cookie.reject("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     if len(captcha2) != 6:
-        await get_cookie.reject("验证码应为6位数字，程序已退出")
+        await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
         status: bool = await state["getCookie"].get_2(captcha2)
         if not status:
