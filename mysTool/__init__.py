@@ -1,5 +1,5 @@
 from nonebot.plugin import PluginMetadata
-from . import *
+from . import login, address, timing
 
 __plugin_meta__ = PluginMetadata(
     name="原神签到、米游币获取、米游币兑换插件",
