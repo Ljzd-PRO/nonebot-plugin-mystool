@@ -5,10 +5,9 @@ from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.params import T_State, ArgPlainText
 from .data import UserAccount, UserData
 from nonebot import on_command, require, get_bots
-from nonebot.adapters.cqhttp import MessageSegment
 import asyncio
 from nonebot.permission import SUPERUSER
-from game_sign import *
+from .game_sign import *
 
 
 sign_timing = require("nonebot_plugin_apscheduler").scheduler
