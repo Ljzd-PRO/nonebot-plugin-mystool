@@ -38,8 +38,9 @@ HEADERS_GAME_RECORD = {
     "Accept-Encoding": "gzip, deflate, br"
 }
 
+
 class GameRecord:
-    def __init__(self, gameRecord_dict:dict) -> None:
+    def __init__(self, gameRecord_dict: dict) -> None:
         self.gameRecord_dict = gameRecord_dict
 
     @property
@@ -73,6 +74,7 @@ async def get_action_ticket(account: UserAccount) -> str:
     async with httpx.AsyncClient() as client:
         res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie)
     return res["data"]["ticket"]
+
 
 async def get_game_record(account: UserAccount) -> list[GameRecord]:
     record_list = []
