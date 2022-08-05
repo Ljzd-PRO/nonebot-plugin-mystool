@@ -23,7 +23,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''移动端 x-rpc-device_name'''
     X_RPC_DEVICE_NAME_PC: str = "Microsoft Edge 103.0.1264.62"
     '''桌面端 x-rpc-device_name'''
-    X_RPC_APP_VERSION: str = "2.23.1"
+    X_RPC_APP_VERSION: str = "2.34.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_SYS_VERSION: str = "15.1"
     '''Headers所用的 x-rpc-sys_version'''

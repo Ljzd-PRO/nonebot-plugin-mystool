@@ -122,12 +122,11 @@ def get_DS():
     获取Headers中所需DS
     """
     # DS 加密算法:
-    # 1. https://github.com/lhllhx/miyoubi/issues/3
-    # 2. https://github.com/jianggaocheng/mihoyo-signin/blob/master/lib/mihoyoClient.js
+    # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
     t = int(NtpTime.time())
     a = "".join(random.sample(
         string.ascii_lowercase + string.digits, 6))
     re = hashlib.md5(
-        f"salt=b253c83ab2609b1b600eddfe974df47b&t={t}&r={a}".encode(
+        f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode(
             encoding="utf-8")).hexdigest()
     return f"{t},{a},{re}"
