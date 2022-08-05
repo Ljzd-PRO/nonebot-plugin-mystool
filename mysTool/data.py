@@ -153,7 +153,7 @@ class UserData:
         """
         创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(qq, cls.__USER_SAMPLE)
+        userdata.setdefault(str(qq), cls.__USER_SAMPLE)
         return userdata
 
     def __create_account(userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
