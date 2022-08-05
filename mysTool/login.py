@@ -48,6 +48,7 @@ class GetCookie:
     """
     获取Cookie(需先初始化对象)
     """
+
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
         self.bbsUID: str = None

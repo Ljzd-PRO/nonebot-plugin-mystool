@@ -8,6 +8,8 @@ PATH = Path(__file__).parent.absolute()
 config_path = PATH / "data" / "config.json"
 
 # 模拟设备设置
+
+
 class DeviceConfig(BaseModel, extra=Extra.ignore):
     """
     设备信息
@@ -40,6 +42,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''Headers所用的 sec-ch-ua'''
     UA_PLATFORM: str = "\"macOS\""
     '''Headers所用的 sec-ch-ua-platform'''
+
 
 class Config(BaseModel, extra=Extra.ignore):
     ENCODING: bool = "utf-8"

@@ -47,6 +47,7 @@ HEADERS_GAME_RECORD = {
     "Accept-Encoding": "gzip, deflate, br"
 }
 
+
 class NtpTime():
     """
     >>> NtpTime.time() #获取校准后的时间（如果校准成功）

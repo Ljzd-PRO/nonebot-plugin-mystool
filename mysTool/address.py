@@ -27,6 +27,7 @@ class Address:
     """
     地址数据
     """
+
     def __init__(self, adress_dict: dict) -> None:
         self.address_dict = adress_dict
 

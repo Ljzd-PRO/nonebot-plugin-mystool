@@ -42,6 +42,7 @@ class UserAccount:
     """
     用户的米哈游账户数据
     """
+
     def __init__(self) -> None:
         self.name: str = None
         self.phone: int = None
