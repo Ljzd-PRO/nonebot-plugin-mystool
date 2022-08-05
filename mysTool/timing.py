@@ -7,7 +7,7 @@ from .data import UserAccount, UserData
 from nonebot import on_command, require, get_bots
 import asyncio
 from nonebot.permission import SUPERUSER
-from .game_sign import *
+from .gameSign import *
 
 
 sign_timing = require("nonebot_plugin_apscheduler").scheduler
