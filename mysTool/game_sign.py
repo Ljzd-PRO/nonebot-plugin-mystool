@@ -114,14 +114,15 @@ class Info:
         return self.info_dict["sign_cnt_missed"]
 
 
-class Sign:
+class GameSign:
     """
-    签到相关(需先初始化对象)
+    游戏签到相关(需先初始化对象)
     """
 
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
         self.deviceID = account.deviceID
+        self.signResult: dict = None
 
     async def reward(self, game: Literal["ys"]):
         """
@@ -153,4 +154,28 @@ class Sign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+    async def sign(self, game: Literal["ys"]):
+        """
+        签到
+
+        若签到成功，返回 `True`\n
+        若签到失败，返回 `False`
+        """
+        headers = HEADERS_OTHER.copy()
+        headers["x-rpc-device_id"] = self.deviceID
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URLS[game]["sign"], headers=headers, cookies=self.cookie)
+        try:
+            self.signResult = res.json()
+            if self.signResult["data"]["success"] == 0:
+                return True
+            else:
+                return False
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        except:
+            logger.error(conf.LOG_HEAD + "签到 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
