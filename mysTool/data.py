@@ -203,7 +203,7 @@ class UserData:
             by: 索引依据，可为备注名或手机号
         """
         userdata = UserData.__read_all()
-        name, phone = None
+        name, phone = None, None
         if isinstance(by, str):
             by_type = "name"
         else:
