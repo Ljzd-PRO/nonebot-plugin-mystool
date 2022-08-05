@@ -45,10 +45,14 @@ HEADERS_2 = {
 
 
 class GetCookie:
+    """
+    获取Cookie(需先初始化对象)
+    """
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
         self.bbsUID: str = None
         self.cookie: dict = None
+        '''获取到的Cookie数据'''
         self.client = httpx.AsyncClient()
         account = UserData.read_account(qq, phone)
         if account is None:
@@ -57,6 +61,9 @@ class GetCookie:
             self.deviceID = account.deviceID
 
     async def get_1(self, captcha: str):
+        """
+        第一次获取Cookie(目标是login_ticket)
+        """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
         res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha))
@@ -73,6 +80,9 @@ class GetCookie:
         return True
 
     async def get_2(self, captcha: str):
+        """
+        第二次获取Cookie(目标是cookie_token)
+        """
         res = await self.client.post(URL_2, headers=HEADERS_2, json={
             "is_bh2": False,
             "mobile": self.phone,
