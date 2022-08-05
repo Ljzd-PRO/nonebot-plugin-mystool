@@ -7,6 +7,7 @@ import nonebot
 from pathlib import Path
 from .config import mysTool_config as conf
 from nonebot.log import logger
+import uuid
 
 driver = nonebot.get_driver()
 
@@ -84,12 +85,7 @@ def generateDeviceID() -> str:
     """
     生成随机的x-rpc-device_id
     """
-    return "".join(random.sample(string.ascii_letters + string.digits,
-                                 8)).lower() + "-" + "".join(random.sample(string.ascii_letters + string.digits,
-                                                                           4)).lower() + "-" + "".join(random.sample(string.ascii_letters + string.digits,
-                                                                                                                     4)).lower() + "-" + "".join(random.sample(string.ascii_letters + string.digits,
-                                                                                                                                                               4)).lower() + "-" + "".join(random.sample(string.ascii_letters + string.digits,
-                                                                                                                                                                                                         12)).lower()
+    return str(uuid.uuid4()).upper()
 
 
 def cookie_str_to_dict(cookie_str: str) -> dict[str, str]:
