@@ -137,7 +137,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         status: int = state['getCookie'].get_1(captcha1)
         if status == 0:
             await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
-        elif status == 1:
+        elif status == -1:
             await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
 
 
