@@ -103,8 +103,8 @@ class UserData:
         获取用户的某个米游社帐号数据
 
         参数:
-            qq: 要查找的用户的QQ号
-            by: 索引依据，可为备注名或手机号
+            `qq`: 要查找的用户的QQ号
+            `by`: 索引依据，可为备注名或手机号
         """
         if isinstance(by, str):
             by_type = "name"
@@ -125,7 +125,7 @@ class UserData:
         获取用户的所有米游社帐号数据
 
         参数:
-            qq: 要查找的用户的QQ号
+            `qq`: 要查找的用户的QQ号
         """
         accounts = []
         try:
@@ -143,7 +143,7 @@ class UserData:
         写入用户数据文件(整体覆盖)
 
         参数:
-            userdata: 完整用户数据(包含所有用户)
+            `userdata`: 完整用户数据(包含所有用户)
         """
         json.dump(userdata, open(USERDATA_PATH, "w",
                   encoding=ENCODING), indent=4, ensure_ascii=False)
@@ -171,9 +171,9 @@ class UserData:
         设置用户的某个米游社帐号信息
 
         参数:
-            account: 米游社帐号信息
-            qq: 要设置的用户的QQ号
-            by: 索引依据，可为备注名或手机号
+            `account`: 米游社帐号信息
+            `qq`: 要设置的用户的QQ号
+            `by`: 索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict
         userdata = UserData.__read_all()
@@ -198,9 +198,9 @@ class UserData:
         设置用户的某个米游社帐号的Cookie
 
         参数:
-            cookie: Cookie数据
-            qq: 要设置的用户的QQ号
-            by: 索引依据，可为备注名或手机号
+            `cookie`: Cookie数据
+            `qq`: 要设置的用户的QQ号
+            `by`: 索引依据，可为备注名或手机号
         """
         userdata = UserData.__read_all()
         name, phone = None, None
