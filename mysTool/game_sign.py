@@ -127,7 +127,8 @@ class Sign:
         """
         获取签到奖励信息
         """
-        res: httpx.Response = await httpx.get(URLS[game]["reward"], headers=HEADERS_REWARD)
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URLS[game]["reward"], headers=HEADERS_REWARD)
         try:
             return Award(res.json()["data"]["awards"])
         except KeyError:
@@ -143,7 +144,8 @@ class Sign:
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res: httpx.Response = await httpx.get(URLS[game]["info"], headers=headers, cookies=self.cookie)
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URLS[game]["info"], headers=headers, cookies=self.cookie)
         try:
             return Info(res.json()["data"])
         except KeyError:

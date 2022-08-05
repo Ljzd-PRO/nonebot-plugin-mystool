@@ -1,3 +1,4 @@
+from http import client
 import httpx
 from .config import mysTool_config as conf
 from .data import UserAccount
@@ -69,11 +70,13 @@ class GameRecord:
 async def get_action_ticket(account: UserAccount) -> str:
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = get_DS()
-    res: httpx.Response = await httpx.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie)
+    async with httpx.AsyncClient() as client:
+        res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie)
     return res["data"]["ticket"]
 
 async def get_game_record(account: UserAccount) -> list[GameRecord]:
     record_list = []
-    res: httpx.Response = await httpx.get(URL_GAME_RECORD.format(...), headers=HEADERS_GAME_RECORD, cookies=account.cookie)
+    async with httpx.AsyncClient() as client:
+        res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie)
     for record in res.json()["data"]["list"]:
         record_list.append(GameRecord(record))

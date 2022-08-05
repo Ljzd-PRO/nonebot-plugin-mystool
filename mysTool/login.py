@@ -47,9 +47,9 @@ HEADERS_2 = {
 class GetCookie:
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
-        self.cookie = None
-        self.bbsUID = None
-        self.loginTicket = None
+        self.bbsUID: str = None
+        self.cookie: dict = None
+        self.client = httpx.AsyncClient()
         account = UserData.read_account(qq, phone)
         if account is None:
             self.deviceID = generateDeviceID()
@@ -59,16 +59,13 @@ class GetCookie:
     async def get_1(self, captcha: str):
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res: httpx.Response = await httpx.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha))
-        self.cookie: dict = requests.utils.dict_from_cookiejar(res.cookies.jar)
-        if "login_ticket" not in self.cookie:
+        res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha))
+        if "login_ticket" not in res.cookies:
             return 0
-        else:
-            self.loginTicket = self.cookie["login_ticket"]
 
         for item in ("login_uid", "stuid", "ltuid", "account_id"):
-            if item in self.cookie:
-                self.bbsUID = self.cookie[item]
+            if item in res.cookies:
+                self.bbsUID = res.cookies[item]
                 break
         if not self.bbsUID:
             return -1
@@ -76,18 +73,21 @@ class GetCookie:
         return True
 
     async def get_2(self, captcha: str):
-        res: httpx.Response = await httpx.post(URL_2, headers=HEADERS_2, json={
+        res = await self.client.post(URL_2, headers=HEADERS_2, json={
             "is_bh2": False,
             "mobile": self.phone,
             "captcha": captcha,
             "action_type": "login",
             "token_type": 6
         })
-        self.cookie = dict(
-            self.cookie, **requests.utils.dict_from_cookiejar(res.cookies.jar))
-        if "cookie_token" not in self.cookie:
+        if "cookie_token" not in res.cookies:
             return False
+        await self.client.aclose()
+        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
         return True
+
+    async def __del__(self):
+        await self.client.aclose()
 
 
 get_cookie = on_command(

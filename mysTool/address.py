@@ -22,8 +22,9 @@ HEADERS = {
 
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 
+
 class Address:
-    def __init__(self, adress_dict:dict) -> None:
+    def __init__(self, adress_dict: dict) -> None:
         self.address_dict = adress_dict
 
     @property
@@ -59,8 +60,9 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
     address_list = []
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
-    res: httpx.Response = await httpx.get(URL.format(
-        time_now=round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie)
+    async with httpx.AsyncClient() as client:
+        res = await client.get(URL.format(
+            time_now=round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie)
     try:
         for address in res.json()["data"]["list"]:
             address_list.append(Address(address))
@@ -69,12 +71,14 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
     return address_list
 
 
-get_address = on_command('address', aliases={'地址填写', '地址', '地址获取'}, priority=4, block=True)
+get_address = on_command(
+    'address', aliases={'地址填写', '地址', '地址获取'}, priority=4, block=True)
 
 get_address.__help__ = {
     "usage":     "get_address",
     "introduce": "获取地址ID"
 }
+
 
 @get_address.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
@@ -98,7 +102,7 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
     get_address__(account, state)
 
 
-@get_address.got('address_id',prompt='请输入你要选择的地址ID(Address_ID)')
+@get_address.got('address_id', prompt='请输入你要选择的地址ID(Address_ID)')
 async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPlainText('address_id')):
     if address_id == "退出":
         get_address.finish("已成功退出")
@@ -110,6 +114,7 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
         get_address.finish("地址写入完成")
     else:
         get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
+
 
 async def get_address__(account: UserAccount, state: T_State):
     state['address_id'] = []
