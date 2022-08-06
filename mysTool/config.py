@@ -3,6 +3,7 @@ import json
 from nonebot.log import logger
 from pydantic import BaseModel, Extra, ValidationError
 from pathlib import Path
+from typing import Union
 
 PATH = Path(__file__).parent.absolute()
 config_path = PATH / "data" / "config.json"
@@ -20,7 +21,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''移动端 User-Agent'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
     '''桌面端 User-Agent'''
-    USER_AGENT_ACTION_TICKET: str = "Hyperion/177 CFNetwork/1331.0.7 Darwin/21.4.0"
+    USER_AGENT_OTHER: str = "Hyperion/177 CFNetwork/1331.0.7 Darwin/21.4.0"
     '''获取用户 ActionTicket 时Headers所用的 User-Agent'''
     X_RPC_DEVICE_MODEL_MOBILE: str = "iPhone10,2"
     '''移动端 x-rpc-device_model'''
@@ -53,10 +54,13 @@ class Config(BaseModel, extra=Extra.ignore):
     '''日志开头字符串'''
     NTP_SERVER: str = "ntp.aliyun.com"
     '''NTP服务器，用于获取网络时间'''
-    MAX_RETRY_TIMES = 5
+    MAX_RETRY_TIMES: int = 5
     '''网络请求失败后最多重试次数'''
-    SLEEP_TIME = 3
+    SLEEP_TIME: float = 3
     '''网络请求冷却时间'''
+    TIME_OUT: Union[float, None] = None
+    '''网络请求超时时间'''
+
     device: DeviceConfig = DeviceConfig()
 
 

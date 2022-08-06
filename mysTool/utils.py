@@ -18,7 +18,7 @@ URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/ge
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": conf.device.USER_AGENT_ACTION_TICKET,
+    "User-Agent": conf.device.USER_AGENT_OTHER,
     "Referer": "https://webstatic.mihoyo.com/",
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
     "Origin": "https://webstatic.mihoyo.com",
@@ -118,7 +118,7 @@ def cookie_dict_to_str(cookie_dict: dict[str, str]) -> str:
     return cookie_str
 
 
-def get_DS():
+def generateDS():
     """
     获取Headers中所需DS
     """

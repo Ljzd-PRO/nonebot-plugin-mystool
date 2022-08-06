@@ -1,4 +1,3 @@
-from http import client
 import httpx
 from .config import mysTool_config as conf
 from .data import UserAccount
@@ -9,7 +8,7 @@ URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/ge
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": conf.device.USER_AGENT_ACTION_TICKET,
+    "User-Agent": conf.device.USER_AGENT_OTHER,
     "Referer": "https://webstatic.mihoyo.com/",
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
     "Origin": "https://webstatic.mihoyo.com",
@@ -70,7 +69,7 @@ class GameRecord:
 
 async def get_action_ticket(account: UserAccount) -> str:
     headers = HEADERS_ACTION_TICKET.copy()
-    headers["DS"] = get_DS()
+    headers["DS"] = generateDS()
     async with httpx.AsyncClient() as client:
         res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie)
     return res["data"]["ticket"]
