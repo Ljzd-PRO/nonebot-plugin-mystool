@@ -93,7 +93,7 @@ class UserData:
     }
     '''QQ用户数据样例'''
 
-    def __read_all() -> dict:
+    def read_all() -> dict:
         """
         获取所有用户数据
         """
@@ -112,7 +112,7 @@ class UserData:
         else:
             by_type = "phone"
         try:
-            for account in UserData.__read_all()[str(qq)]["accounts"]:
+            for account in UserData.read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     userAccount = UserAccount()
                     userAccount.get(account)
@@ -130,7 +130,7 @@ class UserData:
         """
         accounts = []
         try:
-            accounts_raw = UserData.__read_all()[qq]["accounts"]
+            accounts_raw = UserData.read_all()[qq]["accounts"]
         except KeyError:
             pass
         for account_raw in accounts_raw:
@@ -177,7 +177,7 @@ class UserData:
             `by`: 索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict
-        userdata = UserData.__read_all()
+        userdata = UserData.read_all()
         if isinstance(by, str):
             by_type = "name"
         else:
@@ -203,7 +203,7 @@ class UserData:
             `qq`: 要设置的用户的QQ号
             `by`: 索引依据，可为备注名或手机号
         """
-        userdata = UserData.__read_all()
+        userdata = UserData.read_all()
         name, phone = None, None
         if isinstance(by, str):
             by_type = "name"
@@ -213,7 +213,7 @@ class UserData:
             userdata = UserData.__create_user(userdata, qq)
 
         def action() -> bool:
-            for account in UserData.__read_all()[str(qq)]["accounts"]:
+            for account in UserData.read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
                     for item in ("login_uid", "stuid", "ltuid", "account_id"):
