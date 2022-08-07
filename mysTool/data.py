@@ -45,12 +45,25 @@ class UserAccount:
 
     def __init__(self) -> None:
         self.name: str = None
+        '''备注名'''
         self.phone: int = None
+        '''绑定手机号'''
         self.cookie: dict[str, str] = None
+        '''Cookie'''
         self.gameUID: AccountUID = AccountUID()
+        '''游戏UID'''
         self.deviceID: str = None
+        '''设备 x-rpc-device_id'''
         self.addressID: str = None
+        '''地址ID'''
         self.bbsUID: str = None
+        '''米游社UID'''
+        self.mybMission: bool = True
+        '''是否开启米游币任务计划'''
+        self.gameSign: bool = True
+        '''是否开启米游社游戏签到计划'''
+        self.notice: bool = True
+        '''是否开启通知'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -78,6 +91,9 @@ class UserAccount:
         self.deviceID: str = account["xrpcDeviceID"]
         self.addressID: str = account["addressID"]
         self.bbsUID: str = account["bbsUID"]
+        self.mybMission: bool = account["mybMission"]
+        self.gameSign: bool = account["gameSign"]
+        self.notice: bool = account["notice"]
 
     @property
     def to_dict(self) -> dict:
@@ -88,7 +104,10 @@ class UserAccount:
             "gameUID": self.gameUID.to_dict,
             "xrpcDeviceID": self.deviceID,
             "addressID": self.addressID,
-            "bbsUID": self.bbsUID
+            "bbsUID": self.bbsUID,
+            "mybMission": self.mybMission,
+            "gameSign": self.gameSign,
+            "notice": self.notice
         }
 
 
@@ -103,7 +122,7 @@ class UserData:
 
     def read_all() -> dict:
         """
-        获取所有用户数据
+        以dict形式获取userdata.json
         """
         return json.load(open(USERDATA_PATH))
 
