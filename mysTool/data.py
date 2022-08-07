@@ -4,6 +4,7 @@ from typing import Union
 from nonebot.log import logger
 from .utils import *
 from .config import mysTool_config as conf
+from .address import Address
 
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "data" / "userdata.json"
@@ -28,7 +29,6 @@ class AccountUID:
         self.bh2: str = uid["bh2"]
         self.wd: str = uid["wd"]
 
-    @property
     def to_dict(self) -> dict[str, str]:
         return {
             "ys": self.ys,
@@ -54,7 +54,7 @@ class UserAccount:
         '''游戏UID'''
         self.deviceID: str = None
         '''设备 x-rpc-device_id'''
-        self.addressID: str = None
+        self.address: Address = None
         '''地址ID'''
         self.bbsUID: str = None
         '''米游社UID'''
@@ -75,7 +75,7 @@ class UserAccount:
                 account.setdefault(key, sample[key])
             for key in remove:
                 account.pop(key)
-        sample = AccountUID().to_dict
+        sample = AccountUID().to_dict()
         if account["gameUID"].keys() != sample.keys():
             add = sample.keys() - account["gameUID"].keys()
             remove = account["gameUID"].keys() - sample.keys()
@@ -87,9 +87,10 @@ class UserAccount:
         self.name: str = account["name"]
         self.phone: int = account["phone"]
         self.cookie: dict[str, str] = account["cookie"]
-        self.gameUID = AccountUID(account["gameUID"])
+        self.gameUID = AccountUID()
+        self.gameUID.get(account["gameUID"])
         self.deviceID: str = account["xrpcDeviceID"]
-        self.addressID: str = account["addressID"]
+        self.address  = Address(account["address"])
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
@@ -101,9 +102,9 @@ class UserAccount:
             "name": self.name,
             "phone": self.phone,
             "cookie": self.cookie,
-            "gameUID": self.gameUID.to_dict,
+            "gameUID": self.gameUID.to_dict(),
             "xrpcDeviceID": self.deviceID,
-            "addressID": self.addressID,
+            "address": self.address.address_dict,
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
             "gameSign": self.gameSign,
