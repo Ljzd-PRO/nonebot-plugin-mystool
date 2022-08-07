@@ -1,12 +1,13 @@
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, MessageSegment
+from nonebot.params import T_State
+from nonebot import on_command, require, get_bots
+from nonebot.permission import SUPERUSER
+import asyncio
+from .data import UserData
+from .bbsAPI import *
+from .gameSign import *
 from .config import mysTool_config as conf
 from .utils import *
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
-from nonebot.params import T_State, ArgPlainText
-from .data import UserAccount, UserData
-from nonebot import on_command, require, get_bots
-import asyncio
-from nonebot.permission import SUPERUSER
-from .gameSign import *
 
 
 bot, = get_bots().values()
@@ -18,25 +19,8 @@ sign_timing = require("nonebot_plugin_apscheduler").scheduler
 async def daily_sign():
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        accounts = UserData.read_account_all(qq)
-        for account in accounts:
-            gamesign = GameSign(account)
-            await gamesign.sign('ys')
-            if ...:
-                sign_award = await gamesign.reward('ys')
-                sign_info = await gamesign.info('ys')
-                account_info = ...
-                msg = f"""\
-                    今日签到成功！
-                    {...}
-                    今日签到奖励:
-                    {sign_award['name']} * {sign_award['count']}
-                """
-                await bot.send_msg(
-                    message_type="private",
-                    user_id=qq,
-                    message='这是一条私聊信息'
-                )
+        await send_sign_msg(qq)
+
 
 manually_sign = on_command(
     'sign', aliases={'签到', '手动签到'}, permission=SUPERUSER, priority=4, block=True)
@@ -44,8 +28,8 @@ manually_sign = on_command(
 
 @manually_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
-    await ...  # 签到函数
-    await manually_sign.send('已完成签到')
+    qq = event.user_id
+    await send_sign_msg(qq)
 
 update_timing = require("nonebot_plugin_apscheduler").scheduler
 
@@ -58,7 +42,31 @@ async def daily_update():
 manually_update = on_command('update_good', aliases={
                              '商品更新', '米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
 
-
+@manually_update.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
     await ...  # 米游社商品更新函数
-    await manually_sign.send('已完成商品更新')
+    await manually_update.send('已完成商品更新')
+
+
+async def send_sign_msg(qq):
+    accounts = UserData.read_account_all(qq)
+    for account in accounts:
+        gamesign = GameSign(account)
+        await gamesign.sign('ys')
+        if ...:
+            sign_award = await gamesign.reward('ys')
+            sign_info = await gamesign.info('ys')
+            account_info = await get_game_record(account)
+            msg = f"""\
+                {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                {account_info.nickname} {account_info.regionName} {account_info.level}
+                今日签到奖励：
+                {sign_award.name} * {sign_award.count}
+                本月签到次数： {sign_info.totalDays}\
+            """
+            img = MessageSegment.image(sign_award.icon)
+            await bot.send_msg(
+                message_type="private",
+                user_id=qq,
+                message=msg + img
+            )
