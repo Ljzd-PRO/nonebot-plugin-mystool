@@ -1,4 +1,3 @@
-from email import header
 import httpx
 from .config import mysTool_config as conf
 from .data import UserAccount
@@ -8,8 +7,9 @@ from asyncio import sleep
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.mihoyo.com/apihub/app/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort=create"
-URL_READ = "https://bbs-api.mihoyo.com/apihub/app/api/getPostFull?post_id={}"
-URL_LIKE = "https://api-takumi.mihoyo.com/apihub/sapi/upvotePost"
+URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
+URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
+URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
 HEADERS = {
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-cn",
@@ -83,15 +83,15 @@ class Mission:
 
     async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 3):
         headers = HEADERS.copy()
-
+        headers.setdefault("DS", None)
         count = 0
         postID_list = await self.get_posts(game)
         while count < readTimes:
             await sleep(conf.SLEEP_TIME)
-            headers["DS"] = generateDS()
             for postID in postID_list:
                 if count == readTimes:
                     break
+                headers["DS"] = generateDS()
                 res = await self.client.get(URL_READ.format(postID), headers=headers)
                 try:
                     "self_operation" in res.json()["data"]["post"]
@@ -104,15 +104,15 @@ class Mission:
 
     async def like(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], likeTimes: int = 10):
         headers = HEADERS.copy()
-
+        headers.setdefault("DS", None)
         count = 0
         postID_list = await self.get_posts(game)
         while count < likeTimes:
             await sleep(conf.SLEEP_TIME)
-            headers["DS"] = generateDS()
             for postID in postID_list:
                 if count == likeTimes:
                     break
+                headers["DS"] = generateDS()
                 res = await self.client.post(URL_LIKE, headers=headers, json={'is_cancel': False,  'post_id': postID})
                 try:
                     res.json()["data"] == "OK"
@@ -124,6 +124,8 @@ class Mission:
         return True
 
     async def share(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]):
+        headers = HEADERS.copy()
+        headers.setdefault("DS", generateDS())
         ...
 
     async def __del__(self):
