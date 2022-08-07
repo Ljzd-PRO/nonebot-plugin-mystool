@@ -123,5 +123,8 @@ class Mission:
 
         return True
 
+    async def share(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]):
+        ...
+
     async def __del__(self):
         await self.client.aclose()
