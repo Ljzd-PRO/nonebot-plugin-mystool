@@ -121,7 +121,7 @@ class UserData:
             pass
         return None
 
-    def read_account_all(qq: int) -> list[UserAccount]:
+    def read_account_all(qq: int) -> Union[list[UserAccount], None]:
         """
         获取用户的所有米游社帐号数据
 
@@ -132,7 +132,7 @@ class UserData:
         try:
             accounts_raw = UserData.read_all()[qq]["accounts"]
         except KeyError:
-            pass
+            return None
         for account_raw in accounts_raw:
             account = UserAccount()
             account.get(account_raw)
