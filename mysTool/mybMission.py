@@ -81,7 +81,7 @@ class Mission:
             return None
         return postID_list
 
-    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 3, likeTimes: int = 10):
+    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 3):
         headers = HEADERS.copy()
 
         count = 0
@@ -100,7 +100,13 @@ class Mission:
                     ...
             postID_list = await self.get_posts(game)
 
+        return True
+
+    async def like(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], likeTimes: int = 10):
+        headers = HEADERS.copy()
+
         count = 0
+        postID_list = await self.get_posts(game)
         while count < likeTimes:
             await sleep(conf.SLEEP_TIME)
             headers["DS"] = generateDS()
@@ -109,8 +115,7 @@ class Mission:
                     break
                 res = await self.client.post(URL_LIKE, headers=headers, json={'is_cancel': False,  'post_id': postID})
                 try:
-                    if ...:
-                        ...
+                    res.json()["data"] == "OK"
                     count += 1
                 except KeyError:
                     ...
