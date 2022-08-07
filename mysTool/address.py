@@ -127,17 +127,38 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
         else:
             get_address.reject('您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
-    get_address__(account, state)
+
+    try:
+        state['address_list']: list[Address] = await get(account)
+    except:
+        await get_address.finish("请求失败")
+    if state['address_list']:
+        await get_address.send("以下为查询结果：")
+        for address in state['address_list']:
+            address_string = f"""\
+            ----------
+            省：{address.province}
+            市：{address.city}
+            区/县：{address.county}
+            详细地址：{address.detail}
+            联系电话：{address.phone}
+            联系人：{address.name}
+            地址ID(Address_ID)：{address.addressID}
+            """
+            await get_address.send(address_string)
+    else:
+        await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID(Address_ID)')
 async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPlainText('address_id')):
     if address_id == "退出":
         get_address.finish("已成功退出")
-    if address_id in state['address_id']:
-        state["address_id"] = address_id
-        account = state["account"]
-        account.addressID = address_id
+    result_address = list(
+        filter(lambda address: address.addressID == address_id, state['address_list']))
+    if result_address:
+        account: UserAccount = state["account"]
+        account.address = result_address[0]
         UserData.set_account(account, state['qq_account'], account.phone)
         get_address.finish("地址写入完成")
     else:
