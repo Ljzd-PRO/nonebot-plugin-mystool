@@ -55,7 +55,7 @@ class UserAccount:
         self.deviceID: str = None
         '''设备 x-rpc-device_id'''
         self.address: Address = None
-        '''地址ID'''
+        '''地址数据'''
         self.bbsUID: str = None
         '''米游社UID'''
         self.mybMission: bool = True
@@ -90,7 +90,7 @@ class UserAccount:
         self.gameUID = AccountUID()
         self.gameUID.get(account["gameUID"])
         self.deviceID: str = account["xrpcDeviceID"]
-        self.address  = Address(account["address"])
+        self.address = Address(account["address"])
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
