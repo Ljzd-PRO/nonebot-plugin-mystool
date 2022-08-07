@@ -163,29 +163,3 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
         get_address.finish("地址写入完成")
     else:
         get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
-
-
-async def get_address__(account: UserAccount, state: T_State):
-    state['address_id'] = []
-
-    try:
-        address_list: list[Address] = await get(account)
-    except:
-        await get_address.finish("请求失败")
-    if address_list:
-        await get_address.send("以下为查询结果：")
-        for address in address_list:
-            address_string = f"""\
-            ----------
-            省：{address.province}
-            市：{address.city}
-            区/县：{address.county}
-            详细地址：{address.detail}
-            联系电话：{address.phone}
-            联系人：{address.name}
-            地址ID(Address_ID)：{address.addressID}
-            """
-            state['address_id'].append(address.addressID)
-            await get_address.send(address_string)
-    else:
-        await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
