@@ -62,6 +62,14 @@ class UserAccount:
                 account.setdefault(key, sample[key])
             for key in remove:
                 account.pop(key)
+        sample = AccountUID().to_dict
+        if account["gameUID"].keys() != sample.keys():
+            add = sample.keys() - account["gameUID"].keys()
+            remove = account["gameUID"].keys() - sample.keys()
+            for key in add:
+                account["gameUID"].setdefault(key, sample[key])
+            for key in remove:
+                account["gameUID"].pop(key)
 
         self.name: str = account["name"]
         self.phone: int = account["phone"]
