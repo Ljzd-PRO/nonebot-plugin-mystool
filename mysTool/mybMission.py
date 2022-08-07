@@ -10,7 +10,7 @@ from typing import Literal, Union
 from nonebot.log import logger
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
-URL_GET_POST = "https://bbs-api.mihoyo.com/apihub/app/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort=create"
+URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
 URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
 URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
 URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
@@ -18,7 +18,7 @@ HEADERS = {
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-cn",
     "Connection": "keep-alive",
-    "Host": "api-takumi.mihoyo.com",
+    "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
     'User-Agent': conf.device.USER_AGENT_OTHER,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
