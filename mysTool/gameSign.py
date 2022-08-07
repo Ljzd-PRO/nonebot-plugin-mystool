@@ -70,7 +70,7 @@ class Award:
         return self.awards_dict["icon"]
 
     @property
-    def name(self) -> int:
+    def count(self) -> int:
         return self.awards_dict["cnt"]
 
 
