@@ -81,3 +81,4 @@ async def get_game_record(account: UserAccount) -> list[GameRecord]:
         res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie)
     for record in res.json()["data"]["list"]:
         record_list.append(GameRecord(record))
+    return record_list
