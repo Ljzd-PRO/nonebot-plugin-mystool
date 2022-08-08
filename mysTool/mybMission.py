@@ -68,6 +68,9 @@ class Mission:
 
         参数:
             `game`: 游戏代号
+
+        若执行成功，返回 `True`\n
+        若执行失败，返回 `False`
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", generateDS())
@@ -82,7 +85,7 @@ class Mission:
 
     async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[list[str], None]:
         """
-        获取文章ID列表
+        获取文章ID列表，若返回None说明失败
 
         参数:
             `game`: 游戏代号
@@ -117,6 +120,9 @@ class Mission:
         参数:
             `game`: 游戏代号
             `readTimes`: 阅读文章数
+
+        若执行成功，返回 `True`\n
+        若执行失败，返回 `False`
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", None)
@@ -165,6 +171,9 @@ class Mission:
         参数:
             `game`: 游戏代号
             `likeTimes`: 点赞次数
+
+        若执行成功，返回 `True`\n
+        若执行失败，返回 `False`
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", None)
@@ -212,6 +221,9 @@ class Mission:
 
         参数:
             `game`: 游戏代号
+
+        若执行成功，返回 `True`\n
+        若执行失败，返回 `False`
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", generateDS())
