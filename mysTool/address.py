@@ -5,7 +5,7 @@ from typing import Union
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.params import T_State, ArgPlainText
-from .data import UserAccount, UserData
+from .data import UserAccount, UserData, Address
 
 HEADERS = {
     "Host": "api-takumi.mihoyo.com",
@@ -21,64 +21,6 @@ HEADERS = {
 }
 
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
-
-
-class Address:
-    """
-    地址数据
-    """
-
-    def __init__(self, adress_dict: dict) -> None:
-        self.address_dict = adress_dict
-
-    @property
-    def province(self) -> str:
-        """
-        省
-        """
-        return self.address_dict["province_name"]
-
-    @property
-    def city(self) -> str:
-        """
-        市
-        """
-        return self.address_dict["city_name"]
-
-    @property
-    def county(self) -> int:
-        """
-        区/县
-        """
-        return self.address_dict["county_name"]
-
-    @property
-    def detail(self) -> str:
-        """
-        详细地址
-        """
-        return self.address_dict["addr_ext"]
-
-    @property
-    def phone(self) -> str:
-        """
-        联系电话(包含区号)
-        """
-        return self.address_dict["connect_areacode"] + " " + self.address_dict["connect_mobile"]
-
-    @property
-    def name(self) -> int:
-        """
-        收货人姓名
-        """
-        return self.address_dict["connect_name"]
-
-    @property
-    def addressID(self) -> int:
-        """
-        地址ID
-        """
-        return self.address_dict["id"]
 
 
 async def get(account: UserAccount) -> Union[list[Address], None]:
