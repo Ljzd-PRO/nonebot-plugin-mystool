@@ -8,33 +8,35 @@ from .bbsAPI import *
 from .gameSign import *
 from .config import mysTool_config as conf
 from .utils import *
+from .mybMission import Mission
 
 
 bot, = get_bots().values()
-sign_timing = require("nonebot_plugin_apscheduler").scheduler
 
 
-# 此处应改为可由config读入签到时间
-@sign_timing.scheduled_job("cron", hour='0', minute='00', id="daily_sign")
-async def daily_sign():
+daily_game_sign = require("nonebot_plugin_apscheduler").scheduler
+@daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
+async def daily_game_sign_():
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        await send_sign_msg(qq)
+        await send_game_sign_msg(qq)
 
-
-manually_sign = on_command(
-    'sign', aliases={'签到', '手动签到'}, permission=SUPERUSER, priority=4, block=True)
-
-
-@manually_sign.handle()
+manually_game_sign = on_command(
+    'sign', aliases={'签到', '手动签到', '游戏签到', '原神签到'}, permission=SUPERUSER, priority=4, block=True)
+@manually_game_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
     qq = event.user_id
-    await send_sign_msg(qq)
+    await send_game_sign_msg(qq)
+
+daily_bbs_sign = require("nonebot_plugin_apscheduler").scheduler
+@daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
+async def daily_bbs_sign_():
+    qq_accounts = UserData.read_all().keys()
+    for qq in qq_accounts:
+        await send_bbs_sign_msg(qq)
+
 
 update_timing = require("nonebot_plugin_apscheduler").scheduler
-
-
-# 此处应改为可由config读入更新时间
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
     await ...  # 米游社商品更新函数
@@ -48,25 +50,50 @@ async def _(event: PrivateMessageEvent, state: T_State):
     await manually_update.send('已完成商品更新')
 
 
-async def send_sign_msg(qq):
+async def send_game_sign_msg(qq):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
-        await gamesign.sign('ys')
-        if ...:
-            sign_award = await gamesign.reward('ys')
-            sign_info = await gamesign.info('ys')
-            account_info = await get_game_record(account)
-            msg = f"""\
-                {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
-                {account_info.nickname} {account_info.regionName} {account_info.level}
-                今日签到奖励：
-                {sign_award.name} * {sign_award.count}
-                本月签到次数： {sign_info.totalDays}\
-            """
-            img = MessageSegment.image(sign_award.icon)
-            await bot.send_msg(
-                message_type="private",
-                user_id=qq,
-                message=msg + img
-            )
+        if account.gameSign:
+            await gamesign.sign('ys')
+            if account.notice:
+                sign_award = await gamesign.reward('ys')
+                sign_info = await gamesign.info('ys')
+                account_info = await get_game_record(account)
+                msg = f"""\
+                    {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                    {account_info.nickname} {account_info.regionName} {account_info.level}
+                    今日签到奖励：
+                    {sign_award.name} * {sign_award.count}
+                    本月签到次数： {sign_info.totalDays}\
+                """
+                img = MessageSegment.image(sign_award.icon)
+                await bot.send_msg(
+                    message_type="private",
+                    user_id=qq,
+                    message=msg + img
+                )
+
+async def send_bbs_sign_msg(qq):
+    accounts = UserData.read_account_all(qq)
+    for account in accounts:
+        gamesign = GameSign(account)
+        if account.gameSign:
+            await gamesign.sign('ys')
+            if account.notice:
+                sign_award = await gamesign.reward('ys')
+                sign_info = await gamesign.info('ys')
+                account_info = await get_game_record(account)
+                msg = f"""\
+                    {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                    {account_info.nickname} {account_info.regionName} {account_info.level}
+                    今日签到奖励：
+                    {sign_award.name} * {sign_award.count}
+                    本月签到次数： {sign_info.totalDays}\
+                """
+                img = MessageSegment.image(sign_award.icon)
+                await bot.send_msg(
+                    message_type="private",
+                    user_id=qq,
+                    message=msg + img
+                )
