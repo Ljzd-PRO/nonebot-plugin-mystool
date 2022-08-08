@@ -64,6 +64,9 @@ class NtpTime():
 
 @driver.on_startup
 def ntp_time_sync():
+    """
+    启动时校对互联网时间
+    """
     ntp_error_times = 0
     NtpTime.time_offset = 0
     while True:
