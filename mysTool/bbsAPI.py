@@ -1,3 +1,6 @@
+"""
+### 米游社其他API
+"""
 import httpx
 from .config import mysTool_config as conf
 from .data import UserAccount

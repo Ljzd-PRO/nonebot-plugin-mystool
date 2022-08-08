@@ -1,3 +1,6 @@
+"""
+### 米游币任务相关
+"""
 import httpx
 import traceback
 import asyncio
@@ -55,6 +58,7 @@ class Mission:
     """
     米游币任务相关(需先初始化对象)
     """
+
     def __init__(self, account: UserAccount) -> None:
         self.account = account
         self.cookie = {"stuid": account.bbsUID,

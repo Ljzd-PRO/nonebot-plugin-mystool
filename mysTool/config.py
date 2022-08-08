@@ -1,3 +1,6 @@
+"""
+### 插件配置相关
+"""
 import nonebot
 import json
 from nonebot.log import logger

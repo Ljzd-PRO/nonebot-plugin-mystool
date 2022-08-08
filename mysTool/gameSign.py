@@ -1,3 +1,6 @@
+"""
+### 米游社游戏签到相关
+"""
 import httpx
 import traceback
 from nonebot.log import logger

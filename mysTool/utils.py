@@ -1,3 +1,6 @@
+"""
+### 工具函数
+"""
 import random
 import string
 import time
