@@ -63,14 +63,23 @@ class Award:
 
     @property
     def name(self) -> str:
+        """
+        签到获得的物品名称
+        """
         return self.awards_dict["name"]
 
     @property
     def icon(self) -> str:
+        """
+        物品图片链接
+        """
         return self.awards_dict["icon"]
 
     @property
     def count(self) -> int:
+        """
+        物品数量
+        """
         return self.awards_dict["cnt"]
 
 
@@ -130,7 +139,7 @@ class GameSign:
 
     async def reward(self, game: Literal["ys", "bh3"]):
         """
-        获取签到奖励信息
+        获取签到奖励信息，若返回None说明失败
         """
         async with httpx.AsyncClient() as client:
             res = await client.get(URLS[game]["reward"], headers=HEADERS_REWARD)
@@ -142,10 +151,11 @@ class GameSign:
         except:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return None
 
     async def info(self, game: Literal["ys", "bh3"]):
         """
-        获取签到记录
+        获取签到记录，若返回None说明失败
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
@@ -159,6 +169,7 @@ class GameSign:
         except:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return None
 
     async def sign(self, game: Literal["ys", "bh3"]):
         """
