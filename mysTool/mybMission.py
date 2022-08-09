@@ -117,7 +117,7 @@ class Mission:
             return postID_list
         return None
 
-    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 3):
+    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 5):
         """
         阅读
 
