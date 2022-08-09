@@ -301,7 +301,7 @@ class UserData:
             userdata = UserData.__create_user(userdata, qq)
 
         def action() -> bool:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
+            for account in userdata[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
                     for item in ("login_uid", "stuid", "ltuid", "account_id"):
