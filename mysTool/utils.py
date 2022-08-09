@@ -7,48 +7,15 @@ import time
 import ntplib
 import hashlib
 import nonebot
-from pathlib import Path
-from .config import mysTool_config as conf
-from nonebot.log import logger
 import uuid
+from pathlib import Path
+from nonebot.log import logger
+from .config import mysTool_config as conf
+
 
 driver = nonebot.get_driver()
 
 PATH = Path(__file__).parent.absolute()
-
-URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
-URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
-HEADERS_ACTION_TICKET = {
-    "Host": "api-takumi.mihoyo.com",
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": conf.device.USER_AGENT_OTHER,
-    "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
-    "Origin": "https://webstatic.mihoyo.com",
-    "Content-Length": "66",
-    "Connection": "keep-alive",
-    "x-rpc-channel": conf.device.X_RPC_CHANNEL,
-    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "DS": None,
-    "x-rpc-device_id": None,
-    "x-rpc-client_type": "5",
-    "Accept": "application/json, text/plain, */*",
-    "Content-Type": "application/json;charset=utf-8",
-    "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
-    "x-rpc-platform": conf.device.X_RPC_PLATFORM
-}
-HEADERS_GAME_RECORD = {
-    "Host": "api-takumi-record.mihoyo.com",
-    "Origin": "https://webstatic.mihoyo.com",
-    "Connection": "keep-alive",
-    "Accept": "application/json, text/plain, */*",
-    "User-Agent": conf.device.USER_AGENT_MOBILE,
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "Referer": "https://webstatic.mihoyo.com/",
-    "Accept-Encoding": "gzip, deflate, br"
-}
 
 
 class NtpTime():
