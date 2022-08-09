@@ -15,12 +15,12 @@ ACT_ID = {
 URLS = {
     "ys": {
         "reward": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id={}".format(ACT_ID["ys"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={actID}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
     },
     "bh3": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["ys"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={actID}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     }
 }
