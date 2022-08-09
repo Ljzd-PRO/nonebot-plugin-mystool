@@ -11,7 +11,8 @@ from .utils import *
 from .data import UserData
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
-URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={loginTicket}&token_types=3&uid={bbsUID}"
+URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
+URL_3 = "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile"
 HEADERS_1 = {
     "Host": "webapi.account.mihoyo.com",
     "Connection": "keep-alive",
@@ -80,16 +81,29 @@ class GetCookie:
                 break
         if not self.bbsUID:
             return -1
-
+        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
         return True
 
-    async def get_2(self, captcha: str):
+    async def get_2(self):
+        """
+        第二次获取Cookie(目标是stoken)
+        """
+        try:
+            res = await self.client.post(URL_2.format(self.cookie["login_ticket"], self.bbsUID))
+            stoken = list(filter(
+                lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
+            self.cookie["stoken"] = stoken
+            return True
+        except:
+            return False
+
+    async def get_3(self, captcha: str):
         """
         第二次获取Cookie(目标是cookie_token)
         """
-        res = await self.client.post(URL_2, headers=HEADERS_2, json={
+        res = await self.client.post(URL_3, headers=HEADERS_2, json={
             "is_bh2": False,
-            "mobile": self.phone,
+            "mobile": str(self.phone),
             "captcha": captcha,
             "action_type": "login",
             "token_type": 6
@@ -97,8 +111,10 @@ class GetCookie:
         if "cookie_token" not in res.cookies:
             return False
         await self.client.aclose()
-        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
+        self.cookie = self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         return True
+
+    
 
     async def __del__(self):
         await self.client.aclose()
@@ -153,6 +169,10 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
             await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
         elif status == -1:
             await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
+    
+    status: bool = state["getCookie"].get_2
+    if not status:
+            await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
 
 
 @get_cookie.handle()
@@ -171,9 +191,9 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     if len(captcha2) != 6:
         await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
-        status: bool = await state["getCookie"].get_2(captcha2)
+        status: bool = await state["getCookie"].get_3(captcha2)
         if not status:
-            await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
+            await get_cookie.finish("获取cookie_token失败，一种可能是登录失效，请稍后再试")
 
     UserData.set_cookie(state['getCookie'].cookie,
                         event.user_id, state['phone'])
