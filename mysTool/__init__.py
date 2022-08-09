@@ -3,7 +3,7 @@ from nonebot import on_command
 from nonebot.params import T_State, ArgPlainText
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from . import login, address, timing
-from data import UserData
+from .data import UserData
 import asyncio
 
 __plugin_meta__ = PluginMetadata(
