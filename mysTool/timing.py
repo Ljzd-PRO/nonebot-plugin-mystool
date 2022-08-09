@@ -14,7 +14,7 @@ from .utils import *
 from .mybMission import Mission
 from .exchange import get_good_list
 
-bot, = get_bots().values()
+bot = get_bots().values()
 
 
 daily_game_sign = require("nonebot_plugin_apscheduler").scheduler
