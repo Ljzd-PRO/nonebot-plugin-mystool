@@ -12,7 +12,7 @@ from .gameSign import *
 from .config import mysTool_config as conf
 from .utils import *
 from .mybMission import Mission
-
+from .exchange import get_good_list
 
 bot, = get_bots().values()
 
@@ -50,7 +50,8 @@ update_timing = require("nonebot_plugin_apscheduler").scheduler
 
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
-    await ...  # 米游社商品更新函数
+    for game in ("bh3", "ys", "bh2", "wd", "bbs"):
+        await get_good_list(game)  # 米游社商品更新函数
 
 manually_update = on_command('update_good', aliases={
                              '商品更新', '米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
@@ -58,7 +59,8 @@ manually_update = on_command('update_good', aliases={
 
 @manually_update.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
-    await ...  # 米游社商品更新函数
+    for game in ("bh3", "ys", "bh2", "wd", "bbs"):
+        await get_good_list(game)  # 米游社商品更新函数
     await manually_update.send('已完成商品更新')
 
 
