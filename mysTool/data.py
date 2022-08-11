@@ -167,18 +167,21 @@ class UserAccount:
 
     @property
     def to_dict(self) -> dict:
-        return {
+        data = {
             "name": self.name,
             "phone": self.phone,
             "cookie": self.cookie,
             "gameUID": self.gameUID.to_dict(),
             "xrpcDeviceID": self.deviceID,
-            "address": self.address.address_dict,
+            "address": None,
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
             "gameSign": self.gameSign,
             "notice": self.notice
         }
+        if isinstance(self.address, Address):
+            data["address"] = self.address.address_dict
+        return data
 
 
 class UserData:
