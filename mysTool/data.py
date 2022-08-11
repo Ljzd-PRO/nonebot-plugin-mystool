@@ -264,7 +264,7 @@ class UserData:
         account = UserAccount().to_dict
         account["name"] = name
         account["phone"] = phone
-        userdata[qq]["accounts"].append(account)
+        userdata[str(qq)]["accounts"].append(account)
         return userdata
 
     def set_account(account: UserAccount, qq: int, by: Union[int, str]):
