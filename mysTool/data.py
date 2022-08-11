@@ -307,8 +307,10 @@ class UserData:
         name, phone = None, None
         if isinstance(by, str):
             by_type = "name"
+            name = by
         else:
             by_type = "phone"
+            phone = by
         if qq not in userdata:
             userdata = UserData.__create_user(userdata, qq)
 
