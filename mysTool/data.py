@@ -339,6 +339,8 @@ def create_files():
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
                 raise ValueError
+            else:
+                return
         except json.JSONDecodeError and ValueError:
             logger.warning(conf.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
 
