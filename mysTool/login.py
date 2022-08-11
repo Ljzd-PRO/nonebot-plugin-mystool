@@ -196,5 +196,5 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
             await get_cookie.finish("获取cookie_token失败，一种可能是登录失效，请稍后再试")
 
     UserData.set_cookie(state['getCookie'].cookie,
-                        event.user_id, state['phone'])
+                        int(event.user_id), state['phone'])
     await get_cookie.finish("Cookie获取成功")
