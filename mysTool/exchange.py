@@ -9,9 +9,12 @@ from .config import mysTool_config as conf
 from .utils import generateDeviceID
 from nonebot.log import logger
 from .data import UserAccount
+from .bbsAPI import get_game_record, get_game_list
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
-HEADERS = {
+URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
+URL_EXCHANGE = "https://api-takumi.mihoyo.com/mall/v1/web/goods/exchange"
+HEADERS_GOOD_LIST = {
     "Host":
         "api-takumi.mihoyo.com",
     "Accept":
@@ -31,6 +34,35 @@ HEADERS = {
         "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding":
         "gzip, deflate, br"
+}
+HEADERS_EXCHANGE = {
+    "Accept":
+    "application/json, text/plain, */*",
+    "Accept-Encoding":
+    "gzip, deflate, br",
+    "Accept-Language":
+    "zh-CN,zh-Hans;q=0.9",
+    "Connection":
+    "keep-alive",
+    "Content-Type":
+    "application/json;charset=utf-8",
+    "Host":
+    "api-takumi.mihoyo.com",
+    "User-Agent":
+    conf.device.USER_AGENT_MOBILE,
+    "x-rpc-app_version":
+    conf.device.X_RPC_APP_VERSION,
+    "x-rpc-channel":
+    "appstore",
+    "x-rpc-client_type":
+    "1",
+    "x-rpc-device_id": None,
+    "x-rpc-device_model":
+    conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+    "x-rpc-device_name":
+    conf.device.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-sys_version":
+    conf.device.X_RPC_SYS_VERSION
 }
 
 
@@ -131,7 +163,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
         try:
             async with httpx.AsyncClient() as client:
                 get_list: httpx.Response = client.get(URL_GOOD_LIST.format(page=page,
-                                                                           game=game), headers=HEADERS)
+                                                                           game=game), headers=HEADERS_GOOD_LIST)
                 get_list = get_list.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if get_list == []:
@@ -163,6 +195,80 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
 
     return result
 
+
 class Exchange:
-    def __init__(self, account: UserAccount, goodID: str) -> None:
-        ...
+    """
+    米游币商品兑换相关(需先初始化对象)
+    """
+    async def __init__(self, account: UserAccount, goodID: str) -> None:
+        self.result = None
+        self.goodID = goodID
+        self.account = account
+        self.content = {
+            "app_id": 1,
+            "point_sn": "myb",
+            "goods_id": goodID,
+            "exchange_num": 1,
+            "address_id": account.address.addressID
+        }
+        logger.info(conf.LOG_HEAD +
+                    "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
+        try:
+            async with httpx.AsyncClient() as client:
+                res: httpx.Response = client.get(URL_CHECK_GOOD.format(goodID))
+            goodInfo = res.json()["data"]
+            if goodInfo["type"] == 2:
+                if "stoken" not in account.cookie:
+                    logger.error(
+                        conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(goodID))
+                    self.result = -1
+                    return
+                if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
+                    logger.error(
+                        conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
+                    self.result = -1
+                    return
+            # 若商品非游戏内物品，则直接返回，不进行下面的操作
+            else:
+                return
+        except KeyError:
+            logger.error(
+                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
+        record_list = await get_game_record(account)
+        for record in record_list:
+            if record.gameID == ... and record.uid == account.gameUID.ys:
+                self.content.setdefault("uid", record.uid)
+                self.content.setdefault("region", record.region)
+                self.content.setdefault("game_biz", ...)
+                break
+
+    async def start(self) -> Union[Tuple[bool, dict], None]:
+        """
+        执行兑换操作
+
+        返回元组 (是否成功, 服务器返回数据)\n
+        若服务器没有正确返回，函数返回 `None`
+        """
+        if self.result == -1:
+            logger.error(conf.LOG_HEAD +
+                         "商品：{} 未初始化完成，放弃兑换".format(self.goodID))
+            return None
+        else:
+            headers = HEADERS_EXCHANGE
+            headers["x-rpc-device_id"] = self.account.deviceID
+            try:
+                async with httpx.AsyncClient() as client:
+                    res: httpx.Response = client.post(
+                        URL_EXCHANGE, headers=headers, cookies=self.account.cookie)
+                if res.json()["message"] == "OK":
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 兑换成功！可以自行确认。".format(self.goodID))
+                    return (True, res.json())
+                else:
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 兑换失败，可以自行确认。".format(self.goodID))
+                    return (False, res.json())
+            except KeyError:
+                logger.error(
+                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 服务器没有正确返回".format(self.goodID))
+                return None
