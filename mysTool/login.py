@@ -89,8 +89,10 @@ class GetCookie:
         第二次获取Cookie(目标是stoken)
         """
         try:
-            res = await self.client.post(URL_2.format(self.cookie["login_ticket"], self.bbsUID))
-            self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
+            res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID))
+            stoken = list(filter(
+                lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
+            self.cookie["stoken"] = stoken
             return True
         except:
             return False
@@ -108,7 +110,7 @@ class GetCookie:
         })
         if "cookie_token" not in res.cookies:
             return False
-        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
+        self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         await self.client.aclose()
         return True
 
@@ -168,9 +170,9 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         elif status == -1:
             await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
     
-    status: bool = state["getCookie"].get_2
+    status: bool = await state["getCookie"].get_2()
     if not status:
-            await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
+        await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
 
 
 @get_cookie.handle()
