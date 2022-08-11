@@ -8,6 +8,7 @@ from typing import Literal, Tuple, Union
 from .config import mysTool_config as conf
 from .utils import generateDeviceID
 from nonebot.log import logger
+from .data import UserAccount
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 HEADERS = {
@@ -40,6 +41,14 @@ class Good:
 
     def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
+        try:
+            for func in dir(Good):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)()
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def name(self) -> str:
@@ -73,7 +82,7 @@ class Good:
             return None
         else:
             return time.strftime("%Y-%m-%d %H:%M:%S",
-                                 time.localtime(self.good_dict["next_time"]))
+                                 time.localtime(self.good_dict["sale_start_time"]))
 
     @property
     def num(self):
@@ -153,3 +162,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
             result.append(Good(good))
 
     return result
+
+class Exchange:
+    def __init__(self, account: UserAccount, goodID: str) -> None:
+        ...

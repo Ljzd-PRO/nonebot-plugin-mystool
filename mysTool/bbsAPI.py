@@ -68,6 +68,14 @@ class GameRecord:
 
     def __init__(self, gameRecord_dict: dict) -> None:
         self.gameRecord_dict = gameRecord_dict
+        try:
+            for func in dir(GameRecord):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)()
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "用户游戏数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def regionName(self) -> str:
@@ -119,6 +127,14 @@ class GameInfo:
 
     def __init__(self, gameInfo_dict: dict) -> None:
         self.gameInfo_dict = gameInfo_dict
+        try:
+            for func in dir(GameInfo):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)()
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "游戏信息数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def gameID(self) -> int:

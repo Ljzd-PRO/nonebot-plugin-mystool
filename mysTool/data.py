@@ -2,6 +2,7 @@
 ### 用户数据相关
 """
 import json
+import traceback
 import nonebot
 from typing import Union
 from nonebot.log import logger
@@ -21,6 +22,14 @@ class Address:
 
     def __init__(self, adress_dict: dict) -> None:
         self.address_dict = adress_dict
+        try:
+            for func in dir(Address):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)()
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "地址数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def province(self) -> str:
