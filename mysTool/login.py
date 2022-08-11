@@ -110,8 +110,8 @@ class GetCookie:
         })
         if "cookie_token" not in res.cookies:
             return False
+        self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         await self.client.aclose()
-        self.cookie = self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         return True
 
     
