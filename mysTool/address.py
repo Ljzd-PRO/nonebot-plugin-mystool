@@ -55,13 +55,14 @@ get_address.__help__ = {
 
 @get_address.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
-    await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入退出即可退出")
-    qq_account = event.user_id
+    qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     state['qq_account'] = qq_account
-    if len(user_account) == 0:
+    if not user_account == 0:
         await get_address.finish("你没有配置cookie，请先配置cookie！")
-    elif len(user_account) == 1:
+    else:
+        await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入退出即可退出")
+    if len(user_account) == 1:
         account = user_account[0]
     else:
         phone = get_address.got('您有多个账号，您要配置一下哪个账号的地址ID？')
