@@ -90,9 +90,7 @@ class GetCookie:
         """
         try:
             res = await self.client.post(URL_2.format(self.cookie["login_ticket"], self.bbsUID))
-            stoken = list(filter(
-                lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
-            self.cookie["stoken"] = stoken
+            self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
             return True
         except:
             return False
@@ -110,7 +108,7 @@ class GetCookie:
         })
         if "cookie_token" not in res.cookies:
             return False
-        self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
+        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
         await self.client.aclose()
         return True
 
