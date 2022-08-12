@@ -230,7 +230,7 @@ class UserData:
         """
         accounts = []
         try:
-            accounts_raw = UserData.read_all()[qq]["accounts"]
+            accounts_raw = UserData.read_all()[str(qq)]["accounts"]
         except KeyError:
             return None
         for account_raw in accounts_raw:
