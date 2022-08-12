@@ -47,10 +47,8 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
 get_address = on_command(
     'address', aliases={'地址填写', '地址', '地址获取'}, priority=4, block=True)
 
-get_address.__help__ = {
-    "usage":     "get_address",
-    "introduce": "获取地址ID"
-}
+get_address.__help_name__ = 'address'
+get_address.__help_info__ = '跟随指引，获取地址id（实体兑换必须）'
 
 
 @get_address.handle()

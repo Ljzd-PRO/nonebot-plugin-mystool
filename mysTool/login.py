@@ -122,10 +122,8 @@ class GetCookie:
 
 get_cookie = on_command(
     'cookie', aliases={'cookie填写', 'cookie'}, priority=4, block=True)
-get_cookie.__help__ = {
-    "usage":     "get_cookie",
-    "introduce": "通过电话获取验证码方式获取cookie"
-}
+get_cookie.__help_name__ = 'cookie'
+get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式配置cookie'
 
 
 @get_cookie.handle()

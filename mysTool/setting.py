@@ -6,10 +6,8 @@ import asyncio
 
 setting = on_command(
     'setting', aliases={'设置', '签到设置', '播报配置'}, priority=4, block=True)
-setting.__help__ = {
-    "usage":     "setting",
-    "introduce": "配置签到、播报相关选项"
-}
+setting.__help_name = "setting"
+setting.__help_info = "配置游戏签到、米游社任务及每日播报是否开启相关选项"
 
 @setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
@@ -18,7 +16,7 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
 
 @setting.got('choice')
 async def _(event: PrivateMessageEvent, state: T_State, choice: str = ArgPlainText('choice')):
-    accounts = UserData.read_account_all(state['qq_acount'])
+    accounts = UserData.read_account_all(state['qq_account'])
     if len(accounts) == 0:
         setting.finish('请先配置账号')
     elif len(accounts) == 1:
