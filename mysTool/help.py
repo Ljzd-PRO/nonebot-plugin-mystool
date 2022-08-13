@@ -6,8 +6,8 @@ import nonebot.plugin
 from nonebot import on_command, get_driver
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, Arg
-from nonebot.adapters import Event
-from nonebot.adapters.onebot.v11.message import Message, MessageSegment
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11.message import Message
 
 helper = on_command("help", priority=1, aliases={"帮助"})
 command = list(get_driver().config.command_start)[0]
@@ -23,16 +23,14 @@ helper.__help_info__ = f'''\
 '''.strip()
 plugin = nonebot.plugin.get_plugin('mysTool')
 @helper.handle()
-async def handle_first_receive(event: Event, matcher: Matcher, args: Message = CommandArg()):
-    at = MessageSegment.at(event.get_user_id())
+async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, args: Message = CommandArg()):
     if args:
         matcher.set_arg("content", args)
     else:
         await matcher.finish(helper.__help_info__)
 
 @helper.got('content')
-async def get_result(event: Event, content: Message = Arg()):
-    at = MessageSegment.at(event.get_user_id())
+async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
     arg = content.extract_plain_text().strip()
     if arg.lower() == "list":
         await helper.finish("具体用法：\n" + plugin.metadata.usage)
