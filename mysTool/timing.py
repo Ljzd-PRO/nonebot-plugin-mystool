@@ -112,7 +112,7 @@ async def send_game_sign_msg(qq):
                     user_id=qq,
                     message=msg + img
                 )
-
+            await asyncio.sleep(10)
 
 async def send_bbs_sign_msg(qq):
     accounts = UserData.read_account_all(qq)
@@ -137,3 +137,4 @@ async def send_bbs_sign_msg(qq):
                     user_id=qq,
                     message=msg
                 )
+            await asyncio.sleep(10)
