@@ -210,7 +210,7 @@ async def get_game_record(account: UserAccount) -> list[GameRecord]:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_game_list():
+async def get_game_list() -> list[GameInfo]:
     headers = HEADERS_GAME_LIST.copy()
     headers["DS"] = generateDS()
     info_list = []
@@ -219,6 +219,7 @@ async def get_game_list():
             res = await client.get(URL_GAME_LIST, headers=headers)
         for info in res["data"]["list"]:
             info_list.append(GameInfo(info))
+        return info_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
