@@ -31,7 +31,7 @@ async def daily_game_sign_():
 
 manually_game_sign = on_command(
     __cs+'yssign', aliases={__cs+'签到', __cs+'手动签到', __cs+'游戏签到', __cs+'原神签到', __cs+'gamesign'}, priority=4, block=True)
-manually_game_sign.__help_name__ = 'yssign'
+manually_game_sign.__help_name__ = '游戏签到'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
 @manually_game_sign.handle()
@@ -51,7 +51,7 @@ async def daily_bbs_sign_():
 
 manually_bbs_sign = on_command(
     __cs+'bbs_sign', aliases={__cs+'米游社签到', __cs+'米游社任务', __cs+'米游币获取', __cs+'bbssign'}, priority=4, block=True)
-manually_bbs_sign.__help_name__ = 'bbs_sign'
+manually_bbs_sign.__help_name__ = '米游社任务'
 manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查看米游社任务完成情况'
 
 @manually_bbs_sign.handle()

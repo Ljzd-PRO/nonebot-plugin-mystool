@@ -51,7 +51,7 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
 get_address = on_command(
     __cs+'address', aliases={__cs+'地址填写', __cs+'地址', __cs+'地址获取'}, priority=4, block=True)
 
-get_address.__help_name__ = 'address'
+get_address.__help_name__ = '地址填写'
 get_address.__help_info__ = '跟随指引，获取地址id，米游币兑换实体奖品必须。在获取地址id前，必须先在米游社配置好至少一个地址。'
 
 

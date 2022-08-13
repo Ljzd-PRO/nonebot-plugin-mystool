@@ -125,8 +125,8 @@ class GetCookie:
 
 
 get_cookie = on_command(
-    __cs+'cookie', aliases={__cs+'cookie填写', __cs+'cookie'}, priority=4, block=True)
-get_cookie.__help_name__ = 'cookie'
+    __cs+'cookie', aliases={__cs+'cookie填写', __cs+'cookie', __cs+'login', __cs+'登陆'}, priority=4, block=True)
+get_cookie.__help_name__ = '登录'
 get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式配置cookie，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
 

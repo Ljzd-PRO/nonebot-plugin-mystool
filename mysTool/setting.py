@@ -11,8 +11,8 @@ if conf.USE_COMMAND_START:
 
 setting = on_command(
     __cs+'setting', aliases={__cs+'设置', __cs+'签到设置', __cs+'播报配置'}, priority=4, block=True)
-setting.__help_name = "setting"
-setting.__help_info = "配置游戏签到、米游社任务及每日播报是否开启相关选项"
+setting.__help_name__ = "设置"
+setting.__help_info__ = "配置游戏签到、米游社任务及每日播报是否开启相关选项"
 
 @setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
