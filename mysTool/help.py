@@ -33,6 +33,8 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, arg
 @helper.got('content')
 async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
     arg = content.extract_plain_text().strip()
+    if arg == '登陆':
+        arg == '登录'
     matchers = plugin.matcher
     for matcher in matchers:
         try:
