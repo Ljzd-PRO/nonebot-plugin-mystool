@@ -9,7 +9,7 @@ from .config import mysTool_config as conf
 from .utils import generateDeviceID
 from nonebot.log import logger
 from .data import UserAccount
-from .bbsAPI import get_game_record, get_game_list
+from .bbsAPI import get_game_record
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
@@ -238,19 +238,35 @@ class Exchange:
             # 若商品非游戏内物品，则直接返回，不进行下面的操作
             else:
                 return
+
+            gameUID = None
+            if goodInfo["game"] == "bh3":
+                gameUID = account.gameUID.bh3
+            elif goodInfo["game"] == "hk4e":
+                gameUID = account.gameUID.ys
+            elif goodInfo["game"] == "bh2":
+                gameUID = account.gameUID.bh2
+            elif goodInfo["game"] == "nxx":
+                gameUID = account.gameUID.wd
+            if gameUID is None:
+                logger.warning(
+                    conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
+                self.result = -1
+                return
+
+            record_list = await get_game_record(account)
+            for record in record_list:
+                if record.uid == gameUID:
+                    self.content.setdefault("uid", record.uid)
+                    # 例: cn_gf01
+                    self.content.setdefault("region", record.region)
+                    # 例: hk4e_cn
+                    self.content.setdefault("game_biz", goodInfo["game_biz"])
+                    break
         except KeyError:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
-        game_list = await get_game_list()
-        record_list = await get_game_record(account)
-        for record in record_list:
-            if record.uid == account.gameUID.ys:
-                self.content.setdefault("uid", record.uid)
-                # 例: cn_gf01
-                self.content.setdefault("region", record.region)
-                # 例: hk4e_cn
-                self.content.setdefault("game_biz", goodInfo["game_biz"])
-                break
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     async def start(self) -> Union[Tuple[bool, dict], None]:
         """
@@ -281,4 +297,5 @@ class Exchange:
             except KeyError:
                 logger.error(
                     conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 服务器没有正确返回".format(self.goodID))
+                logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return None
