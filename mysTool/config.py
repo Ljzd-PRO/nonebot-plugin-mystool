@@ -49,7 +49,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
 
 
 class Config(BaseModel, extra=Extra.ignore):
-    ENCODING: bool = "utf-8"
+    ENCODING: str = "utf-8"
     '''文件读写编码'''
     MAX_USER: int = 10
     '''支持最多用户数'''
