@@ -13,6 +13,7 @@ __plugin_meta__ = PluginMetadata(
     \n/yssign 手动进行原神签到\
     \n/bbssign 手动进行米游社签到\
     \n/help 查看帮助\
-    \n/help + 用法 查看某一用法具体帮助
-    """.strip()
+    \n/help <功能名> 查看某一用法具体帮助
+    """.strip(),
+    extra="项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
 )
