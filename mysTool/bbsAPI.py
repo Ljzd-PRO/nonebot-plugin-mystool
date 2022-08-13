@@ -7,6 +7,8 @@ from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import generateDeviceID, generateDS
 from nonebot.log import logger
+import nonebot
+from typing import Union
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -124,6 +126,16 @@ class GameInfo:
     """
     游戏信息数据
     """
+    ABBR_TO_ID: dict[str, int] = {
+        "ys": None,
+        "bh3": None,
+        "bh2": None,
+        "wd": None,
+        "bbs": None,
+        "xq": None,
+        "jq": None
+    }
+    '''游戏名称缩写与游戏ID(gameID)的对应关系'''
 
     def __init__(self, gameInfo_dict: dict) -> None:
         self.gameInfo_dict = gameInfo_dict
@@ -179,7 +191,7 @@ class GameInfo:
         return self.gameInfo_dict["name"]
 
 
-async def get_action_ticket(account: UserAccount) -> str:
+async def get_action_ticket(account: UserAccount) -> Union[str, None]:
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = generateDS()
     try:
@@ -194,7 +206,7 @@ async def get_action_ticket(account: UserAccount) -> str:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_game_record(account: UserAccount) -> list[GameRecord]:
+async def get_game_record(account: UserAccount) -> Union[list[GameRecord], None]:
     record_list = []
     try:
         async with httpx.AsyncClient() as client:
@@ -210,7 +222,7 @@ async def get_game_record(account: UserAccount) -> list[GameRecord]:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_game_list() -> list[GameInfo]:
+async def get_game_list() -> Union[list[GameInfo], None]:
     headers = HEADERS_GAME_LIST.copy()
     headers["DS"] = generateDS()
     info_list = []
@@ -226,3 +238,30 @@ async def get_game_list() -> list[GameInfo]:
     except:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+driver = nonebot.get_driver()
+
+
+@driver.on_startup
+async def set_game_list():
+    """
+    设置游戏名称与gameID的对应关系
+    """
+    game_list = await get_game_list()
+    if game_list is None:
+        return
+    for game in game_list:
+        if game.name == "原神":
+            GameInfo.ABBR_TO_ID["ys"] = game.gameID
+        elif game.name == "崩坏3":
+            GameInfo.ABBR_TO_ID["bh3"] = game.gameID
+        elif game.name == "崩坏学园2":
+            GameInfo.ABBR_TO_ID["bh2"] = game.gameID
+        elif game.name == "未定事件簿":
+            GameInfo.ABBR_TO_ID["wd"] = game.gameID
+        elif game.name == "大别墅":
+            GameInfo.ABBR_TO_ID["bbs"] = game.gameID
+        elif game.name == "崩坏：星穹铁道":
+            GameInfo.ABBR_TO_ID["xq"] = game.gameID
+        elif game.name == "绝区零":
+            GameInfo.ABBR_TO_ID["jq"] = game.gameID
