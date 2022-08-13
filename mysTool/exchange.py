@@ -249,7 +249,7 @@ class Exchange:
                 # 例: cn_gf01
                 self.content.setdefault("region", record.region)
                 # 例: hk4e_cn
-                self.content.setdefault("game_biz", ...)
+                self.content.setdefault("game_biz", goodInfo["game_biz"])
                 break
 
     async def start(self) -> Union[Tuple[bool, dict], None]:
