@@ -84,7 +84,7 @@ def check_config():
         with config_path.open("r", encoding=mysTool_config.ENCODING) as fp:
             data = json.load(fp)
         try:
-            mysTool_config = Config.parse_obj({**global_config.dict(), **data})
+            mysTool_config = Config.parse_obj({global_config.dict(), data})
         except ValidationError:
             mysTool_config = Config()
             logger.warning(mysTool_config.LOG_HEAD + "配置文件格式错误，将重新生成配置文件...")
