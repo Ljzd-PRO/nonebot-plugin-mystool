@@ -141,6 +141,13 @@ class Good:
         """
         return self.good_dict["icon"]
 
+    @property
+    def gamebiz(self) -> str:
+        """
+        游戏区服(例如: hk4e_cn)
+        """
+        return self.good_dict["game_biz"]
+
 
 async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[list[Good], None]:
     if game == "bh3":
@@ -234,11 +241,14 @@ class Exchange:
         except KeyError:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
+        game_list = await get_game_list()
         record_list = await get_game_record(account)
         for record in record_list:
-            if record.gameID == ... and record.uid == account.gameUID.ys:
+            if record.uid == account.gameUID.ys:
                 self.content.setdefault("uid", record.uid)
+                # 例: cn_gf01
                 self.content.setdefault("region", record.region)
+                # 例: hk4e_cn
                 self.content.setdefault("game_biz", ...)
                 break
 
