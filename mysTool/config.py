@@ -64,7 +64,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求超时时间'''
     USE_COMMAND_START = False
     '''采用插件内部命令头'''
-    COMMAND_START = "mt"
+    COMMAND_START = "mt "
     '''插件内部命令头'''
 
     device: DeviceConfig = DeviceConfig()
