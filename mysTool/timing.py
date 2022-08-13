@@ -81,7 +81,13 @@ async def send_game_sign_msg(qq):
     for account in accounts:
         gamesign = GameSign(account)
         if account.gameSign:
-            await gamesign.sign('ys')
+            sign_flag = await gamesign.sign('ys')
+            if not sign_flag:
+                await bot.send_msg(
+                    message_type="private",
+                    user_id=qq,
+                    message="今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                )
             if account.notice:
                 sign_award = await gamesign.reward('ys')
                 sign_info = await gamesign.info('ys')
@@ -89,14 +95,18 @@ async def send_game_sign_msg(qq):
                 for account_info in accounts_info:
                     if account_info.gameID == '2':
                         break
-                msg = f"""\
-                    {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
-                    {account_info.nickname} {account_info.regionName} {account_info.level}
-                    今日签到奖励：
-                    {sign_award.name} * {sign_award.count}
-                    本月签到次数： {sign_info.totalDays}\
-                """
-                img = MessageSegment.image(sign_award.icon)
+                if sign_award and sign_info:
+                    msg = f"""\
+                        {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                        {account_info.nickname} {account_info.regionName} {account_info.level}
+                        今日签到奖励：
+                        {sign_award.name} * {sign_award.count}
+                        本月签到次数： {sign_info.totalDays}\
+                    """
+                    img = MessageSegment.image(sign_award.icon)
+                else:
+                    msg = "今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                    img = ''
                 await bot.send_msg(
                     message_type="private",
                     user_id=qq,
