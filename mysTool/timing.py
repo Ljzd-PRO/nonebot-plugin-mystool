@@ -14,8 +14,10 @@ from .utils import *
 from .mybMission import Mission
 from .exchange import get_good_list
 
+__cs = ''
+if conf.USE_COMMAND_START:
+    __cs = conf.COMMAND_START
 bot = get_bots().values()
-
 
 daily_game_sign = require("nonebot_plugin_apscheduler").scheduler
 
@@ -28,8 +30,8 @@ async def daily_game_sign_():
 
 
 manually_game_sign = on_command(
-    'game_sign', aliases={'签到', '手动签到', '游戏签到', '原神签到' ,'yssign'}, priority=4, block=True)
-manually_game_sign.__help_name__ = 'game_sign'
+    __cs+'yssign', aliases={__cs+'签到', __cs+'手动签到', __cs+'游戏签到', __cs+'原神签到', __cs+'gamesign'}, priority=4, block=True)
+manually_game_sign.__help_name__ = 'yssign'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
 @manually_game_sign.handle()
@@ -48,7 +50,7 @@ async def daily_bbs_sign_():
 
 
 manually_bbs_sign = on_command(
-    'bbs_sign', aliases={'米游社签到', '米游社任务', '米游币获取', 'bbssign'}, priority=4, block=True)
+    __cs+'bbs_sign', aliases={__cs+'米游社签到', __cs+'米游社任务', __cs+'米游币获取', __cs+'bbssign'}, priority=4, block=True)
 manually_bbs_sign.__help_name__ = 'bbs_sign'
 manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查看米游社任务完成情况'
 
@@ -66,8 +68,8 @@ async def daily_update():
         await get_good_list(game)  # 米游社商品更新函数
 
 
-manually_update = on_command('update_good', aliases={
-                             '商品更新', '米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
+manually_update = on_command(__cs+'update_good', aliases={
+                             __cs+'商品更新', __cs+'米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
 
 @manually_update.handle()
 async def _(event: PrivateMessageEvent, state: T_State):

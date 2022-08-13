@@ -3,9 +3,14 @@ from nonebot.params import T_State, ArgPlainText
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from .data import UserData
 import asyncio
+from .config import mysTool_config as conf
+
+__cs = ''
+if conf.USE_COMMAND_START:
+    __cs = conf.COMMAND_START
 
 setting = on_command(
-    'setting', aliases={'设置', '签到设置', '播报配置'}, priority=4, block=True)
+    __cs+'setting', aliases={__cs+'设置', __cs+'签到设置', __cs+'播报配置'}, priority=4, block=True)
 setting.__help_name = "setting"
 setting.__help_info = "配置游戏签到、米游社任务及每日播报是否开启相关选项"
 

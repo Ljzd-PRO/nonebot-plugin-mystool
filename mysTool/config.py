@@ -17,7 +17,6 @@ config_path = PATH / "data" / "config.json"
 class DeviceConfig(BaseModel, extra=Extra.ignore):
     """
     设备信息
-
     DS算法与设备信息有关联，非必要请勿修改
     """
     USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.25.1"
@@ -63,6 +62,10 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
+    USE_COMMAND_START = False
+    '''采用插件内部命令头'''
+    COMMAND_START = "mt"
+    '''插件内部命令头'''
 
     device: DeviceConfig = DeviceConfig()
 
