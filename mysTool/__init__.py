@@ -1,5 +1,5 @@
 from nonebot.plugin import PluginMetadata
-from . import login, address, timing, setting, addfriend, help
+from . import *
 
 
 __plugin_meta__ = PluginMetadata(
