@@ -14,7 +14,7 @@ __cs = ''
 if conf.USE_COMMAND_START:
     __cs = conf.COMMAND_START
 helper = on_command(__cs+"help", priority=1, aliases={__cs+"帮助"})
-command = __cs + list(get_driver().config.command_start)[0]
+command = list(get_driver().config.command_start)[0] + __cs
 
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
