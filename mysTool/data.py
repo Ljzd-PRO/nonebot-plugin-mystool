@@ -320,7 +320,7 @@ class UserData:
                     account["cookie"] = cookie
                     for item in ("login_uid", "stuid", "ltuid", "account_id"):
                         if item in cookie:
-                            account["gameUID"] = cookie[item]
+                            account["bbsUID"] = cookie[item]
                             break
                     UserData.__set_all(userdata)
                     return True
