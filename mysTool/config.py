@@ -104,7 +104,6 @@ def check_config():
     else:
         try:
             mysTool_config = Config.parse_obj(global_config.dict())
-            return
         except ValidationError:
             logger.warning(mysTool_config.LOG_HEAD + "配置文件格式错误，将重新生成配置文件...")
 
