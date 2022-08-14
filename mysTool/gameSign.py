@@ -150,6 +150,7 @@ class GameSign:
     """
     游戏签到相关(需先初始化对象)
     """
+    SUPPORTED_GAMES = ["ys", "bh3"]
 
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
