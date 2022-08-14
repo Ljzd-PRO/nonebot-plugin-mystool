@@ -44,6 +44,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     UA_PLATFORM: str = "\"macOS\""
     '''Headers所用的 sec-ch-ua-platform'''
 
+
 class GoodListImage(BaseModel, extra=Extra.ignore):
     """
     商品列表输出图片设置
@@ -99,15 +100,12 @@ def check_config():
 
     if not config_path.exists():
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        mysTool_config = Config()
         logger.warning(mysTool_config.LOG_HEAD + "配置文件不存在，将重新生成配置文件...")
     else:
-        with config_path.open("r", encoding=mysTool_config.ENCODING) as fp:
-            data = json.load(fp)
         try:
             mysTool_config = Config.parse_obj(global_config.dict())
+            return
         except ValidationError:
-            mysTool_config = Config()
             logger.warning(mysTool_config.LOG_HEAD + "配置文件格式错误，将重新生成配置文件...")
 
     with config_path.open("w", encoding=mysTool_config.ENCODING) as fp:
