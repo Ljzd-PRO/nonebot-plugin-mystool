@@ -135,9 +135,9 @@ class Good:
                 self.good_dict["account_cycle_limit"], self.good_dict["account_cycle_type"])
 
     @property
-    def icon(self) -> int:
+    def icon(self) -> str:
         """
-        商品图片
+        商品图片链接
         """
         return self.good_dict["icon"]
 
