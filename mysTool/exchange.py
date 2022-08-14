@@ -104,7 +104,7 @@ class Good:
         return self.good_dict["price"]
 
     @property
-    def time(self):
+    def time(self) -> str:
         """
         兑换时间
         """
@@ -117,7 +117,7 @@ class Good:
                                  time.localtime(self.good_dict["sale_start_time"]))
 
     @property
-    def num(self):
+    def num(self) -> int:
         """
         库存
         """
