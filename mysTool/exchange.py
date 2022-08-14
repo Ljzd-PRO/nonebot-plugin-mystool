@@ -143,13 +143,6 @@ class Good:
         """
         return self.good_dict["icon"]
 
-    @property
-    def gamebiz(self) -> str:
-        """
-        游戏区服(例如: hk4e_cn)
-        """
-        return self.good_dict["game_biz"]
-
 
 async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[list[Good], None]:
     if game == "bh3":
