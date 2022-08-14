@@ -1,9 +1,9 @@
 """
 ### 计划任务相关
 """
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
 from nonebot.params import T_State
-from nonebot import on_command, require, get_bots
+from nonebot import on_command, require
 from nonebot.permission import SUPERUSER
 import asyncio
 from .data import UserData
@@ -17,7 +17,6 @@ from .exchange import get_good_list
 __cs = ''
 if conf.USE_COMMAND_START:
     __cs = conf.COMMAND_START
-bot = get_bots().values()
 
 daily_game_sign = require("nonebot_plugin_apscheduler").scheduler
 
@@ -78,45 +77,53 @@ async def _(event: PrivateMessageEvent, state: T_State):
     await manually_update.send('已完成商品更新')
 
 
-async def send_game_sign_msg(qq):
+async def send_game_sign_msg(bot: Bot, qq: str):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
-        if account.gameSign:
-            sign_flag = await gamesign.sign('ys')
-            if not sign_flag:
-                await bot.send_msg(
-                    message_type="private",
-                    user_id=qq,
-                    message="今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
-                )
-            if account.notice:
-                sign_award = await gamesign.reward('ys')
-                sign_info = await gamesign.info('ys')
-                accounts_info = await get_game_record(account)
-                for account_info in accounts_info:
-                    if account_info.gameID == '2':
-                        break
-                if sign_award and sign_info:
-                    msg = f"""\
-                        {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
-                        {account_info.nickname} {account_info.regionName} {account_info.level}
-                        今日签到奖励：
-                        {sign_award.name} * {sign_award.count}
-                        本月签到次数： {sign_info.totalDays}\
-                    """
-                    img = MessageSegment.image(sign_award.icon)
-                else:
-                    msg = "今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
-                    img = ''
-                await bot.send_msg(
-                    message_type="private",
-                    user_id=qq,
-                    message=msg + img
-                )
-            await asyncio.sleep(10)
+        record_list: list[GameRecord] = get_game_record(account)
+        sign_list = []
+        for record in record_list:
+            if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
+                logger.info(conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+            else:
+                sign_list.append(GameInfo.ABBR_TO_ID[record.gameID][0])
+        for sign_game in sign_list:
+            if account.gameSign:
+                sign_flag = await gamesign.sign(sign_game)
+                if not sign_flag:
+                    await bot.send_msg(
+                        message_type="private",
+                        user_id=qq,
+                        message="今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                    )
+                if account.notice:
+                    sign_award = await gamesign.reward(sign_game)
+                    sign_info = await gamesign.info(sign_game)
+                    accounts_info = await get_game_record(account)
+                    for account_info in accounts_info:
+                        if account_info.gameID == '2':
+                            break
+                    if sign_award and sign_info:
+                        msg = f"""\
+                            {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                            {account_info.nickname} {account_info.regionName} {account_info.level}
+                            今日签到奖励：
+                            {sign_award.name} * {sign_award.count}
+                            本月签到次数： {sign_info.totalDays}\
+                        """
+                        img = MessageSegment.image(sign_award.icon)
+                    else:
+                        msg = "今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                        img = ''
+                    await bot.send_msg(
+                        message_type="private",
+                        user_id=qq,
+                        message=msg + img
+                    )
+                await asyncio.sleep(10)
 
-async def send_bbs_sign_msg(qq):
+async def send_bbs_sign_msg(bot: Bot, qq: str):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         mybmission = Mission(account)
