@@ -8,7 +8,7 @@ from .data import UserAccount
 from .utils import generateDeviceID, generateDS
 from nonebot.log import logger
 import nonebot
-from typing import Union
+from typing import Tuple, Union
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -126,16 +126,11 @@ class GameInfo:
     """
     游戏信息数据
     """
-    ABBR_TO_ID: dict[str, int] = {
-        "ys": None,
-        "bh3": None,
-        "bh2": None,
-        "wd": None,
-        "bbs": None,
-        "xq": None,
-        "jq": None
-    }
-    '''游戏名称缩写与游戏ID(gameID)的对应关系'''
+    ABBR_TO_ID: dict[int, Tuple[str, str]] = None
+    '''
+    游戏ID(gameID)与缩写和全称的对应关系
+    >>> {游戏ID, (缩写, 全称)}
+    '''
 
     def __init__(self, gameInfo_dict: dict) -> None:
         self.gameInfo_dict = gameInfo_dict
@@ -245,23 +240,23 @@ driver = nonebot.get_driver()
 @driver.on_startup
 async def set_game_list():
     """
-    设置游戏名称与gameID的对应关系
+    设置游戏ID(gameID)与缩写和全称的对应关系
     """
     game_list = await get_game_list()
     if game_list is None:
         return
     for game in game_list:
         if game.name == "原神":
-            GameInfo.ABBR_TO_ID["ys"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("ys", game.name)
         elif game.name == "崩坏3":
-            GameInfo.ABBR_TO_ID["bh3"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("bh3", game.name)
         elif game.name == "崩坏学园2":
-            GameInfo.ABBR_TO_ID["bh2"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("bh2", game.name)
         elif game.name == "未定事件簿":
-            GameInfo.ABBR_TO_ID["wd"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("wd", game.name)
         elif game.name == "大别墅":
-            GameInfo.ABBR_TO_ID["bbs"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("bbs", game.name)
         elif game.name == "崩坏：星穹铁道":
-            GameInfo.ABBR_TO_ID["xq"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("xq", game.name)
         elif game.name == "绝区零":
-            GameInfo.ABBR_TO_ID["jq"] = game.gameID
+            GameInfo.ABBR_TO_ID[game.gameID] = ("jq", game.name)
