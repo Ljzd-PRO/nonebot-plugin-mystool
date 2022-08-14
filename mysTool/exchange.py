@@ -10,6 +10,8 @@ from .utils import generateDeviceID
 from nonebot.log import logger
 from .data import UserAccount
 from .bbsAPI import get_game_record
+from PIL import Image, ImageFont, ImageDraw
+import io
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
@@ -299,3 +301,51 @@ class Exchange:
                     conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 服务器没有正确返回".format(self.goodID))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return None
+
+
+async def game_list_to_image(good_list: list[Good]):
+    font = ImageFont.truetype(
+        str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
+
+    size_y = 0
+    '''起始粘贴位置 高'''
+    position: list[tuple] = []
+    '''预览图粘贴的位置'''
+    imgs: list[Image.Image] = []
+    '''商品预览图'''
+
+    for good in good_list:
+        async with httpx.AsyncClient() as client:
+            icon: httpx.Response = client.get(good.icon)
+        img = Image.open(io.BytesIO(icon.content))
+        # 调整预览图大小
+        img = img.resize(conf.goodListImage.ICON_SIZE)
+        # 记录预览图粘贴位置
+        position.append((0, size_y))
+        # 调整下一个粘贴的位置
+        size_y += conf.goodListImage.ICON_SIZE[1] + \
+            conf.goodListImage.PADDING_ICON
+        imgs.append(img)
+
+    preview = Image.new(
+        'RGB', (conf.goodListImage.WIDTH, size_y), (255, 255, 255))
+
+    i = 0
+    for img in imgs:
+        preview.paste(img, position[i])
+        i += 1
+
+    draw_y = conf.goodListImage.PADDING_TEXT_AND_ICON_Y
+    '''写入文字的起始位置 高'''
+    for good in good_list:
+        draw = ImageDraw.Draw(preview)
+        # 根据预览图高度来确定写入文字的位置，并调整空间
+        draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
+                  "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, good.time, good.price), (0, 0, 0), font)
+        draw_y += (conf.goodListImage.ICON_SIZE[1] +
+                   conf.goodListImage.PADDING_ICON)
+
+    # 保存
+    image_bytes = io.BytesIO()
+    preview.save(image_bytes, format="JPEG")
+    return image_bytes

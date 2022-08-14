@@ -6,12 +6,10 @@ import json
 from nonebot.log import logger
 from pydantic import BaseModel, Extra, ValidationError
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 PATH = Path(__file__).parent.absolute()
 config_path = PATH / "data" / "config.json"
-
-# 模拟设备设置
 
 
 class DeviceConfig(BaseModel, extra=Extra.ignore):
@@ -46,6 +44,25 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     UA_PLATFORM: str = "\"macOS\""
     '''Headers所用的 sec-ch-ua-platform'''
 
+class GoodListImage(BaseModel, extra=Extra.ignore):
+    """
+    商品列表输出图片设置
+    """
+    ICON_SIZE: Tuple[int, int] = (600, 600)
+    '''商品预览图在最终结果图中的大小'''
+    WIDTH: int = 2000
+    '''最终结果图宽度'''
+    PADDING_ICON: int = 0
+    '''展示图与展示图之间的间隙 高'''
+    PADDING_TEXT_AND_ICON_Y: int = 125
+    '''文字顶部与展示图顶部之间的距离 高'''
+    PADDING_TEXT_AND_ICON_X: int = 10
+    '''文字与展示图之间的横向距离 宽'''
+    FONT_PATH: Path = PATH / "font" / "PingFang.ttc"
+    '''字体文件路径'''
+    FONT_SIZE: int = 50
+    '''字体大小'''
+
 
 class Config(BaseModel, extra=Extra.ignore):
     ENCODING: str = "utf-8"
@@ -68,6 +85,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''插件内部命令头'''
 
     device: DeviceConfig = DeviceConfig()
+    goodListImage: GoodListImage = GoodListImage()
 
 
 driver = nonebot.get_driver()
