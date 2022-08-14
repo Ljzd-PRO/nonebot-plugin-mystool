@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Tuple, Union
 
 PATH = Path(__file__).parent.absolute()
-config_path = PATH / "data" / "config.json"
+CONFIG_PATH = PATH / "data" / "config.json"
 
 
 class DeviceConfig(BaseModel, extra=Extra.ignore):
@@ -98,8 +98,8 @@ mysTool_config: Config = Config()
 def check_config():
     global mysTool_config
 
-    if not config_path.exists():
-        config_path.parent.mkdir(parents=True, exist_ok=True)
+    if not CONFIG_PATH.exists():
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         logger.warning(mysTool_config.LOG_HEAD + "配置文件不存在，将重新生成配置文件...")
     else:
         try:
@@ -108,5 +108,5 @@ def check_config():
         except ValidationError:
             logger.warning(mysTool_config.LOG_HEAD + "配置文件格式错误，将重新生成配置文件...")
 
-    with config_path.open("w", encoding=mysTool_config.ENCODING) as fp:
+    with CONFIG_PATH.open("w", encoding=mysTool_config.ENCODING) as fp:
         json.dump(mysTool_config.dict(), fp, indent=4, ensure_ascii=False)
