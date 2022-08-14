@@ -116,7 +116,7 @@ class Good:
             return None
         else:
             return time.strftime("%Y-%m-%d %H:%M:%S",
-                                 time.localtime(self.good_dict["sale_start_time"]))
+                                 time.localtime(self.good_dict["next_time"]))
 
     @property
     def num(self) -> int:
