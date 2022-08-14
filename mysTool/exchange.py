@@ -77,7 +77,7 @@ class Good:
             for func in dir(Good):
                 if func.startswith("__"):
                     continue
-                getattr(self, func)()
+                getattr(self, func)
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())

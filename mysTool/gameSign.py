@@ -67,7 +67,7 @@ class Award:
             for func in dir(Award):
                 if func.startswith("__"):
                     continue
-                getattr(self, func)()
+                getattr(self, func)
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到奖励数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -105,7 +105,7 @@ class Info:
             for func in dir(Info):
                 if func.startswith("__"):
                     continue
-                getattr(self, func)()
+                getattr(self, func)
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到记录数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
