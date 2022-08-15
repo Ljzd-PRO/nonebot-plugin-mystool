@@ -75,7 +75,7 @@ class GetCookie:
         """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha))
+        res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
         if "login_ticket" not in res.cookies:
             return 0
 
@@ -93,7 +93,7 @@ class GetCookie:
         第二次获取Cookie(目标是stoken)
         """
         try:
-            res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID))
+            res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID), timeout=conf.TIME_OUT)
             stoken = list(filter(
                 lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
             self.cookie["stoken"] = stoken
@@ -111,14 +111,12 @@ class GetCookie:
             "captcha": captcha,
             "action_type": "login",
             "token_type": 6
-        })
+        }, timeout=conf.TIME_OUT)
         if "cookie_token" not in res.cookies:
             return False
         self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         await self.client.aclose()
         return True
-
-    
 
     async def __del__(self):
         await self.client.aclose()
@@ -171,7 +169,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
             await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
         elif status == -1:
             await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
-    
+
     status: bool = await state["getCookie"].get_2()
     if not status:
         await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")

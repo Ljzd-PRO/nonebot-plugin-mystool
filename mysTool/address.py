@@ -39,7 +39,7 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
     headers["x-rpc-device_id"] = account.deviceID
     async with httpx.AsyncClient() as client:
         res = await client.get(URL.format(
-            time_now=round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie)
+            time_now=round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
     try:
         for address in res.json()["data"]["list"]:
             address_list.append(Address(address))

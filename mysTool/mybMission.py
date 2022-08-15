@@ -78,7 +78,7 @@ class Mission:
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", generateDS())
-        res = await self.client.post(URL_SIGN, headers=headers, json={"gids": GAME_ID[game]["gids"]})
+        res = await self.client.post(URL_SIGN, headers=headers, json={"gids": GAME_ID[game]["gids"]}, timeout=conf.TIME_OUT)
         try:
             self.mybNum = res.json()["data"]["points"]
             return True
@@ -96,7 +96,7 @@ class Mission:
         """
         headers = HEADERS.copy()
         headers.setdefault("DS", generateDS())
-        res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=headers)
+        res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=headers, timeout=conf.TIME_OUT)
         postID_list = []
         error_times = 0
         while error_times <= conf.MAX_RETRY_TIMES:
@@ -141,7 +141,7 @@ class Mission:
                 if count == readTimes:
                     break
                 headers["DS"] = generateDS()
-                res = await self.client.get(URL_READ.format(postID), headers=headers)
+                res = await self.client.get(URL_READ.format(postID), headers=headers, timeout=conf.TIME_OUT)
                 try:
                     if "self_operation" not in res.json()["data"]["post"]:
                         raise ValueError
@@ -192,7 +192,7 @@ class Mission:
                 if count == likeTimes:
                     break
                 headers["DS"] = generateDS()
-                res = await self.client.post(URL_LIKE, headers=headers, json={'is_cancel': False,  'post_id': postID})
+                res = await self.client.post(URL_LIKE, headers=headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
                 try:
                     if res.json()["data"] != "OK":
                         raise ValueError
@@ -236,7 +236,7 @@ class Mission:
             return False
         error_times = 0
         while error_times <= conf.MAX_RETRY_TIMES:
-            res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=headers)
+            res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=headers, timeout=conf.TIME_OUT)
             try:
                 if res.json()["data"] != "OK":
                     raise ValueError

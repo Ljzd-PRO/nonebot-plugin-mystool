@@ -191,7 +191,7 @@ async def get_action_ticket(account: UserAccount) -> Union[str, None]:
     headers["DS"] = generateDS()
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie)
+            res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
         return res["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
@@ -205,7 +205,7 @@ async def get_game_record(account: UserAccount) -> Union[list[GameRecord], None]
     record_list = []
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie)
+            res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
         for record in res.json()["data"]["list"]:
             record_list.append(GameRecord(record))
         return record_list
@@ -223,7 +223,7 @@ async def get_game_list() -> Union[list[GameInfo], None]:
     info_list = []
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_GAME_LIST, headers=headers)
+            res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
         for info in res["data"]["list"]:
             info_list.append(GameInfo(info))
         return info_list

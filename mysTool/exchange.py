@@ -165,7 +165,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
         try:
             async with httpx.AsyncClient() as client:
                 get_list: httpx.Response = client.get(URL_GOOD_LIST.format(page=page,
-                                                                           game=game), headers=HEADERS_GOOD_LIST)
+                                                                           game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
                 get_list = get_list.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if get_list == []:
@@ -217,7 +217,8 @@ class Exchange:
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
         try:
             async with httpx.AsyncClient() as client:
-                res: httpx.Response = client.get(URL_CHECK_GOOD.format(goodID))
+                res: httpx.Response = client.get(
+                    URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
             goodInfo = res.json()["data"]
             if goodInfo["type"] == 2:
                 if "stoken" not in account.cookie:
@@ -280,7 +281,7 @@ class Exchange:
             try:
                 async with httpx.AsyncClient() as client:
                     res: httpx.Response = client.post(
-                        URL_EXCHANGE, headers=headers, cookies=self.account.cookie)
+                        URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if res.json()["message"] == "OK":
                     logger.info(
                         conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 兑换成功！可以自行确认。".format(self.goodID))
@@ -309,7 +310,7 @@ async def game_list_to_image(good_list: list[Good]):
 
     for good in good_list:
         async with httpx.AsyncClient() as client:
-            icon: httpx.Response = client.get(good.icon)
+            icon: httpx.Response = client.get(good.icon, timeout=conf.TIME_OUT)
         img = Image.open(io.BytesIO(icon.content))
         # 调整预览图大小
         img = img.resize(conf.goodListImage.ICON_SIZE)
