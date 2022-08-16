@@ -1,14 +1,18 @@
 """
 ### 米游社收货地址相关前端
 """
+import asyncio
+import datetime
 from nonebot import on_command, get_driver
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, Arg, ArgPlainText, T_State
 from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageEvent, MessageSegment
 from nonebot.adapters.onebot.v11.message import Message
+from nonebot_plugin_apscheduler import scheduler
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import *
+
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -68,25 +72,31 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
             if exchange_plan.result == -1:
                 await bot.send_private_msg(user_id=qq, message="商品初始化失败，请重新尝试")
             else:
-                ...
+                scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, bot, qq),next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
             await matcher.finish(f'设置兑换计划成功！将于{good.time}开始兑换，兑换结果会实时通知您')
         else:
             await matcher.finish(f'该商品暂时不可以兑换，请重新设置')
     elif arg[0] == '-':
         ... # data删除兑换计划
-        ... # 删除兑换计划定时
+        scheduler.remove_job(job_id=account.phone+good.goodID)
         await matcher.finish('兑换计划删除成功')
     else:
         matcher.finish('您的输入有误，请重新输入')
 
 async def exchange(exchange_plan: Exchange, bot: Bot, qq: str):
-    result = exchange_plan.start()
-    if result[0]:
+    for i in range(3):
+        results = []
+        flag = False
+        results.append(exchange_plan.start())
+        await asyncio.sleep(0.2)
+    for result in results:
+        if result[0]:
+            flag = True
+            break
+    if flag:
         await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换成功，可前往米游社查看")
     else:
         await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换失败\n{result[1]}")
-
-
 
 
 get_good_image = on_command(
