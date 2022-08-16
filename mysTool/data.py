@@ -131,8 +131,6 @@ class UserAccount:
         '''是否开启米游币任务计划'''
         self.gameSign: bool = True
         '''是否开启米游社游戏签到计划'''
-        self.notice: bool = True
-        '''是否开启通知'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -163,7 +161,6 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
-        self.notice: bool = account["notice"]
 
     @property
     def to_dict(self) -> dict:
@@ -176,8 +173,7 @@ class UserAccount:
             "address": None,
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
-            "gameSign": self.gameSign,
-            "notice": self.notice
+            "gameSign": self.gameSign
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict
@@ -188,12 +184,14 @@ class UserData:
     """
     用户数据相关
     """
+    __OPTION_NOTICE = "notice"
     __USER_SAMPLE = {
-        "accounts": []
+        "accounts": [],
+        __OPTION_NOTICE: True
     }
     '''QQ用户数据样例'''
 
-    def read_all() -> dict:
+    def read_all() -> dict[str, dict]:
         """
         以dict形式获取userdata.json
         """
@@ -239,7 +237,7 @@ class UserData:
             accounts.append(account)
         return accounts
 
-    def __set_all(userdata: dict):
+    def __set_all(userdata: dict[str, dict]):
         """
         写入用户数据文件(整体覆盖)
 
@@ -250,14 +248,14 @@ class UserData:
                   encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
-    def __create_user(cls, userdata: dict, qq: int) -> dict:
+    def __create_user(cls, userdata: dict[str, dict], qq: int) -> dict:
         """
         创建用户数据，返回创建后整体的userdata
         """
         userdata.setdefault(str(qq), cls.__USER_SAMPLE)
         return userdata
 
-    def __create_account(userdata: dict, qq: int, name: str = None, phone: int = None) -> dict:
+    def __create_account(userdata: dict[str, dict], qq: int, name: str = None, phone: int = None) -> dict:
         """
         创建米哈游账户数据，返回创建后整体的userdata
         """
@@ -328,6 +326,24 @@ class UserData:
 
         while not action():
             userdata = UserData.__create_account(userdata, qq, name, phone)
+
+    @classmethod
+    def isNotice(cls, qq: int) -> Union[bool, None]:
+        """
+        查看用户是否开启了通知，若不存在用户则返回None
+
+        参数:
+            `qq`: 用户QQ号
+        """
+        userdata = UserData.read_all()
+        qq = str(qq)
+        if qq not in userdata:
+            return None
+        elif cls.__OPTION_NOTICE not in userdata[qq]:
+            userdata[qq].setdefault(cls.__OPTION_NOTICE, True)
+            return True
+        else:
+            return userdata[qq][cls.__OPTION_NOTICE]
 
 
 @driver.on_startup
