@@ -221,6 +221,11 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
 class Exchange:
     """
     米游币商品兑换相关(需先初始化对象)
+
+    `result`属性为 `-1`: 商品为游戏内物品，由于未配置stoken，放弃兑换\n
+    `result`属性为 `-2`: 商品为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换\n
+    `result`属性为 `-3`: 暂不支持商品所属的游戏\n
+    `result`属性为 `-4`: 获取商品的信息时，服务器没有正确返回
     """
     async def __init__(self, account: UserAccount, goodID: str) -> None:
         self.result = None
@@ -249,7 +254,7 @@ class Exchange:
                 if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
                     logger.error(
                         conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
-                    self.result = -1
+                    self.result = -2
                     return
             # 若商品非游戏内物品，则直接返回，不进行下面的操作
             else:
@@ -267,7 +272,7 @@ class Exchange:
             if gameUID is None:
                 logger.warning(
                     conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
-                self.result = -1
+                self.result = -3
                 return
 
             record_list = await get_game_record(account)
@@ -283,6 +288,7 @@ class Exchange:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            self.result = -4
 
     async def start(self) -> Union[Tuple[bool, dict], None]:
         """
@@ -291,7 +297,7 @@ class Exchange:
         返回元组 (是否成功, 服务器返回数据)\n
         若服务器没有正确返回，函数返回 `None`
         """
-        if self.result == -1:
+        if self.result is not None and self.result < 0:
             logger.error(conf.LOG_HEAD +
                          "商品：{} 未初始化完成，放弃兑换".format(self.goodID))
             return None
