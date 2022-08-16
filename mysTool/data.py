@@ -6,7 +6,7 @@ import traceback
 import nonebot
 from typing import Union
 from nonebot.log import logger
-from .utils import *
+from .utils import PATH, generateDeviceID
 from .config import mysTool_config as conf
 
 ENCODING = "utf-8"
@@ -121,7 +121,7 @@ class UserAccount:
         '''Cookie'''
         self.gameUID: AccountUID = AccountUID()
         '''游戏UID'''
-        self.deviceID: str = None
+        self.deviceID: str = generateDeviceID()
         '''设备 x-rpc-device_id'''
         self.address: Address = None
         '''地址数据'''
@@ -131,6 +131,8 @@ class UserAccount:
         '''是否开启米游币任务计划'''
         self.gameSign: bool = True
         '''是否开启米游社游戏签到计划'''
+        self.exchange: list[str] = []
+        '''计划兑换的商品'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -161,6 +163,7 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
+        self.exchange: list[str] = account["exchange"]
 
     @property
     def to_dict(self) -> dict:
@@ -173,7 +176,8 @@ class UserAccount:
             "address": None,
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
-            "gameSign": self.gameSign
+            "gameSign": self.gameSign,
+            "exchange": self.exchange
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict
