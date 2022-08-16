@@ -1,12 +1,12 @@
 """
 ### 插件配置相关
 """
-import nonebot
 import json
 from nonebot.log import logger
 from pydantic import BaseModel, Extra, ValidationError
 from pathlib import Path
 from typing import Tuple, Union
+from nonebot import get_driver
 
 PATH = Path(__file__).parent.absolute()
 CONFIG_PATH = PATH / "data" / "config.json"
@@ -89,23 +89,4 @@ class Config(BaseModel, extra=Extra.ignore):
     goodListImage: GoodListImage = GoodListImage()
 
 
-driver = nonebot.get_driver()
-global_config = driver.config
-mysTool_config: Config = Config()
-
-
-@driver.on_startup
-def check_config():
-    global mysTool_config
-
-    if not CONFIG_PATH.exists():
-        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning(mysTool_config.LOG_HEAD + "配置文件不存在，将重新生成配置文件...")
-    else:
-        try:
-            mysTool_config = Config.parse_obj(global_config.dict())
-        except ValidationError:
-            logger.warning(mysTool_config.LOG_HEAD + "配置文件格式错误，将重新生成配置文件...")
-
-    with CONFIG_PATH.open("w", encoding=mysTool_config.ENCODING) as fp:
-        json.dump(mysTool_config.dict(), fp, indent=4, ensure_ascii=False)
+mysTool_config = Config.parse_obj(get_driver().config)
