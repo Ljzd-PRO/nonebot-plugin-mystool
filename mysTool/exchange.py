@@ -73,15 +73,29 @@ class Good:
     商品数据
     """
 
-    def __init__(self, good_dict: dict) -> None:
+    async def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
+        self.start_time: int = None
         try:
+            await self.time
             for func in dir(Good):
-                if func.startswith("__"):
+                if func.startswith("__") and func == "time":
                     continue
                 getattr(self, func)
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+    async def get_start_time(goodID: str) -> Union[int, None]:
+        try:
+            async with httpx.AsyncClient() as client:
+                res: httpx.Response = client.get(URL_CHECK_GOOD)
+            return int(res.json()["data"]["sale_start_time"])
+        except KeyError and ValueError:
+            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        except:
+            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
@@ -106,7 +120,7 @@ class Good:
         return self.good_dict["price"]
 
     @property
-    def time(self) -> str:
+    async def time(self) -> str:
         """
         兑换时间
         """
@@ -115,8 +129,14 @@ class Good:
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
         else:
-            return time.strftime("%Y-%m-%d %H:%M:%S",
-                                 time.localtime(self.good_dict["next_time"]))
+            # 第一次执行时获取开始兑换时间，下次直接读取之前获取到的
+            if self.start_time is None:
+                self.start_time = await Good.get_start_time(self.goodID)
+                if self.start_time is None:
+                    self.start_time = self.good_dict["next_time"]
+            else:
+                return time.strftime("%Y-%m-%d %H:%M:%S",
+                                     time.localtime(self.start_time))
 
     @property
     def num(self) -> int:
