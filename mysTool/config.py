@@ -63,6 +63,8 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''字体文件路径(若使用计算机已经安装的字体，直接填入字体名称)'''
     FONT_SIZE: int = 50
     '''字体大小'''
+    SAVE_PATH: Path = PATH / "data"
+    '''商品列表图片缓存目录'''
 
 
 class Config(BaseModel, extra=Extra.ignore):
@@ -80,9 +82,9 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
-    USE_COMMAND_START = False
+    USE_COMMAND_START: bool = False
     '''采用插件内部命令头'''
-    COMMAND_START = "mt "
+    COMMAND_START: str = "mt "
     '''插件内部命令头'''
 
     device: DeviceConfig = DeviceConfig()
