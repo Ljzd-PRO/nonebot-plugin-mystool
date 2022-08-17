@@ -1,18 +1,25 @@
 """
 ### 计划任务相关
 """
+from nonebot import get_driver
 from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
 from nonebot.params import T_State
 from nonebot import on_command, require
 from nonebot.permission import SUPERUSER
 import asyncio
+import time
+import os
 from .data import UserData
 from .bbsAPI import *
 from .gameSign import *
 from .config import mysTool_config as conf
+from .config import GoodListImage as img_conf
 from .utils import *
 from .mybMission import Mission
-from .exchange import get_good_list
+from .exchange import *
+
+
+driver = nonebot.get_driver()
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -63,17 +70,15 @@ update_timing = require("nonebot_plugin_apscheduler").scheduler
 
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
-    for game in ("bh3", "ys", "bh2", "wd", "bbs"):
-        await get_good_list(game)  # 米游社商品更新函数
+    generate_image()
 
 
 manually_update = on_command(__cs+'update_good', aliases={
                              __cs+'商品更新', __cs+'米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
 
 @manually_update.handle()
-async def _(event: PrivateMessageEvent, state: T_State):
-    for game in ("bh3", "ys", "bh2", "wd", "bbs"):
-        await get_good_list(game)  # 米游社商品更新函数
+async def _(event: PrivateMessageEvent):
+    await generate_image()
     await manually_update.send('已完成商品更新')
 
 
@@ -147,3 +152,17 @@ async def send_bbs_sign_msg(bot: Bot, qq: str):
                     message=msg
                 )
             await asyncio.sleep(10)
+
+async def generate_image():
+    for root, dirs, files in os.walk(img_conf.SAVE_PATH, topdown=False):
+        for name in files:
+            if name.endswith('.jpg'):
+                os.remove(os.path.join(root, name))
+    for game in ("bh3", "ys", "bh2", "wd", "bbs"):
+        good_list = await get_good_list(game)
+        img_path = time.strftime(f'{img_conf.SAVE_PATH}/%Y-%m-{game}.jpg',time.localtime())
+        with open(img_path, 'wb') as f:
+            f.write(game_list_to_image(good_list))
+            f.close()
+
+driver.on_startup(generate_image())
