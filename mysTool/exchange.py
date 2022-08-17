@@ -357,7 +357,7 @@ async def game_list_to_image(good_list: list[Good]):
         draw_y += (conf.goodListImage.ICON_SIZE[1] +
                    conf.goodListImage.PADDING_ICON)
 
-    # 保存
+    # 导出
     image_bytes = io.BytesIO()
     preview.save(image_bytes, format="JPEG")
-    return image_bytes
+    return image_bytes.getvalue()
