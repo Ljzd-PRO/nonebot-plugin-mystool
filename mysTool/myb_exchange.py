@@ -45,11 +45,17 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
             account = UserData.read_account(qq, phone)
             if not account:
                 await matcher.reject('您输入的手机号有误，请重新输入')
-    state['account'] = account
-    msg = ... # data内查看兑换计划函数
     if args:
         matcher.set_arg("content", args)
     else:
+        state['account'] = account
+        goodid_list = account.exchange
+        msg = ''
+        if goodid_list:
+            for goodid in goodid_list:
+                msg = ... # data内查看兑换计划函数
+        else:
+            msg = '您还没有兑换计划哦\n\n'
         await matcher.finish(msg+matcher.__help_msg__)
 
 @myb_exchange_plan.got('content')
@@ -67,10 +73,16 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
         await matcher.finish('您输入的商品id不在可兑换的商品列表内，程序已退出')
     if arg[0] == '+':
         if good.time:
-            ... # 写入兑换计划
+            account.exchange.append(good.goodID)
             exchange_plan = Exchange(account, good.goodID)
             if exchange_plan.result == -1:
-                await bot.send_private_msg(user_id=qq, message="商品初始化失败，请重新尝试")
+                await matcher.finish("米商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.goodID))
+            elif exchange_plan.result == -2:
+                await matcher.finish("商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
+            elif exchange_plan.result == -3:
+                await matcher.finish("暂不支持商品 {} 所属的游戏".format(good.goodID))
+            elif exchange_plan.result == -4:
+                await matcher.finish("获取商品 {} 的信息时，服务器没有正确返回".format(good.goodID))
             else:
                 scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, bot, qq),next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
             await matcher.finish(f'设置兑换计划成功！将于{good.time}开始兑换，兑换结果会实时通知您')
