@@ -75,9 +75,7 @@ class Good:
 
     async def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
-        self.start_time: int = None
         try:
-            await self.time
             for func in dir(Good):
                 if func.startswith("__") and func == "time":
                     continue
@@ -129,14 +127,8 @@ class Good:
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
         else:
-            # 第一次执行时获取开始兑换时间，下次直接读取之前获取到的
-            if self.start_time is None:
-                self.start_time = await Good.get_start_time(self.goodID)
-                if self.start_time is None:
-                    self.start_time = self.good_dict["next_time"]
-            else:
-                return time.strftime("%Y-%m-%d %H:%M:%S",
-                                     time.localtime(self.start_time))
+            return time.strftime("%Y-%m-%d %H:%M:%S",
+                                 time.localtime(self.good_dict["next_time"]))
 
     @property
     def num(self) -> int:
