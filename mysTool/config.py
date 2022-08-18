@@ -92,3 +92,4 @@ class Config(BaseModel, extra=Extra.ignore):
 
 
 mysTool_config = Config.parse_obj(get_driver().config)
+img_config = GoodListImage.parse_obj(get_driver().config)

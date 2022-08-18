@@ -6,6 +6,7 @@ from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
 from nonebot.params import T_State
 from nonebot import on_command, require
 from nonebot.permission import SUPERUSER
+import nonebot_plugin_apscheduler
 import asyncio
 import time
 import os
@@ -13,11 +14,10 @@ from .data import UserData
 from .bbsAPI import *
 from .gameSign import *
 from .config import mysTool_config as conf
-from .config import GoodListImage as img_conf
+from .config import img_config as img_conf
 from .utils import *
 from .mybMission import Mission
 from .exchange import *
-
 
 driver = nonebot.get_driver()
 
@@ -25,7 +25,7 @@ __cs = ''
 if conf.USE_COMMAND_START:
     __cs = conf.COMMAND_START
 
-daily_game_sign = require("nonebot_plugin_apscheduler").scheduler
+daily_game_sign = nonebot_plugin_apscheduler.scheduler
 
 @daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
 
@@ -46,7 +46,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
     await send_game_sign_msg(qq)
 
 
-daily_bbs_sign = require("nonebot_plugin_apscheduler").scheduler
+daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
 
 @daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
 async def daily_bbs_sign_():
@@ -66,7 +66,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
     await send_bbs_sign_msg(qq)
 
 
-update_timing = require("nonebot_plugin_apscheduler").scheduler
+update_timing = nonebot_plugin_apscheduler.scheduler
 
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
@@ -162,7 +162,8 @@ async def generate_image():
         good_list = await get_good_list(game)
         img_path = time.strftime(f'{img_conf.SAVE_PATH}/%Y-%m-{game}.jpg',time.localtime())
         with open(img_path, 'wb') as f:
-            f.write(game_list_to_image(good_list))
+            image_bytes = await game_list_to_image(good_list)
+            f.write(image_bytes)
             f.close()
 
-driver.on_startup(generate_image())
+driver.on_startup(generate_image)
