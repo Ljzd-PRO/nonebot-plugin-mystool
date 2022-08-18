@@ -159,7 +159,7 @@ class UserAccount:
         self.gameUID = AccountUID()
         self.gameUID.get(account["gameUID"])
         self.deviceID: str = account["xrpcDeviceID"]
-        self.address = Address(account["address"])
+        self.address = Address(account["address"]) if account["address"] else None
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
@@ -199,7 +199,7 @@ class UserData:
         """
         以dict形式获取userdata.json
         """
-        return json.load(open(USERDATA_PATH))
+        return json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
 
     def read_account(qq: int, by: Union[int, str]):
         """
