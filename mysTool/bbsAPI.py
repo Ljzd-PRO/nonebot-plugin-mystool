@@ -126,7 +126,7 @@ class GameInfo:
     """
     游戏信息数据
     """
-    ABBR_TO_ID: dict[int, Tuple[str, str]] = None
+    ABBR_TO_ID: dict[int, Tuple[str, str]] = {}
     '''
     游戏ID(gameID)与缩写和全称的对应关系
     >>> {游戏ID, (缩写, 全称)}
@@ -192,7 +192,7 @@ async def get_action_ticket(account: UserAccount) -> Union[str, None]:
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
-        return res["data"]["ticket"]
+        return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -224,7 +224,7 @@ async def get_game_list() -> Union[list[GameInfo], None]:
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
-        for info in res["data"]["list"]:
+        for info in res.json()["data"]["list"]:
             info_list.append(GameInfo(info))
         return info_list
     except KeyError:
@@ -247,16 +247,16 @@ async def set_game_list():
         return
     for game in game_list:
         if game.name == "原神":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("ys", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("ys", game.name))
         elif game.name == "崩坏3":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("bh3", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bh3", game.name))
         elif game.name == "崩坏学园2":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("bh2", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bh2", game.name))
         elif game.name == "未定事件簿":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("wd", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("wd", game.name))
         elif game.name == "大别墅":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("bbs", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bbs", game.name))
         elif game.name == "崩坏：星穹铁道":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("xq", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("xq", game.name))
         elif game.name == "绝区零":
-            GameInfo.ABBR_TO_ID[game.gameID] = ("jq", game.name)
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("jq", game.name))
