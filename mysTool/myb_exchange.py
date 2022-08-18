@@ -135,5 +135,5 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('c
         arg = 'bbs'
     else:
         await get_good_image.finish('您的输入有误，请重新输入')
-    img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg}.jpg'.replace('\\', '/'),time.localtime())
+    img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg}.jpg', time.localtime())
     await get_good_image.finish(MessageSegment.image(img_path))
