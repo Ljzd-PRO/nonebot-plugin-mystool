@@ -130,7 +130,7 @@ get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式配置c
 
 @get_cookie.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
-    await get_cookie.send('登录过程分为三步：\n1.发送手机号\n2.登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送\n3.刷新页面，再次获取验证码并发送\n过程中随时输入退出即可退出')
+    await get_cookie.send('登录过程分为三步：\n1.发送手机号\n2.登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送\n3.刷新页面，再次获取验证码并发送\n过程中随时输入“退出”即可退出')
 
 
 @get_cookie.got('手机号', prompt='请输入您的手机号')
