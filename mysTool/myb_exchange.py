@@ -10,6 +10,7 @@ from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageEvent, 
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot_plugin_apscheduler import scheduler
 from .config import mysTool_config as conf
+from .config import GoodListImage as img_conf
 from .data import UserData
 from .exchange import *
 
@@ -123,14 +124,15 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 @get_good_image.got("content", prompt='请输入您要查看的商品类别（崩坏3，原神，崩坏2，未定事件簿，大别野），输入退出即可退出')
 async def _(event:MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
     arg = arg.extract_plain_text()
-    if arg == '原神':
-        ...
-    if arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦']:
-        ...
-    if arg in ['崩坏2', '崩坏二', '崩2', '崩二', '崩崩', '蹦蹦']:
-        ...
-    if arg in ['未定', '未定事件簿']:
-        ...
+    if arg in ['原神', 'ys']:
+        arg = 'ys'
+    if arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:
+        arg = 'bh3'
+    if arg in ['崩坏2', '崩坏二', '崩2', '崩二', '崩崩', '蹦蹦', 'bh2']:
+        arg = 'bh2'
+    if arg in ['未定', '未定事件簿', 'wd']:
+        arg = 'wd'
     if arg in ['大别野', '米游社']:
-        ...
-    await get_good_image.finish(MessageSegment.image(...)) #图片存储地址
+        arg = 'bbs'
+    img_path = time.strftime(f'{img_conf.SAVE_PATH}/%Y-%m-{arg}.jpg',time.localtime())
+    await get_good_image.finish(MessageSegment.image(img_path))
