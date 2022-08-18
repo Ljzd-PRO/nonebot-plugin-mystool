@@ -202,7 +202,7 @@ class GameSign:
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
         async with httpx.AsyncClient() as client:
-            res = await client.get(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+            res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
         try:
             self.signResult = res.json()
             if (game == "ys" and self.signResult["data"]["success"] == 0) or (game == "bh3" and self.signResult["data"]["message"] == ""):
