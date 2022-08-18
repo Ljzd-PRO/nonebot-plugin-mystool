@@ -160,10 +160,12 @@ async def generate_image():
                 os.remove(os.path.join(root, name))
     for game in ("bh3", "ys", "bh2", "wd", "bbs"):
         good_list = await get_good_list(game)
-        img_path = time.strftime(f'{img_conf.SAVE_PATH}/%Y-%m-{game}.jpg',time.localtime())
+        img_path = time.strftime(f'{img_conf.SAVE_PATH}/%m-%d-{game}.jpg',time.localtime())
         with open(img_path, 'wb') as f:
             image_bytes = await game_list_to_image(good_list)
             f.write(image_bytes)
             f.close()
 
+
 driver.on_startup(generate_image)
+
