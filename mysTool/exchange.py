@@ -73,7 +73,7 @@ class Good:
     商品数据
     """
 
-    async def __init__(self, good_dict: dict) -> None:
+    def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
         try:
             for func in dir(Good):
