@@ -365,9 +365,11 @@ async def game_list_to_image(good_list: list[Good]):
         draw = ImageDraw.Draw(preview)
         # 根据预览图高度来确定写入文字的位置，并调整空间
         if good.time is None:
-            good.time = "不限"
+            start_time = "不限"
+        else:
+            start_time = good.time
         draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                  "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, good.time, good.price), (0, 0, 0), font)
+                  "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
         draw_y += (conf.goodListImage.ICON_SIZE[1] +
                    conf.goodListImage.PADDING_ICON)
 
