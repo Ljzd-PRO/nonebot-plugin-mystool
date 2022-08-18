@@ -87,7 +87,7 @@ class Good:
     async def get_start_time(goodID: str) -> Union[int, None]:
         try:
             async with httpx.AsyncClient() as client:
-                res: httpx.Response = client.get(URL_CHECK_GOOD)
+                res: httpx.Response = await client.get(URL_CHECK_GOOD)
             return int(res.json()["data"]["sale_start_time"])
         except KeyError and ValueError:
             logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
@@ -118,7 +118,7 @@ class Good:
         return self.good_dict["price"]
 
     @property
-    async def time(self) -> str:
+    def time(self) -> str:
         """
         兑换时间
         """
@@ -176,9 +176,9 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
     while error_times < conf.MAX_RETRY_TIMES:
         try:
             async with httpx.AsyncClient() as client:
-                get_list: httpx.Response = client.get(URL_GOOD_LIST.format(page=page,
+                get_list: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
                                                                            game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
-                get_list = get_list.json()["data"]["list"]
+            get_list = get_list.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if get_list == []:
                 break
@@ -213,7 +213,6 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
 class Exchange:
     """
     米游币商品兑换相关(需先初始化对象)
-
     `result`属性为 `-1`: 商品为游戏内物品，由于未配置stoken，放弃兑换\n
     `result`属性为 `-2`: 商品为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换\n
     `result`属性为 `-3`: 暂不支持商品所属的游戏\n
@@ -234,7 +233,7 @@ class Exchange:
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
         try:
             async with httpx.AsyncClient() as client:
-                res: httpx.Response = client.get(
+                res: httpx.Response = await client.get(
                     URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
             goodInfo = res.json()["data"]
             if goodInfo["type"] == 2:
@@ -285,7 +284,6 @@ class Exchange:
     async def start(self) -> Union[Tuple[bool, dict], None]:
         """
         执行兑换操作
-
         返回元组 (是否成功, 服务器返回数据)\n
         若服务器没有正确返回，函数返回 `None`
         """
@@ -298,7 +296,7 @@ class Exchange:
             headers["x-rpc-device_id"] = self.account.deviceID
             try:
                 async with httpx.AsyncClient() as client:
-                    res: httpx.Response = client.post(
+                    res: httpx.Response = await client.post(
                         URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if res.json()["message"] == "OK":
                     logger.info(
@@ -328,7 +326,7 @@ async def game_list_to_image(good_list: list[Good]):
 
     for good in good_list:
         async with httpx.AsyncClient() as client:
-            icon: httpx.Response = client.get(good.icon, timeout=conf.TIME_OUT)
+            icon: httpx.Response = await client.get(good.icon, timeout=conf.TIME_OUT)
         img = Image.open(io.BytesIO(icon.content))
         # 调整预览图大小
         img = img.resize(conf.goodListImage.ICON_SIZE)
