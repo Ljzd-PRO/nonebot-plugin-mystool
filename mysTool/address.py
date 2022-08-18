@@ -7,7 +7,9 @@ from .utils import *
 from typing import Union
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.matcher import Matcher
 from nonebot.params import T_State, ArgPlainText
+from nonebot.adapters.onebot.v11.message import Message
 from .data import UserAccount, UserData, Address
 
 __cs = ''
@@ -56,29 +58,37 @@ get_address.__help_info__ = '跟随指引，获取地址id，米游币兑换实�
 
 
 @get_address.handle()
-async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
+async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     state['qq_account'] = qq_account
+    state['user_account'] = user_account
     if not user_account:
         await get_address.finish("你没有配置cookie，请先配置cookie！")
     else:
-        await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入退出即可退出")
+        await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入“退出”即可退出")
     if len(user_account) == 1:
-        account = user_account[0]
+        matcher.set_arg('phone', user_account[0].phone)
     else:
-        phone = get_address.got('您有多个账号，您要配置一下哪个账号的地址ID？')
-        phones = [user_account[i].phone for i in len(user_account)]
-        await get_address.send(','.join(phones))
-        if phone in phones:
-            account = UserData.read_account(qq_account, phone)
-        else:
-            get_address.reject('您输入的账号不在以上账号内，请重新输入')
+        phones = [str(user_account[i].phone) for i in range(len(user_account))]
+        await matcher.send(f"您有多个账号，您要配置以下哪个账号的地址ID？\n{'，'.join(phones)}")
+
+@get_address.got('phone')
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
+    if phone == '退出':
+        await matcher.finish('已成功退出')
+    user_account = state['user_account']
+    qq_account = state['qq_account']
+    phones = [str(user_account[i].phone) for i in range(len(user_account))]
+    if phone in phones:
+        account = UserData.read_account(qq_account, int(phone))
+    else:
+        get_address.reject('您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
 
     try:
         state['address_list']: list[Address] = await get(account)
-    except Exception:
+    except Exception as e:
         await get_address.finish("请求失败，请稍后再试")
     if state['address_list']:
         await get_address.send("以下为查询结果：")
