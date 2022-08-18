@@ -1,10 +1,10 @@
 """
 ### 计划任务相关
 """
-from nonebot import get_driver
+from nonebot import get_driver, get_bot, on_command
 from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
 from nonebot.params import T_State
-from nonebot import on_command, require
+from nonebot import on_command, get_bot
 from nonebot.permission import SUPERUSER
 import nonebot_plugin_apscheduler
 import asyncio
@@ -21,6 +21,7 @@ from .exchange import *
 
 driver = nonebot.get_driver()
 
+
 __cs = ''
 if conf.USE_COMMAND_START:
     __cs = conf.COMMAND_START
@@ -30,9 +31,10 @@ daily_game_sign = nonebot_plugin_apscheduler.scheduler
 @daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
 
 async def daily_game_sign_():
+    bot = get_bot()
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        await send_game_sign_msg(qq)
+        await send_game_sign_msg(bot=bot, qq=qq)
 
 
 manually_game_sign = on_command(
@@ -42,8 +44,9 @@ manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签�
 
 @manually_game_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
+    bot = get_bot()
     qq = event.user_id
-    await send_game_sign_msg(qq)
+    await send_game_sign_msg(bot=bot, qq=qq)
 
 
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
@@ -51,8 +54,9 @@ daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
 @daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
 async def daily_bbs_sign_():
     qq_accounts = UserData.read_all().keys()
+    bot = get_bot()
     for qq in qq_accounts:
-        await send_bbs_sign_msg(qq)
+        await send_bbs_sign_msg(bot=bot, qq=qq)
 
 
 manually_bbs_sign = on_command(
@@ -63,7 +67,8 @@ manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查
 @manually_bbs_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
     qq = event.user_id
-    await send_bbs_sign_msg(qq)
+    bot = get_bot()
+    await send_bbs_sign_msg(bot=bot, qq=qq)
 
 
 update_timing = nonebot_plugin_apscheduler.scheduler
@@ -73,45 +78,37 @@ async def daily_update():
     generate_image()
 
 
-manually_update = on_command(__cs+'update_good', aliases={
-                             __cs+'商品更新', __cs+'米游社商品更新'}, permission=SUPERUSER, priority=4, block=True)
-
-@manually_update.handle()
-async def _(event: PrivateMessageEvent):
-    await generate_image()
-    await manually_update.send('已完成商品更新')
-
 
 async def send_game_sign_msg(bot: Bot, qq: str):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
-        record_list: list[GameRecord] = get_game_record(account)
-        sign_list = []
+        record_list: list[GameRecord] = await get_game_record(account)
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
                 logger.info(conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+                continue
             else:
-                sign_list.append(GameInfo.ABBR_TO_ID[record.gameID][0])
-        for sign_game in sign_list:
-            if account.gameSign:
-                sign_flag = await gamesign.sign(sign_game)
+                sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
+                sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
+                if account.gameSign:
+                    sign_flag = await gamesign.sign(sign_game)
+                else:
+                    return
                 if not sign_flag:
                     await bot.send_msg(
                         message_type="private",
                         user_id=qq,
-                        message="今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                        message=f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
                     )
-                if account.notice:
+                    continue
+                if UserData.isNotice(qq):
                     sign_award = await gamesign.reward(sign_game)
                     sign_info = await gamesign.info(sign_game)
-                    accounts_info = await get_game_record(account)
-                    for account_info in accounts_info:
-                        if account_info.gameID == '2':
-                            break
+                    account_info = record
                     if sign_award and sign_info:
                         msg = f"""\
-                            {'今日签到成功！' if sign_info.isSign else '今日已签到！'}
+                            {'今日{sign_game_name}签到成功！' if sign_info.isSign else '今日已签到！'}
                             {account_info.nickname} {account_info.regionName} {account_info.level}
                             今日签到奖励：
                             {sign_award.name} * {sign_award.count}
@@ -119,7 +116,7 @@ async def send_game_sign_msg(bot: Bot, qq: str):
                         """
                         img = MessageSegment.image(sign_award.icon)
                     else:
-                        msg = "今日签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                        msg = f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
                         img = ''
                     await bot.send_msg(
                         message_type="private",
