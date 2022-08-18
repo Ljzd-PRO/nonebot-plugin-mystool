@@ -39,7 +39,7 @@ async def get(account: UserAccount) -> Union[list[Address], None]:
     headers["x-rpc-device_id"] = account.deviceID
     async with httpx.AsyncClient() as client:
         res = await client.get(URL.format(
-            time_now=round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+            round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
     try:
         for address in res.json()["data"]["list"]:
             address_list.append(Address(address))
@@ -60,7 +60,7 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     state['qq_account'] = qq_account
-    if not user_account == 0:
+    if not user_account:
         await get_address.finish("你没有配置cookie，请先配置cookie！")
     else:
         await get_address.send("请跟随指引配合地址ID，请确保米游社内已经填写了至少一个地址，过程中随时输入退出即可退出")
@@ -78,21 +78,21 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
 
     try:
         state['address_list']: list[Address] = await get(account)
-    except:
-        await get_address.finish("请求失败")
+    except Exception:
+        await get_address.finish("请求失败，请稍后再试")
     if state['address_list']:
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:
             address_string = f"""\
-            ----------
-            省：{address.province}
-            市：{address.city}
-            区/县：{address.county}
-            详细地址：{address.detail}
-            联系电话：{address.phone}
-            联系人：{address.name}
-            地址ID(Address_ID)：{address.addressID}
-            """
+            ----------\
+            \n省：{address.province}\
+            \n市：{address.city}\
+            \n区/县：{address.county}\
+            \n详细地址：{address.detail}\
+            \n联系电话：{address.phone}\
+            \n联系人：{address.name}\
+            \n地址ID(Address_ID)：{address.addressID}\
+            """.strip()
             await get_address.send(address_string)
     else:
         await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
@@ -108,32 +108,7 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
         account: UserAccount = state["account"]
         account.address = result_address[0]
         UserData.set_account(account, state['qq_account'], account.phone)
-        get_address.finish("地址写入完成")
+        await get_address.finish("地址写入完成")
     else:
-        get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
+        await get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
 
-
-async def get_address__(account: UserAccount, state: T_State):
-    state['address_id'] = []
-
-    try:
-        address_list: list[Address] = await get(account)
-    except:
-        await get_address.finish("请求失败")
-    if address_list:
-        await get_address.send("以下为查询结果：")
-        for address in address_list:
-            address_string = f"""\
-            ----------
-            省：{address.province}
-            市：{address.city}
-            区/县：{address.county}
-            详细地址：{address.detail}
-            联系电话：{address.phone}
-            联系人：{address.name}
-            地址ID(Address_ID)：{address.addressID}
-            """
-            state['address_id'].append(address.addressID)
-            await get_address.send(address_string)
-    else:
-        await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
