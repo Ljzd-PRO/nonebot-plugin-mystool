@@ -84,17 +84,6 @@ class Good:
             logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def get_start_time(goodID: str) -> Union[int, None]:
-        try:
-            async with httpx.AsyncClient() as client:
-                res: httpx.Response = await client.get(URL_CHECK_GOOD)
-            return int(res.json()["data"]["sale_start_time"])
-        except KeyError and ValueError:
-            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        except:
-            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def name(self) -> str:
@@ -154,6 +143,32 @@ class Good:
         商品图片链接
         """
         return self.good_dict["icon"]
+
+
+async def get_good_detail(goodID: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            res: httpx.Response = await client.get(URL_CHECK_GOOD.format(goodID))
+        return Good(res.json()["data"])
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+
+async def get_start_time(goodID: str) -> Union[int, None]:
+    try:
+        async with httpx.AsyncClient() as client:
+            res: httpx.Response = await client.get(URL_CHECK_GOOD.format(goodID))
+        return int(res.json()["data"]["sale_start_time"])
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
 async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[list[Good], None]:
