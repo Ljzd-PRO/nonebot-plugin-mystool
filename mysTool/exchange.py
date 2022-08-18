@@ -84,7 +84,6 @@ class Good:
             logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-
     @property
     def name(self) -> str:
         """
@@ -192,7 +191,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
         try:
             async with httpx.AsyncClient() as client:
                 get_list: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
-                                                                           game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                                                                                 game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
             get_list = get_list.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if get_list == []:
