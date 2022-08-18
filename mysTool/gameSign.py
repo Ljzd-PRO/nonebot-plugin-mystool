@@ -5,7 +5,7 @@ import httpx
 import traceback
 from nonebot.log import logger
 from .config import mysTool_config as conf
-from .utils import *
+from .utils import generateDS
 from .data import UserAccount
 from typing import Literal
 
@@ -201,6 +201,7 @@ class GameSign:
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
+        headers.setdefault("DS", generateDS())
         async with httpx.AsyncClient() as client:
             res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
         try:
