@@ -113,9 +113,9 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
                 encoding="utf-8")).hexdigest()
         return f"{t},{a},{re}"
     else:
-        if not isinstance(data, str):
+        if not isinstance(data, str) and data is not None:
             data = json.dumps(data)
-        if not isinstance(params, str):
+        if not isinstance(params, str) and params is not None:
             params = urlencode(params)
         t = str(NtpTime.time())
         r = str(random.randint(100001, 200000))
