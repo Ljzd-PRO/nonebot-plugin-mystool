@@ -105,7 +105,7 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
     # DS 加密算法:
     # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
     if data is None and params is None:
-        t = int(NtpTime.time())
+        t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
@@ -116,7 +116,7 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
             data = json.dumps(data)
         if not isinstance(params, str) and params is not None:
             params = urlencode(params)
-        t = str(NtpTime.time())
+        t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
         c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" +
