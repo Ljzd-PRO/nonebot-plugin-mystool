@@ -1,9 +1,11 @@
 """
 ### 工具函数
 """
+import json
 import random
 import string
 import time
+from typing import Union
 import ntplib
 import hashlib
 import nonebot
@@ -11,6 +13,7 @@ import uuid
 from pathlib import Path
 from nonebot.log import logger
 from .config import mysTool_config as conf
+from urllib.parse import urlencode
 
 
 driver = nonebot.get_driver()
@@ -91,16 +94,31 @@ def cookie_dict_to_str(cookie_dict: dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS():
+def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = None):
     """
     获取Headers中所需DS
+
+    参数:
+        `data`: 可选，网络请求中需要发送的数据
+        `params`: 可选，URL参数
     """
     # DS 加密算法:
     # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
-    t = int(NtpTime.time())
-    a = "".join(random.sample(
-        string.ascii_lowercase + string.digits, 6))
-    re = hashlib.md5(
-        f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode(
-            encoding="utf-8")).hexdigest()
-    return f"{t},{a},{re}"
+    if data is None and params is None:
+        t = int(NtpTime.time())
+        a = "".join(random.sample(
+            string.ascii_lowercase + string.digits, 6))
+        re = hashlib.md5(
+            f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode(
+                encoding="utf-8")).hexdigest()
+        return f"{t},{a},{re}"
+    else:
+        if not isinstance(data, str):
+            data = json.dumps(data)
+        if not isinstance(params, str):
+            params = urlencode(params)
+        t = str(NtpTime.time())
+        r = str(random.randint(100001, 200000))
+        add = f'&b={data}&q={params}'
+        c = hashlib.md5("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" + t + "&r=" + r + add)
+        return f"{t},{r},{c}"
