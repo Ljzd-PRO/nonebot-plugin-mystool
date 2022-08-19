@@ -8,7 +8,7 @@ from typing import Literal, Tuple, Union
 from .config import mysTool_config as conf
 from .utils import generateDeviceID
 from nonebot.log import logger
-from .data import UserAccount
+from .data import AccountUID, UserAccount
 from .bbsAPI import get_game_record
 from PIL import Image, ImageFont, ImageDraw
 import io
@@ -242,7 +242,7 @@ class Exchange:
     `result`属性为 `-3`: 暂不支持商品所属的游戏\n
     `result`属性为 `-4`: 获取商品的信息时，服务器没有正确返回
     """
-    async def __init__(self, account: UserAccount, goodID: str) -> None:
+    async def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
         self.result = None
         self.goodID = goodID
         self.account = account
@@ -275,16 +275,7 @@ class Exchange:
             else:
                 return
 
-            gameUID = None
-            if goodInfo["game"] == "bh3":
-                gameUID = account.gameUID.bh3
-            elif goodInfo["game"] == "hk4e":
-                gameUID = account.gameUID.ys
-            elif goodInfo["game"] == "bh2":
-                gameUID = account.gameUID.bh2
-            elif goodInfo["game"] == "nxx":
-                gameUID = account.gameUID.wd
-            if gameUID is None:
+            if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                 logger.warning(
                     conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
                 self.result = -3
