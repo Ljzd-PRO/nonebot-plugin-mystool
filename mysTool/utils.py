@@ -120,5 +120,5 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
         t = str(NtpTime.time())
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
-        c = hashlib.md5("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" + t + "&r=" + r + add)
+        c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" + t + "&r=" + r + add).encode())
         return f"{t},{r},{c}"
