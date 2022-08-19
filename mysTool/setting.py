@@ -52,7 +52,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     await account_setting.send(user_setting+'您要更改哪一项呢？请输入“1”或“2”')
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg: Message = ArgPlainText('arg')):
+async def _(event: PrivateMessageEvent, state: T_State, arg: Message = ArgPlainText('arg')):
     account = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
@@ -70,24 +70,32 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg: M
 
 global_setting = on_command(
     __cs+'global_setting', aliases={__cs+'全局设置', __cs+'播报设置'}, priority=4, block=True)
-
+global_setting.__help_name__ = "播报设置"
+global_setting.__help_info__ = "设置每日签到后是否进行qq通知"
 
 @global_setting.handle()
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
+async def _(event: PrivateMessageEvent, matcher: Matcher):
     qq_account = int(event.user_id)
     await matcher.send("每日自动签到相关设置请调用“签到设置命令哦”\n输入“退出”即可退出")
     await asyncio.sleep(0.5)
     await matcher.send(f"每日签到后自动播报功能：{'开' if UserData.isNotice(qq_account) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
 
 @global_setting.got('choice')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, choice: Message = ArgPlainText('choice')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgPlainText('choice')):
+    qq_account = int(event.user_id)
     if choice == '退出':
         await matcher.finish("已成功退出")
     elif choice == '是':
-        await matcher.finish()
-        ...
+        UserData.set_notice(not UserData.isNotice(qq_account), qq_account)
+        await matcher.finish(f"每日签到后自动播报功能已{'开启' if UserData.isNotice(qq_account) else '关闭'}")
     elif choice == '否':
-        await matcher.finish()
-        ...
+        await matcher.finish("没有做修改哦~")
     else:
-        ...
+        await matcher.reject("您的输入有误，请重新输入")
+
+setting = on_command(
+    __cs+'setting', aliases={__cs+'设置'}, priority=4, block=True)
+@setting.handle()
+async def _(event: PrivateMessageEvent):
+    msg = '如需配置游戏自动签到、米游币任务是否开启相关选项，请调用“游戏设置”命令\n如需设置每日签到后是否进行qq通知，请调用“播报设置”命令'
+    await setting.send(msg)
