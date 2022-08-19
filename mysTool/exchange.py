@@ -4,11 +4,11 @@
 import httpx
 import time
 import traceback
-from typing import Literal, Tuple, Union
+from typing import Literal, Tuple, Union, List
 from .config import mysTool_config as conf
 from .utils import generateDeviceID
 from nonebot.log import logger
-from .data import AccountUID, UserAccount
+from .data import UserAccount
 from .bbsAPI import get_game_record
 from PIL import Image, ImageFont, ImageDraw
 import io
@@ -182,7 +182,7 @@ async def get_start_time(goodID: str) -> Union[int, None]:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[list[Good], None]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[List[Good], None]:
     if game == "bh3":
         game = "bh3"
     elif game == "ys":
@@ -333,15 +333,15 @@ class Exchange:
                 return None
 
 
-async def game_list_to_image(good_list: list[Good]):
+async def game_list_to_image(good_list: List[Good]):
     font = ImageFont.truetype(
         str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
     size_y = 0
     '''起始粘贴位置 高'''
-    position: list[tuple] = []
+    position: List[tuple] = []
     '''预览图粘贴的位置'''
-    imgs: list[Image.Image] = []
+    imgs: List[Image.Image] = []
     '''商品预览图'''
 
     for good in good_list:

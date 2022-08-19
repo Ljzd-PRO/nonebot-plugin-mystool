@@ -7,7 +7,7 @@ import asyncio
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import generateDS
-from typing import Literal, Union
+from typing import Literal, Union, List
 from nonebot.log import logger
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
@@ -86,7 +86,7 @@ class Mission:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return False
 
-    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[list[str], None]:
+    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[List[str], None]:
         """
         获取文章ID列表，若返回None说明失败
 

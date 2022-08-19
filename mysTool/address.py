@@ -4,7 +4,7 @@
 import httpx
 from .config import mysTool_config as conf
 from .utils import *
-from typing import Union
+from typing import Union, List
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.matcher import Matcher
@@ -32,7 +32,7 @@ HEADERS = {
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 
 
-async def get(account: UserAccount) -> Union[list[Address], None]:
+async def get(account: UserAccount) -> Union[List[Address], None]:
     """
     获取用户的地址数据
     """
@@ -87,7 +87,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     state['account'] = account
 
     try:
-        state['address_list']: list[Address] = await get(account)
+        state['address_list']: List[Address] = await get(account)
     except Exception as e:
         await get_address.finish("请求失败，请稍后再试")
     if state['address_list']:

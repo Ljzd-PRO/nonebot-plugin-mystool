@@ -5,7 +5,7 @@ import json
 import random
 import string
 import time
-from typing import Union
+from typing import Union, Dict
 import ntplib
 import hashlib
 import nonebot
@@ -65,7 +65,7 @@ def generateDeviceID() -> str:
     return str(uuid.uuid4()).upper()
 
 
-def cookie_str_to_dict(cookie_str: str) -> dict[str, str]:
+def cookie_str_to_dict(cookie_str: str) -> Dict[str, str]:
     """
     将字符串Cookie转换为字典Cookie
     """
@@ -84,7 +84,7 @@ def cookie_str_to_dict(cookie_str: str) -> dict[str, str]:
     return cookie_dict
 
 
-def cookie_dict_to_str(cookie_dict: dict[str, str]) -> str:
+def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     """
     将字符串Cookie转换为字典Cookie
     """

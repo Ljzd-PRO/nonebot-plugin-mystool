@@ -8,7 +8,7 @@ from .data import UserAccount
 from .utils import generateDeviceID, generateDS
 from nonebot.log import logger
 import nonebot
-from typing import Tuple, Union
+from typing import Tuple, Union, List, Dict
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -126,7 +126,7 @@ class GameInfo:
     """
     游戏信息数据
     """
-    ABBR_TO_ID: dict[int, Tuple[str, str]] = {}
+    ABBR_TO_ID: Dict[int, Tuple[str, str]] = {}
     '''
     游戏ID(gameID)与缩写和全称的对应关系
     >>> {游戏ID, (缩写, 全称)}
@@ -202,7 +202,7 @@ async def get_action_ticket(account: UserAccount) -> Union[str, None]:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_game_record(account: UserAccount) -> Union[list[GameRecord], None]:
+async def get_game_record(account: UserAccount) -> Union[List[GameRecord], None]:
     record_list = []
     try:
         async with httpx.AsyncClient() as client:
@@ -219,7 +219,7 @@ async def get_game_record(account: UserAccount) -> Union[list[GameRecord], None]
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_game_list() -> Union[list[GameInfo], None]:
+async def get_game_list() -> Union[List[GameInfo], None]:
     headers = HEADERS_GAME_LIST.copy()
     headers["DS"] = generateDS()
     info_list = []

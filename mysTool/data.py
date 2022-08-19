@@ -4,7 +4,7 @@
 import json
 import traceback
 import nonebot
-from typing import Union
+from typing import Union, List, Dict
 from nonebot.log import logger
 from .utils import PATH, generateDeviceID
 from .config import mysTool_config as conf
@@ -92,13 +92,13 @@ class AccountUID:
         self.bh2: str = None
         self.wd: str = None
 
-    def get(self, uid: dict[str, str]):
+    def get(self, uid: Dict[str, str]):
         self.ys: str = uid["ys"]
         self.bh3: str = uid["bh3"]
         self.bh2: str = uid["bh2"]
         self.wd: str = uid["wd"]
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> Dict[str, str]:
         return {
             "ys": self.ys,
             "bh3": self.bh3,
@@ -117,7 +117,7 @@ class UserAccount:
         '''备注名'''
         self.phone: int = None
         '''绑定手机号'''
-        self.cookie: dict[str, str] = None
+        self.cookie: Dict[str, str] = None
         '''Cookie'''
         self.deviceID: str = generateDeviceID()
         '''设备 x-rpc-device_id'''
@@ -129,7 +129,7 @@ class UserAccount:
         '''是否开启米游币任务计划'''
         self.gameSign: bool = True
         '''是否开启米游社游戏签到计划'''
-        self.exchange: list[str] = []
+        self.exchange: List[str] = []
         '''计划兑换的商品'''
 
     def get(self, account: dict):
@@ -145,13 +145,14 @@ class UserAccount:
 
         self.name: str = account["name"]
         self.phone: int = account["phone"]
-        self.cookie: dict[str, str] = account["cookie"]
+        self.cookie: Dict[str, str] = account["cookie"]
         self.deviceID: str = account["xrpcDeviceID"]
-        self.address = Address(account["address"]) if account["address"] else None
+        self.address = Address(
+            account["address"]) if account["address"] else None
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
-        self.exchange: list[str] = account["exchange"]
+        self.exchange: List[str] = account["exchange"]
 
     @property
     def to_dict(self) -> dict:
@@ -182,7 +183,7 @@ class UserData:
     }
     '''QQ用户数据样例'''
 
-    def read_all() -> dict[str, dict]:
+    def read_all() -> Dict[str, dict]:
         """
         以dict形式获取userdata.json
         """
@@ -210,7 +211,7 @@ class UserData:
             pass
         return None
 
-    def read_account_all(qq: int) -> Union[list[UserAccount], None]:
+    def read_account_all(qq: int) -> Union[List[UserAccount], None]:
         """
         获取用户的所有米游社帐号数据
 
@@ -228,7 +229,7 @@ class UserData:
             accounts.append(account)
         return accounts
 
-    def __set_all(userdata: dict[str, dict]):
+    def __set_all(userdata: Dict[str, dict]):
         """
         写入用户数据文件(整体覆盖)
 
@@ -239,14 +240,14 @@ class UserData:
                   encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
-    def __create_user(cls, userdata: dict[str, dict], qq: int) -> dict:
+    def __create_user(cls, userdata: Dict[str, dict], qq: int) -> dict:
         """
         创建用户数据，返回创建后整体的userdata
         """
         userdata.setdefault(str(qq), cls.__USER_SAMPLE)
         return userdata
 
-    def __create_account(userdata: dict[str, dict], qq: int, name: str = None, phone: int = None) -> dict:
+    def __create_account(userdata: Dict[str, dict], qq: int, name: str = None, phone: int = None) -> dict:
         """
         创建米哈游账户数据，返回创建后整体的userdata
         """
@@ -283,7 +284,7 @@ class UserData:
         userdata[str(qq)]["accounts"].append(account_raw)
         UserData.__set_all(userdata)
 
-    def set_cookie(cookie: dict[str, str], qq: int, by: Union[int, str]):
+    def set_cookie(cookie: Dict[str, str], qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号的Cookie
 

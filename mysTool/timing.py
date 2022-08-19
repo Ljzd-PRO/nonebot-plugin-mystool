@@ -18,6 +18,7 @@ from .config import img_config as img_conf
 from .utils import *
 from .mybMission import Mission
 from .exchange import *
+from typing import List
 
 driver = nonebot.get_driver()
 
@@ -83,7 +84,7 @@ async def send_game_sign_msg(bot: Bot, qq: str):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
-        record_list: list[GameRecord] = await get_game_record(account)
+        record_list: List[GameRecord] = await get_game_record(account)
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
                 logger.info(conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
@@ -138,10 +139,10 @@ async def send_bbs_sign_msg(bot: Bot, qq: str):
                 msg = f"""\
                     '今日米游币任务执行完成！
                     执行结果：
-                    签到： {'√' if sign_flag else '×'} 
-                    阅读： {'√' if read_flag else '×'} 
-                    点赞： {'√' if like_flag else '×'} 
-                    签到： {'√' if share_flag else '×'} 
+                    签到： {'√' if sign_flag else '×'}
+                    阅读： {'√' if read_flag else '×'}
+                    点赞： {'√' if like_flag else '×'}
+                    签到： {'√' if share_flag else '×'}
                 """
                 await bot.send_msg(
                     message_type="private",
