@@ -21,22 +21,37 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''移动端 User-Agent'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
     '''桌面端 User-Agent'''
+    USER_AGENT_MISSION: str = "okhttp/4.8.0"
+    '''安卓端 米游币任务 User-Agent'''
     USER_AGENT_OTHER: str = "Hyperion/177 CFNetwork/1331.0.7 Darwin/21.4.0"
     '''获取用户 ActionTicket 时Headers所用的 User-Agent'''
+
     X_RPC_DEVICE_MODEL_MOBILE: str = "iPhone10,2"
     '''移动端 x-rpc-device_model'''
     X_RPC_DEVICE_MODEL_PC: str = "OS X 10.15.7"
     '''桌面端 x-rpc-device_model'''
+    X_RPC_DEVICE_MODEL_MISSION: str = "Mi 10"
+    '''安卓端 米游币任务 x-rpc-device_model'''
+
     X_RPC_DEVICE_NAME_MOBILE: str = "iPhone"
     '''移动端 x-rpc-device_name'''
     X_RPC_DEVICE_NAME_PC: str = "Microsoft Edge 103.0.1264.62"
     '''桌面端 x-rpc-device_name'''
-    X_RPC_APP_VERSION: str = "2.34.1"
-    '''Headers所用的 x-rpc-app_version'''
+    X_RPC_DEVICE_NAME_MISSION: str = "Mi 10"
+    '''安卓端 米游币任务 x-rpc-device_name'''
+
     X_RPC_SYS_VERSION: str = "15.1"
     '''Headers所用的 x-rpc-sys_version'''
+    X_RPC_SYS_VERSION_MISSION: str = "12"
+    '''安卓端 米游币任务 x-rpc-sys_version'''
+
     X_RPC_CHANNEL: str = "appstore"
     '''Headers所用的 x-rpc-channel'''
+    X_RPC_CHANNEL_MISSION: str = "miyousheluodi"
+    '''安卓端 米游币任务 x-rpc-channel'''
+
+    X_RPC_APP_VERSION: str = "2.34.1"
+    '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
     UA: str = "\".Not/A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"103\", \"Chromium\";v=\"103\""
