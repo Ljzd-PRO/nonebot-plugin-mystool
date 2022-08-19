@@ -349,6 +349,29 @@ class UserData:
         else:
             return userdata[qq][cls.__OPTION_NOTICE]
 
+    @classmethod
+    def set_notice(cls, isNotice: bool, qq: int):
+        """
+        设置用户的通知开关
+
+        参数:
+            `isNotice`: 是否开启通知
+            `qq`: 用户QQ号
+        返回:
+            `True`: 成功写入
+            `False`: 写入失败，可能是不存在用户
+        """
+        userdata = UserData.read_all()
+        try:
+            if cls.__OPTION_NOTICE not in userdata[qq]:
+                userdata[qq].setdefault(cls.__OPTION_NOTICE, isNotice)
+            else:
+                userdata[qq][cls.__OPTION_NOTICE] = isNotice
+            UserData.__set_all(userdata)
+            return True
+        except KeyError:
+            return False
+
 
 @driver.on_startup
 def create_files():
