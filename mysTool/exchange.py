@@ -145,6 +145,9 @@ class Good:
 
     @property
     def isVisual(self) -> bool:
+        """
+        是否为虚拟商品
+        """
         if self.good_dict["type"] == 2:
             return True
         else:
