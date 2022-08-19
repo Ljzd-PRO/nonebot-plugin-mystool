@@ -168,6 +168,7 @@ class GameSign:
             return Award(res.json()["data"]["awards"])
         except KeyError:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 服务器没有正确返回")
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
@@ -186,6 +187,7 @@ class GameSign:
             return Info(res.json()["data"])
         except KeyError:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 服务器没有正确返回")
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
@@ -212,6 +214,7 @@ class GameSign:
                 return False
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
             logger.error(conf.LOG_HEAD + "签到 - 请求失败")

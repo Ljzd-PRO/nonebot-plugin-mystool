@@ -82,6 +82,7 @@ class Mission:
             return True
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 服务器没有正确返回")
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return False
 
@@ -105,6 +106,7 @@ class Mission:
                 break
             except KeyError:
                 logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
+                logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 error_times += 1
             except:
@@ -143,6 +145,7 @@ class Mission:
                     count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 服务器没有正确返回")
+                    logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
@@ -192,6 +195,7 @@ class Mission:
                     count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
+                    logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
@@ -235,6 +239,7 @@ class Mission:
                 count += 1
             except KeyError and ValueError:
                 logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
+                logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 error_times += 1
                 if error_times != conf.MAX_RETRY_TIMES:

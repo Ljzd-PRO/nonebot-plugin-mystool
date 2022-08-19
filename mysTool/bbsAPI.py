@@ -195,6 +195,7 @@ async def get_action_ticket(account: UserAccount) -> Union[str, None]:
         return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 请求失败")
@@ -211,6 +212,7 @@ async def get_game_record(account: UserAccount) -> Union[list[GameRecord], None]
         return record_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 请求失败")
@@ -229,6 +231,7 @@ async def get_game_list() -> Union[list[GameInfo], None]:
         return info_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 请求失败")

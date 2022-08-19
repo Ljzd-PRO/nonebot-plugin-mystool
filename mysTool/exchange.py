@@ -161,6 +161,7 @@ async def get_good_detail(goodID: str):
         return Good(res.json()["data"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
@@ -174,6 +175,7 @@ async def get_start_time(goodID: str) -> Union[int, None]:
         return int(res.json()["data"]["sale_start_time"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
@@ -195,22 +197,23 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
     error_times = 0
     good_list = []
     page = 1
-    get_list = None
+    res = None
 
     while error_times < conf.MAX_RETRY_TIMES:
         try:
             async with httpx.AsyncClient() as client:
-                get_list: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
+                res: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
                                                                                  game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
-            get_list = get_list.json()["data"]["list"]
+            goods = res.json()["data"]["list"]
             # 判断是否已经读完所有商品
-            if get_list == []:
+            if goods == []:
                 break
             else:
-                good_list += get_list
+                good_list += goods
             page += 1
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
         except:
@@ -218,7 +221,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
 
-    if not isinstance(get_list, list):
+    if not isinstance(res, list):
         return None
 
     result = []
@@ -293,6 +296,7 @@ class Exchange:
         except KeyError:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
+            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -4
 
@@ -324,6 +328,7 @@ class Exchange:
             except KeyError:
                 logger.error(
                     conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 服务器没有正确返回".format(self.goodID))
+                logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return None
 
