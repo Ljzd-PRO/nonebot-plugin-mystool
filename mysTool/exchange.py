@@ -143,6 +143,13 @@ class Good:
         """
         return self.good_dict["icon"]
 
+    @property
+    def isVPM(self) -> bool:
+        if self.good_dict["type"] == 2:
+            return True
+        else:
+            return False
+
 
 async def get_good_detail(goodID: str):
     try:
