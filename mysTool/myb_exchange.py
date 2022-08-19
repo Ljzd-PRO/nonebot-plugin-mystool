@@ -3,7 +3,7 @@
 """
 import asyncio
 import datetime
-from nonebot import on_command, get_driver
+from nonebot import on_command, get_driver, get_bot
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, Arg, ArgPlainText, T_State
 from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageEvent, MessageSegment
@@ -14,6 +14,7 @@ from .config import img_config as img_conf
 from .data import UserData
 from .exchange import *
 
+driver = get_driver()
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -54,7 +55,9 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
         msg = ''
         if goodid_list:
             for goodid in goodid_list:
-                msg = ... # data内查看兑换计划函数
+                good = get_good_detail(goodid[0])
+                msg += f'{good.name} {good.goodID} {good.price} {good.time}\n'
+            msg += '\n'
         else:
             msg = '您还没有兑换计划哦\n\n'
         await matcher.finish(msg+matcher.__help_msg__)
@@ -77,7 +80,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
             account.exchange.append(good.goodID)
             exchange_plan = Exchange(account, good.goodID)
             if exchange_plan.result == -1:
-                await matcher.finish("米商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.goodID))
+                await matcher.finish("商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.goodID))
             elif exchange_plan.result == -2:
                 await matcher.finish("商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
             elif exchange_plan.result == -3:
@@ -85,7 +88,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
             elif exchange_plan.result == -4:
                 await matcher.finish("获取商品 {} 的信息时，服务器没有正确返回".format(good.goodID))
             else:
-                scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, bot, qq),next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
+                scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
             await matcher.finish(f'设置兑换计划成功！将于{good.time}开始兑换，兑换结果会实时通知您')
         else:
             await matcher.finish(f'该商品暂时不可以兑换，请重新设置')
@@ -96,7 +99,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     else:
         matcher.finish('您的输入有误，请重新输入')
 
-async def exchange(exchange_plan: Exchange, bot: Bot, qq: str):
+async def exchange(exchange_plan: Exchange, qq: str):
+    bot = get_bot()
     for i in range(3):
         results = []
         flag = False
@@ -140,4 +144,16 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('c
         img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         await get_good_image.finish(MessageSegment.image(img_path))
     else:
-        await get_good_image.finifh(f"{arg[1]}部分目前没有可兑换商品哦~")
+        await get_good_image.finish(f"{arg[1]}部分目前没有可兑换商品哦~")
+
+@driver.on_startup
+def load_exchange_data():
+    all_accounts = UserData.read_all()
+    for qq in all_accounts.keys():
+        accounts = UserData.read_account_all(qq)
+        for account in accounts:
+            exchange_list = account.exchange
+            for exchange_good in exchange_list:
+                good_detail = get_good_detail(exchange_good[0])
+                exchange_plan = Exchange(account, exchange_good[0])
+                scheduler.add_job(id=account.phone+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
