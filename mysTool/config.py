@@ -1,9 +1,7 @@
 """
 ### 插件配置相关
 """
-import json
-from nonebot.log import logger
-from pydantic import BaseModel, Extra, ValidationError
+from pydantic import BaseModel, Extra
 from pathlib import Path
 from typing import Tuple, Union
 from nonebot import get_driver
