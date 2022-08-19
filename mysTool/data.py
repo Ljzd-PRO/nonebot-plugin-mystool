@@ -119,8 +119,6 @@ class UserAccount:
         '''绑定手机号'''
         self.cookie: dict[str, str] = None
         '''Cookie'''
-        self.gameUID: AccountUID = AccountUID()
-        '''游戏UID'''
         self.deviceID: str = generateDeviceID()
         '''设备 x-rpc-device_id'''
         self.address: Address = None
@@ -144,20 +142,10 @@ class UserAccount:
                 account.setdefault(key, sample[key])
             for key in remove:
                 account.pop(key)
-        sample = AccountUID().to_dict()
-        if account["gameUID"].keys() != sample.keys():
-            add = sample.keys() - account["gameUID"].keys()
-            remove = account["gameUID"].keys() - sample.keys()
-            for key in add:
-                account["gameUID"].setdefault(key, sample[key])
-            for key in remove:
-                account["gameUID"].pop(key)
 
         self.name: str = account["name"]
         self.phone: int = account["phone"]
         self.cookie: dict[str, str] = account["cookie"]
-        self.gameUID = AccountUID()
-        self.gameUID.get(account["gameUID"])
         self.deviceID: str = account["xrpcDeviceID"]
         self.address = Address(account["address"]) if account["address"] else None
         self.bbsUID: str = account["bbsUID"]
@@ -171,7 +159,6 @@ class UserAccount:
             "name": self.name,
             "phone": self.phone,
             "cookie": self.cookie,
-            "gameUID": self.gameUID.to_dict(),
             "xrpcDeviceID": self.deviceID,
             "address": None,
             "bbsUID": self.bbsUID,
