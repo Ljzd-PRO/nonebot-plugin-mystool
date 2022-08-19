@@ -21,14 +21,14 @@ HEADERS = {
     "Connection": "keep-alive",
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': conf.device.USER_AGENT_OTHER,
+    'User-Agent': conf.device.USER_AGENT_MISSION,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
-    "x-rpc-channel": "miyousheluodi",
+    "x-rpc-channel": conf.device.X_RPC_CHANNEL_MISSION,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MISSION,
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
     "DS": None
 }
 GAME_ID = {
