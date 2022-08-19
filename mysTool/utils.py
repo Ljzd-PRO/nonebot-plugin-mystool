@@ -109,8 +109,7 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
-            f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode(
-                encoding="utf-8")).hexdigest()
+            f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
         if not isinstance(data, str) and data is not None:
@@ -120,5 +119,6 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
         t = str(NtpTime.time())
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
-        c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" + t + "&r=" + r + add).encode()).hexdigest()
+        c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" +
+                        t + "&r=" + r + add).encode()).hexdigest()
         return f"{t},{r},{c}"
