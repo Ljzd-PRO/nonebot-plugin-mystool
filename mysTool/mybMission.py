@@ -23,12 +23,13 @@ HEADERS = {
     "Referer": "https://app.mihoyo.com",
     'User-Agent': conf.device.USER_AGENT_OTHER,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
-    "x-rpc-channel": conf.device.X_RPC_CHANNEL,
-    "x-rpc-client_type": "1",
+    "x-rpc-channel": "miyousheluodi",
+    "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
+    "DS": None
 }
 GAME_ID = {
     "bh3": {
@@ -61,9 +62,9 @@ class Mission:
 
     def __init__(self, account: UserAccount) -> None:
         self.account = account
-        self.cookie = {"stuid": account.bbsUID,
-                       "stoken": account.cookie["stoken"]}
-        self.client = httpx.AsyncClient(cookies=self.cookie)
+        self.headers = HEADERS.copy()
+        self.headers["x-rpc-device_id"] = account.deviceID
+        self.client = httpx.AsyncClient(cookies=account.cookie)
         self.mybNum: int = 0
 
     async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]):
@@ -76,10 +77,9 @@ class Mission:
         若执行成功，返回 `True`\n
         若执行失败，返回 `False`
         """
-        headers = HEADERS.copy()
         data = {"gids": GAME_ID[game]["gids"]}
-        headers.setdefault("DS", generateDS(data))
-        res = await self.client.post(URL_SIGN, headers=headers, json=data, timeout=conf.TIME_OUT)
+        self.headers["DS"] = generateDS(data)
+        res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
         try:
             self.mybNum = res.json()["data"]["points"]
             return True
@@ -95,9 +95,8 @@ class Mission:
         参数:
             `game`: 游戏代号
         """
-        headers = HEADERS.copy()
-        headers.setdefault("DS", generateDS())
-        res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=headers, timeout=conf.TIME_OUT)
+        self.headers["DS"] = generateDS()
+        res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
         postID_list = []
         error_times = 0
         while error_times <= conf.MAX_RETRY_TIMES:
@@ -129,8 +128,6 @@ class Mission:
         若执行成功，返回 `True`\n
         若执行失败，返回 `False`
         """
-        headers = HEADERS.copy()
-        headers.setdefault("DS", None)
         count = 0
         error_times = 0
         postID_list = await self.get_posts(game)
@@ -141,8 +138,8 @@ class Mission:
             for postID in postID_list:
                 if count == readTimes:
                     break
-                headers["DS"] = generateDS()
-                res = await self.client.get(URL_READ.format(postID), headers=headers, timeout=conf.TIME_OUT)
+                self.headers["DS"] = generateDS()
+                res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
                 try:
                     if "self_operation" not in res.json()["data"]["post"]:
                         raise ValueError
@@ -180,8 +177,6 @@ class Mission:
         若执行成功，返回 `True`\n
         若执行失败，返回 `False`
         """
-        headers = HEADERS.copy()
-        headers.setdefault("DS", None)
         count = 0
         error_times = 0
         postID_list = await self.get_posts(game)
@@ -192,8 +187,8 @@ class Mission:
             for postID in postID_list:
                 if count == likeTimes:
                     break
-                headers["DS"] = generateDS()
-                res = await self.client.post(URL_LIKE, headers=headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
+                self.headers["DS"] = generateDS()
+                res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
                 try:
                     if res.json()["data"] != "OK":
                         raise ValueError
@@ -230,14 +225,13 @@ class Mission:
         若执行成功，返回 `True`\n
         若执行失败，返回 `False`
         """
-        headers = HEADERS.copy()
-        headers.setdefault("DS", generateDS())
+        self.headers["DS"] = generateDS()
         postID_list = await self.get_posts(game)
         if postID_list is None:
             return False
         error_times = 0
         while error_times <= conf.MAX_RETRY_TIMES:
-            res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=headers, timeout=conf.TIME_OUT)
+            res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
             try:
                 if res.json()["data"] != "OK":
                     raise ValueError
