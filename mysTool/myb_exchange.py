@@ -124,16 +124,20 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 @get_good_image.got("content", prompt='请发送您要查看的商品类别:\n- 崩坏3\n- 原神\n- 崩坏2\n- 未定事件簿\n- 大别野\n—— 发送“退出”以结束')
 async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     if arg in ['原神', 'ys']:
-        arg = 'ys'
+        arg = ('ys', '原神')
     elif arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:
-        arg = 'bh3'
+        arg = ('bh3', '崩坏3')
     elif arg in ['崩坏2', '崩坏二', '崩2', '崩二', '崩崩', '蹦蹦', 'bh2']:
-        arg = 'bh2'
+        arg = ('bh2', '崩坏2')
     elif arg in ['未定', '未定事件簿', 'wd']:
-        arg = 'wd'
+        arg = ('wd', '未定事件簿')
     elif arg in ['大别野', '米游社']:
-        arg = 'bbs'
+        arg = ('bbs', '米游社')
     else:
         await get_good_image.finish('您的输入有误，请重新输入')
-    img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg}.jpg', time.localtime())
-    await get_good_image.finish(MessageSegment.image(img_path))
+    good_list = await get_good_list()
+    if good_list:
+        img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+        await get_good_image.finish(MessageSegment.image(img_path))
+    else:
+        await get_good_image.finifh(f"{arg[1]}部分目前没有可兑换商品哦~")
