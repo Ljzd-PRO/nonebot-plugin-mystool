@@ -16,9 +16,6 @@ URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
 URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
 URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
 HEADERS = {
-    "Accept-Encoding": "gzip, deflate, br",
-    "Accept-Language": "zh-cn",
-    "Connection": "keep-alive",
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
     'User-Agent': conf.device.USER_AGENT_MISSION,
