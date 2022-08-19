@@ -144,7 +144,7 @@ class Good:
         return self.good_dict["icon"]
 
     @property
-    def isVPM(self) -> bool:
+    def isVisual(self) -> bool:
         if self.good_dict["type"] == 2:
             return True
         else:
