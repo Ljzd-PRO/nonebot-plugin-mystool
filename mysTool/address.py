@@ -48,7 +48,7 @@ async def get(account: UserAccount) -> Union[List[Address], None]:
             address_list.append(Address(address))
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
-        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     return address_list
 
