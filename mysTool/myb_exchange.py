@@ -121,13 +121,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     account.exchange.append((good.goodID, uid))
     UserData.set_account(account, event.user_id, phone)
     exchange_plan = Exchange(account, good.goodID)
-    if exchange_plan.result == -1:
+    if exchange_plan.result == -2:
         await matcher.finish("商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.goodID))
-    elif exchange_plan.result == -2:
-        await matcher.finish("商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
     elif exchange_plan.result == -3:
-        await matcher.finish("暂不支持商品 {} 所属的游戏".format(good.goodID))
+        await matcher.finish("商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
     elif exchange_plan.result == -4:
+        await matcher.finish("暂不支持商品 {} 所属的游戏".format(good.goodID))
+    elif exchange_plan.result == -5:
         await matcher.finish("获取商品 {} 的信息时，服务器没有正确返回".format(good.goodID))
     else:
         scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
@@ -159,7 +159,7 @@ get_good_image.__help_info__ = "获取当日米游社商品信息，目前共有
 async def _(event:MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
     if arg:
         matcher.set_arg("content", arg)
-    
+
 @get_good_image.got("content", prompt='请发送您要查看的商品类别:\n- 崩坏3\n- 原神\n- 崩坏2\n- 未定事件簿\n- 大别野\n—— 发送“退出”以结束')
 async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     if arg in ['原神', 'ys']:

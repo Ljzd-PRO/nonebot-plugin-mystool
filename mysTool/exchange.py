@@ -6,7 +6,7 @@ import time
 import traceback
 from typing import Literal, Tuple, Union, List
 from .config import mysTool_config as conf
-from .utils import generateDeviceID
+from .utils import check_login, generateDeviceID
 from nonebot.log import logger
 from .data import UserAccount
 from .bbsAPI import get_game_record
@@ -161,7 +161,7 @@ async def get_good_detail(goodID: str):
         return Good(res.json()["data"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
@@ -175,7 +175,7 @@ async def get_start_time(goodID: str) -> Union[int, None]:
         return int(res.json()["data"]["sale_start_time"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
@@ -213,7 +213,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
             page += 1
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
-            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
         except:
@@ -240,10 +240,12 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
 class Exchange:
     """
     米游币商品兑换相关(需先初始化对象)
-    `result`属性为 `-1`: 商品为游戏内物品，由于未配置stoken，放弃兑换\n
-    `result`属性为 `-2`: 商品为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换\n
-    `result`属性为 `-3`: 暂不支持商品所属的游戏\n
-    `result`属性为 `-4`: 获取商品的信息时，服务器没有正确返回
+    - `result`属性为 `-1`: 用户登录失效，放弃兑换
+    - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
+    - `result`属性为 `-3`: 商品为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换
+    - `result`属性为 `-4`: 暂不支持商品所属的游戏，放弃兑换
+    - `result`属性为 `-5`: 获取商品的信息时，服务器没有正确返回，放弃兑换
+    - `result`属性为 `-6`: 获取用户游戏账户数据失败，放弃兑换
     """
     async def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
         self.result = None
@@ -267,12 +269,12 @@ class Exchange:
                 if "stoken" not in account.cookie:
                     logger.error(
                         conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(goodID))
-                    self.result = -1
+                    self.result = -2
                     return
                 if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
                     logger.error(
                         conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
-                    self.result = -2
+                    self.result = -3
                     return
             # 若商品非游戏内物品，则直接返回，不进行下面的操作
             else:
@@ -281,10 +283,15 @@ class Exchange:
             if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                 logger.warning(
                     conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
-                self.result = -3
+                self.result = -4
                 return
 
             record_list = await get_game_record(account)
+            if record_list == -1:
+                return -1
+            elif isinstance(record_list, int):
+                return -6
+
             for record in record_list:
                 if record.uid == gameUID:
                     self.content.setdefault("uid", record.uid)
@@ -296,15 +303,18 @@ class Exchange:
         except KeyError:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
-            logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
-            self.result = -4
+            self.result = -5
 
     async def start(self) -> Union[Tuple[bool, dict], None]:
         """
         执行兑换操作
         返回元组 (是否成功, 服务器返回数据)\n
-        若服务器没有正确返回，函数返回 `None`
+
+        - 若返回 `-1` 说明用户登录失效
+        - 若返回 `-2` 说明服务器没有正确返回
+        - 若返回 `-3` 说明请求失败
         """
         if self.result is not None and self.result < 0:
             logger.error(conf.LOG_HEAD +
@@ -317,20 +327,28 @@ class Exchange:
                 async with httpx.AsyncClient() as client:
                     res: httpx.Response = await client.post(
                         URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
                 if res.json()["message"] == "OK":
                     logger.info(
-                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 兑换成功！可以自行确认。".format(self.goodID))
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换成功！可以自行确认。".format(self.account.phone, self.goodID))
                     return (True, res.json())
                 else:
                     logger.info(
-                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 兑换失败，可以自行确认。".format(self.goodID))
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换失败，可以自行确认。".format(self.account.phone, self.goodID))
                     return (False, res.json())
             except KeyError:
                 logger.error(
-                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 商品 {} 服务器没有正确返回".format(self.goodID))
-                logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 服务器没有正确返回".format(self.account.phone, self.goodID))
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                return None
+                return -2
+            except:
+                logger.error(conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
+                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                return -3
 
 
 async def game_list_to_image(good_list: List[Good]):
