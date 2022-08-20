@@ -181,7 +181,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return None
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID:str):
+    async def info(self, game: Literal["ys", "bh3"], gameUID:str, region:str=None):
         """
         获取签到记录
 
@@ -192,18 +192,19 @@ class GameSign:
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        game_record: List[GameRecord] = await get_game_record(self.account)
 
+        game_record: List[GameRecord] = await get_game_record(self.account)
         if game_record == -1:
             return -1
         elif game_record == -2:
             return -2
         elif game_record == -3:
             return -3
-        region = None
-        for record in game_record:
-            if record.uid == gameUID:
-                region = record.region
+
+        if not region:
+            for record in game_record:
+                if record.uid == gameUID:
+                    region = record.region
         if not region:
             return -4
 
