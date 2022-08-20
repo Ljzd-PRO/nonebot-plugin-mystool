@@ -35,7 +35,7 @@ async def daily_game_sign_():
     bot = get_bot()
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        await send_game_sign_msg(bot=bot, qq=qq)
+        await send_game_sign_msg(bot=bot, qq=qq, IsAuto=True)
 
 
 manually_game_sign = on_command(
@@ -47,7 +47,7 @@ manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签�
 async def _(event: PrivateMessageEvent, state: T_State):
     bot = get_bot()
     qq = event.user_id
-    await send_game_sign_msg(bot=bot, qq=qq)
+    await send_game_sign_msg(bot=bot, qq=qq, IsAuto=False)
 
 
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
@@ -80,7 +80,7 @@ async def daily_update():
 
 
 
-async def send_game_sign_msg(bot: Bot, qq: str):
+async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
@@ -92,8 +92,8 @@ async def send_game_sign_msg(bot: Bot, qq: str):
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
                 sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
-                if account.gameSign:
-                    sign_flag = await gamesign.sign(sign_game)
+                if (account.gameSign and IsAuto) or not IsAuto:
+                    sign_flag = await gamesign.sign(sign_game, record.uid)
                 else:
                     return
                 if not sign_flag:
