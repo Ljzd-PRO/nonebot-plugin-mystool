@@ -171,7 +171,10 @@ class GameSign:
         async with httpx.AsyncClient() as client:
             res = await client.get(URLS[game]["reward"], headers=HEADERS_REWARD, timeout=conf.TIME_OUT)
         try:
-            return Award(res.json()["data"]["awards"])
+            award_list: List[Award] = []
+            for award in res.json()["data"]["awards"]:
+                award_list.append(Award(award))
+            return award_list
         except KeyError:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -179,7 +182,6 @@ class GameSign:
         except:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        return None
 
     async def info(self, game: Literal["ys", "bh3"], gameUID:str, region:str=None):
         """
