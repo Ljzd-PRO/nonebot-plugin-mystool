@@ -223,7 +223,7 @@ class Mission:
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
-                                 "网络请求返回: {1}".format(res.text))
+                                 "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
