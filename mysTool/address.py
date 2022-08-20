@@ -1,6 +1,7 @@
 """
 ### 米游社收货地址相关
 """
+import traceback
 import httpx
 from .config import mysTool_config as conf
 from .utils import *
@@ -46,7 +47,9 @@ async def get(account: UserAccount) -> Union[List[Address], None]:
         for address in res.json()["data"]["list"]:
             address_list.append(Address(address))
     except KeyError:
-        return None
+        logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
+        logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
     return address_list
 
 
