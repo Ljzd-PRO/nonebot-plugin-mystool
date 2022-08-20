@@ -4,13 +4,16 @@
 import httpx
 import traceback
 from nonebot.log import logger
+from mysTool.bbsAPI import GameInfo
 from .config import mysTool_config as conf
 from .utils import generateDS
 from .data import UserAccount
 from typing import Literal
+from bbsAPI import get_game_record
 
 ACT_ID = {
-    "ys": "e202009291139501"
+    "ys": "e202009291139501",
+    "bh3": "e202207181446311"
 }
 URLS = {
     "ys": {
@@ -156,6 +159,7 @@ class GameSign:
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
         self.deviceID = account.deviceID
+        self.account = account
         self.signResult: dict = None
 
     async def reward(self, game: Literal["ys", "bh3"]):
@@ -194,18 +198,29 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return None
 
-    async def sign(self, game: Literal["ys", "bh3"]):
+    async def sign(self, game: Literal["ys", "bh3"], gameUID: str):
         """
         签到
 
         若签到成功，返回 `True`\n
         若签到失败，返回 `False`
         """
+        if game not in ("ys", "bh3"):
+            logger.info("暂不支持游戏 {} 的游戏签到".format(game))
+            return False
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
         headers.setdefault("DS", generateDS())
+        for item in await get_game_record(self.account):
+            if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
+                region = item.region
+        data = {
+            "act_id" : ACT_ID[game],
+            "region" : region,
+            "uid" : gameUID
+            }
         async with httpx.AsyncClient() as client:
-            res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+            res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
         try:
             self.signResult = res.json()
             if (game == "ys" and self.signResult["data"]["success"] == 0) or (game == "bh3" and self.signResult["data"]["message"] == ""):
