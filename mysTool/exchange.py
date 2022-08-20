@@ -163,7 +163,7 @@ async def get_good_detail(goodID: str):
         return Good(res.json()["data"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
@@ -177,7 +177,7 @@ async def get_start_time(goodID: str) -> Union[int, None]:
         return int(res.json()["data"]["sale_start_time"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")

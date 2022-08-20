@@ -88,7 +88,7 @@ class Mission:
             return res.json()["data"]["points"]
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
         except:
@@ -116,7 +116,7 @@ class Mission:
                 break
             except KeyError:
                 logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 error_times += 1
             except:
