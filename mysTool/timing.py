@@ -139,7 +139,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str):
                 msg = f"""\
                     '今日米游币任务执行完成！
                     执行结果：
-                    签到： {'√' if sign_flag else '×'}
+                    签到： {'√' if sign_flag >= 0 else '×'}
                     阅读： {'√' if read_flag else '×'}
                     点赞： {'√' if like_flag else '×'}
                     签到： {'√' if share_flag else '×'}
