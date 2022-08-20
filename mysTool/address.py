@@ -2,16 +2,19 @@
 ### 米游社收货地址相关
 """
 import traceback
+from typing import List, Union
+
 import httpx
-from .config import mysTool_config as conf
-from .utils import *
-from typing import Union, List
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
-from nonebot.matcher import Matcher
-from nonebot.params import T_State, ArgPlainText
 from nonebot.adapters.onebot.v11.message import Message
-from .data import UserAccount, UserData, Address
+from nonebot.log import logger
+from nonebot.matcher import Matcher
+from nonebot.params import ArgPlainText, T_State
+
+from .config import mysTool_config as conf
+from .data import Address, UserAccount, UserData
+from .utils import NtpTime, check_login
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -36,6 +39,10 @@ URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 async def get(account: UserAccount) -> Union[List[Address], None]:
     """
     获取用户的地址数据
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
     """
     address_list = []
     headers = HEADERS.copy()
@@ -43,13 +50,23 @@ async def get(account: UserAccount) -> Union[List[Address], None]:
     async with httpx.AsyncClient() as client:
         res = await client.get(URL.format(
             round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+        if not check_login(res.text):
+            logger.info(conf.LOG_HEAD +
+                        "获取地址数据 - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
     try:
         for address in res.json()["data"]["list"]:
             address_list.append(Address(address))
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
+        logger.error(conf.LOG_HEAD + "获取地址数据 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "获取地址数据 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
     return address_list
 
 
@@ -75,6 +92,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         await matcher.send(f"您有多个账号，您要配置以下哪个账号的地址ID？\n{'，'.join(phones)}")
+
 
 @get_address.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
@@ -124,4 +142,3 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
         await get_address.finish("地址写入完成")
     else:
         await get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
-
