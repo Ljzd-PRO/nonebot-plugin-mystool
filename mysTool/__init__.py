@@ -1,6 +1,12 @@
 from nonebot.plugin import PluginMetadata
-from . import addfriend, address, help, login, myb_exchange, setting, timing, utils
-
+from . import addfriend
+from . import address
+from . import help
+from . import login
+from . import myb_exchange
+from . import setting
+from . import timing
+from . import utils
 
 __plugin_meta__ = PluginMetadata(
     name="---米游社小助手插件---\n",
