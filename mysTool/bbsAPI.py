@@ -200,7 +200,7 @@ async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, 
     headers["DS"] = generateDS()
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+            res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
             logger.info(conf.LOG_HEAD +
                         "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
