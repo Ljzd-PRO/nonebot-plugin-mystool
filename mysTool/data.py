@@ -323,6 +323,7 @@ class UserData:
                         if item in cookie:
                             account["bbsUID"] = cookie[item]
                             break
+                    account["cookie"].setdefault("stuid", account["bbsUID"])
                     UserData.__set_all(userdata)
                     return True
             return False
