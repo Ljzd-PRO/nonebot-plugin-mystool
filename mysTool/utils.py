@@ -133,5 +133,5 @@ async def get_file(url: str):
             res = await client.get(url)
         return res.content
     except:
-        logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
+        logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
