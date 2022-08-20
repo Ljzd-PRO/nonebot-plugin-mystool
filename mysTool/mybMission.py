@@ -3,7 +3,7 @@
 """
 import asyncio
 import traceback
-from typing import List, Literal, Union
+from typing import List, Literal, Tuple, TypeVar, Union
 
 import httpx
 from nonebot.log import logger
@@ -17,6 +17,8 @@ URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}
 URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
 URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
 URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
+URL_MISSION = "https://api-takumi.mihoyo.com/apihub/wapi/getMissions?point_sn=myb"
+URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsState?point_sn=myb"
 HEADERS = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
@@ -29,6 +31,16 @@ HEADERS = {
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
     "DS": None
+}
+HEADERS_MISSION = {
+    "Host": "api-takumi.mihoyo.com",
+    "Origin": "https://webstatic.mihoyo.com",
+    "Connection": "keep-alive",
+    "Accept": "application/json, text/plain, */*",
+    "User-Agent": conf.device.USER_AGENT_MOBILE,
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Referer": "https://webstatic.mihoyo.com/",
+    "Accept-Encoding": "gzip, deflate, br"
 }
 GAME_ID = {
     "bh3": {
@@ -55,6 +67,54 @@ GAME_ID = {
 
 
 class Mission:
+    SIGN = "continuous_sign"
+    VIEW = "view_post_0"
+    LIKE = "post_up_0"
+    SHARE = "share_post_0"
+
+    def __init__(self, mission_dict: dict) -> None:
+        self.mission_dict = mission_dict
+        try:
+            for func in dir(Mission):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "米游币任务数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+    @property
+    def points(self) -> int:
+        """
+        任务米游币奖励
+        """
+        return self.mission_dict["points"]
+
+    @property
+    def name(self) -> str:
+        """
+        任务名字，如 讨论区签到
+        """
+        return self.mission_dict["name"]
+
+    @property
+    def keyName(self):
+        """
+        任务代号，如 continuous_sign
+        """
+        for name in (self.SIGN, self.VIEW, self.LIKE, self.SHARE):
+            if name == self.mission_dict["mission_key"]:
+                return name
+
+    @property
+    def totalTimes(self) -> int:
+        """
+        任务完成的次数要求
+        """
+        return self.mission_dict["threshold"]
+
+
+class Action:
     """
     米游币任务相关(需先初始化对象)
     """
@@ -288,3 +348,76 @@ class Mission:
 
     async def __del__(self):
         await self.client.aclose()
+
+
+async def get_missions(account: UserAccount):
+    """
+    获取米游币任务信息
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookie)
+        if not check_login(res.text):
+            logger.info(conf.LOG_HEAD +
+                        "获取米游币任务列表 - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
+        mission_list: List[Mission] = []
+        for mission in res.json()["data"]["missions"]:
+            mission_list.append(Mission(mission))
+        return mission_list
+    except KeyError:
+        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
+
+
+async def get_missions_state(account: UserAccount):
+    """
+    获取米游币任务完成情况\n
+    返回元组 (任务数据对象, 当前完成进度)
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
+    PrograssNow = TypeVar("PrograssNow", int)
+    missions: List[Mission] = get_missions(account)
+    if isinstance(missions, int):
+        if missions == -1:
+            return -1
+        elif missions == -2:
+            return -2
+        elif missions == -3:
+            return -3
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie)
+        if not check_login(res.text):
+            logger.info(conf.LOG_HEAD +
+                        "获取米游币任务完成情况 - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
+        state_list: List[Tuple[Mission, PrograssNow]] = []
+        for state in res.json()["data"]["states"]:
+            state_list.append((list(filter(lambda missions: missions.keyName ==
+                              state["mission_key"], missions))[0], state["happened_times"]))
+        return state_list
+    except KeyError:
+        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3

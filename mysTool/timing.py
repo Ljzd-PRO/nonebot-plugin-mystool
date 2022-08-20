@@ -16,7 +16,7 @@ from .gameSign import *
 from .config import mysTool_config as conf
 from .config import img_config as img_conf
 from .utils import *
-from .mybMission import Mission
+from .mybMission import Action
 from .exchange import *
 from typing import List
 
@@ -134,7 +134,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
 async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
-        mybmission = Mission(account)
+        mybmission = Action(account)
         if (account.mybMission and IsAuto) or not IsAuto:
             sign_flag = await mybmission.sign('ys')
             read_flag = await mybmission.read('ys')
