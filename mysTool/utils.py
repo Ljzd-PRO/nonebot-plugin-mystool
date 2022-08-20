@@ -20,8 +20,7 @@ driver = nonebot.get_driver()
 
 PATH = Path(__file__).parent.absolute()
 
-
-class NtpTime():
+class NtpTime:
     """
     >>> NtpTime.time() #获取校准后的时间（如果校准成功）
     """
