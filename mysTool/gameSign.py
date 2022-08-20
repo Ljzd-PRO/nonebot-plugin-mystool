@@ -4,12 +4,11 @@
 import httpx
 import traceback
 from nonebot.log import logger
-from mysTool.bbsAPI import GameInfo
+from .bbsAPI import GameInfo, get_game_record
 from .config import mysTool_config as conf
 from .utils import generateDS
 from .data import UserAccount
 from typing import Literal
-from bbsAPI import get_game_record
 
 ACT_ID = {
     "ys": "e202009291139501",
