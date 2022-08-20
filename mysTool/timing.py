@@ -109,18 +109,20 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 else:
                     return
                 if UserData.isNotice(qq):
-                    sign_award = await gamesign.reward(sign_game)
                     sign_info = await gamesign.info(sign_game, record.uid)
+                    month_sign_award = await gamesign.reward(sign_game)
+                    sign_award = month_sign_award[sign_info.totalDays-1]
                     account_info = record
                     if sign_award and sign_info:
                         msg = f"""\
-                            {'今日{sign_game_name}签到成功！' if sign_info.isSign else '今日已签到！'}
-                            {account_info.nickname} {account_info.regionName} {account_info.level}
-                            今日签到奖励：
-                            {sign_award.name} * {sign_award.count}
-                            本月签到次数： {sign_info.totalDays}\
-                        """
-                        img = MessageSegment.image(get_file(sign_award.icon))
+                            \n{'今日{}签到成功！'.format(sign_game_name) if not sign_info.isSign else '今日{}已签到！'.format(sign_game_name)}\
+                            \n{account_info.nickname} {account_info.regionName} {account_info.level}\
+                            \n今日签到奖励：\
+                            \n{sign_award.name} * {sign_award.count}\
+                            \n本月签到次数：{sign_info.totalDays}\
+                        """.strip()
+                        img_file = await get_file(sign_award.icon)
+                        img = MessageSegment.image(img_file)
                     else:
                         msg = f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
                         img = ''
