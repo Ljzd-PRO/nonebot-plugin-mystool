@@ -109,7 +109,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
 
     state['address_list']: List[Address] = await get(account)
     if isinstance(state['address_list'], list):
-        if not state['address_list']:
+        if isinstance(state['address_list'], int):
             await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:

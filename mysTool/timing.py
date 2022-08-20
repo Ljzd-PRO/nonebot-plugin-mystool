@@ -95,7 +95,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
                 if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
                     sign_flag = await gamesign.sign(sign_game, record.uid)
-                    if not sign_flag:
+                    if isinstance(sign_flag, int):
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
