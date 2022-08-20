@@ -150,7 +150,7 @@ def check_login(response: str):
         if "message" in res_dict:
             response: str = res_dict["message"]
             for string in ("Please login", "登录失效"):
-                if response.find(string) == -1:
+                if response.find(string) != -1:
                     return False
             return True
     except json.JSONDecodeError and KeyError:
