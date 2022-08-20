@@ -146,7 +146,7 @@ def check_login(response: str):
     通过网络请求返回的数据，检查是否登录失效
     """
     try:
-        res_dict = json.load(response)
+        res_dict = json.loads(response)
         if "message" in res_dict:
             response: str = res_dict["message"]
             for string in ("Please login", "登录失效"):
