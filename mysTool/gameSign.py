@@ -56,7 +56,8 @@ HEADERS_OTHER = {
     "Content-Type": "application/json;charset=utf-8",
     "Accept-Encoding": "gzip, deflate, br",
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
-    "x-rpc-platform": conf.device.X_RPC_PLATFORM
+    "x-rpc-platform": conf.device.X_RPC_PLATFORM,
+    "DS": None
 }
 
 
@@ -190,6 +191,7 @@ class GameSign:
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
+        headers["DS"] = generateDS()
         async with httpx.AsyncClient() as client:
             res = await client.get(URLS[game]["info"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
@@ -224,7 +226,7 @@ class GameSign:
             return False
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        headers.setdefault("DS", generateDS())
+        headers["DS"] = generateDS()
         for item in await get_game_record(self.account):
             if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
                 region = item.region
