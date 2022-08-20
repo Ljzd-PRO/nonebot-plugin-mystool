@@ -203,7 +203,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
         try:
             async with httpx.AsyncClient() as client:
                 res: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
-                                                                                 game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                                                                            game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
             goods = res.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if goods == []:
@@ -310,7 +310,7 @@ class Exchange:
     async def start(self) -> Union[Tuple[bool, dict], None]:
         """
         执行兑换操作
-        返回元组 (是否成功, 服务器返回数据)\n
+        返回元组 (是否成功, 服务器返回数据)
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -328,7 +328,8 @@ class Exchange:
                     res: httpx.Response = await client.post(
                         URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 if res.json()["message"] == "OK":
@@ -346,7 +347,8 @@ class Exchange:
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return -2
             except:
-                logger.error(conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
+                logger.error(
+                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return -3
 
