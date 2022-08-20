@@ -2,7 +2,7 @@
 ### 米游社收货地址相关
 """
 import traceback
-from typing import List, Union
+from typing import List, Union, Literal
 
 import httpx
 from nonebot import on_command
@@ -36,7 +36,7 @@ HEADERS = {
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 
 
-async def get(account: UserAccount) -> Union[List[Address], None]:
+async def get(account: UserAccount) -> Union[List[Address], Literal[-1, -2, -3]]:
     """
     获取用户的地址数据
 
@@ -107,11 +107,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
         get_address.reject('您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
 
-    try:
-        state['address_list']: List[Address] = await get(account)
-    except Exception as e:
-        await get_address.finish("请求失败，请稍后再试")
-    if state['address_list']:
+    state['address_list']: List[Address] = await get(account)
+    if isinstance(state['address_list'], list):
+        if not state['address_list']:
+            await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:
             address_string = f"""\
@@ -126,7 +125,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             """.strip()
             await get_address.send(address_string)
     else:
-        await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
+        await get_address.finish("获取失败")
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID(Address_ID)')
