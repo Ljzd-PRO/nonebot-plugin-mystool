@@ -2,7 +2,7 @@
 ### 米游社其他API
 """
 import traceback
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Tuple, TypeVar, Union
 
 import httpx
 import nonebot
@@ -128,7 +128,9 @@ class GameInfo:
     """
     游戏信息数据
     """
-    ABBR_TO_ID: Dict[int, Tuple[str, str]] = {}
+    Abbr = TypeVar("Abbr", str)
+    Full_Name = TypeVar("Full_Name", str)
+    ABBR_TO_ID: Dict[int, Tuple[Abbr, Full_Name]] = {}
     '''
     游戏ID(gameID)与缩写和全称的对应关系
     >>> {游戏ID, (缩写, 全称)}

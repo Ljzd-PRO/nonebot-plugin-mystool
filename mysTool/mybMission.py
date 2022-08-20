@@ -390,7 +390,7 @@ async def get_missions_state(account: UserAccount):
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
-    PrograssNow = TypeVar("PrograssNow", int)
+    Prograss_Now = TypeVar("Prograss_Now", int)
     missions: List[Mission] = get_missions(account)
     if isinstance(missions, int):
         if missions == -1:
@@ -407,7 +407,7 @@ async def get_missions_state(account: UserAccount):
                         "获取米游币任务完成情况 - 用户 {} 登录失效".format(account.phone))
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             return -1
-        state_list: List[Tuple[Mission, PrograssNow]] = []
+        state_list: List[Tuple[Mission, Prograss_Now]] = []
         for state in res.json()["data"]["states"]:
             state_list.append((list(filter(lambda missions: missions.keyName ==
                               state["mission_key"], missions))[0], state["happened_times"]))

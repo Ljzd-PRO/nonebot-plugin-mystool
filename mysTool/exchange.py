@@ -4,7 +4,7 @@
 import io
 import time
 import traceback
-from typing import List, Literal, Tuple, Union
+from typing import List, Literal, Tuple, TypeVar, Union
 
 import httpx
 from nonebot.log import logger
@@ -74,6 +74,8 @@ class Good:
     """
     商品数据
     """
+    Used_Times = TypeVar("Used_Times", int)
+    Total_Times = TypeVar("Total_Times", int)
 
     def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
@@ -131,7 +133,7 @@ class Good:
             return self.good_dict["next_num"]
 
     @property
-    def limit(self) -> Tuple[str, str, Literal["forever", "month"]]:
+    def limit(self) -> Tuple[Used_Times, Total_Times, Literal["forever", "month"]]:
         """
         限购，返回元组 (已经兑换次数, 最多可兑换次数, 限购类型)
         """
