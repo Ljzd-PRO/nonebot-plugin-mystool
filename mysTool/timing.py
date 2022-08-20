@@ -91,8 +91,6 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
-                if sign_game == 'bh3':
-                    continue
                 sign_info = await gamesign.info(sign_game, record.uid)
                 sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
                 if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
@@ -115,11 +113,11 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     account_info = record
                     if sign_award and sign_info:
                         msg = f"""\
-                            \n{'今日{}签到成功！'.format(sign_game_name) if not sign_info.isSign else '今日{}已签到！'.format(sign_game_name)}\
-                            \n{account_info.nickname} {account_info.regionName} {account_info.level}\
-                            \n今日签到奖励：\
-                            \n{sign_award.name} * {sign_award.count}\
-                            \n本月签到次数：{sign_info.totalDays}\
+                            \n{'🎮{}今日签到成功！'.format(sign_game_name) if not sign_info.isSign else '🎮{}今日已签到！'.format(sign_game_name)}\
+                            \n{account_info.nickname}-{account_info.regionName}-{account_info.level}\
+                            \n🎁今日签到奖励：\
+                            \n  {sign_award.name} * {sign_award.count}\
+                            \n📅本月签到次数：{sign_info.totalDays}\
                         """.strip()
                         img_file = await get_file(sign_award.icon)
                         img = MessageSegment.image(img_file)
