@@ -91,21 +91,26 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
+                if sign_game == 'bh3':
+                    continue
+                sign_info = await gamesign.info(sign_game, record.uid)
                 sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
-                if (account.gameSign and IsAuto) or not IsAuto:
+                if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
                     sign_flag = await gamesign.sign(sign_game, record.uid)
+                    if not sign_flag:
+                        await bot.send_msg(
+                            message_type="private",
+                            user_id=qq,
+                            message=f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                        )
+                        continue
+                elif sign_info.isSign:
+                    pass
                 else:
                     return
-                if not sign_flag:
-                    await bot.send_msg(
-                        message_type="private",
-                        user_id=qq,
-                        message=f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
-                    )
-                    continue
                 if UserData.isNotice(qq):
                     sign_award = await gamesign.reward(sign_game)
-                    sign_info = await gamesign.info(sign_game)
+                    sign_info = await gamesign.info(sign_game, record.uid)
                     account_info = record
                     if sign_award and sign_info:
                         msg = f"""\
@@ -115,7 +120,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                             {sign_award.name} * {sign_award.count}
                             本月签到次数： {sign_info.totalDays}\
                         """
-                        img = MessageSegment.image(sign_award.icon)
+                        img = MessageSegment.image(get_file(sign_award.icon))
                     else:
                         msg = f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
                         img = ''
@@ -126,11 +131,11 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     )
                 await asyncio.sleep(10)
 
-async def send_bbs_sign_msg(bot: Bot, qq: str):
+async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         mybmission = Mission(account)
-        if account.mybMission:
+        if (account.mybMission and IsAuto) or not IsAuto:
             sign_flag = await mybmission.sign('ys')
             read_flag = await mybmission.read('ys')
             like_flag = await mybmission.like('ys')
