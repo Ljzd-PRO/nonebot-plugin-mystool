@@ -2,12 +2,12 @@
 ### 米游社游戏签到相关
 """
 import traceback
-from typing import Literal
+from typing import List, Literal
 
 import httpx
 from nonebot.log import logger
 
-from .bbsAPI import GameInfo, get_game_record
+from .bbsAPI import GameInfo, GameRecord, get_game_record
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import check_login, generateDS
@@ -181,19 +181,35 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return None
 
-    async def info(self, game: Literal["ys", "bh3"]):
+    async def info(self, game: Literal["ys", "bh3"], gameUID:str):
         """
         获取签到记录
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
+        - 若返回 `-4` 未找到对应游戏UID的游戏账户
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
+        game_record: List[GameRecord] = await get_game_record(self.account)
+
+        if game_record == -1:
+            return -1
+        elif game_record == -2:
+            return -2
+        elif game_record == -3:
+            return -3
+        region = None
+        for record in game_record:
+            if record.uid == gameUID:
+                region = record.region
+        if not region:
+            return -4
+
         headers["DS"] = generateDS()
         async with httpx.AsyncClient() as client:
-            res = await client.get(URLS[game]["info"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+            res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
             logger.info(
                 conf.LOG_HEAD + "获取签到记录 - 用户 {} 登录失效".format(self.account.phone))
