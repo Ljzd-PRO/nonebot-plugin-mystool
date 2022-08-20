@@ -1,14 +1,16 @@
 """
 ### 米游社游戏签到相关
 """
-import httpx
 import traceback
+from typing import Literal
+
+import httpx
 from nonebot.log import logger
+
 from .bbsAPI import GameInfo, get_game_record
 from .config import mysTool_config as conf
-from .utils import generateDS
 from .data import UserAccount
-from typing import Literal
+from .utils import check_login, generateDS
 
 ACT_ID = {
     "ys": "e202009291139501",
@@ -163,7 +165,7 @@ class GameSign:
 
     async def reward(self, game: Literal["ys", "bh3"]):
         """
-        获取签到奖励信息，若返回None说明失败
+        获取签到奖励信息，若返回`None`说明失败
         """
         async with httpx.AsyncClient() as client:
             res = await client.get(URLS[game]["reward"], headers=HEADERS_REWARD, timeout=conf.TIME_OUT)
@@ -180,29 +182,42 @@ class GameSign:
 
     async def info(self, game: Literal["ys", "bh3"]):
         """
-        获取签到记录，若返回None说明失败
+        获取签到记录
+
+        - 若返回 `-1` 说明用户登录失效
+        - 若返回 `-2` 说明服务器没有正确返回
+        - 若返回 `-3` 说明请求失败
         """
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
         async with httpx.AsyncClient() as client:
             res = await client.get(URLS[game]["info"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+        if not check_login(res.text):
+            logger.info(
+                conf.LOG_HEAD + "获取签到记录 - 用户 {} 登录失效".format(self.account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
         try:
             return Info(res.json()["data"])
         except KeyError:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -2
         except:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        return None
+            return -3
 
     async def sign(self, game: Literal["ys", "bh3"], gameUID: str):
         """
         签到
 
-        若签到成功，返回 `True`\n
-        若签到失败，返回 `False`
+        - 若签到成功，返回 `True`
+        - 若返回 `-1` 说明用户登录失效
+        - 若返回 `-2` 说明服务器没有正确返回
+        - 若返回 `-3` 说明请求失败
+        - 若返回 `-4` 说明网络请求发送成功，但是可能未签到成功
         """
         if game not in ("ys", "bh3"):
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
@@ -214,22 +229,29 @@ class GameSign:
             if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
                 region = item.region
         data = {
-            "act_id" : ACT_ID[game],
-            "region" : region,
-            "uid" : gameUID
-            }
+            "act_id": ACT_ID[game],
+            "region": region,
+            "uid": gameUID
+        }
         async with httpx.AsyncClient() as client:
             res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
+        if not check_login(res.text):
+            logger.info(
+                conf.LOG_HEAD + "签到 - 用户 {} 登录失效".format(self.account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
         try:
             self.signResult = res.json()
             if (game == "ys" and self.signResult["data"]["success"] == 0) or (game == "bh3" and self.signResult["data"]["message"] == ""):
                 return True
             else:
-                return False
+                return -4
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -2
         except:
             logger.error(conf.LOG_HEAD + "签到 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -3
