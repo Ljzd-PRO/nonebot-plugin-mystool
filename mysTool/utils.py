@@ -6,6 +6,7 @@ import json
 import random
 import string
 import time
+
 import traceback
 import uuid
 from pathlib import Path
@@ -128,6 +129,9 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
 
 
 async def get_file(url: str):
+    """
+    下载文件
+    """
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(url)
@@ -135,3 +139,13 @@ async def get_file(url: str):
     except:
         logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+
+def check_login(response: str):
+    """
+    通过网络请求返回的数据，检查是否登录失效
+    """
+    for string in ("Please login", "登录失效"):
+        if response.find(string) == -1:
+            return False
+    return True
