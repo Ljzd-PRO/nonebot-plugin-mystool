@@ -1,14 +1,15 @@
 """
 ### 米游社其他API
 """
+from tabnanny import check
 import httpx
 import traceback
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import generateDeviceID, generateDS
+from .utils import check_login, generateDeviceID, generateDS
 from nonebot.log import logger
 import nonebot
-from typing import Tuple, Union, List, Dict
+from typing import Literal, Tuple, Union, List, Dict
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -186,27 +187,51 @@ class GameInfo:
         return self.gameInfo_dict["name"]
 
 
-async def get_action_ticket(account: UserAccount) -> Union[str, None]:
+async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, -3]]:
+    """
+    获取ActionTicket，返回str
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = generateDS()
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+        if not check_login(res.text):
+            logger.info("{0}获取ActionTicket - 用户 {1} 登录失效".format(conf.LOG_HEAD, account.phone))
+            logger.debug("{0}网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            return -1
         return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
         logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
     except:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
 
 
-async def get_game_record(account: UserAccount) -> Union[List[GameRecord], None]:
+async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Literal[-1, -2, -3]]:
+    """
+    获取用户绑定的游戏账户信息，返回一个GameRecord对象的列表
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
     record_list = []
     try:
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
+        if not check_login(res.text):
+            logger.info("{0}获取用户游戏数据 - 用户 {1} 登录失效".format(conf.LOG_HEAD, account.phone))
+            logger.debug("{0}网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            return -1
         for record in res.json()["data"]["list"]:
             record_list.append(GameRecord(record))
         return record_list
@@ -214,9 +239,11 @@ async def get_game_record(account: UserAccount) -> Union[List[GameRecord], None]
         logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 服务器没有正确返回")
         logger.debug("{0} 网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
     except:
         logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
 
 
 async def get_game_list() -> Union[List[GameInfo], None]:
