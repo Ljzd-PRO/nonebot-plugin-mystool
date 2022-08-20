@@ -1,24 +1,28 @@
 """
 ### 工具函数
 """
+import hashlib
 import json
 import random
 import string
 import time
-from typing import Union, Dict
-import ntplib
-import hashlib
-import nonebot
+import traceback
 import uuid
 from pathlib import Path
-from nonebot.log import logger
-from .config import mysTool_config as conf
+from typing import Dict, Union
 from urllib.parse import urlencode
 
+import httpx
+import nonebot
+import ntplib
+from nonebot.log import logger
+
+from .config import mysTool_config as conf
 
 driver = nonebot.get_driver()
 
 PATH = Path(__file__).parent.absolute()
+
 
 class NtpTime:
     """
@@ -121,3 +125,13 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
         c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" +
                         t + "&r=" + r + add).encode()).hexdigest()
         return f"{t},{r},{c}"
+
+
+async def get_file(url: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url)
+        return res.content
+    except:
+        logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
