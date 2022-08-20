@@ -290,7 +290,7 @@ async def set_game_list():
             GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bh2", game.name))
         elif game.name == "未定事件簿":
             GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("wd", game.name))
-        elif game.name == "大别墅":
+        elif game.name == "大别野":
             GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bbs", game.name))
         elif game.name == "崩坏：星穹铁道":
             GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("xq", game.name))
