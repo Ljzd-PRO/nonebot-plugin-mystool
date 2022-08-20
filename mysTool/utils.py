@@ -93,7 +93,7 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = None):
+def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = ""):
     """
     获取Headers中所需DS
 
@@ -103,7 +103,7 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
     """
     # DS 加密算法:
     # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
-    if data is None and params is None:
+    if data == "" and params == "":
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -111,9 +111,9 @@ def generateDS(data: Union[str, dict, list] = None, params: Union[str, dict] = N
             f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
-        if not isinstance(data, str) and data is not None:
+        if not isinstance(data, str):
             data = json.dumps(data)
-        if not isinstance(params, str) and params is not None:
+        if not isinstance(params, str):
             params = urlencode(params)
         t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
