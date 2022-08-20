@@ -1,14 +1,16 @@
 """
 ### 米游社其他API
 """
-import httpx
 import traceback
+from typing import Dict, List, Literal, Tuple, Union
+
+import httpx
+import nonebot
+from nonebot.log import logger
+
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import check_login, generateDeviceID, generateDS
-from nonebot.log import logger
-import nonebot
-from typing import Literal, Tuple, Union, List, Dict
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -200,8 +202,9 @@ async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, 
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_ACTION_TICKET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
-            logger.info("{0}获取ActionTicket - 用户 {1} 登录失效".format(conf.LOG_HEAD, account.phone))
-            logger.debug("{0}网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            logger.info(conf.LOG_HEAD +
+                        "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             return -1
         return res.json()["data"]["ticket"]
     except KeyError:
@@ -228,8 +231,9 @@ async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Liter
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
-            logger.info("{0}获取用户游戏数据 - 用户 {1} 登录失效".format(conf.LOG_HEAD, account.phone))
-            logger.debug("{0}网络请求返回: {1}".format(conf.LOG_HEAD, res.text))
+            logger.info(conf.LOG_HEAD +
+                        "获取用户游戏数据 - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             return -1
         for record in res.json()["data"]["list"]:
             record_list.append(GameRecord(record))
