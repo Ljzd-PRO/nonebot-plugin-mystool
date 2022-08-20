@@ -123,13 +123,6 @@ class Info:
         return self.info_dict["is_sign"]
 
     @property
-    def firstBind(self) -> bool:
-        """
-        是否是第一次绑定
-        """
-        return self.info_dict["first_bind"]
-
-    @property
     def monthFirst(self) -> bool:
         """
         是否是月初第一天
