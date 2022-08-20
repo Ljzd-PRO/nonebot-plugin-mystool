@@ -305,7 +305,7 @@ class Exchange:
         except KeyError:
             logger.error(
                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {1}".format(res.text))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -5
 
