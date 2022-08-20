@@ -250,6 +250,9 @@ async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Liter
 
 
 async def get_game_list() -> Union[List[GameInfo], None]:
+    """
+    获取米哈游游戏的详细信息，若返回`None`说明获取失败
+    """
     headers = HEADERS_GAME_LIST.copy()
     headers["DS"] = generateDS()
     info_list = []
