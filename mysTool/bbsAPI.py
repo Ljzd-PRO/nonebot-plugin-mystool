@@ -1,7 +1,6 @@
 """
 ### 米游社其他API
 """
-from tabnanny import check
 import httpx
 import traceback
 from .config import mysTool_config as conf
