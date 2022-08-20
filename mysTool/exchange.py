@@ -309,7 +309,7 @@ class Exchange:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -5
 
-    async def start(self) -> Union[Tuple[bool, dict], None]:
+    async def start(self) -> Union[Tuple[bool, dict], Literal[-1, -2, -3]]:
         """
         执行兑换操作
         返回元组 (是否成功, 服务器返回数据)
