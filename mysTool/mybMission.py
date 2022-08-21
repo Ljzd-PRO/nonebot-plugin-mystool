@@ -3,7 +3,7 @@
 """
 import asyncio
 import traceback
-from typing import List, Literal, Tuple, TypeVar, Union
+from typing import List, Literal, Tuple, NewType, Union
 
 import httpx
 from nonebot.log import logger
@@ -390,8 +390,8 @@ async def get_missions_state(account: UserAccount):
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
-    Prograss_Now = TypeVar("Prograss_Now", int)
-    missions: List[Mission] = get_missions(account)
+    Prograss_Now = NewType("Prograss_Now", int)
+    missions: List[Mission] = await get_missions(account)
     if isinstance(missions, int):
         if missions == -1:
             return -1
@@ -409,8 +409,11 @@ async def get_missions_state(account: UserAccount):
             return -1
         state_list: List[Tuple[Mission, Prograss_Now]] = []
         for state in res.json()["data"]["states"]:
-            state_list.append((list(filter(lambda missions: missions.keyName ==
-                              state["mission_key"], missions))[0], state["happened_times"]))
+            try:
+                state_list.append((list(filter(lambda missions: missions.keyName ==
+                                state["mission_key"], missions))[0], state["is_get_award"]))
+            except IndexError:
+                break
         return state_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
