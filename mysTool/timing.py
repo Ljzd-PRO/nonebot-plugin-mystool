@@ -16,7 +16,7 @@ from .gameSign import *
 from .config import mysTool_config as conf
 from .config import img_config as img_conf
 from .utils import *
-from .mybMission import Action
+from .mybMission import *
 from .exchange import *
 from typing import List
 
@@ -57,7 +57,7 @@ async def daily_bbs_sign_():
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
-        await send_bbs_sign_msg(bot=bot, qq=qq)
+        await send_bbs_sign_msg(bot=bot, qq=qq, IsAuto=True)
 
 
 manually_bbs_sign = on_command(
@@ -69,7 +69,7 @@ manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查
 async def _(event: PrivateMessageEvent, state: T_State):
     qq = event.user_id
     bot = get_bot()
-    await send_bbs_sign_msg(bot=bot, qq=qq)
+    await send_bbs_sign_msg(bot=bot, qq=qq, IsAuto=False)
 
 
 update_timing = nonebot_plugin_apscheduler.scheduler
@@ -134,21 +134,27 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
 async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
+        missions_state = await get_missions_state(account)
         mybmission = Action(account)
         if (account.mybMission and IsAuto) or not IsAuto:
-            sign_flag = await mybmission.sign('ys')
-            read_flag = await mybmission.read('ys')
-            like_flag = await mybmission.like('ys')
-            share_flag = await mybmission.share('ys')
-            if account.notice:
+            if not missions_state[0][1]:
+                mybmission.sign('ys')
+            if not missions_state[1][1]:
+                mybmission.read('ys')
+            if not missions_state[2][1]:
+                mybmission.like('ys')
+            if not missions_state[3][1]:
+                mybmission.share('ys')
+            if UserData.isNotice(qq):
+                missions_state = await get_missions_state(account)
                 msg = f"""\
-                    '今日米游币任务执行完成！
-                    执行结果：
-                    签到： {'√' if sign_flag >= 0 else '×'}
-                    阅读： {'√' if read_flag else '×'}
-                    点赞： {'√' if like_flag else '×'}
-                    签到： {'√' if share_flag else '×'}
-                """
+                    \n今日米游币任务执行完成！\
+                    \n执行结果：\
+                    \n签到： {'√' if missions_state[0][1] else '×'}\
+                    \n阅读： {'√' if missions_state[1][1] else '×'}\
+                    \n点赞： {'√' if missions_state[2][1] else '×'}\
+                    \n签到： {'√' if missions_state[3][1] else '×'}\
+                """.strip()
                 await bot.send_msg(
                     message_type="private",
                     user_id=qq,
