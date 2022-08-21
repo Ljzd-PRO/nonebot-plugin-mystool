@@ -161,7 +161,7 @@ class Good:
 async def get_good_detail(goodID: str):
     try:
         async with httpx.AsyncClient() as client:
-            res: httpx.Response = await client.get(URL_CHECK_GOOD.format(goodID))
+            res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
         return Good(res.json()["data"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
@@ -175,7 +175,7 @@ async def get_good_detail(goodID: str):
 async def get_start_time(goodID: str) -> Union[int, None]:
     try:
         async with httpx.AsyncClient() as client:
-            res: httpx.Response = await client.get(URL_CHECK_GOOD.format(goodID))
+            res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
         return int(res.json()["data"]["sale_start_time"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
@@ -206,8 +206,8 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
     while error_times < conf.MAX_RETRY_TIMES:
         try:
             async with httpx.AsyncClient() as client:
-                res: httpx.Response = await client.get(URL_GOOD_LIST.format(page=page,
-                                                                            game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                res = await client.get(URL_GOOD_LIST.format(page=page,
+                                                            game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
             goods = res.json()["data"]["list"]
             # 判断是否已经读完所有商品
             if goods == []:
@@ -266,7 +266,7 @@ class Exchange:
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
         try:
             async with httpx.AsyncClient() as client:
-                res: httpx.Response = await client.get(
+                res = await client.get(
                     URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
             goodInfo = res.json()["data"]
             if goodInfo["type"] == 2:
@@ -329,7 +329,7 @@ class Exchange:
             headers["x-rpc-device_id"] = self.account.deviceID
             try:
                 async with httpx.AsyncClient() as client:
-                    res: httpx.Response = await client.post(
+                    res = await client.post(
                         URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
@@ -370,7 +370,7 @@ async def game_list_to_image(good_list: List[Good]):
 
     for good in good_list:
         async with httpx.AsyncClient() as client:
-            icon: httpx.Response = await client.get(good.icon, timeout=conf.TIME_OUT)
+            icon = await client.get(good.icon, timeout=conf.TIME_OUT)
         img = Image.open(io.BytesIO(icon.content))
         # 调整预览图大小
         img = img.resize(conf.goodListImage.ICON_SIZE)

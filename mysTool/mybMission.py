@@ -360,7 +360,7 @@ async def get_missions(account: UserAccount):
     """
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookie)
+            res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
             logger.info(conf.LOG_HEAD +
                         "获取米游币任务列表 - 用户 {} 登录失效".format(account.phone))
@@ -401,7 +401,7 @@ async def get_missions_state(account: UserAccount):
             return -3
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie)
+            res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
             logger.info(conf.LOG_HEAD +
                         "获取米游币任务完成情况 - 用户 {} 登录失效".format(account.phone))
@@ -411,7 +411,7 @@ async def get_missions_state(account: UserAccount):
         for state in res.json()["data"]["states"]:
             try:
                 state_list.append((list(filter(lambda missions: missions.keyName ==
-                                state["mission_key"], missions))[0], state["is_get_award"]))
+                                               state["mission_key"], missions))[0], state["is_get_award"]))
             except IndexError:
                 break
         return state_list

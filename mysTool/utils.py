@@ -137,7 +137,7 @@ async def get_file(url: str):
     """
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(url)
+            res = await client.get(url, timeout=conf.TIME_OUT)
         return res.content
     except:
         logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
@@ -158,6 +158,7 @@ def check_login(response: str):
             return True
     except json.JSONDecodeError and KeyError:
         return True
+
 
 async def send_login_failure_msg(content, bot: Bot, qq: str, account: UserAccount):
     if isinstance(content, int):
