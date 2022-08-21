@@ -15,6 +15,8 @@ from .utils import check_login, generateDeviceID, generateDS
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
+URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
+
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
@@ -62,6 +64,16 @@ HEADERS_GAME_LIST = {
     "User-Agent": conf.device.USER_AGENT_OTHER,
     "Connection": "keep-alive",
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE
+}
+HEADERS_MYB = {
+    "Host": "api-takumi.mihoyo.com",
+    "Origin": "https://webstatic.mihoyo.com",
+    "Connection": "keep-alive",
+    "Accept": "application/json, text/plain, */*",
+    "User-Agent": conf.device.USER_AGENT_MOBILE,
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Referer": "https://webstatic.mihoyo.com/",
+    "Accept-Encoding": "gzip, deflate, br"
 }
 
 
@@ -271,6 +283,34 @@ async def get_game_list() -> Union[List[GameInfo], None]:
     except:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+
+async def get_user_myb(account: UserAccount) -> Union[int, Literal[-1, -2, -3]]:
+    """
+    获取用户当前米游币数量
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
+        if not check_login(res.text):
+            logger.info(conf.LOG_HEAD +
+                        "获取用户米游币 - 用户 {} 登录失效".format(account.phone))
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            return -1
+        return int(res.json()["data"]["points"])
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "获取用户米游币 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "获取用户米游币 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
 
 driver = nonebot.get_driver()
 
