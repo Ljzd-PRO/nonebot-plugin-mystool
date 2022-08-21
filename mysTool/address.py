@@ -6,7 +6,7 @@ from typing import List, Union, Literal
 
 import httpx
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.log import logger
 from nonebot.matcher import Matcher
@@ -14,7 +14,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
-from .utils import NtpTime, check_login
+from .utils import NtpTime, check_login, send_login_failure_msg
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -79,9 +79,9 @@ get_address.__help_info__ = '跟随指引，获取地址id，米游币兑换实�
 
 @get_address.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
-    qq_account = int(event.user_id)
-    user_account = UserData.read_account_all(qq_account)
-    state['qq_account'] = qq_account
+    qq = int(event.user_id)
+    user_account = UserData.read_account_all(qq)
+    state['qq'] = qq
     state['user_account'] = user_account
     if not user_account:
         await get_address.finish("你没有配置cookie，请先配置cookie！")
@@ -95,22 +95,25 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 
 @get_address.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot:Bot, phone: Message = ArgPlainText('phone')):
     if phone == '退出':
         await matcher.finish('已成功退出')
     user_account = state['user_account']
-    qq_account = state['qq_account']
+    qq = state['qq']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
     if phone in phones:
-        account = UserData.read_account(qq_account, int(phone))
+        account = UserData.read_account(qq, int(phone))
     else:
         get_address.reject('您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
 
     state['address_list']: List[Address] = await get(account)
-    if isinstance(state['address_list'], list):
-        if isinstance(state['address_list'], int):
-            await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
+    if isinstance(state['address_list'], int):
+        await send_login_failure_msg(state['address_list'], bot, qq, account)
+        await matcher.send('获取失败，请重新尝试')
+    if not state['address_list']:
+        await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
+    else:
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:
             address_string = f"""\
@@ -124,8 +127,6 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             \n地址ID(Address_ID)：{address.addressID}\
             """.strip()
             await get_address.send(address_string)
-    else:
-        await get_address.finish("获取失败")
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID(Address_ID)')
@@ -137,7 +138,7 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPla
     if result_address:
         account: UserAccount = state["account"]
         account.address = result_address[0]
-        UserData.set_account(account, state['qq_account'], account.phone)
+        UserData.set_account(account, state['qq'], account.phone)
         await get_address.finish("地址写入完成")
     else:
         await get_address.reject("您输入的地址id与上文的不匹配，请重新输入")
