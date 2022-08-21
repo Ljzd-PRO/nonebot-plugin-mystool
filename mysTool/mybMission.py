@@ -3,7 +3,7 @@
 """
 import asyncio
 import traceback
-from typing import List, Literal, Tuple, NewType, Union
+from typing import Any, Dict, List, Literal, Tuple, NewType, Union
 
 import httpx
 from nonebot.log import logger
@@ -65,12 +65,26 @@ GAME_ID = {
     }
 }
 
+Prograss_Now = NewType("Prograss_Now", int)
+Myb_Num = NewType("Myb_Num", int)
+
 
 class Mission:
+    """
+    任务信息数据
+
+    通过对象的`keyName`属性来判断该任务是什么\n
+    各个任务对应的`keyName`值在类属性中\n
+    (`Mission.SIGN`, `Mission.VIEW`, `Mission.LIKE`, `Mission.SHARE`)
+    """
     SIGN = "continuous_sign"
+    '''签到任务的 keyName'''
     VIEW = "view_post_0"
+    '''阅读任务的 keyName'''
     LIKE = "post_up_0"
+    '''点赞任务的 keyName'''
     SHARE = "share_post_0"
+    '''分享任务的 keyName'''
 
     def __init__(self, mission_dict: dict) -> None:
         self.mission_dict = mission_dict
@@ -117,7 +131,10 @@ class Mission:
 class Action:
     """
     米游币任务相关(需先初始化对象)
+
+    类属性有`NAME_TO_FUNC`，是任务`keyName`与函数的对应关系
     """
+    Action_Method = NewType("Action_Method", Any)
 
     def __init__(self, account: UserAccount) -> None:
         self.account = account
@@ -349,6 +366,13 @@ class Action:
     async def __del__(self):
         await self.client.aclose()
 
+    NAME_TO_FUNC: Dict[str, Action_Method] = {
+        Mission.SIGN: sign,
+        Mission.VIEW: read,
+        Mission.LIKE: like,
+        Mission.SHARE: share
+    }
+
 
 async def get_missions(account: UserAccount):
     """
@@ -381,16 +405,16 @@ async def get_missions(account: UserAccount):
         return -3
 
 
-async def get_missions_state(account: UserAccount):
+async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, Prograss_Now]], Myb_Num]:
     """
     获取米游币任务完成情况\n
-    返回元组 (任务数据对象, 当前完成进度)
+    返回数据格式:
+    >>> tuple[ list[ tuple[任务信息对象, 当前进度] ], 用户当前米游币数量 ]
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
-    Prograss_Now = NewType("Prograss_Now", int)
     missions: List[Mission] = await get_missions(account)
     if isinstance(missions, int):
         if missions == -1:
@@ -408,13 +432,14 @@ async def get_missions_state(account: UserAccount):
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             return -1
         state_list: List[Tuple[Mission, Prograss_Now]] = []
-        for state in res.json()["data"]["states"]:
+        data = res.json()["data"]
+        for state in data["states"]:
             try:
                 state_list.append((list(filter(lambda missions: missions.keyName ==
                                                state["mission_key"], missions))[0], state["is_get_award"]))
             except IndexError:
-                break
-        return state_list
+                pass
+        return (state_list, data["total_points"])
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
