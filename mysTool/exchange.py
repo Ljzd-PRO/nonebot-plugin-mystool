@@ -4,7 +4,7 @@
 import io
 import time
 import traceback
-from typing import List, Literal, Tuple, TypeVar, Union
+from typing import List, Literal, Tuple, NewType, Union
 
 import httpx
 from nonebot.log import logger
@@ -74,8 +74,8 @@ class Good:
     """
     商品数据
     """
-    Used_Times = TypeVar("Used_Times", int)
-    Total_Times = TypeVar("Total_Times", int)
+    Used_Times = NewType("Used_Times", int)
+    Total_Times = NewType("Total_Times", int)
 
     def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
