@@ -15,11 +15,9 @@ from urllib.parse import urlencode
 import httpx
 import nonebot
 import ntplib
-from nonebot.adapters.onebot.v11 import Bot
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
-from .data import UserAccount
 
 driver = nonebot.get_driver()
 
@@ -156,9 +154,3 @@ def check_login(response: str):
             return True
     except json.JSONDecodeError and KeyError:
         return True
-
-
-async def send_login_failure_msg(content, bot: Bot, qq: str, account: UserAccount):
-    if isinstance(content, int):
-        if content == -1:
-            await bot.send_private_msg(user_id=qq, msg=f'用户{account.phone}登录失效，请重新登陆')
