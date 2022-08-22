@@ -433,12 +433,12 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
             return -1
         state_list: List[Tuple[Mission, Prograss_Now]] = []
         data = res.json()["data"]
-        for state in data["states"]:
+        for mission in missions:
             try:
-                state_list.append((list(filter(lambda missions: missions.keyName ==
-                                               state["mission_key"], missions))[0], state["is_get_award"]))
+                state_list.append(mission, (list(filter(lambda state: state["mission_key"] ==
+                                                        mission.keyName, data["states"]))[0]["is_get_award"]))
             except IndexError:
-                pass
+                state_list.append(mission, 0)
         return (state_list, data["total_points"])
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
