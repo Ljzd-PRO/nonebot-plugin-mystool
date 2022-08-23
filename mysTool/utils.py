@@ -39,6 +39,12 @@ class NtpTime:
         """
         return time.time() + cls.time_offset
 
+def custom_attempt_times(retry: bool):
+    if retry:
+        return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES)
+    else:
+        return tenacity.stop_after_attempt(1)
+
 
 @driver.on_startup
 def ntp_time_sync():
@@ -136,12 +142,8 @@ async def get_file(url: str, retry: bool = False):
     参数:
         `retry`: 是否允许重试
     """
-    if retry:
-        attempt_times = conf.MAX_RETRY_TIMES
-    else:
-        attempt_times = 1
     try:
-        for attempt in tenacity.Retrying(stop=tenacity.stop_after_attempt(attempt_times)):
+        for attempt in tenacity.Retrying(stop=custom_attempt_times(retry)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(url, timeout=conf.TIME_OUT)
