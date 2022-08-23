@@ -19,6 +19,8 @@ from nonebot.log import logger
 
 from .config import mysTool_config as conf
 
+import tenacity
+
 driver = nonebot.get_driver()
 
 PATH = Path(__file__).parent.absolute()
@@ -127,14 +129,23 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
         return f"{t},{r},{c}"
 
 
-async def get_file(url: str):
+async def get_file(url: str, retry: bool = False):
     """
     下载文件
+
+    参数:
+        `retry`: 是否允许重试
     """
+    if retry:
+        attempt_times = conf.MAX_RETRY_TIMES
+    else:
+        attempt_times = 1
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(url, timeout=conf.TIME_OUT)
-        return res.content
+        for attempt in tenacity.Retrying(stop=tenacity.stop_after_attempt(attempt_times)):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(url, timeout=conf.TIME_OUT)
+                return res.content
     except:
         logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
