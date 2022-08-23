@@ -143,7 +143,7 @@ async def get_file(url: str, retry: bool = False):
         `retry`: 是否允许重试
     """
     try:
-        for attempt in tenacity.Retrying(stop=custom_attempt_times(retry)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(url, timeout=conf.TIME_OUT)
