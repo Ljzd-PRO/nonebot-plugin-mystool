@@ -39,7 +39,14 @@ class NtpTime:
         """
         return time.time() + cls.time_offset
 
+
 def custom_attempt_times(retry: bool):
+    """
+    自定义的重试机制停止条件\n
+    根据是否要重试的bool值，给出相应的`tenacity.stop_after_attempt`对象
+    >>> retry == True #重试次数达到配置中 MAX_RETRY_TIMES 时停止
+    >>> retry == False #执行次数达到1时停止，即不进行重试
+    """
     if retry:
         return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES)
     else:
