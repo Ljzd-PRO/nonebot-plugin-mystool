@@ -193,7 +193,6 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
     error_times = 0
     good_list = []
     page = 1
-    res = None
 
     while error_times < conf.MAX_RETRY_TIMES:
         try:
@@ -217,7 +216,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
 
-    if not isinstance(res, list):
+    if not good_list:
         return None
 
     result = []
