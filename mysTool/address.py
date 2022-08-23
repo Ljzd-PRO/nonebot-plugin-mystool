@@ -110,7 +110,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     state['address_list']: List[Address] = await get(account)
     if isinstance(state['address_list'], int):
         if state['address_list'] == -1:
-             await get_address.finish("登录失效，请重新登录")
+             await get_address.finish(f"登录{account.phone}失效，请重新登录")
         await get_address.finish("获取失败，请稍后重新尝试")
     if state['address_list']:
         await get_address.send("以下为查询结果：")

@@ -87,10 +87,10 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
         record_list: List[GameRecord] = await get_game_record(account)
         if isinstance(record_list, int):
             if record_list == -1:
-                await bot.send_private_msg(user_id=qq, msg="登录失败，请重新登录")
+                await bot.send_private_msg(user_id=qq, message=f"账户{account.phone}登录失效，请重新登录")
                 return
             else:
-                await bot.send_private_msg(user_id=qq, msg="请求失败，请重新尝试")
+                await bot.send_private_msg(user_id=qq, message="请求失败，请重新尝试")
                 return
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
@@ -145,8 +145,8 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
         mybmission = Action(account)
         if isinstance(mybmission, int):
             if mybmission == -1:
-                await bot.send_private_msg(user_id=qq, msg='登录失效，请重新登录')
-            await bot.send_private_msg(user_id=qq, msg='请求失败，请重新尝试')
+                await bot.send_private_msg(user_id=qq, message=f'账户{account.phone}登录失效，请重新登录')
+            await bot.send_private_msg(user_id=qq, message='请求失败，请重新尝试')
             return
         if (account.mybMission and IsAuto) or not IsAuto:
             for mission_state in missions_state[0]:
