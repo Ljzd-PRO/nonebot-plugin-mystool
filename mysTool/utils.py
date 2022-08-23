@@ -15,11 +15,10 @@ from urllib.parse import urlencode
 import httpx
 import nonebot
 import ntplib
+import tenacity
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
-
-import tenacity
 
 driver = nonebot.get_driver()
 
@@ -48,7 +47,7 @@ def custom_attempt_times(retry: bool):
     >>> retry == False #执行次数达到1时停止，即不进行重试
     """
     if retry:
-        return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES)
+        return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES + 1)
     else:
         return tenacity.stop_after_attempt(1)
 
