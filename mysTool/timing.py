@@ -143,6 +143,11 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     for account in accounts:
         missions_state = await get_missions_state(account)
         mybmission = Action(account)
+        if isinstance(mybmission, int):
+            if mybmission == -1:
+                await bot.send_private_msg(user_id=qq, msg='登录失效，请重新登录')
+            await bot.send_private_msg(user_id=qq, msg='请求失败，请重新尝试')
+            return
         if (account.mybMission and IsAuto) or not IsAuto:
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
