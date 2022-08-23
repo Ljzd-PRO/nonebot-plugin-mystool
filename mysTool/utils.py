@@ -57,22 +57,16 @@ def ntp_time_sync():
     """
     启动时校对互联网时间
     """
-    ntp_error_times = 0
     NtpTime.time_offset = 0
-    while True:
-        logger.debug(conf.LOG_HEAD + "正在校对互联网时间")
-        try:
-            NtpTime.time_offset = ntplib.NTPClient().request(
-                conf.NTP_SERVER).tx_time - time.time()
-            break
-        except:
-            ntp_error_times += 1
-            if ntp_error_times == conf.MAX_RETRY_TIMES:
-                logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
-                break
-            else:
-                logger.warning(conf.LOG_HEAD +
-                               "校对互联网时间失败，正在重试({})".format(ntp_error_times))
+    try:
+        for attempt in tenacity.Retrying(stop=custom_attempt_times(True), before=logger.warning(conf.LOG_HEAD +
+                                                                                                "校对互联网时间失败，正在重试")):
+            with attempt:
+                logger.debug(conf.LOG_HEAD + "正在校对互联网时间")
+                NtpTime.time_offset = ntplib.NTPClient().request(
+                    conf.NTP_SERVER).tx_time - time.time()
+    except:
+        logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
 
 
 def generateDeviceID() -> str:
