@@ -435,8 +435,8 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
         data = res.json()["data"]
         for mission in missions:
             try:
-                state_list.append(mission, (list(filter(lambda state: state["mission_key"] ==
-                                                        mission.keyName, data["states"]))[0]["is_get_award"]))
+                state_list.append((mission, list(filter(lambda state: state["mission_key"] ==
+                                                        mission.keyName, data["states"]))[0]["happened_times"]))
             except IndexError:
                 state_list.append(mission, 0)
         return (state_list, data["total_points"])
