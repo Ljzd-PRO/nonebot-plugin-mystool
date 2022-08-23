@@ -174,7 +174,7 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('c
         arg = ('bbs', '米游社')
     else:
         await get_good_image.finish('您的输入有误，请重新输入')
-    good_list = await get_good_list()
+    good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         await get_good_image.finish(MessageSegment.image(img_path))
