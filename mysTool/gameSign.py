@@ -123,13 +123,6 @@ class Info:
         return self.info_dict["is_sign"]
 
     @property
-    def monthFirst(self) -> bool:
-        """
-        是否是月初第一天
-        """
-        return self.info_dict["month_first"]
-
-    @property
     def totalDays(self) -> int:
         """
         已签多少天
@@ -176,7 +169,7 @@ class GameSign:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID:str, region:str=None):
+    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None):
         """
         获取签到记录
 
