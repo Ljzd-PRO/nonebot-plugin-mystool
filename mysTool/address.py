@@ -108,9 +108,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     state['account'] = account
 
     state['address_list']: List[Address] = await get(account)
-    if isinstance(state['address_list'], list):
-        if isinstance(state['address_list'], int):
-            await get_address.finish("您的该账号没有配置地址，请先前往米游社配置地址！")
+    if isinstance(state['address_list'], int):
+        if state['address_list'] == -1:
+             await get_address.finish("登录失效，请重新登录")
+        await get_address.finish("获取失败，请稍后重新尝试")
+    if state['address_list']:
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:
             address_string = f"""\
@@ -125,7 +127,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             """.strip()
             await get_address.send(address_string)
     else:
-        await get_address.finish("获取失败")
+        await get_address.send("您还没有配置地址，请先前往米游社配置地址！")
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID(Address_ID)')
