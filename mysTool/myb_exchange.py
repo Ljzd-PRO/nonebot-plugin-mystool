@@ -153,7 +153,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
             account.exchange.remove(exchange_plan)
     account.exchange.append((good.goodID, uid))
     UserData.set_account(account, event.user_id, phone)
-    exchange_plan = await Exchange(account, good.goodID, uid)
+    exchange_plan = Exchange(account, good.goodID, uid)
+    await exchange_plan.async_init()
     if exchange_plan.result == -1:
         await matcher.finish(f"账户{account.phone}登录失效，请重新登录")
     elif exchange_plan.result == -2:
