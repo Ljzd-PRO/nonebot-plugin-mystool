@@ -3,7 +3,7 @@
 """
 import asyncio
 import traceback
-from typing import Any, Dict, List, Literal, Tuple, NewType, Union
+from typing import Any, Dict, List, Literal, NewType, Tuple, Union
 
 import httpx
 from nonebot.log import logger
@@ -211,7 +211,7 @@ class Action:
             `game`: 游戏代号
             `readTimes`: 阅读文章数
 
-        - 若执行成功，返回 `True`
+        - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回或请求失败
         - 若返回 `-3` 说明请求失败
@@ -260,7 +260,7 @@ class Action:
             if postID_list is None:
                 return -4
 
-        return True
+        return 1
 
     async def like(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], likeTimes: int = 10):
         """
@@ -328,7 +328,7 @@ class Action:
         参数:
             `game`: 游戏代号
 
-        - 若执行成功，返回 `True`
+        - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回或请求失败
         - 若返回 `-3` 说明网络请求发送成功，但是可能未签到成功
@@ -359,7 +359,7 @@ class Action:
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 error_times += 1
         if error_times <= conf.MAX_RETRY_TIMES:
-            return True
+            return 1
         else:
             return -2
 
