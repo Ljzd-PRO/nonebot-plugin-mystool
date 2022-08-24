@@ -4,16 +4,17 @@
 import io
 import time
 import traceback
-from typing import List, Literal, Tuple, NewType, Union
+from typing import List, Literal, NewType, Tuple, Union
 
 import httpx
+import tenacity
 from nonebot.log import logger
 from PIL import Image, ImageDraw, ImageFont
 
 from .bbsAPI import get_game_record
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, generateDeviceID
+from .utils import check_login, custom_attempt_times, generateDeviceID
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
@@ -158,14 +159,21 @@ class Good:
             return False
 
 
-async def get_good_detail(goodID: str):
+async def get_good_detail(goodID: str, retry: bool = True):
     """
     获取某商品的详细信息，若获取失败则返回`None`
+
+    参数:
+        `goodID`: 商品ID
+        `retry`: 是否允许重试
     """
+
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
-        return Good(res.json()["data"])
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                return Good(res.json()["data"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -242,7 +250,7 @@ class Exchange:
     - `result`属性为 `-5`: 获取商品的信息时，服务器没有正确返回，放弃兑换
     - `result`属性为 `-6`: 获取用户游戏账户数据失败，放弃兑换
     """
-    async def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
+    async def __init__(self, account: UserAccount, goodID: str, gameUID: str, retry: bool = True) -> None:
         self.result = None
         self.goodID = goodID
         self.account = account
@@ -255,50 +263,55 @@ class Exchange:
         }
         logger.info(conf.LOG_HEAD +
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
+        res = None
         try:
-            async with httpx.AsyncClient() as client:
-                res = await client.get(
-                    URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
-            goodInfo = res.json()["data"]
-            if goodInfo["type"] == 2:
-                if "stoken" not in account.cookie:
-                    logger.error(
-                        conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(goodID))
-                    self.result = -2
-                    return
-                if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
-                    logger.error(
-                        conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
-                    self.result = -3
-                    return
-            # 若商品非游戏内物品，则直接返回，不进行下面的操作
-            else:
-                return
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+                with attempt:
+                    async with httpx.AsyncClient() as client:
+                        res = await client.get(
+                            URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                    goodInfo = res.json()["data"]
+                    if goodInfo["type"] == 2:
+                        if "stoken" not in account.cookie:
+                            logger.error(
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(goodID))
+                            self.result = -2
+                            return
+                        if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
+                            logger.error(
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
+                            self.result = -3
+                            return
+                    # 若商品非游戏内物品，则直接返回，不进行下面的操作
+                    else:
+                        return
 
-            if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
-                logger.warning(
-                    conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
-                self.result = -4
-                return
+                    if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
+                        logger.warning(
+                            conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
+                        self.result = -4
+                        return
 
-            record_list = await get_game_record(account)
-            if record_list == -1:
-                return -1
-            elif isinstance(record_list, int):
-                return -6
+                    record_list = await get_game_record(account)
+                    if record_list == -1:
+                        return -1
+                    elif isinstance(record_list, int):
+                        return -6
 
-            for record in record_list:
-                if record.uid == gameUID:
-                    self.content.setdefault("uid", record.uid)
-                    # 例: cn_gf01
-                    self.content.setdefault("region", record.region)
-                    # 例: hk4e_cn
-                    self.content.setdefault("game_biz", goodInfo["game_biz"])
-                    break
-        except KeyError:
+                    for record in record_list:
+                        if record.uid == gameUID:
+                            self.content.setdefault("uid", record.uid)
+                            # 例: cn_gf01
+                            self.content.setdefault("region", record.region)
+                            # 例: hk4e_cn
+                            self.content.setdefault(
+                                "game_biz", goodInfo["game_biz"])
+                            break
+        except tenacity.RetryError:
             logger.error(
-                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息时，服务器没有正确返回".format(goodID))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(goodID))
+            if res is not None:
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -5
 
@@ -348,56 +361,67 @@ class Exchange:
                 return -3
 
 
-async def game_list_to_image(good_list: List[Good]):
+async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
-    将商品信息列表转换为图片数据
+    将商品信息列表转换为图片数据，若返回`None`说明生成失败
+
+    参数:
+        `good_list`: 商品列表数据
+        `retry`: 是否允许重试
     """
-    font = ImageFont.truetype(
-        str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
+    try:
+        font = ImageFont.truetype(
+            str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
-    size_y = 0
-    '''起始粘贴位置 高'''
-    position: List[tuple] = []
-    '''预览图粘贴的位置'''
-    imgs: List[Image.Image] = []
-    '''商品预览图'''
+        size_y = 0
+        '''起始粘贴位置 高'''
+        position: List[tuple] = []
+        '''预览图粘贴的位置'''
+        imgs: List[Image.Image] = []
+        '''商品预览图'''
 
-    for good in good_list:
-        async with httpx.AsyncClient() as client:
-            icon = await client.get(good.icon, timeout=conf.TIME_OUT)
-        img = Image.open(io.BytesIO(icon.content))
-        # 调整预览图大小
-        img = img.resize(conf.goodListImage.ICON_SIZE)
-        # 记录预览图粘贴位置
-        position.append((0, size_y))
-        # 调整下一个粘贴的位置
-        size_y += conf.goodListImage.ICON_SIZE[1] + \
-            conf.goodListImage.PADDING_ICON
-        imgs.append(img)
+        for good in good_list:
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+                with attempt:
+                    async with httpx.AsyncClient() as client:
+                        icon = await client.get(good.icon, timeout=conf.TIME_OUT)
+            img = Image.open(io.BytesIO(icon.content))
+            # 调整预览图大小
+            img = img.resize(conf.goodListImage.ICON_SIZE)
+            # 记录预览图粘贴位置
+            position.append((0, size_y))
+            # 调整下一个粘贴的位置
+            size_y += conf.goodListImage.ICON_SIZE[1] + \
+                conf.goodListImage.PADDING_ICON
+            imgs.append(img)
 
-    preview = Image.new(
-        'RGB', (conf.goodListImage.WIDTH, size_y), (255, 255, 255))
+        preview = Image.new(
+            'RGB', (conf.goodListImage.WIDTH, size_y), (255, 255, 255))
 
-    i = 0
-    for img in imgs:
-        preview.paste(img, position[i])
-        i += 1
+        i = 0
+        for img in imgs:
+            preview.paste(img, position[i])
+            i += 1
 
-    draw_y = conf.goodListImage.PADDING_TEXT_AND_ICON_Y
-    '''写入文字的起始位置 高'''
-    for good in good_list:
-        draw = ImageDraw.Draw(preview)
-        # 根据预览图高度来确定写入文字的位置，并调整空间
-        if good.time is None:
-            start_time = "不限"
-        else:
-            start_time = good.time
-        draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                  "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
-        draw_y += (conf.goodListImage.ICON_SIZE[1] +
-                   conf.goodListImage.PADDING_ICON)
+        draw_y = conf.goodListImage.PADDING_TEXT_AND_ICON_Y
+        '''写入文字的起始位置 高'''
+        for good in good_list:
+            draw = ImageDraw.Draw(preview)
+            # 根据预览图高度来确定写入文字的位置，并调整空间
+            if good.time is None:
+                start_time = "不限"
+            else:
+                start_time = good.time
+            draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
+                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
+            draw_y += (conf.goodListImage.ICON_SIZE[1] +
+                       conf.goodListImage.PADDING_ICON)
 
-    # 导出
-    image_bytes = io.BytesIO()
-    preview.save(image_bytes, format="JPEG")
-    return image_bytes.getvalue()
+        # 导出
+        image_bytes = io.BytesIO()
+        preview.save(image_bytes, format="JPEG")
+        return image_bytes.getvalue()
+    except:
+        logger.error(
+            conf.LOG_HEAD + "商品列表图片生成 - 无法完成图片生成")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
