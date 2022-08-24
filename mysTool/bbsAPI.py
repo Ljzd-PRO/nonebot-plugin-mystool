@@ -10,8 +10,8 @@ from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, generateDeviceID, generateDS
-
+from .utils import check_login, generateDeviceID, generateDS, custom_attempt_times
+import tenacity
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
@@ -202,9 +202,13 @@ class GameInfo:
         return self.gameInfo_dict["name"]
 
 
-async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, -3]]:
+async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[str, Literal[-1, -2, -3]]:
     """
     获取ActionTicket，返回str
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -213,14 +217,16 @@ async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, 
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = generateDS()
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
-        if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
-                        "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            return -1
-        return res.json()["data"]["ticket"]
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -232,9 +238,13 @@ async def get_action_ticket(account: UserAccount) -> Union[str, Literal[-1, -2, 
         return -3
 
 
-async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Literal[-1, -2, -3]]:
+async def get_game_record(account: UserAccount, retry: bool = True) -> Union[List[GameRecord], Literal[-1, -2, -3]]:
     """
     获取用户绑定的游戏账户信息，返回一个GameRecord对象的列表
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -242,16 +252,18 @@ async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Liter
     """
     record_list = []
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
-        if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
-                        "获取用户游戏数据 - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            return -1
-        for record in res.json()["data"]["list"]:
-            record_list.append(GameRecord(record))
-        return record_list
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "获取用户游戏数据 - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                for record in res.json()["data"]["list"]:
+                    record_list.append(GameRecord(record))
+                return record_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -263,19 +275,24 @@ async def get_game_record(account: UserAccount) -> Union[List[GameRecord], Liter
         return -3
 
 
-async def get_game_list() -> Union[List[GameInfo], None]:
+async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     """
     获取米哈游游戏的详细信息，若返回`None`说明获取失败
+
+    参数:
+        `retry`: 是否允许重试
     """
     headers = HEADERS_GAME_LIST.copy()
     headers["DS"] = generateDS()
     info_list = []
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
-        for info in res.json()["data"]["list"]:
-            info_list.append(GameInfo(info))
-        return info_list
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
+                for info in res.json()["data"]["list"]:
+                    info_list.append(GameInfo(info))
+                return info_list
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取游戏信息 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -285,23 +302,29 @@ async def get_game_list() -> Union[List[GameInfo], None]:
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_user_myb(account: UserAccount) -> Union[int, Literal[-1, -2, -3]]:
+async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, Literal[-1, -2, -3]]:
     """
     获取用户当前米游币数量
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
     try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
-        if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
-                        "获取用户米游币 - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            return -1
-        return int(res.json()["data"]["points"])
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "获取用户米游币 - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                return int(res.json()["data"]["points"])
     except KeyError and ValueError:
         logger.error(conf.LOG_HEAD + "获取用户米游币 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
