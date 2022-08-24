@@ -1,14 +1,15 @@
 """
 ### 米游社登录获取Cookie相关
 """
+import httpx
+import requests.utils
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
-from nonebot.params import T_State, ArgPlainText
-import requests.utils
-import httpx
+from nonebot.params import ArgPlainText, T_State
+
 from .config import mysTool_config as conf
-from .utils import *
 from .data import UserData
+from .utils import *
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -69,54 +70,105 @@ class GetCookie:
         else:
             self.deviceID = account.deviceID
 
-    async def get_1(self, captcha: str):
+    async def get_1(self, captcha: str, retry: bool = True):
         """
         第一次获取Cookie(目标是login_ticket)
+
+        参数:
+            `captcha`: 短信验证码
+            `retry`: 是否允许重试
+
+        - 若返回 `1` 说明已成功
+        - 若返回 `-1` 说明Cookie缺少`login_ticket`
+        - 若返回 `-2` 说明Cookie缺少米游社UID(bbsUID)，如`stuid`
+        - 若返回 `-3` 说明请求失败
         """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
+        res = None
+        try:
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+                with attempt:
+                    res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
+        except tenacity.RetryError:
+            logger.error(
+                conf.LOG_HEAD + "登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -3
+
         if "login_ticket" not in res.cookies:
-            return 0
+            return -1
 
         for item in ("login_uid", "stuid", "ltuid", "account_id"):
             if item in res.cookies:
                 self.bbsUID = res.cookies[item]
                 break
         if not self.bbsUID:
-            return -1
+            return -2
         self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
-        return True
+        return 1
 
-    async def get_2(self):
+    async def get_2(self, retry: bool = True):
         """
-        第二次获取Cookie(目标是stoken)
+        获取stoken
+
+        参数:
+            `retry`: 是否允许重试
+
+        - 若返回 `True` 说明Cookie缺少`cookie_token`
+        - 若返回 `False` 说明网络请求失败或服务器没有正确返回
         """
         try:
-            res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID), timeout=conf.TIME_OUT)
-            stoken = list(filter(
-                lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
-            self.cookie["stoken"] = stoken
-            return True
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+                with attempt:
+                    res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID), timeout=conf.TIME_OUT)
+                    stoken = list(filter(
+                        lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
+                    self.cookie["stoken"] = stoken
+                    return True
+        except KeyError:
+            logger.error(
+                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
-            return False
+            logger.error(
+                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return False
 
-    async def get_3(self, captcha: str):
+    async def get_3(self, captcha: str, retry: bool = True):
         """
         第二次获取Cookie(目标是cookie_token)
+
+        参数:
+            `captcha`: 短信验证码
+            `retry`: 是否允许重试
+
+        - 若返回 `1` 说明已成功
+        - 若返回 `-1` 说明Cookie缺少`cookie_token`
+        - 若返回 `-2` 说明请求失败
         """
-        res = await self.client.post(URL_3, headers=HEADERS_2, json={
-            "is_bh2": False,
-            "mobile": str(self.phone),
-            "captcha": captcha,
-            "action_type": "login",
-            "token_type": 6
-        }, timeout=conf.TIME_OUT)
+        try:
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+                with attempt:
+                    res = await self.client.post(URL_3, headers=HEADERS_2, json={
+                        "is_bh2": False,
+                        "mobile": str(self.phone),
+                        "captcha": captcha,
+                        "action_type": "login",
+                        "token_type": 6
+                    }, timeout=conf.TIME_OUT)
+        except tenacity.RetryError:
+            logger.error(
+                conf.LOG_HEAD + "登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -2
         if "cookie_token" not in res.cookies:
-            return False
+            return -1
         self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
         await self.client.aclose()
-        return True
+        return 1
 
     async def __del__(self):
         await self.client.aclose()
@@ -165,10 +217,12 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
         status: int = await state['getCookie'].get_1(captcha1)
-        if status == 0:
+        if status == -1:
             await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
-        elif status == -1:
+        elif status == -2:
             await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
+        elif status == -3:
+            await get_cookie.finish("网络请求失败，无法继续，请稍后再试")
 
     status: bool = await state["getCookie"].get_2()
     if not status:
@@ -192,7 +246,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
         await get_cookie.reject("验证码应为6位数字，请重新输入")
     else:
         status: bool = await state["getCookie"].get_3(captcha2)
-        if not status:
+        if status < 0:
             await get_cookie.finish("获取cookie_token失败，一种可能是登录失效，请稍后再试")
 
     UserData.set_cookie(state['getCookie'].cookie,
