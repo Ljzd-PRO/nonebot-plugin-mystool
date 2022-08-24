@@ -165,7 +165,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     \n阅读： {'√' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '×'}\
                     \n点赞： {'√' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '×'}\
                     \n签到： {'√' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '×'}\
-                \n米游币:{missions_state[1]}
+                \n💰米游币:{missions_state[1]}
                 """.strip()
                 await bot.send_msg(
                     message_type="private",
