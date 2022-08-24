@@ -62,7 +62,7 @@ def ntp_time_sync():
         for attempt in tenacity.Retrying(stop=custom_attempt_times(True), before=logger.warning(conf.LOG_HEAD +
                                                                                                 "校对互联网时间失败，正在重试")):
             with attempt:
-                logger.debug(conf.LOG_HEAD + "正在校对互联网时间")
+                logger.info(conf.LOG_HEAD + "正在校对互联网时间")
                 NtpTime.time_offset = ntplib.NTPClient().request(
                     conf.NTP_SERVER).tx_time - time.time()
     except tenacity.RetryError:
