@@ -4,7 +4,6 @@
 from nonebot import get_driver, get_bot, on_command
 from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
 from nonebot.params import T_State
-from nonebot import on_command, get_bot
 from nonebot.permission import SUPERUSER
 import nonebot_plugin_apscheduler
 import asyncio
@@ -143,6 +142,11 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     for account in accounts:
         missions_state = await get_missions_state(account)
         mybmission = Action(account)
+        if isinstance(missions_state, int):
+            if mybmission == -1:
+                await bot.send_private_msg(user_id=qq, message=f'账户{account.phone}登录失效，请重新登录')
+            await bot.send_private_msg(user_id=qq, message='请求失败，请重新尝试')
+            return
         if isinstance(mybmission, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'账户{account.phone}登录失效，请重新登录')
@@ -173,6 +177,9 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
 async def generate_image():
     for root, dirs, files in os.walk(img_conf.SAVE_PATH, topdown=False):
         for name in files:
+            date = time.strftime('%m-%d',time.localtime())
+            if name.startswith(date):
+                return
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
     for game in ("bh3", "ys", "bh2", "wd", "bbs"):
