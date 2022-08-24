@@ -2,9 +2,10 @@
 ### 米游社收货地址相关
 """
 import traceback
-from typing import List, Union, Literal
+from typing import List, Literal, Union
 
 import httpx
+import tenacity
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
@@ -14,7 +15,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
-from .utils import NtpTime, check_login
+from .utils import NtpTime, check_login, custom_attempt_times
 
 __cs = ''
 if conf.USE_COMMAND_START:
@@ -36,9 +37,13 @@ HEADERS = {
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 
 
-async def get(account: UserAccount) -> Union[List[Address], Literal[-1, -2, -3]]:
+async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
     """
     获取用户的地址数据
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -47,17 +52,19 @@ async def get(account: UserAccount) -> Union[List[Address], Literal[-1, -2, -3]]
     address_list = []
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
-    async with httpx.AsyncClient() as client:
-        res = await client.get(URL.format(
-            round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
-        if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
-                        "获取地址数据 - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            return -1
     try:
-        for address in res.json()["data"]["list"]:
-            address_list.append(Address(address))
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL.format(
+                        round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    if not check_login(res.text):
+                        logger.info(conf.LOG_HEAD +
+                                    "获取地址数据 - 用户 {} 登录失效".format(account.phone))
+                        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                        return -1
+                for address in res.json()["data"]["list"]:
+                    address_list.append(Address(address))
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取地址数据 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
