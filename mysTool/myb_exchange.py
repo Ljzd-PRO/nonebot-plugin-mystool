@@ -59,21 +59,21 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     if phone in phones:
         account = UserData.read_account(qq, int(phone))
     else:
-        myb_exchange_plan.reject('您输入的账号不在以上账号内，请重新输入')
+        exchange_list.reject('您输入的账号不在以上账号内，请重新输入')
     state['phone'] = int(phone)
     state['account'] = account
     if not matcher.get_arg('content'):
         state['account'] = account
-        goodid_list = account.exchange
+        exchange_list = account.exchange
         msg = ''
-        if goodid_list:
-            for goodid in goodid_list:
-                good = await get_good_detail(goodid[0])
-                msg += f'{good.name} {good.goodID} {good.price} {good.time}\n'
+        if exchange_list:
+            for exchange_plan in exchange_list:
+                good = await get_good_detail(exchange_plan[0])
+                msg += f"-商品名：{good.name}\n-商品id：{good.goodID}\n-商品价格：{good.price}\n-兑换时间：{good.time}\n{'-兑换账号{}'.format(exchange_plan[1]) if exchange_plan[1] else ''}\n"
             msg += '\n'
         else:
             msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg+myb_exchange_plan.__help_msg__)
+        await matcher.finish(msg+exchange_list.__help_msg__)
 
 @myb_exchange_plan.got('content')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot):
@@ -140,9 +140,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     good = state['good']
     phone = state['phone']
     qq = event.user_id
+    for exchange_plan in account.exchange:
+        if exchange_plan[0] == good.goodID:
+            await matcher.send('您已经配置过该商品的兑换哦！此次配置将会覆盖原来的记录')
+            account.exchange.remove(exchange_plan)
     account.exchange.append((good.goodID, uid))
     UserData.set_account(account, event.user_id, phone)
-    exchange_plan = Exchange(account, good.goodID, uid)
+    exchange_plan = await Exchange(account, good.goodID, uid)
     if exchange_plan.result == -1:
         await matcher.finish(f"账户{account.phone}登录失效，请重新登录")
     elif exchange_plan.result == -2:
@@ -173,6 +177,10 @@ async def exchange(exchange_plan: Exchange, qq: str):
         await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换成功，可前往米游社查看")
     else:
         await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换失败\n{result[1]}")
+    for exchange_plan__ in exchange_plan.account.exchange:
+        if exchange_plan__[0] == exchange_plan.goodID:
+            exchange_plan.account.exchange.remove(exchange_plan__)
+    UserData.set_account(exchange_plan.account, qq, exchange_plan.account.phone)
 
 
 get_good_image = on_command(
@@ -214,5 +222,5 @@ async def load_exchange_data():
             exchange_list = account.exchange
             for exchange_good in exchange_list:
                 good_detail = await get_good_detail(exchange_good[0])
-                exchange_plan = Exchange(account, exchange_good[0], exchange_good[1])
+                exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1])
                 scheduler.add_job(id=account.phone+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
