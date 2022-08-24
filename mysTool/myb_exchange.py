@@ -59,7 +59,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     if phone in phones:
         account = UserData.read_account(qq, int(phone))
     else:
-        exchange_list.reject('您输入的账号不在以上账号内，请重新输入')
+        myb_exchange_plan.reject('您输入的账号不在以上账号内，请重新输入')
     state['phone'] = int(phone)
     state['account'] = account
     if not matcher.get_arg('content'):
@@ -73,7 +73,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             msg += '\n'
         else:
             msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg+exchange_list.__help_msg__)
+        await matcher.finish(msg+myb_exchange_plan.__help_msg__)
 
 @myb_exchange_plan.got('content')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot):
