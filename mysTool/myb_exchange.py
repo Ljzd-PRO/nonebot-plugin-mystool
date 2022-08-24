@@ -154,9 +154,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     elif exchange_plan.result == -3:
         await matcher.finish("商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
     elif exchange_plan.result == -4:
-        await matcher.finish("暂不支持商品 {} 所属的游戏".format(good.goodID))
+        await matcher.finish("暂不支持商品 {} 所属的游戏，放弃兑换".format(good.goodID))
     elif exchange_plan.result == -5:
-        await matcher.finish("获取商品 {} 的信息时，服务器没有正确返回".format(good.goodID))
+        await matcher.finish("获取商品 {} 的信息时，网络连接失败或服务器返回不正确，放弃兑换".format(good.goodID))
+    elif exchange_plan.result == -6:
+        await matcher.finish("获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
         scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
     await matcher.finish(f'设置兑换计划成功！将于{good.time}开始兑换，兑换结果会实时通知您')

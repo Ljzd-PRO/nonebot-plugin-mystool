@@ -11,7 +11,7 @@ import tenacity
 from nonebot.log import logger
 from PIL import Image, ImageDraw, ImageFont
 
-from .bbsAPI import get_game_record
+from .bbsAPI import GameRecord, get_game_record
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import check_login, custom_attempt_times, generateDeviceID
@@ -242,7 +242,10 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
 
 class Exchange:
     """
-    米游币商品兑换相关(需先初始化对象)
+    米游币商品兑换相关(需两步初始化对象，先`__init__`，后异步`async_init`)\n
+    示例:
+    >>> exchange = await Exchange(account, goodID, gameUID).async_init()
+
     - `result`属性为 `-1`: 用户登录失效，放弃兑换
     - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
     - `result`属性为 `-3`: 商品为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换
@@ -250,7 +253,8 @@ class Exchange:
     - `result`属性为 `-5`: 获取商品的信息时，服务器没有正确返回，放弃兑换
     - `result`属性为 `-6`: 获取用户游戏账户数据失败，放弃兑换
     """
-    async def __init__(self, account: UserAccount, goodID: str, gameUID: str, retry: bool = True) -> None:
+
+    def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
         self.result = None
         self.goodID = goodID
         self.account = account
@@ -261,25 +265,38 @@ class Exchange:
             "exchange_num": 1,
             "address_id": account.address.addressID
         }
+        self.gameUID = gameUID
+
+    async def async_init(self, retry: bool = True) -> None:
+        self.result = None
+        self.goodID = self.goodID
+        self.account = self.account
+        self.content = {
+            "app_id": 1,
+            "point_sn": "myb",
+            "goods_id": self.goodID,
+            "exchange_num": 1,
+            "address_id": self.account.address.addressID
+        }
         logger.info(conf.LOG_HEAD +
-                    "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(goodID))
+                    "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(self.goodID))
         res = None
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
-                            URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                            URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
                     goodInfo = res.json()["data"]
                     if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
-                        if "stoken" not in account.cookie:
+                        if "stoken" not in self.account.cookie:
                             logger.error(
-                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(goodID))
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
                             self.result = -2
                             return
-                        if account.cookie["stoken"].find("v2__") == 0 and "mid" not in account.cookie:
+                        if self.account.cookie["stoken"].find("v2__") == 0 and "mid" not in self.account.cookie:
                             logger.error(
-                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(goodID))
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(self.goodID))
                             self.result = -3
                             return
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
@@ -288,18 +305,18 @@ class Exchange:
 
                     if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                         logger.warning(
-                            conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(goodID))
+                            conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(self.goodID))
                         self.result = -4
                         return
 
-                    record_list = await get_game_record(account)
+                    record_list: List[GameRecord] = await get_game_record(self.account)
                     if record_list == -1:
-                        self.result -1
+                        self.result - 1
                     elif isinstance(record_list, int):
-                        self.result -6
+                        self.result - 6
 
                     for record in record_list:
-                        if record.uid == gameUID:
+                        if record.uid == self.gameUID:
                             self.content.setdefault("uid", record.uid)
                             # 例: cn_gf01
                             self.content.setdefault("region", record.region)
@@ -309,7 +326,7 @@ class Exchange:
                             break
         except tenacity.RetryError:
             logger.error(
-                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(goodID))
+                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(self.goodID))
             if res is not None:
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
