@@ -65,7 +65,7 @@ def ntp_time_sync():
                 logger.debug(conf.LOG_HEAD + "正在校对互联网时间")
                 NtpTime.time_offset = ntplib.NTPClient().request(
                     conf.NTP_SERVER).tx_time - time.time()
-    except:
+    except tenacity.RetryError:
         logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
 
 
@@ -148,7 +148,7 @@ async def get_file(url: str, retry: bool = False):
                 async with httpx.AsyncClient() as client:
                     res = await client.get(url, timeout=conf.TIME_OUT)
                 return res.content
-    except:
+    except tenacity.RetryError:
         logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
