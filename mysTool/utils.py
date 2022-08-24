@@ -135,7 +135,7 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
         return f"{t},{r},{c}"
 
 
-async def get_file(url: str, retry: bool = False):
+async def get_file(url: str, retry: bool = True):
     """
     下载文件
 
