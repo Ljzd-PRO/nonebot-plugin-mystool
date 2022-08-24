@@ -3,17 +3,20 @@
 """
 import asyncio
 import datetime
-from nonebot import on_command, get_driver, get_bot
-from nonebot.matcher import Matcher
-from nonebot.params import CommandArg, Arg, ArgPlainText, T_State
-from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageEvent, MessageSegment
+
+from nonebot import get_bot, get_driver, on_command
+from nonebot.adapters.onebot.v11 import (Bot, MessageEvent, MessageSegment,
+                                         PrivateMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
+from nonebot.matcher import Matcher
+from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
 from nonebot_plugin_apscheduler import scheduler
-from .gameSign import GameInfo
-from .config import mysTool_config as conf
+
 from .config import img_config as img_conf
+from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import *
+from .gameSign import GameInfo
 
 driver = get_driver()
 
@@ -33,8 +36,9 @@ myb_exchange_plan.__help_msg__ = f"""\
     \n{command} 商品列表 -> 查看米游社商品
 """.strip()
 
+
 @myb_exchange_plan.handle()
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args = CommandArg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=CommandArg()):
     if args:
         matcher.set_arg("content", args)
     qq_account = int(event.user_id)
@@ -48,6 +52,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args =
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         await matcher.send(f"您有多个账号，您要配置以下哪个账号的兑换计划？\n{'，'.join(phones)}")
+
 
 @myb_exchange_plan.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
@@ -75,6 +80,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg+myb_exchange_plan.__help_msg__)
 
+
 @myb_exchange_plan.got('content')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot):
     content = matcher.get_arg('content').extract_plain_text()
@@ -85,8 +91,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
         'bh3': await get_good_list('bh3'),
         'ys': await get_good_list('ys'),
         'bh2': await get_good_list('bh2'),
-        'wd' : await get_good_list('wd'),
-        'bbs' : await get_good_list('bbs')
+        'wd': await get_good_list('wd'),
+        'bbs': await get_good_list('bbs')
     }
     Flag = True
     break_flag = False
@@ -134,8 +140,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     else:
         matcher.finish('您的输入有误，请重新输入')
 
+
 @myb_exchange_plan.got('uid')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot, uid = ArgPlainText()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot, uid=ArgPlainText()):
     account = state['account']
     good = state['good']
     phone = state['phone']
@@ -160,7 +167,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     elif exchange_plan.result == -6:
         await matcher.finish("获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
-        scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
+        scheduler.add_job(id=account.phone+good.goodID, replace_existing=True, trigger='date', func=exchange,
+                          args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
     await matcher.finish(f'设置兑换计划成功！将于{good.time}开始兑换，兑换结果会实时通知您')
 
 
@@ -182,20 +190,24 @@ async def exchange(exchange_plan: Exchange, qq: str):
     for exchange_plan__ in exchange_plan.account.exchange:
         if exchange_plan__[0] == exchange_plan.goodID:
             exchange_plan.account.exchange.remove(exchange_plan__)
-    UserData.set_account(exchange_plan.account, qq, exchange_plan.account.phone)
+    UserData.set_account(exchange_plan.account, qq,
+                         exchange_plan.account.phone)
 
 
 get_good_image = on_command(
     __cs+'商品列表', aliases={__cs+'商品图片', __cs+'米游社商品列表', __cs+'米游币商品图片'}, priority=4, block=True)
 get_good_image.__help_name__ = "商品列表"
 get_good_image.__help_info__ = "获取当日米游社商品信息，目前共有五个分类可选，分别为（崩坏3，原神，崩坏2，未定事件簿，大别野）。请记住您要兑换的商品的ID，以方便下一步兑换"
+
+
 @get_good_image.handle()
-async def _(event:MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
+async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
     if arg:
         matcher.set_arg("content", arg)
 
+
 @get_good_image.got("content", prompt='请发送您要查看的商品类别:\n- 崩坏3\n- 原神\n- 崩坏2\n- 未定事件簿\n- 大别野\n—— 发送“退出”以结束')
-async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
+async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     if arg in ['原神', 'ys']:
         arg = ('ys', '原神')
     elif arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:
@@ -210,10 +222,12 @@ async def _(event:MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('c
         await get_good_image.finish('您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
     if good_list:
-        img_path = time.strftime(f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+        img_path = time.strftime(
+            f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         await get_good_image.finish(MessageSegment.image(img_path))
     else:
         await get_good_image.finish(f"{arg[1]}部分目前没有可兑换商品哦~")
+
 
 @driver.on_startup
 async def load_exchange_data():
@@ -225,4 +239,5 @@ async def load_exchange_data():
             for exchange_good in exchange_list:
                 good_detail = await get_good_detail(exchange_good[0])
                 exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1])
-                scheduler.add_job(id=account.phone+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
+                scheduler.add_job(id=str(account.phone) + "_" + exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
+                    exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
