@@ -72,8 +72,8 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''文字顶部与展示图顶部之间的距离 高'''
     PADDING_TEXT_AND_ICON_X: int = 10
     '''文字与展示图之间的横向距离 宽'''
-    FONT_PATH: Union[Path, str] = PATH / "font" / "PingFang.ttc"
-    '''字体文件路径(若使用计算机已经安装的字体，直接填入字体名称)'''
+    FONT_PATH: Union[Path, str, None] = PATH / "font" / "PingFang.ttc"
+    '''字体文件路径(若使用计算机已经安装的字体，直接填入字体名称，若为None则使用默认字体)'''
     FONT_SIZE: int = 50
     '''字体大小'''
     SAVE_PATH: Path = PATH / "data"

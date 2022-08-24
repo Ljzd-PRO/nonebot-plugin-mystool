@@ -387,8 +387,11 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         `retry`: 是否允许重试
     """
     try:
-        font = ImageFont.truetype(
-            str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
+        if conf.goodListImage.FONT_PATH is None:
+            font = ImageFont.truetype(size=conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
+        else:
+            font = ImageFont.truetype(
+                str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
         size_y = 0
         '''起始粘贴位置 高'''
