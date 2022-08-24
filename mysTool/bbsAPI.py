@@ -2,16 +2,18 @@
 ### 米游社其他API
 """
 import traceback
-from typing import Dict, List, Literal, Tuple, NewType, Union
+from typing import Dict, List, Literal, NewType, Tuple, Union
 
 import httpx
 import nonebot
+import tenacity
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, generateDeviceID, generateDS, custom_attempt_times
-import tenacity
+from .utils import (check_login, custom_attempt_times, generateDeviceID,
+                    generateDS)
+
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
