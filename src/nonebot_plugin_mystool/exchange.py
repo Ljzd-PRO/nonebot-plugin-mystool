@@ -393,7 +393,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
     try:
         font_path = conf.goodListImage.FONT_PATH
-        if conf.goodListImage.FONT_PATH is None:
+        if font_path is None:
             logger.warning(
                 conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
             try:
@@ -401,7 +401,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             except FileExistsError:
                 pass
             with open(TEMP_FONT_PATH, "wb") as fp:
-                content = get_file(FONT_URL)
+                content = await get_file(FONT_URL)
                 if content is None:
                     logger.error(
                         conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
