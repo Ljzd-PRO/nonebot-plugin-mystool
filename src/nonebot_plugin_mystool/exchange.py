@@ -398,34 +398,35 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         if font_path is None or not os.path.isfile(font_path):
             if os.path.isfile(FONT_SAVE_PATH):
                 font_path = FONT_SAVE_PATH
-            logger.warning(
-                conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
-            try:
-                os.makedirs(PATH / "data" / "temp")
-            except FileExistsError:
-                pass
-            with open(TEMP_FONT_PATH, "wb") as fp:
-                content = await get_file(FONT_URL)
-                if content is None:
-                    logger.error(
-                        conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
-                    return None
-                fp.write(content)
-            with open(TEMP_FONT_PATH, "rb") as fp:
-                with zipfile.ZipFile(fp) as zip:
-                    with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
-                        with open(FONT_SAVE_PATH, "wb") as fp_font:
-                            fp_font.write(zip_font.read())
-            logger.info(conf.LOG_HEAD +
-                        "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
-            try:
-                os.remove(TEMP_FONT_PATH)
-            except:
+            else:
                 logger.warning(
-                    conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
-                logger.debug(
-                    conf.LOG_HEAD + traceback.format_exc())
-            font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
+                    conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
+                try:
+                    os.makedirs(PATH / "data" / "temp")
+                except FileExistsError:
+                    pass
+                with open(TEMP_FONT_PATH, "wb") as fp:
+                    content = await get_file(FONT_URL)
+                    if content is None:
+                        logger.error(
+                            conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
+                        return None
+                    fp.write(content)
+                with open(TEMP_FONT_PATH, "rb") as fp:
+                    with zipfile.ZipFile(fp) as zip:
+                        with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
+                            with open(FONT_SAVE_PATH, "wb") as fp_font:
+                                fp_font.write(zip_font.read())
+                logger.info(conf.LOG_HEAD +
+                            "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
+                try:
+                    os.remove(TEMP_FONT_PATH)
+                except:
+                    logger.warning(
+                        conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
+                    logger.debug(
+                        conf.LOG_HEAD + traceback.format_exc())
+                font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
 
         font = ImageFont.truetype(
             str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
