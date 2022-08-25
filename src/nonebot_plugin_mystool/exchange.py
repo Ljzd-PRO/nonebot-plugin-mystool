@@ -2,8 +2,10 @@
 ### 米游币兑换相关
 """
 import io
+import os
 import time
 import traceback
+import zipfile
 from typing import List, Literal, NewType, Tuple, Union
 
 import httpx
@@ -14,7 +16,8 @@ from PIL import Image, ImageDraw, ImageFont
 from .bbsAPI import GameRecord, get_game_record
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDeviceID
+from .utils import (PATH, check_login, custom_attempt_times, generateDeviceID,
+                    get_file)
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
@@ -69,6 +72,8 @@ HEADERS_EXCHANGE = {
     "x-rpc-sys_version":
     conf.device.X_RPC_SYS_VERSION
 }
+FONT_URL = "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip"
+TEMP_FONT_PATH = PATH / "data" / "temp" / "font.zip"
 
 
 class Good:
@@ -387,11 +392,37 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         `retry`: 是否允许重试
     """
     try:
+        font_path = conf.goodListImage.FONT_PATH
         if conf.goodListImage.FONT_PATH is None:
-            font = ImageFont.truetype(size=conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
-        else:
-            font = ImageFont.truetype(
-                str(conf.goodListImage.FONT_PATH), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
+            logger.warning(
+                conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
+            try:
+                os.makedirs(PATH / "data" / "temp")
+            except FileExistsError:
+                pass
+            with open(TEMP_FONT_PATH, "wb") as fp:
+                content = get_file(FONT_URL)
+                if content is None:
+                    logger.error(
+                        conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
+                    return None
+                fp.write(content)
+            with open(TEMP_FONT_PATH, "rb") as fp:
+                with zipfile.ZipFile(fp) as zip:
+                    with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
+                        with open(PATH / "data" / "SourceHanSansHWSC-Regular.otf", "wb") as fp_font:
+                            fp_font.write(zip_font.read())
+            try:
+                os.remove(TEMP_FONT_PATH)
+            except:
+                logger.warning(
+                    conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
+                logger.debug(
+                    conf.LOG_HEAD + traceback.format_exc())
+            font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
+
+        font = ImageFont.truetype(
+            str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
         size_y = 0
         '''起始粘贴位置 高'''
