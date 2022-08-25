@@ -1,23 +1,26 @@
 """
 ### 计划任务相关
 """
-from nonebot import get_driver, get_bot, on_command
-from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, MessageSegment
+import asyncio
+import os
+import time
+from typing import List
+
+import nonebot_plugin_apscheduler
+from nonebot import get_bot, get_driver, on_command
+from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
+                                         PrivateMessageEvent)
 from nonebot.params import T_State
 from nonebot.permission import SUPERUSER
-import nonebot_plugin_apscheduler
-import asyncio
-import time
-import os
-from .data import UserData
+
 from .bbsAPI import *
-from .gameSign import *
-from .config import mysTool_config as conf
 from .config import img_config as img_conf
-from .utils import *
-from .mybMission import *
+from .config import mysTool_config as conf
+from .data import UserData
 from .exchange import *
-from typing import List
+from .gameSign import *
+from .mybMission import *
+from .utils import *
 
 driver = nonebot.get_driver()
 
@@ -28,8 +31,8 @@ if conf.USE_COMMAND_START:
 
 daily_game_sign = nonebot_plugin_apscheduler.scheduler
 
-@daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
 
+@daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
 async def daily_game_sign_():
     bot = get_bot()
     qq_accounts = UserData.read_all().keys()
@@ -42,6 +45,7 @@ manually_game_sign = on_command(
 manually_game_sign.__help_name__ = '游戏签到'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
+
 @manually_game_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
     bot = get_bot()
@@ -50,6 +54,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
 
 
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
+
 
 @daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
 async def daily_bbs_sign_():
@@ -64,6 +69,7 @@ manually_bbs_sign = on_command(
 manually_bbs_sign.__help_name__ = '米游社任务'
 manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查看米游社任务完成情况'
 
+
 @manually_bbs_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
     qq = event.user_id
@@ -73,10 +79,10 @@ async def _(event: PrivateMessageEvent, state: T_State):
 
 update_timing = nonebot_plugin_apscheduler.scheduler
 
+
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
     generate_image()
-
 
 
 async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
@@ -93,7 +99,8 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 return
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
-                logger.info(conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+                logger.info(
+                    conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
@@ -137,6 +144,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     )
                 await asyncio.sleep(10)
 
+
 async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -174,10 +182,11 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 )
             await asyncio.sleep(10)
 
+
 async def generate_image():
     for root, dirs, files in os.walk(img_conf.SAVE_PATH, topdown=False):
         for name in files:
-            date = time.strftime('%m-%d',time.localtime())
+            date = time.strftime('%m-%d', time.localtime())
             if name.startswith(date):
                 return
             if name.endswith('.jpg'):
@@ -185,12 +194,13 @@ async def generate_image():
     for game in ("bh3", "ys", "bh2", "wd", "bbs"):
         good_list = await get_good_list(game)
         if good_list:
-            img_path = time.strftime(f'{img_conf.SAVE_PATH}/%m-%d-{game}.jpg',time.localtime())
-            with open(img_path, 'wb') as f:
-                image_bytes = await game_list_to_image(good_list)
-                f.write(image_bytes)
-                f.close()
+            img_path = time.strftime(
+                f'{img_conf.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
+            image_bytes = await game_list_to_image(good_list)
+            if not image_bytes:
+                return
+            with open(img_path, 'wb') as fp:
+                fp.write(image_bytes)
 
 
 driver.on_startup(generate_image)
-
