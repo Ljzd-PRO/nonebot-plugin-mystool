@@ -395,7 +395,9 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
     try:
         font_path = conf.goodListImage.FONT_PATH
-        if font_path is None and not os.path.isfile(FONT_SAVE_PATH) or not os.path.isfile(font_path):
+        if font_path is None or not os.path.isfile(font_path):
+            if os.path.isfile(FONT_SAVE_PATH):
+                font_path = FONT_SAVE_PATH
             logger.warning(
                 conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
             try:
