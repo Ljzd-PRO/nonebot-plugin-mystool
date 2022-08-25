@@ -150,7 +150,7 @@ async def get_file(url: str, retry: bool = True):
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(url, timeout=conf.TIME_OUT)
+                    res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
         logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
