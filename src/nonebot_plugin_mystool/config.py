@@ -1,10 +1,11 @@
 """
 ### 插件配置相关
 """
-from pydantic import BaseModel, Extra
 from pathlib import Path
 from typing import Tuple, Union
+
 from nonebot import get_driver
+from pydantic import BaseModel, Extra
 
 PATH = Path(__file__).parent.absolute()
 CONFIG_PATH = PATH / "data" / "config.json"
@@ -72,8 +73,13 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''文字顶部与展示图顶部之间的距离 高'''
     PADDING_TEXT_AND_ICON_X: int = 10
     '''文字与展示图之间的横向距离 宽'''
-    FONT_PATH: Union[Path, str, None] = PATH / "font" / "PingFang.ttc"
-    '''字体文件路径(若使用计算机已经安装的字体，直接填入字体名称，若为None则使用默认字体)'''
+    FONT_PATH: Union[Path, str, None] = None
+    '''
+    字体文件路径(若使用计算机已经安装的字体，直接填入字体名称，若为None则自动下载字体)
+
+    开源字体 Source Han Sans 思源黑体
+    https://github.com/adobe-fonts/source-han-sans
+    '''
     FONT_SIZE: int = 50
     '''字体大小'''
     SAVE_PATH: Path = PATH / "data"
@@ -99,6 +105,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''采用插件内部命令头'''
     COMMAND_START: str = "mt "
     '''插件内部命令头'''
+    GITHUB_PROXY: Union[str, None] = "https://ghproxy.com/"
+    '''GitHub代理加速服务器(若为None则不启用代理)'''
 
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()

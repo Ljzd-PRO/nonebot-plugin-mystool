@@ -72,7 +72,7 @@ HEADERS_EXCHANGE = {
     "x-rpc-sys_version":
     conf.device.X_RPC_SYS_VERSION
 }
-FONT_URL = "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip"
+FONT_URL = os.path.join(conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
 TEMP_FONT_PATH = PATH / "data" / "temp" / "font.zip"
 
 
