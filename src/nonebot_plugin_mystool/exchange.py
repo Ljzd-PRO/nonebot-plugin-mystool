@@ -72,8 +72,10 @@ HEADERS_EXCHANGE = {
     "x-rpc-sys_version":
     conf.device.X_RPC_SYS_VERSION
 }
-FONT_URL = os.path.join(conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
+FONT_URL = os.path.join(
+    conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
 TEMP_FONT_PATH = PATH / "data" / "temp" / "font.zip"
+FONT_SAVE_PATH = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
 
 
 class Good:
@@ -393,7 +395,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
     try:
         font_path = conf.goodListImage.FONT_PATH
-        if font_path is None or not os.path.isfile(font_path):
+        if font_path is None and not os.path.isfile(FONT_SAVE_PATH) or not os.path.isfile(font_path):
             logger.warning(
                 conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
             try:
@@ -410,8 +412,10 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             with open(TEMP_FONT_PATH, "rb") as fp:
                 with zipfile.ZipFile(fp) as zip:
                     with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
-                        with open(PATH / "data" / "SourceHanSansHWSC-Regular.otf", "wb") as fp_font:
+                        with open(FONT_SAVE_PATH, "wb") as fp_font:
                             fp_font.write(zip_font.read())
+            logger.info(conf.LOG_HEAD +
+                        "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
             try:
                 os.remove(TEMP_FONT_PATH)
             except:
