@@ -428,6 +428,9 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                         conf.LOG_HEAD + traceback.format_exc())
                 font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
 
+        logger.info(conf.LOG_HEAD +
+                    "商品列表图片生成 - 正在生成图片...")
+
         font = ImageFont.truetype(
             str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
@@ -478,6 +481,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         # 导出
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
+        logger.info(conf.LOG_HEAD +
+                    "商品列表图片生成 - 已生成图片...")
         return image_bytes.getvalue()
     except:
         logger.error(
