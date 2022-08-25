@@ -2,3 +2,4 @@ httpx
 ntplib
 requests
 tenacity
+nonebot_plugin_apscheduler
