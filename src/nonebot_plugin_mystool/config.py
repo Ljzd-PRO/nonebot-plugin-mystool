@@ -7,8 +7,10 @@ from typing import Tuple, Union
 from nonebot import get_driver
 from pydantic import BaseModel, Extra
 
-PATH = Path(__file__).parent.absolute()
-CONFIG_PATH = PATH / "data" / "config.json"
+ROOT_PATH = Path(__name__).parent.absolute()
+'''NoneBot 机器人根目录'''
+PATH = ROOT_PATH / "data" / "nonebot_plugin_mystool"
+'''插件数据保存目录'''
 
 
 class DeviceConfig(BaseModel, extra=Extra.ignore):
@@ -82,7 +84,7 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''
     FONT_SIZE: int = 50
     '''字体大小'''
-    SAVE_PATH: Path = PATH / "data"
+    SAVE_PATH: Path = PATH
     '''商品列表图片缓存目录'''
 
 

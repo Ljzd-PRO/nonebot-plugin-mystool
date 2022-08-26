@@ -8,7 +8,6 @@ import string
 import time
 import traceback
 import uuid
-from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlencode
 
@@ -21,9 +20,6 @@ from nonebot.log import logger
 from .config import mysTool_config as conf
 
 driver = nonebot.get_driver()
-
-PATH = Path(__file__).parent.absolute()
-
 
 class NtpTime:
     """

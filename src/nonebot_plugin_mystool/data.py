@@ -3,14 +3,17 @@
 """
 import json
 import traceback
+from typing import Dict, List, Union
+
 import nonebot
-from typing import Union, List, Dict
 from nonebot.log import logger
-from .utils import PATH, generateDeviceID
+
+from .config import PATH
 from .config import mysTool_config as conf
+from .utils import generateDeviceID
 
 ENCODING = "utf-8"
-USERDATA_PATH = PATH / "data" / "userdata.json"
+USERDATA_PATH = PATH / "userdata.json"
 
 driver = nonebot.get_driver()
 

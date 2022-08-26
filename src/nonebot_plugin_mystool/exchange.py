@@ -14,9 +14,10 @@ from nonebot.log import logger
 from PIL import Image, ImageDraw, ImageFont
 
 from .bbsAPI import GameRecord, get_game_record
+from .config import PATH
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import (PATH, check_login, custom_attempt_times, generateDeviceID,
+from .utils import (check_login, custom_attempt_times, generateDeviceID,
                     get_file)
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
@@ -74,8 +75,8 @@ HEADERS_EXCHANGE = {
 }
 FONT_URL = os.path.join(
     conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
-TEMP_FONT_PATH = PATH / "data" / "temp" / "font.zip"
-FONT_SAVE_PATH = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
+TEMP_FONT_PATH = PATH / "temp" / "font.zip"
+FONT_SAVE_PATH = PATH / "SourceHanSansHWSC-Regular.otf"
 
 
 class Good:
@@ -402,7 +403,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 logger.warning(
                     conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
                 try:
-                    os.makedirs(PATH / "data" / "temp")
+                    os.makedirs(os.path.dirname(TEMP_FONT_PATH))
                 except FileExistsError:
                     pass
                 with open(TEMP_FONT_PATH, "wb") as fp:
@@ -426,7 +427,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                         conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
                     logger.debug(
                         conf.LOG_HEAD + traceback.format_exc())
-                font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
+                font_path = FONT_SAVE_PATH
 
         logger.info(conf.LOG_HEAD +
                     "商品列表图片生成 - 正在生成图片...")
