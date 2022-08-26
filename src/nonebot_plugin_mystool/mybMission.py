@@ -94,8 +94,8 @@ class Mission:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币任务数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error("米游币任务数据 - 初始化对象: dict数据不正确")
+            logger.opt(colors=True).debug(traceback.format_exc())
 
     @property
     def points(self) -> int:
@@ -157,20 +157,20 @@ class Action:
         self.headers["DS"] = generateDS(data)
         res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
         if not check_login(res.text):
-            logger.info(
-                conf.LOG_HEAD + "米游币任务 - 讨论区签到: 用户 {} 登录失效".format(self.account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.opt(colors=True).info(
+                "米游币任务 - 讨论区签到: 用户 {} 登录失效".format(self.account.phone))
+            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
             return -1
         try:
             return res.json()["data"]["points"]
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error("米游币任务 - 讨论区签到: 服务器没有正确返回")
+            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+            logger.opt(colors=True).debug(traceback.format_exc())
             return -2
         except:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error("米游币任务 - 讨论区签到: 请求失败")
+            logger.opt(colors=True).debug(traceback.format_exc())
             return -3
 
     async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[List[str], None]:
@@ -192,13 +192,13 @@ class Action:
                         postID_list.append(post['post']['post_id'])
                 break
             except KeyError:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.opt(colors=True).error("米游币任务 - 获取文章列表: 服务器没有正确返回")
+                logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                logger.opt(colors=True).debug(traceback.format_exc())
                 error_times += 1
             except:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 网络请求失败")
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.opt(colors=True).error("米游币任务 - 获取文章列表: 网络请求失败")
+                logger.opt(colors=True).debug(traceback.format_exc())
                 error_times += 1
         if error_times <= conf.MAX_RETRY_TIMES:
             return postID_list
@@ -230,27 +230,27 @@ class Action:
                 self.headers["DS"] = generateDS()
                 res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(
-                        conf.LOG_HEAD + "米游币任务 - 阅读: 用户 {} 登录失效".format(self.account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.opt(colors=True).info(
+                        "米游币任务 - 阅读: 用户 {} 登录失效".format(self.account.phone))
+                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
                     return -1
                 try:
                     if "self_operation" not in res.json()["data"]["post"]:
                         raise ValueError
                     count += 1
                 except KeyError and ValueError:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 服务器没有正确返回")
-                    logger.debug(conf.LOG_HEAD +
+                    logger.opt(colors=True).error("米游币任务 - 阅读: 服务器没有正确返回")
+                    logger.opt(colors=True).debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
-                    logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    logger.opt(colors=True).debug(traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
                         continue
                     else:
                         return -2
                 except:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 网络请求失败")
-                    logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    logger.opt(colors=True).error("米游币任务 - 阅读: 网络请求失败")
+                    logger.opt(colors=True).debug(traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
                         continue
@@ -289,27 +289,27 @@ class Action:
                 self.headers["DS"] = generateDS()
                 res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(
-                        conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.opt(colors=True).info(
+                        "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
+                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
                     return -1
                 try:
                     if res.json()["data"] != "OK":
                         raise ValueError
                     count += 1
                 except KeyError and ValueError:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
-                    logger.debug(conf.LOG_HEAD +
+                    logger.opt(colors=True).error("米游币任务 - 点赞: 服务器没有正确返回")
+                    logger.opt(colors=True).debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
-                    logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    logger.opt(colors=True).debug(traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
                         continue
                     else:
                         return -2
                 except:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 网络请求失败")
-                    logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    logger.opt(colors=True).error("米游币任务 - 点赞: 网络请求失败")
+                    logger.opt(colors=True).debug(traceback.format_exc())
                     error_times += 1
                     if error_times != conf.MAX_RETRY_TIMES:
                         continue
@@ -342,21 +342,21 @@ class Action:
         while error_times <= conf.MAX_RETRY_TIMES:
             res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
             if not check_login(res.text):
-                logger.info(
-                    conf.LOG_HEAD + "米游币任务 - 分享: 用户 {} 登录失效".format(self.account.phone))
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                logger.opt(colors=True).info(
+                    "米游币任务 - 分享: 用户 {} 登录失效".format(self.account.phone))
+                logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
                 return -1
             try:
                 if res.json()["data"] != "OK":
                     return -3
             except KeyError and ValueError:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.opt(colors=True).error("米游币任务 - 分享: 服务器没有正确返回")
+                logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                logger.opt(colors=True).debug(traceback.format_exc())
                 error_times += 1
             except:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 网络请求失败")
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.opt(colors=True).error("米游币任务 - 分享: 网络请求失败")
+                logger.opt(colors=True).debug(traceback.format_exc())
                 error_times += 1
         if error_times <= conf.MAX_RETRY_TIMES:
             return 1
@@ -386,22 +386,22 @@ async def get_missions(account: UserAccount):
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
+            logger.opt(colors=True).info(conf.LOG_HEAD +
                         "获取米游币任务列表 - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
             return -1
         mission_list: List[Mission] = []
         for mission in res.json()["data"]["missions"]:
             mission_list.append(Mission(mission))
         return mission_list
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.opt(colors=True).error("获取米游币任务列表 - 服务器没有正确返回")
+        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+        logger.opt(colors=True).debug(traceback.format_exc())
         return -2
     except:
-        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.opt(colors=True).error("获取米游币任务列表 - 请求失败")
+        logger.opt(colors=True).debug(traceback.format_exc())
         return -3
 
 
@@ -427,9 +427,9 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
         async with httpx.AsyncClient() as client:
             res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie, timeout=conf.TIME_OUT)
         if not check_login(res.text):
-            logger.info(conf.LOG_HEAD +
+            logger.opt(colors=True).info(conf.LOG_HEAD +
                         "获取米游币任务完成情况 - 用户 {} 登录失效".format(account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
             return -1
         state_list: List[Tuple[Mission, Prograss_Now]] = []
         data = res.json()["data"]
@@ -441,11 +441,11 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
                 state_list.append((mission, 0))
         return (state_list, data["total_points"])
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.opt(colors=True).error("获取米游币任务完成情况 - 服务器没有正确返回")
+        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+        logger.opt(colors=True).debug(traceback.format_exc())
         return -2
     except:
-        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.opt(colors=True).error("获取米游币任务完成情况 - 请求失败")
+        logger.opt(colors=True).debug(traceback.format_exc())
         return -3

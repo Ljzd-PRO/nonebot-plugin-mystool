@@ -91,9 +91,9 @@ class GetCookie:
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
         except tenacity.RetryError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error(
+                "登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
+            logger.opt(colors=True).debug(traceback.format_exc())
             return -3
 
         if "login_ticket" not in res.cookies:
@@ -127,14 +127,14 @@ class GetCookie:
                     self.cookie["stoken"] = stoken
                     return True
         except KeyError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error(
+                "登录米哈游账号 - 获取stoken: 服务器没有正确返回")
+            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+            logger.opt(colors=True).debug(traceback.format_exc())
         except:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error(
+                "登录米哈游账号 - 获取stoken: 网络请求失败")
+            logger.opt(colors=True).debug(traceback.format_exc())
         return False
 
     async def get_3(self, captcha: str, retry: bool = True):
@@ -160,9 +160,9 @@ class GetCookie:
                         "token_type": 6
                     }, timeout=conf.TIME_OUT)
         except tenacity.RetryError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.opt(colors=True).error(
+                "登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
+            logger.opt(colors=True).debug(traceback.format_exc())
             return -2
         if "cookie_token" not in res.cookies:
             return -1
