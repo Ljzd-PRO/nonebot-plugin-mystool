@@ -173,24 +173,31 @@ class GetCookie:
 get_cookie = on_command(
     conf.COMMAND_START+'cookie', aliases={conf.COMMAND_START+'cookie填写', conf.COMMAND_START+'cookie', conf.COMMAND_START+'login', conf.COMMAND_START+'登录', conf.COMMAND_START+'登陆'}, priority=4, block=True)
 get_cookie.__help_name__ = '登录'
-get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式配置cookie，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
+get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
 
 @get_cookie.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
-    await get_cookie.send('登录过程分为三步：\n1.发送手机号\n2.登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送\n3.刷新页面，再次获取验证码并发送\n过程中随时输入“退出”即可退出')
+    await get_cookie.send("""\
+    登录过程概览：
+    1.发送手机号
+    2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）
+    3.发送验证码给QQ机器人
+    4.刷新网页，再次获取验证码并发送给QQ机器人
+    过程中随时输入“退出”即可退出\
+        """)
 
 
-@get_cookie.got('手机号', prompt='请输入您的手机号')
+@get_cookie.got('手机号', prompt='1.请发送您的手机号：')
 async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('手机号')):
     if phone == '退出':
         await get_cookie.finish("已成功退出")
     try:
         phone_num = int(phone)
     except:
-        await get_cookie.reject("手机号应为11位数字，请重新输入")
+        await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     if len(phone) != 11:
-        await get_cookie.reject("手机号应为11位数字，请重新输入")
+        await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone_num
         state['getCookie'] = GetCookie(event.user_id, phone_num)
@@ -198,53 +205,53 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainTex
 
 @get_cookie.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
-    await get_cookie.send('登录https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码并发送（不要登录！）')
+    await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
 
 
-@get_cookie.got("验证码1", prompt='请输入验证码')
+@get_cookie.got("验证码1", prompt='3.请发送验证码：')
 async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
     if captcha1 == '退出':
         await get_cookie.finish("已成功退出")
     try:
         int(captcha1)
     except:
-        await get_cookie.reject("验证码应为6位数字，请重新输入")
+        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     if len(captcha1) != 6:
-        await get_cookie.reject("验证码应为6位数字，请重新输入")
+        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     else:
         status: int = await state['getCookie'].get_1(captcha1)
         if status == -1:
-            await get_cookie.finish("由于Cookie缺少login_ticket，无法继续，请稍后再试")
+            await get_cookie.finish("⚠️由于Cookie缺少login_ticket，无法继续，请稍后再试")
         elif status == -2:
-            await get_cookie.finish("由于Cookie缺少uid，无法继续，请稍后再试")
+            await get_cookie.finish("⚠️由于Cookie缺少uid，无法继续，请稍后再试")
         elif status == -3:
-            await get_cookie.finish("网络请求失败，无法继续，请稍后再试")
+            await get_cookie.finish("⚠️网络请求失败，无法继续，请稍后再试")
 
     status: bool = await state["getCookie"].get_2()
     if not status:
-        await get_cookie.finish("获取stoken失败，一种可能是登录失效，请稍后再试")
+        await get_cookie.finish("⚠️获取stoken失败，一种可能是登录失效，请稍后再试")
 
 
 @get_cookie.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
-    await get_cookie.send('请刷新浏览器，再次输入手机号，获取验证码并发送（不要登录！）')
+    await get_cookie.send('4.请刷新网页，再次获取验证码（不要登录！）')
 
 
-@get_cookie.got('验证码2', prompt='请输入验证码')
+@get_cookie.got('验证码2', prompt='4.请发送验证码：')
 async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlainText('验证码2')):
     if captcha2 == '退出':
         await get_cookie.finish("已成功退出")
     try:
         int(captcha2)
     except:
-        await get_cookie.reject("验证码应为6位数字，请重新输入")
+        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     if len(captcha2) != 6:
-        await get_cookie.reject("验证码应为6位数字，请重新输入")
+        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     else:
         status: bool = await state["getCookie"].get_3(captcha2)
         if status < 0:
-            await get_cookie.finish("获取cookie_token失败，一种可能是登录失效，请稍后再试")
+            await get_cookie.finish("⚠️获取cookie_token失败，一种可能是登录失效，请稍后再试")
 
     UserData.set_cookie(state['getCookie'].cookie,
                         int(event.user_id), state['phone'])
-    await get_cookie.finish("Cookie获取成功")
+    await get_cookie.finish("米游社账户 {} 绑定成功".format(state['phone']))
