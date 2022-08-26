@@ -29,14 +29,6 @@
 请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki)
 """
 from nonebot.plugin import PluginMetadata
-from . import addfriend
-from . import address
-from . import help
-from . import login
-from . import myb_exchange
-from . import setting
-from . import timing
-from . import utils
 
 __plugin_meta__ = PluginMetadata(
     name="---米游社小助手插件---\n",
@@ -54,3 +46,13 @@ __plugin_meta__ = PluginMetadata(
     """.strip(),
     extra="项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
 )
+
+# 加载其它代码
+
+import pkgutil
+from pathlib import Path
+
+FILE_PATH = Path(__file__).parent.absolute()
+
+for _, file, _ in pkgutil.iter_modules([FILE_PATH]):
+    __import__(file, globals(), level=1)
