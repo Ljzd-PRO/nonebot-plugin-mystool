@@ -142,6 +142,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
 @myb_exchange_plan.got('uid')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot, uid=ArgPlainText()):
     account = state['account']
+    if not uid:
+        if not account.address:
+            await matcher.finish('您还没有配置地址哦，请先配置地址')
     good = state['good']
     phone = state['phone']
     qq = event.user_id
