@@ -14,7 +14,6 @@ from nonebot.params import T_State
 from nonebot.permission import SUPERUSER
 
 from .bbsAPI import *
-from .config import img_config as img_conf
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import *
@@ -179,7 +178,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
 
 
 async def generate_image():
-    for root, dirs, files in os.walk(img_conf.SAVE_PATH, topdown=False):
+    for root, dirs, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
             if name.startswith(date):
@@ -190,7 +189,7 @@ async def generate_image():
         good_list = await get_good_list(game)
         if good_list:
             img_path = time.strftime(
-                f'{img_conf.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
+                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
             image_bytes = await game_list_to_image(good_list)
             if not image_bytes:
                 return

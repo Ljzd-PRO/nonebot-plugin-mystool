@@ -103,7 +103,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
-    COMMAND_START: str = "mt "
+    COMMAND_START: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
     GITHUB_PROXY: Union[str, None] = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为None则不启用代理)'''
@@ -113,4 +113,3 @@ class Config(BaseModel, extra=Extra.ignore):
 
 
 mysTool_config = Config.parse_obj(get_driver().config)
-img_config = GoodListImage.parse_obj(get_driver().config)

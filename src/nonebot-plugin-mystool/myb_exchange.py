@@ -12,7 +12,6 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
 from nonebot_plugin_apscheduler import scheduler
 
-from .config import img_config as img_conf
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import *
@@ -224,7 +223,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
     good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(
-            f'file:///{img_conf.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+            f'file:///{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         await get_good_image.finish(MessageSegment.image(img_path))
     else:
         await get_good_image.finish(f"{arg[1]}部分目前没有可兑换商品哦~")
