@@ -106,7 +106,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
-                            message=f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                            message=f"⚠️今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
                         )
                         continue
                 elif sign_info.isSign:
@@ -120,16 +120,16 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     account_info = record
                     if sign_award and sign_info:
                         msg = f"""\
-                            \n{'🎮{}今日签到成功！'.format(sign_game_name) if not sign_info.isSign else '🎮{}今日已签到！'.format(sign_game_name)}\
-                            \n{account_info.nickname}-{account_info.regionName}-{account_info.level}\
+                            \n{'🎮『{}』今日签到成功！'.format(sign_game_name) if not sign_info.isSign else '🎮『{}』已经签到过了。'.format(sign_game_name)}\
+                            \n{account_info.nickname}·{account_info.regionName}·{account_info.level}\
                             \n🎁今日签到奖励：\
-                            \n  {sign_award.name} * {sign_award.count}\
-                            \n📅本月签到次数：{sign_info.totalDays}\
+                              {sign_award.name} * {sign_award.count}\
+                            \n\n📅本月签到次数：{sign_info.totalDays}\
                         """.strip()
                         img_file = await get_file(sign_award.icon)
                         img = MessageSegment.image(img_file)
                     else:
-                        msg = f"今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                        msg = f"今日 🎮『{sign_game_name}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                         img = ''
                     await bot.send_msg(
                         message_type="private",
@@ -146,12 +146,12 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
         mybmission = Action(account)
         if isinstance(missions_state, int):
             if mybmission == -1:
-                await bot.send_private_msg(user_id=qq, message=f'账户{account.phone}登录失效，请重新登录')
+                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message='请求失败，请重新尝试')
             return
         if isinstance(mybmission, int):
             if mybmission == -1:
-                await bot.send_private_msg(user_id=qq, message=f'账户{account.phone}登录失效，请重新登录')
+                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message='请求失败，请重新尝试')
             return
         if (account.mybMission and IsAuto) or not IsAuto:
@@ -161,12 +161,12 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
                 msg = f"""\
-                    \n今日米游币任务执行完成！\
+                    \n🎉今日米游币任务执行完成！\
                     \n执行结果：\
-                    \n签到： {'√' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '×'}\
-                    \n阅读： {'√' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '×'}\
-                    \n点赞： {'√' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '×'}\
-                    \n签到： {'√' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '×'}\
+                    \n签到 ➢ {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
+                    \n阅读 ➢ {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
+                    \n点赞 ➢ {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
+                    \n签到 ➢ {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
                 \n💰米游币:{missions_state[1]}
                 """.strip()
                 await bot.send_msg(
