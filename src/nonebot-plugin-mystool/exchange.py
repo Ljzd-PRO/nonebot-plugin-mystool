@@ -191,9 +191,13 @@ async def get_good_detail(goodID: str, retry: bool = True):
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[List[Good], None]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: bool = True) -> Union[List[Good], None]:
     """
     获取商品信息列表，若获取失败则返回`None`
+
+    参数:
+        `game`: 游戏简称
+        `retry`: 是否允许重试
     """
     if game == "bh3":
         game = "bh3"
@@ -206,31 +210,29 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
     elif game == "bbs":
         game = "bbs"
 
-    error_times = 0
     good_list = []
     page = 1
 
-    while error_times < conf.MAX_RETRY_TIMES:
-        try:
-            async with httpx.AsyncClient() as client:
-                res = await client.get(URL_GOOD_LIST.format(page=page,
-                                                            game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
-            goods = res.json()["data"]["list"]
-            # 判断是否已经读完所有商品
-            if goods == []:
-                break
-            else:
-                good_list += goods
-            page += 1
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
-            error_times += 1
-        except:
-            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
-            error_times += 1
+    try:
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_GOOD_LIST.format(page=page,
+                                                                game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                goods = res.json()["data"]["list"]
+                # 判断是否已经读完所有商品
+                if goods == []:
+                    break
+                else:
+                    good_list += goods
+                page += 1
+    except KeyError:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except:
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     if not good_list:
         return None

@@ -6,11 +6,12 @@ import traceback
 from typing import Any, Dict, List, Literal, NewType, Tuple, Union
 
 import httpx
+import tenacity
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, generateDS
+from .utils import check_login, custom_attempt_times, generateDS
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
@@ -149,7 +150,7 @@ class Action:
         签到
 
         参数:
-            `game`: 游戏代号
+            `game`: 游戏简称
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -175,43 +176,44 @@ class Action:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
-    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[List[str], None]:
+    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[List[str], None]:
         """
         获取文章ID列表，若失败返回`None`
 
         参数:
-            `game`: 游戏代号
+            `game`: 游戏简称
+            `retry`: 是否允许重试
         """
         postID_list = []
-        error_times = 0
-        while error_times <= conf.MAX_RETRY_TIMES:
-            try:
-                self.headers["DS"] = generateDS()
-                res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
-                data = res.json()["data"]["list"]
-                for post in data:
-                    if post["self_operation"]["attitude"] == 0:
-                        postID_list.append(post['post']['post_id'])
-                break
-            except KeyError:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                error_times += 1
-            except:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 网络请求失败")
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                error_times += 1
-        if error_times <= conf.MAX_RETRY_TIMES:
-            return postID_list
+        try:
+            self.headers["DS"] = generateDS()
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                with attempt:
+                    res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
+                    data = res.json()["data"]["list"]
+                    for post in data:
+                        if post["self_operation"]["attitude"] == 0:
+                            postID_list.append(post['post']['post_id'])
+                    break
+        except KeyError:
+            logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return None
+        except:
+            logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return None
+        return postID_list
 
-    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 5):
+    async def read(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], readTimes: int = 5, retry: bool = True):
         """
         阅读
 
         参数:
-            `game`: 游戏代号
+            `game`: 游戏简称
             `readTimes`: 阅读文章数
+            `retry`: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
@@ -220,7 +222,6 @@ class Action:
         - 若返回 `-4` 说明获取文章失败
         """
         count = 0
-        error_times = 0
         postID_list = await self.get_posts(game)
         if postID_list is None:
             return -4
@@ -229,34 +230,29 @@ class Action:
                 if count == readTimes:
                     break
                 self.headers["DS"] = generateDS()
-                res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
-                if not check_login(res.text):
-                    logger.info(
-                        conf.LOG_HEAD + "米游币任务 - 阅读: 用户 {} 登录失效".format(self.account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                    return -1
                 try:
-                    if "self_operation" not in res.json()["data"]["post"]:
-                        raise ValueError
-                    count += 1
+                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                        with attempt:
+                            res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
+                            if not check_login(res.text):
+                                logger.info(
+                                    conf.LOG_HEAD + "米游币任务 - 阅读: 用户 {} 登录失效".format(self.account.phone))
+                                logger.debug(conf.LOG_HEAD +
+                                             "网络请求返回: {}".format(res.text))
+                                return -1
+                            if "self_operation" not in res.json()["data"]["post"]:
+                                raise ValueError
+                            count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                    error_times += 1
-                    if error_times != conf.MAX_RETRY_TIMES:
-                        continue
-                    else:
-                        return -2
+                    return -2
                 except:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                    error_times += 1
-                    if error_times != conf.MAX_RETRY_TIMES:
-                        continue
-                    else:
-                        return -3
+                    return -3
                 await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
@@ -264,13 +260,14 @@ class Action:
 
         return 1
 
-    async def like(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], likeTimes: int = 10):
+    async def like(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], likeTimes: int = 10, retry: bool = True):
         """
         点赞文章
 
         参数:
-            `game`: 游戏代号
+            `game`: 游戏简称
             `likeTimes`: 点赞次数
+            `retry`: 是否允许重试
 
         - 若执行成功，返回 `True`
         - 若返回 `-1` 说明用户登录失效
@@ -279,7 +276,6 @@ class Action:
         - 若返回 `-4` 说明获取文章失败
         """
         count = 0
-        error_times = 0
         postID_list = await self.get_posts(game)
         if postID_list is None:
             return -4
@@ -289,35 +285,30 @@ class Action:
                     break
                 data = {'is_cancel': False,  'post_id': postID}
                 self.headers["DS"] = generateDS(data)
-                res = await self.client.post(URL_LIKE, headers=self.headers, json=data, timeout=conf.TIME_OUT)
-                if not check_login(res.text):
-                    logger.info(
-                        conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                    return -1
                 try:
-                    if res.json()["data"] != "OK":
-                        raise ValueError
-                    count += 1
+                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                        with attempt:
+                            res = await self.client.post(URL_LIKE, headers=self.headers, json=data, timeout=conf.TIME_OUT)
+                            if not check_login(res.text):
+                                logger.info(
+                                    conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
+                                logger.debug(conf.LOG_HEAD +
+                                             "网络请求返回: {}".format(res.text))
+                                return -1
+                            if res.json()["data"] != "OK":
+                                raise ValueError
+                            count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD + "请求数据: {}".format(data))
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                    error_times += 1
-                    if error_times != conf.MAX_RETRY_TIMES:
-                        continue
-                    else:
-                        return -2
+                    return -2
                 except:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                    error_times += 1
-                    if error_times != conf.MAX_RETRY_TIMES:
-                        continue
-                    else:
-                        return -3
+                    return -3
                 await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
@@ -325,47 +316,47 @@ class Action:
 
         return True
 
-    async def share(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]):
+    async def share(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True):
         """
         分享文章
 
         参数:
-            `game`: 游戏代号
+            `game`: 游戏简称
+            `retry`: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
-        - 若返回 `-2` 说明服务器没有正确返回或请求失败
-        - 若返回 `-3` 说明网络请求发送成功，但是可能未签到成功
-        - 若返回 `-4` 说明获取文章失败
+        - 若返回 `-2` 说明服务器没有正确返回
+        - 若返回 `-3` 说明请求失败
+        - 若返回 `-4` 说明网络请求发送成功，但是可能未签到成功
+        - 若返回 `-5` 说明获取文章失败
         """
         self.headers["DS"] = generateDS()
         postID_list = await self.get_posts(game)
         if postID_list is None:
-            return -4
-        error_times = 0
-        while error_times <= conf.MAX_RETRY_TIMES:
-            res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
-            if not check_login(res.text):
-                logger.info(
-                    conf.LOG_HEAD + "米游币任务 - 分享: 用户 {} 登录失效".format(self.account.phone))
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                return -1
-            try:
-                if res.json()["data"] != "OK":
-                    return -3
-            except KeyError and ValueError:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                error_times += 1
-            except:
-                logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 网络请求失败")
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
-                error_times += 1
-        if error_times <= conf.MAX_RETRY_TIMES:
-            return 1
-        else:
+            return -5
+        try:
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                with attempt:
+                    res = await self.client.post(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
+                    if not check_login(res.text):
+                        logger.info(
+                            conf.LOG_HEAD + "米游币任务 - 分享: 用户 {} 登录失效".format(self.account.phone))
+                        logger.debug(conf.LOG_HEAD +
+                                     "网络请求返回: {}".format(res.text))
+                        return -1
+                    if res.json()["data"] != "OK":
+                        return -4
+        except KeyError and ValueError:
+            logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
+        except:
+            logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            return -3
+        return 1
 
     async def __del__(self):
         await self.client.aclose()
