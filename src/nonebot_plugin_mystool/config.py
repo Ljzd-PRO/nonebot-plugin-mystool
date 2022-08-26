@@ -91,8 +91,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''文件读写编码'''
     MAX_USER: int = 10
     '''支持最多用户数'''
-    LOG_HEAD: str = "mysTool: "
-    '''日志开头字符串'''
+    LOG_HEAD: str = ""
+    '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
     NTP_SERVER: str = "ntp.aliyun.com"
     '''NTP服务器，用于获取网络时间'''
     MAX_RETRY_TIMES: int = 5
