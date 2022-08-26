@@ -18,8 +18,8 @@ command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
     欢迎使用米游社小助手帮助系统！\
-    \n{command}帮助  # 获取米游社小助手可调用帮助\
-    \n{command}帮助 <功能名>  # 调取目标功能帮助信息\
+    \n{command}帮助 -> 获取米游社小助手可调用帮助\
+    \n{command}帮助 <功能名> -> 调取目标功能帮助信息\
 '''.strip()
 plugin = nonebot.plugin.get_plugin('mysTool')
 
@@ -44,4 +44,4 @@ async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
                 await helper.finish(f"{command}{matcher.__help_name__}：\n{matcher.__help_info__}")
         except AttributeError:
             continue
-    await helper.finish("未查询到相关功能，请重新尝试")
+    await helper.finish("⚠️未查询到相关功能，请重新尝试")
