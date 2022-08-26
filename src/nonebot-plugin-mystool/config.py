@@ -99,7 +99,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''NTP服务器，用于获取网络时间'''
     MAX_RETRY_TIMES: int = 5
     '''网络请求失败后最多重试次数'''
-    SLEEP_TIME: float = 3
+    SLEEP_TIME: float = 10
     '''网络请求冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''

@@ -136,7 +136,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         user_id=qq,
                         message=msg + img
                     )
-                await asyncio.sleep(10)
+                await asyncio.sleep(conf.SLEEP_TIME)
 
 
 async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
@@ -174,7 +174,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     user_id=qq,
                     message=msg
                 )
-            await asyncio.sleep(10)
+            await asyncio.sleep(conf.SLEEP_TIME)
 
 
 async def generate_image():
