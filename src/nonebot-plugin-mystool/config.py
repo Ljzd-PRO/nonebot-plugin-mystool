@@ -103,8 +103,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
-    COMMAND_START: Union[str, None] = "mt "
-    '''插件内部命令头(若为None则不启用)'''
+    COMMAND_START: str = "mt "
+    '''插件内部命令头(若为""空字符串则不启用)'''
     GITHUB_PROXY: Union[str, None] = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为None则不启用代理)'''
 
