@@ -21,6 +21,7 @@ from .config import mysTool_config as conf
 
 driver = nonebot.get_driver()
 
+
 class NtpTime:
     """
     >>> NtpTime.time() #获取校准后的时间（如果校准成功）
@@ -143,7 +144,7 @@ async def get_file(url: str, retry: bool = True):
         `retry`: 是否允许重试
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)

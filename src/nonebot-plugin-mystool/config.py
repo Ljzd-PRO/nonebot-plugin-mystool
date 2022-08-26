@@ -100,7 +100,9 @@ class Config(BaseModel, extra=Extra.ignore):
     MAX_RETRY_TIMES: int = 5
     '''网络请求失败后最多重试次数'''
     SLEEP_TIME: float = 10
-    '''网络请求冷却时间'''
+    '''任务操作冷却时间(如米游币任务)'''
+    SLEEP_TIME_RETRY: float = 3
+    '''网络请求出错的重试冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
     COMMAND_START: str = ""

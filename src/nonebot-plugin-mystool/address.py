@@ -50,7 +50,7 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL.format(
@@ -58,7 +58,8 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
                     if not check_login(res.text):
                         logger.info(conf.LOG_HEAD +
                                     "获取地址数据 - 用户 {} 登录失效".format(account.phone))
-                        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                        logger.debug(conf.LOG_HEAD +
+                                     "网络请求返回: {}".format(res.text))
                         return -1
                 for address in res.json()["data"]["list"]:
                     address_list.append(Address(address))
@@ -99,7 +100,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 
 @get_address.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone = Arg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
@@ -116,7 +117,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone 
     state['address_list']: List[Address] = await get(account)
     if isinstance(state['address_list'], int):
         if state['address_list'] == -1:
-             await get_address.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
+            await get_address.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
         await get_address.finish("⚠️获取失败，请稍后重新尝试")
     if state['address_list']:
         await get_address.send("以下为查询结果：")
@@ -138,7 +139,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone 
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID')
-async def _(event: PrivateMessageEvent, state: T_State, address_id = ArgPlainText()):
+async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await get_address.finish("已成功退出")
     result_address = list(
