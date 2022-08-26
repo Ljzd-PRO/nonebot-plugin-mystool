@@ -275,7 +275,7 @@ class Exchange:
         }
         self.gameUID = gameUID
 
-    async def async_init(self, retry: bool = True) -> None:
+    async def async_init(self, retry: bool = True):
         self.result = None
         self.goodID = self.goodID
         self.account = self.account
@@ -339,6 +339,7 @@ class Exchange:
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -5
+        return self
 
     async def start(self) -> Union[Tuple[bool, dict], Literal[-1, -2, -3]]:
         """
