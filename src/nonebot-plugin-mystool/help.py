@@ -25,7 +25,7 @@ plugin = nonebot.plugin.get_plugin('mysTool')
 
 
 @helper.handle()
-async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, args: Message = Arg()):
     if args:
         matcher.set_arg("content", args)
     else:
