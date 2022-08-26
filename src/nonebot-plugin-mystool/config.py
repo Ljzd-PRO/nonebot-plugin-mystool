@@ -9,7 +9,7 @@ from pydantic import BaseModel, Extra
 
 ROOT_PATH = Path(__name__).parent.absolute()
 '''NoneBot 机器人根目录'''
-PATH = ROOT_PATH / "data" / "nonebot_plugin_mystool"
+PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 '''插件数据保存目录'''
 
 
