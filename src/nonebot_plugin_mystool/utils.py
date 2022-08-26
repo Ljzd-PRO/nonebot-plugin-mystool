@@ -61,16 +61,16 @@ def ntp_time_sync():
     try:
         for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
             with attempt:
-                logger.opt(colors=True).info("正在校对互联网时间")
+                logger.info(conf.LOG_HEAD + "正在校对互联网时间")
                 try:
                     NtpTime.time_offset = ntplib.NTPClient().request(
                         conf.NTP_SERVER).tx_time - time.time()
                 except:
-                    logger.opt(colors=True).warning(conf.LOG_HEAD +
+                    logger.warning(conf.LOG_HEAD +
                                    "校对互联网时间失败，正在重试")
                     raise
     except tenacity.RetryError:
-        logger.opt(colors=True).warning("校对互联网时间失败，改为使用本地时间")
+        logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
 
 
 def generateDeviceID() -> str:
@@ -153,8 +153,8 @@ async def get_file(url: str, retry: bool = True):
                     res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.opt(colors=True).error("下载文件 - {} 失败".format(url))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
 def check_login(response: str):

@@ -93,8 +93,8 @@ class Good:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.opt(colors=True).error("米游币商品数据 - 初始化对象: dict数据不正确")
-            logger.opt(colors=True).debug(traceback.format_exc())
+            logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def name(self) -> str:
@@ -182,12 +182,12 @@ async def get_good_detail(goodID: str, retry: bool = True):
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
                 return Good(res.json()["data"])
     except KeyError and ValueError:
-        logger.opt(colors=True).error("米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
-        logger.opt(colors=True).error("米游币商品兑换 - 获取开始时间: 网络请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
 async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union[List[Good], None]:
@@ -222,13 +222,13 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"]) -> Union
                 good_list += goods
             page += 1
         except KeyError:
-            logger.opt(colors=True).error("米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
-            logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-            logger.opt(colors=True).debug(traceback.format_exc())
+            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
         except:
-            logger.opt(colors=True).error("米游币商品兑换 - 获取商品列表: 网络请求失败")
-            logger.opt(colors=True).debug(traceback.format_exc())
+            logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
             error_times += 1
 
     if not good_list:
@@ -285,7 +285,7 @@ class Exchange:
             "exchange_num": 1,
             "address_id": self.account.address.addressID
         }
-        logger.opt(colors=True).info(conf.LOG_HEAD +
+        logger.info(conf.LOG_HEAD +
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(self.goodID))
         res = None
         try:
@@ -297,13 +297,13 @@ class Exchange:
                     goodInfo = res.json()["data"]
                     if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
                         if "stoken" not in self.account.cookie:
-                            logger.opt(colors=True).error(
-                                "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
+                            logger.error(
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
                             self.result = -2
                             return
                         if self.account.cookie["stoken"].find("v2__") == 0 and "mid" not in self.account.cookie:
-                            logger.opt(colors=True).error(
-                                "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(self.goodID))
+                            logger.error(
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(self.goodID))
                             self.result = -3
                             return
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
@@ -311,8 +311,8 @@ class Exchange:
                         return
 
                     if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
-                        logger.opt(colors=True).warning(
-                            "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(self.goodID))
+                        logger.warning(
+                            conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(self.goodID))
                         self.result = -4
                         return
 
@@ -332,11 +332,11 @@ class Exchange:
                                 "game_biz", goodInfo["game_biz"])
                             break
         except tenacity.RetryError:
-            logger.opt(colors=True).error(
-                "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(self.goodID))
+            logger.error(
+                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(self.goodID))
             if res is not None:
-                logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-            logger.opt(colors=True).debug(traceback.format_exc())
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
             self.result = -5
 
     async def start(self) -> Union[Tuple[bool, dict], Literal[-1, -2, -3]]:
@@ -349,7 +349,7 @@ class Exchange:
         - 若返回 `-3` 说明请求失败
         """
         if self.result is not None and self.result < 0:
-            logger.opt(colors=True).error(conf.LOG_HEAD +
+            logger.error(conf.LOG_HEAD +
                          "商品：{} 未初始化完成，放弃兑换".format(self.goodID))
             return None
         else:
@@ -360,28 +360,28 @@ class Exchange:
                     res = await client.post(
                         URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.opt(colors=True).info(
-                        "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
-                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 if res.json()["message"] == "OK":
-                    logger.opt(colors=True).info(
-                        "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换成功！可以自行确认。".format(self.account.phone, self.goodID))
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换成功！可以自行确认。".format(self.account.phone, self.goodID))
                     return (True, res.json())
                 else:
-                    logger.opt(colors=True).info(
-                        "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换失败，可以自行确认。".format(self.account.phone, self.goodID))
+                    logger.info(
+                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换失败，可以自行确认。".format(self.account.phone, self.goodID))
                     return (False, res.json())
             except KeyError:
-                logger.opt(colors=True).error(
-                    "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 服务器没有正确返回".format(self.account.phone, self.goodID))
-                logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-                logger.opt(colors=True).debug(traceback.format_exc())
+                logger.error(
+                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 服务器没有正确返回".format(self.account.phone, self.goodID))
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return -2
             except:
-                logger.opt(colors=True).error(
-                    "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
-                logger.opt(colors=True).debug(traceback.format_exc())
+                logger.error(
+                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
+                logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return -3
 
 
@@ -399,8 +399,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             if os.path.isfile(FONT_SAVE_PATH):
                 font_path = FONT_SAVE_PATH
             else:
-                logger.opt(colors=True).warning(
-                    "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
+                logger.warning(
+                    conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
                 try:
                     os.makedirs(PATH / "data" / "temp")
                 except FileExistsError:
@@ -408,8 +408,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 with open(TEMP_FONT_PATH, "wb") as fp:
                     content = await get_file(FONT_URL)
                     if content is None:
-                        logger.opt(colors=True).error(
-                            "商品列表图片生成 - 字体下载失败，无法继续生成图片")
+                        logger.error(
+                            conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
                         return None
                     fp.write(content)
                 with open(TEMP_FONT_PATH, "rb") as fp:
@@ -417,18 +417,18 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                         with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
                             with open(FONT_SAVE_PATH, "wb") as fp_font:
                                 fp_font.write(zip_font.read())
-                logger.opt(colors=True).info(conf.LOG_HEAD +
+                logger.info(conf.LOG_HEAD +
                             "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
                 try:
                     os.remove(TEMP_FONT_PATH)
                 except:
-                    logger.opt(colors=True).warning(
-                        "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
-                    logger.opt(colors=True).debug(
-                        traceback.format_exc())
+                    logger.warning(
+                        conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
+                    logger.debug(
+                        conf.LOG_HEAD + traceback.format_exc())
                 font_path = PATH / "data" / "SourceHanSansHWSC-Regular.otf"
 
-        logger.opt(colors=True).info(conf.LOG_HEAD +
+        logger.info(conf.LOG_HEAD +
                     "商品列表图片生成 - 正在生成图片...")
 
         font = ImageFont.truetype(
@@ -481,10 +481,10 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         # 导出
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
-        logger.opt(colors=True).info(conf.LOG_HEAD +
+        logger.info(conf.LOG_HEAD +
                     "商品列表图片生成 - 已生成图片...")
         return image_bytes.getvalue()
     except:
-        logger.opt(colors=True).error(
-            "商品列表图片生成 - 无法完成图片生成")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(
+            conf.LOG_HEAD + "商品列表图片生成 - 无法完成图片生成")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())

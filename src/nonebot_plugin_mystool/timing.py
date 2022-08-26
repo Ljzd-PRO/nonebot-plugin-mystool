@@ -99,8 +99,8 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 return
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
-                logger.opt(colors=True).info(
-                    "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+                logger.info(
+                    conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]

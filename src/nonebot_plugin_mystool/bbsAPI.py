@@ -92,8 +92,8 @@ class GameRecord:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.opt(colors=True).error("用户游戏数据 - 初始化对象: dict数据不正确")
-            logger.opt(colors=True).debug(traceback.format_exc())
+            logger.error(conf.LOG_HEAD + "用户游戏数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def regionName(self) -> str:
@@ -158,8 +158,8 @@ class GameInfo:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.opt(colors=True).error("游戏信息数据 - 初始化对象: dict数据不正确")
-            logger.opt(colors=True).debug(traceback.format_exc())
+            logger.error(conf.LOG_HEAD + "游戏信息数据 - 初始化对象: dict数据不正确")
+            logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
     def gameID(self) -> int:
@@ -224,19 +224,19 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.opt(colors=True).info(conf.LOG_HEAD +
+                    logger.info(conf.LOG_HEAD +
                                 "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
-                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 return res.json()["data"]["ticket"]
     except KeyError:
-        logger.opt(colors=True).error("获取ActionTicket - 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except:
-        logger.opt(colors=True).error("获取ActionTicket - 请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取ActionTicket - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
 
@@ -259,21 +259,21 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.opt(colors=True).info(conf.LOG_HEAD +
+                    logger.info(conf.LOG_HEAD +
                                 "获取用户游戏数据 - 用户 {} 登录失效".format(account.phone))
-                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 for record in res.json()["data"]["list"]:
                     record_list.append(GameRecord(record))
                 return record_list
     except KeyError:
-        logger.opt(colors=True).error("获取用户游戏数据 - 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except:
-        logger.opt(colors=True).error("获取用户游戏数据 - 请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
 
@@ -296,12 +296,12 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                     info_list.append(GameInfo(info))
                 return info_list
     except KeyError:
-        logger.opt(colors=True).error("获取游戏信息 - 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取游戏信息 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
-        logger.opt(colors=True).error("获取游戏信息 - 请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取游戏信息 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
 async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, Literal[-1, -2, -3]]:
@@ -322,19 +322,19 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.opt(colors=True).info(conf.LOG_HEAD +
+                    logger.info(conf.LOG_HEAD +
                                 "获取用户米游币 - 用户 {} 登录失效".format(account.phone))
-                    logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 return int(res.json()["data"]["points"])
     except KeyError and ValueError:
-        logger.opt(colors=True).error("获取用户米游币 - 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取用户米游币 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except:
-        logger.opt(colors=True).error("获取用户米游币 - 请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取用户米游币 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
 driver = nonebot.get_driver()

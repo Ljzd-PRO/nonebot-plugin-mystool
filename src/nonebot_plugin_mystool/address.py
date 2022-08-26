@@ -59,20 +59,20 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
                     res = await client.get(URL.format(
                         round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
-                        logger.opt(colors=True).info(conf.LOG_HEAD +
+                        logger.info(conf.LOG_HEAD +
                                     "获取地址数据 - 用户 {} 登录失效".format(account.phone))
-                        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
+                        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                         return -1
                 for address in res.json()["data"]["list"]:
                     address_list.append(Address(address))
     except KeyError:
-        logger.opt(colors=True).error("获取地址数据 - 服务器没有正确返回")
-        logger.opt(colors=True).debug("网络请求返回: {}".format(res.text))
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取地址数据 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except:
-        logger.opt(colors=True).error("获取地址数据 - 请求失败")
-        logger.opt(colors=True).debug(traceback.format_exc())
+        logger.error(conf.LOG_HEAD + "获取地址数据 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
     return address_list
 
