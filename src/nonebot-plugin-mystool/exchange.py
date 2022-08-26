@@ -263,6 +263,9 @@ class Exchange:
     """
 
     def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
+        """
+        初始化兑换任务(仅导入参数)
+        """
         self.result = None
         self.goodID = goodID
         self.account = account
@@ -276,6 +279,9 @@ class Exchange:
         self.gameUID = gameUID
 
     async def async_init(self, retry: bool = True):
+        """
+        初始化兑换任务(异步，返回`self`对象)
+        """
         self.result = None
         self.goodID = self.goodID
         self.account = self.account
