@@ -98,7 +98,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 
 @get_address.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
+async def _(event: PrivateMessageEvent, state: T_State, phone: Message = ArgPlainText('phone')):
     if phone == '退出':
         await get_address.finish('已成功退出')
     user_account = state['user_account']
