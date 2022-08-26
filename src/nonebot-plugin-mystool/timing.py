@@ -155,9 +155,11 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
             await bot.send_private_msg(user_id=qq, message='请求失败，请重新尝试')
             return
         if (account.mybMission and IsAuto) or not IsAuto:
+            record_list: List[GameRecord] = await get_game_record(account)
+            gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
-                    mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission)
+                    await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
                 msg = f"""\
@@ -166,8 +168,8 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     \n签到 ➢ {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
                     \n阅读 ➢ {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
                     \n点赞 ➢ {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
-                    \n签到 ➢ {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
-                \n💰米游币:{missions_state[1]}
+                    \n转发 ➢ {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
+                \n💰米游币: {missions_state[1]}
                 """.strip()
                 await bot.send_msg(
                     message_type="private",
