@@ -223,7 +223,6 @@ class Action:
         if postID_list is None:
             return -4
         while count < readTimes:
-            await asyncio.sleep(conf.SLEEP_TIME)
             for postID in postID_list:
                 if count == readTimes:
                     break
@@ -256,6 +255,7 @@ class Action:
                         continue
                     else:
                         return -3
+                await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
                 return -4
@@ -282,12 +282,12 @@ class Action:
         if postID_list is None:
             return -4
         while count < likeTimes:
-            await asyncio.sleep(conf.SLEEP_TIME)
             for postID in postID_list:
                 if count == likeTimes:
                     break
-                self.headers["DS"] = generateDS()
-                res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
+                data = {'is_cancel': False,  'post_id': postID}
+                self.headers["DS"] = generateDS(data)
+                res = await self.client.post(URL_LIKE, headers=self.headers, json=data, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
@@ -315,6 +315,7 @@ class Action:
                         continue
                     else:
                         return -3
+                await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
                 return -4
