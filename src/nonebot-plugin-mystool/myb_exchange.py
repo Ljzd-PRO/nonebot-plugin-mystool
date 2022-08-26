@@ -44,14 +44,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
     if not user_account:
         await myb_exchange_plan.finish("你没有配置cookie，请先配置cookie！")
     if len(user_account) == 1:
-        matcher.set_arg('phone', user_account[0].phone)
+        matcher.set_arg('phone', str(user_account[0].phone))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         await matcher.send(f"您有多个账号，您要配置以下哪个账号的兑换计划？\n{'，'.join(phones)}")
 
 
 @myb_exchange_plan.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
     if phone == '退出':
         await matcher.finish('已成功退出')
     user_account = state['user_account']
