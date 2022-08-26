@@ -30,6 +30,8 @@ HEADERS = {
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MISSION,
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
+    "Accept-Encoding": "gzip",
+    "Connection": "Keep-Alive",
     "DS": None
 }
 HEADERS_MISSION = {
@@ -299,6 +301,7 @@ class Action:
                     count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
+                    logger.debug(conf.LOG_HEAD + "请求数据: {}".format(data))
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
