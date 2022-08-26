@@ -1,23 +1,22 @@
-from nonebot import on_command, get_driver
-from nonebot.matcher import Matcher
-from nonebot.params import T_State, ArgPlainText
+import asyncio
+
+from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
-from .data import UserData
-import asyncio
+from nonebot.matcher import Matcher
+from nonebot.params import ArgPlainText, T_State
+
 from .config import mysTool_config as conf
 from .data import *
+from .data import UserData
 
-__cs = ''
-if conf.USE_COMMAND_START:
-    __cs = conf.COMMAND_START
-
-command = list(get_driver().config.command_start)[0] + __cs
+command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 account_setting = on_command(
-    __cs+'account_setting', aliases={__cs+'账户设置', __cs+'签到设置'}, priority=4, block=True)
+    conf.COMMAND_START+'account_setting', aliases={conf.COMMAND_START+'账户设置', conf.COMMAND_START+'签到设置'}, priority=4, block=True)
 account_setting.__help_name__ = "账户设置"
 account_setting.__help_info__ = "配置游戏自动签到、米游币任务是否开启相关选项"
+
 
 @account_setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg: Message = ArgPlainText('arg')):
@@ -37,6 +36,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         await matcher.send(f"您有多个账号，您要配置以下哪个账号的设置？\n{'，'.join(phones)}")
 
+
 @account_setting.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
     if phone == '退出':
@@ -52,6 +52,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
     state['account'] = account
     user_setting = f"1.米游币任务自动执行：{'开' if account.mybMission else '关'}\n2.米哈游游戏自动签到：{'开' if account.gameSign else '关'}\n"
     await account_setting.send(user_setting+'您要更改哪一项呢？请输入“1”或“2”')
+
 
 @account_setting.got('arg')
 async def _(event: PrivateMessageEvent, state: T_State, arg: Message = ArgPlainText('arg')):
@@ -71,9 +72,10 @@ async def _(event: PrivateMessageEvent, state: T_State, arg: Message = ArgPlainT
 
 
 global_setting = on_command(
-    __cs+'global_setting', aliases={__cs+'全局设置', __cs+'播报设置'}, priority=4, block=True)
+    conf.COMMAND_START+'global_setting', aliases={conf.COMMAND_START+'全局设置', conf.COMMAND_START+'播报设置'}, priority=4, block=True)
 global_setting.__help_name__ = "播报设置"
 global_setting.__help_info__ = "设置每日签到后是否进行qq通知"
+
 
 @global_setting.handle()
 async def _(event: PrivateMessageEvent, matcher: Matcher):
@@ -81,6 +83,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher):
     await matcher.send(f"每日自动签到相关设置请调用 {command}签到设置 命令哦\n输入“退出”即可退出")
     await asyncio.sleep(0.5)
     await matcher.send(f"每日签到后自动播报功能：{'开' if UserData.isNotice(qq_account) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
+
 
 @global_setting.got('choice')
 async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgPlainText('choice')):
@@ -96,7 +99,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.reject("您的输入有误，请重新输入")
 
 setting = on_command(
-    __cs+'setting', aliases={__cs+'设置'}, priority=4, block=True)
+    conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
+
+
 @setting.handle()
 async def _(event: PrivateMessageEvent):
     msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用 {command}游戏设置 命令\n如需设置每日签到后是否进行qq通知，请调用 {command}播报设置 命令'

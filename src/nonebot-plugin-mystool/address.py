@@ -17,10 +17,6 @@ from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
 from .utils import NtpTime, check_login, custom_attempt_times
 
-__cs = ''
-if conf.USE_COMMAND_START:
-    __cs = conf.COMMAND_START
-
 HEADERS = {
     "Host": "api-takumi.mihoyo.com",
     "Accept": "application/json, text/plain, */*",
@@ -78,7 +74,7 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
 
 
 get_address = on_command(
-    __cs+'address', aliases={__cs+'地址填写', __cs+'地址', __cs+'地址获取'}, priority=4, block=True)
+    conf.COMMAND_START+'address', aliases={conf.COMMAND_START+'地址填写', conf.COMMAND_START+'地址', conf.COMMAND_START+'地址获取'}, priority=4, block=True)
 
 get_address.__help_name__ = '地址填写'
 get_address.__help_info__ = '跟随指引，获取地址id，米游币兑换实体奖品必须。在获取地址id前，必须先在米游社配置好至少一个地址。'

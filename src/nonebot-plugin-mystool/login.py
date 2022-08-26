@@ -11,10 +11,6 @@ from .config import mysTool_config as conf
 from .data import UserData
 from .utils import *
 
-__cs = ''
-if conf.USE_COMMAND_START:
-    __cs = conf.COMMAND_START
-
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
 URL_3 = "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile"
@@ -175,7 +171,7 @@ class GetCookie:
 
 
 get_cookie = on_command(
-    __cs+'cookie', aliases={__cs+'cookie填写', __cs+'cookie', __cs+'login', __cs+'登录', __cs+'登陆'}, priority=4, block=True)
+    conf.COMMAND_START+'cookie', aliases={conf.COMMAND_START+'cookie填写', conf.COMMAND_START+'cookie', conf.COMMAND_START+'login', conf.COMMAND_START+'登录', conf.COMMAND_START+'登陆'}, priority=4, block=True)
 get_cookie.__help_name__ = '登录'
 get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式配置cookie，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
