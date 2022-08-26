@@ -1,10 +1,10 @@
 """
 ### 米游社收货地址相关
 """
+import asyncio
 import traceback
 from typing import List, Literal, Union
 
-import asyncio
 import httpx
 import tenacity
 from nonebot import on_command
@@ -12,7 +12,7 @@ from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.log import logger
 from nonebot.matcher import Matcher
-from nonebot.params import T_State, Arg, ArgPlainText
+from nonebot.params import Arg, ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
@@ -50,7 +50,7 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL.format(

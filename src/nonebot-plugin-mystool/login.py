@@ -83,7 +83,7 @@ class GetCookie:
         headers["x-rpc-device_id"] = self.deviceID
         res = None
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
         except tenacity.RetryError:
@@ -115,7 +115,7 @@ class GetCookie:
         - 若返回 `False` 说明网络请求失败或服务器没有正确返回
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
                 with attempt:
                     res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID), timeout=conf.TIME_OUT)
                     stoken = list(filter(
@@ -146,7 +146,7 @@ class GetCookie:
         - 若返回 `-2` 说明请求失败
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
                 with attempt:
                     res = await self.client.post(URL_3, headers=HEADERS_2, json={
                         "is_bh2": False,

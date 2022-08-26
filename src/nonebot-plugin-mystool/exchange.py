@@ -177,7 +177,7 @@ async def get_good_detail(goodID: str, retry: bool = True):
     """
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
@@ -296,7 +296,7 @@ class Exchange:
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(self.goodID))
         res = None
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
@@ -450,7 +450,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         '''商品预览图'''
 
         for good in good_list:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         icon = await client.get(good.icon, timeout=conf.TIME_OUT)

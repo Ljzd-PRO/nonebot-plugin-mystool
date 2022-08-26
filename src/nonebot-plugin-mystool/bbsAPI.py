@@ -219,7 +219,7 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = generateDS()
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
@@ -254,7 +254,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
     """
     record_list = []
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
@@ -288,7 +288,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     headers["DS"] = generateDS()
     info_list = []
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
@@ -317,7 +317,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
     - 若返回 `-3` 说明请求失败
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
