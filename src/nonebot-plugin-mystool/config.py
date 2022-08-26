@@ -99,7 +99,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''NTP服务器，用于获取网络时间'''
     MAX_RETRY_TIMES: int = 5
     '''网络请求失败后最多重试次数'''
-    SLEEP_TIME: float = 10
+    SLEEP_TIME: float = 5
     '''任务操作冷却时间(如米游币任务)'''
     SLEEP_TIME_RETRY: float = 3
     '''网络请求出错的重试冷却时间'''
