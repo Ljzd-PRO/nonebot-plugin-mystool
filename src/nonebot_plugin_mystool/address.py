@@ -130,7 +130,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
             \n详细地址：{address.detail}\
             \n联系电话：{address.phone}\
             \n联系人：{address.name}\
-            \n地址ID(Address_ID)：{address.addressID}\
+            \n地址ID：{address.addressID}\
             """.strip()
             await get_address.send(address_string)
     else:
