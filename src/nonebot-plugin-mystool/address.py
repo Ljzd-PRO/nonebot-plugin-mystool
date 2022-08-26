@@ -4,6 +4,7 @@
 import traceback
 from typing import List, Literal, Union
 
+import asyncio
 import httpx
 import tenacity
 from nonebot import on_command
@@ -11,7 +12,7 @@ from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.log import logger
 from nonebot.matcher import Matcher
-from nonebot.params import ArgPlainText, T_State
+from nonebot.params import T_State, Arg, ArgPlainText
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
@@ -91,14 +92,16 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     else:
         await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。过程中随时输入“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', Message(str(user_account[0].phone)))
+        matcher.set_arg('phone', str(user_account[0].phone))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         await matcher.send("您有多个账号，您要设置以下哪个账号的地址ID？\n" + '\n'.join(phones))
 
 
 @get_address.got('phone')
-async def _(event: PrivateMessageEvent, state: T_State, phone: Message = ArgPlainText('phone')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone = Arg()):
+    if isinstance(phone, Message):
+        phone = phone.extract_plain_text().strip()
     if phone == '退出':
         await get_address.finish('已成功退出')
     user_account = state['user_account']
@@ -129,14 +132,15 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: Message = ArgPlai
             \n地址ID：{address.addressID}\
             """.strip()
             await get_address.send(address_string)
+            await asyncio.sleep(0.2)
     else:
-        await get_address.send("⚠️您还没有配置地址，请先前往米游社配置地址！")
+        await get_address.finish("⚠️您还没有配置地址，请先前往米游社配置地址！")
 
 
 @get_address.got('address_id', prompt='请输入你要选择的地址ID')
-async def _(event: PrivateMessageEvent, state: T_State, address_id: str = ArgPlainText('address_id')):
+async def _(event: PrivateMessageEvent, state: T_State, address_id = ArgPlainText()):
     if address_id == "退出":
-        get_address.finish("已成功退出")
+        await get_address.finish("已成功退出")
     result_address = list(
         filter(lambda address: address.addressID == address_id, state['address_list']))
     if result_address:
