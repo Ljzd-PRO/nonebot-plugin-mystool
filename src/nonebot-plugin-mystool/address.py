@@ -91,16 +91,16 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     else:
         await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。过程中随时输入“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', user_account[0].phone)
+        matcher.set_arg('phone', str(user_account[0].phone))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
-        await matcher.send(f"您有多个账号，您要设置以下哪个账号的地址ID？\n{'，'.join(phones)}")
+        await matcher.send(f"您有多个账号，您要设置以下哪个账号的地址ID？\n{'\n'.join(phones)}")
 
 
 @get_address.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
     if phone == '退出':
-        await matcher.finish('已成功退出')
+        await get_address.finish('已成功退出')
     user_account = state['user_account']
     qq_account = state['qq_account']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
