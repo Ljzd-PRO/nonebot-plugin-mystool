@@ -157,7 +157,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
         if (account.mybMission and IsAuto) or not IsAuto:
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
-                    mybmission.NAME_TO_FUNC[mission_state.keyName](mybmission)
+                    mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission)
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
                 msg = f"""\
