@@ -106,7 +106,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
-                            message=f"⚠️今日{sign_game_name}签到失败！请尝试重新签到，若多次失败请尝试重新配置cookie"
+                            message=f"今日 🎮『{sign_game_name}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                         )
                         continue
                 elif sign_info.isSign:
