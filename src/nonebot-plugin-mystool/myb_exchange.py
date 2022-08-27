@@ -167,7 +167,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     if not account.address:
         await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
 
-    if filter(lambda plan: plan[0] == good.goodID, account.exchange):
+    if account.exchange and filter(lambda plan: plan == (good.goodID, uid), account.exchange):
         await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
     else:
         account.exchange.append((good.goodID, uid))
