@@ -54,8 +54,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
             phones = [str(user_account[i].phone)
                       for i in range(len(user_account))]
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
-            for ph in phones:
-                msg += '\n'.join("📱 " + ph)
+            msg += "📱" + "\n📱".join(phones)
             await matcher.send(msg)
     # 如果未使用二级命令，则进行查询操作，并结束交互
     else:
