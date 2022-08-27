@@ -86,7 +86,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
         record_list: List[GameRecord] = await get_game_record(account)
         if isinstance(record_list, int):
             if record_list == -1:
-                await bot.send_private_msg(user_id=qq, message=f"账户{account.phone}登录失效，请重新登录")
+                await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
                 return
             else:
                 await bot.send_private_msg(user_id=qq, message="请求失败，请重新尝试")
@@ -106,7 +106,8 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
-                            message=f"今日 🎮『{sign_game_name}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
+                            message="账户 {0} 🎮『{1}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户".format(
+                                account.phone, sign_game_name)
                         )
                         continue
                 elif sign_info.isSign:
@@ -129,7 +130,8 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         img_file = await get_file(sign_award.icon)
                         img = MessageSegment.image(img_file)
                     else:
-                        msg = f"今日 🎮『{sign_game_name}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
+                        msg = "账户 {0} 🎮『{1}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户".format(
+                            account.phone, sign_game_name)
                         img = ''
                     await bot.send_msg(
                         message_type="private",
