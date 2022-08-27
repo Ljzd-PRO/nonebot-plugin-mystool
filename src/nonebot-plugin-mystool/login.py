@@ -251,4 +251,4 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
 
     UserData.set_cookie(state['getCookie'].cookie,
                         int(event.user_id), state['phone'])
-    await get_cookie.finish("米游社账户 {} 绑定成功".format(state['phone']))
+    await get_cookie.finish("🎉米游社账户 {} 绑定成功".format(state['phone']))
