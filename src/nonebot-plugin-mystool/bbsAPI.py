@@ -394,7 +394,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
         return -3
 
 
-async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -1, -2, -3]:
+async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1, -2, -3]:
     """
     设备保存(saveDevice)(适用于安卓设备)
 
