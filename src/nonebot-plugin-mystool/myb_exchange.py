@@ -74,11 +74,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
                 msg += """\
-                -- 商品『{0}』
-                - 商品ID：{1}
-                - 商品价格：{2}
-                - 兑换时间：{3}
-                - 账户：{4}
+-- 商品『{0}』
+- 商品ID：{1}
+- 商品价格：{2}
+- 兑换时间：{3}
+- 账户：{4}
                     """.format(good.name, good.goodID, good.price, good.time, account.phone)
             msg += '\n'
         else:
