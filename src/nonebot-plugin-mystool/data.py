@@ -168,7 +168,9 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
-        self.exchange: List[Tuple[str, str]] = tuple(account["exchange"])
+        for plan in account["exchange"]:
+            plan = tuple(plan)
+        self.exchange: List[Tuple[str, str]] = account["exchange"]
 
     @property
     def to_dict(self) -> dict:
