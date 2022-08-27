@@ -238,7 +238,7 @@ class Action:
             for postID in postID_list:
                 if count == readTimes:
                     break
-                self.headers["DS"] = generateDS()
+                self.headers["DS"] = generateDS(platform="android")
                 try:
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
@@ -292,12 +292,11 @@ class Action:
             for postID in postID_list:
                 if count == likeTimes:
                     break
-                data = {'is_cancel': False,  'post_id': postID}
-                self.headers["DS"] = generateDS(data)
+                self.headers["DS"] = generateDS(platform="android")
                 try:
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
-                            res = await self.client.post(URL_LIKE, headers=self.headers, json=data, timeout=conf.TIME_OUT)
+                            res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
                                     conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))
@@ -309,7 +308,6 @@ class Action:
                             count += 1
                 except KeyError and ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
-                    logger.debug(conf.LOG_HEAD + "请求数据: {}".format(data))
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -340,7 +338,7 @@ class Action:
         - 若返回 `-4` 说明网络请求发送成功，但是可能未签到成功
         - 若返回 `-5` 说明获取文章失败
         """
-        self.headers["DS"] = generateDS()
+        self.headers["DS"] = generateDS(platform="android")
         postID_list = await self.get_posts(game)
         if postID_list is None:
             return -5

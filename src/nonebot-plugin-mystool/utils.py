@@ -8,7 +8,7 @@ import string
 import time
 import traceback
 import uuid
-from typing import Dict, Union
+from typing import Dict, Literal, Union
 from urllib.parse import urlencode
 
 import httpx
@@ -18,6 +18,13 @@ import tenacity
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
+
+SALT_IOS = "9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7"
+'''iOS 设备生成 DS 所需的 salt'''
+SALT_ANDROID = "ZSHlXeQUBis52qD1kEgKt5lUYed4b7Bb"
+'''Android 设备生成 DS 所需的 salt'''
+SALT_NEW = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
+'''Android 设备传入content和url参数生成 DS 所需的 salt'''
 
 driver = nonebot.get_driver()
 
@@ -106,7 +113,7 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = ""):
+def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "", platform: Literal["ios", "android"] = "ios"):
     """
     获取Headers中所需DS
 
@@ -117,11 +124,15 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
     # DS 加密算法:
     # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
     if data == "" and params == "":
+        if platform == "ios":
+            salt = SALT_IOS
+        else:
+            salt = SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
-            f"salt=9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7&t={t}&r={a}".encode()).hexdigest()
+            f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
         if not isinstance(data, str):
@@ -131,7 +142,7 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "")
         t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
-        c = hashlib.md5(("salt=t0qEgfub6cvueAPgR5m9aQWWVciEer7v&t=" +
+        c = hashlib.md5((f"salt={SALT_NEW}&t=" +
                         t + "&r=" + r + add).encode()).hexdigest()
         return f"{t},{r},{c}"
 

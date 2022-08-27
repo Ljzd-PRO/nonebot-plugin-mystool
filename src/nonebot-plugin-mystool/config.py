@@ -51,7 +51,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_MISSION: str = "miyousheluodi"
     '''安卓端 米游币任务 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.29.1"
+    X_RPC_APP_VERSION: str = "2.35.2"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
