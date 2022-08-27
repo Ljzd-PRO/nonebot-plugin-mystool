@@ -19,7 +19,7 @@ from nonebot.log import logger
 
 from .config import mysTool_config as conf
 
-SALT_IOS = "9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7"
+SALT_IOS = "N50pqm7FSy2AkFz2B3TqtuZMJ5TOl3Ep"
 '''iOS 设备生成 DS 所需的 salt'''
 SALT_ANDROID = "ZSHlXeQUBis52qD1kEgKt5lUYed4b7Bb"
 '''Android 设备生成 DS 所需的 salt'''
