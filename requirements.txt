@@ -1,8 +1,8 @@
-httpx==0.23.0
+httpx>=0.22.0
 nonebot==1.9.1
 nonebot_plugin_apscheduler==0.1.4
 ntplib==0.4.0
-Pillow==9.2.0
+Pillow>=9.1.1
 pydantic==1.9.1
 requests==2.26.0
-tenacity==8.0.1
+nonebot_adapter_onebot==2.1.3
