@@ -306,7 +306,7 @@ class UserData:
                 return
 
         # 若找不到，则使用另一个查找方式，若还是找不到则进行新建
-        if not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
+        if not userdata[str(qq)]["accounts"] or not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
             userdata[str(qq)]["accounts"].append(account_raw)
             UserData.__set_all(userdata)
 
