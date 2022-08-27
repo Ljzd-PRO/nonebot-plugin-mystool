@@ -371,6 +371,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     """
     headers = HEADERS_DEVICE.copy()
     headers["DS"] = generateDS()
+    headers["x-rpc-device_id"] = account.deviceID_2
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -411,6 +412,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     """
     headers = HEADERS_DEVICE.copy()
     headers["DS"] = generateDS()
+    headers["x-rpc-device_id"] = account.deviceID_2
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
