@@ -73,13 +73,12 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
                 good = await get_good_detail(plan[0])
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-                msg += """\
--- 商品『{0}』
-- 商品ID：{1}
-- 商品价格：{2}
-- 兑换时间：{3}
-- 账户：{4}
-                    """.format(good.name, good.goodID, good.price, good.time, account.phone)
+                msg += "-- 商品：{0}"\
+                    "\n- 商品ID：{1}"\
+                    "\n- 商品价格：{2}"\
+                    "\n- 兑换时间：{3}"\
+                    "\n- 账户：{4}\n".format(good.name, good.goodID,
+                                          good.price, good.time, account.phone)
             msg += '\n'
         else:
             msg = '您还没有兑换计划哦~\n\n'
@@ -215,15 +214,13 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         matcher.set_arg("content", arg)
 
 
-@get_good_image.got("content", prompt="""\
-请发送您要查看的商品类别:
-- 崩坏3
-- 原神
-- 崩坏2
-- 未定事件簿
-- 米游社
-—— 发送“退出”以结束\
-        """)
+@get_good_image.got("content", prompt="请发送您要查看的商品类别:"
+                    "\n- 崩坏3"
+                    "\n- 原神"
+                    "\n- 崩坏2"
+                    "\n- 未定事件簿"
+                    "\n- 米游社"
+                    "\n—— 发送“退出”以结束")
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     if arg in ['原神', 'ys']:
         arg = ('ys', '原神')
