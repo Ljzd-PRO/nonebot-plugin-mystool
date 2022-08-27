@@ -241,16 +241,15 @@ class GameSign:
             `gameUID`: 用户游戏UID
             `retry`: 是否允许重试
 
-        - 若签到成功，返回 `1`
+        - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
-        - 若返回 `-4` 说明网络请求发送成功，但是可能未签到成功
-        - 若返回 `-5` 说明暂不支持该游戏
+        - 若返回 `-4` 说明暂不支持该游戏
         """
         if game not in ("ys", "bh3"):
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
-            return -5
+            return -4
         headers = HEADERS_OTHER.copy()
         headers["x-rpc-device_id"] = self.deviceID
         headers["DS"] = generateDS()
@@ -274,10 +273,7 @@ class GameSign:
                                      "网络请求返回: {}".format(res.text))
                         return -1
                     self.signResult = res.json()
-                    if (game == "ys" and self.signResult["data"]["success"] == 0) or (game == "bh3" and self.signResult["data"]["message"] == ""):
-                        return 1
-                    else:
-                        return -4
+                    return 1
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
