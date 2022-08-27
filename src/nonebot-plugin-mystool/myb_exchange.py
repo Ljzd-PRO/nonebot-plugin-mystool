@@ -62,7 +62,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 good = await get_good_detail(plan[0])
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-                msg += "-- 商品：{0}"\
+                msg += "-- 商品 {0}"\
                     "\n- 🔢商品ID：{1}"\
                     "\n- 💰商品价格：{2}"\
                     "\n- 📅兑换时间：{3}"\
