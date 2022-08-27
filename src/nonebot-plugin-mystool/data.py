@@ -201,12 +201,14 @@ class UserData:
     }
     '''QQ用户数据样例'''
 
+    @staticmethod
     def read_all() -> Dict[str, dict]:
         """
         以dict形式获取userdata.json
         """
         return json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
 
+    @staticmethod
     def read_account(qq: int, by: Union[int, str]):
         """
         获取用户的某个米游社帐号数据
@@ -229,6 +231,7 @@ class UserData:
             pass
         return None
 
+    @staticmethod
     def read_account_all(qq: int) -> Union[List[UserAccount], None]:
         """
         获取用户的所有米游社帐号数据
@@ -247,6 +250,7 @@ class UserData:
             accounts.append(account)
         return accounts
 
+    @staticmethod
     def __set_all(userdata: Dict[str, dict]):
         """
         写入用户数据文件(整体覆盖)
@@ -265,6 +269,7 @@ class UserData:
         userdata.setdefault(str(qq), cls.__USER_SAMPLE)
         return userdata
 
+    @staticmethod
     def __create_account(userdata: Dict[str, dict], qq: int, name: str = None, phone: int = None) -> dict:
         """
         创建米哈游账户数据，返回创建后整体的userdata
@@ -275,6 +280,7 @@ class UserData:
         userdata[str(qq)]["accounts"].append(account)
         return userdata
 
+    @staticmethod
     def set_account(account: UserAccount, qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号信息
@@ -302,6 +308,7 @@ class UserData:
         userdata[str(qq)]["accounts"].append(account_raw)
         UserData.__set_all(userdata)
 
+    @staticmethod
     def set_cookie(cookie: Dict[str, str], qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号的Cookie
