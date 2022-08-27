@@ -42,7 +42,7 @@ async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
     for matcher in matchers:
         try:
             if arg.lower() == matcher.__help_name__:
-                await helper.finish(f"{COMMAND}{matcher.__help_name__}：\n{matcher.__help_info__}")
+                await helper.finish(f"『{COMMAND}{matcher.__help_name__}』- 使用说明\n{matcher.__help_info__}")
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")
