@@ -78,7 +78,7 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
 get_address = on_command(
     conf.COMMAND_START+'地址', aliases={conf.COMMAND_START+'地址填写', conf.COMMAND_START+'地址', conf.COMMAND_START+'地址获取'}, priority=4, block=True)
 
-get_address.__help_name__ = '地址设置'
+get_address.__help_name__ = '地址'
 get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
 
 

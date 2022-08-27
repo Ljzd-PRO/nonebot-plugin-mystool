@@ -14,7 +14,7 @@ command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 account_setting = on_command(
     conf.COMMAND_START+'设置', aliases={conf.COMMAND_START+'账户设置', conf.COMMAND_START+'签到设置'}, priority=4, block=True)
-account_setting.__help_name__ = "账户设置"
+account_setting.__help_name__ = "设置"
 account_setting.__help_info__ = "配置游戏自动签到、米游币任务是否开启相关选项"
 
 

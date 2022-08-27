@@ -23,7 +23,7 @@ command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 myb_exchange_plan = on_command(
     conf.COMMAND_START+'兑换', aliases={conf.COMMAND_START+'myb_exchange', conf.COMMAND_START+'米游币兑换', conf.COMMAND_START+'米游币兑换计划', conf.COMMAND_START+'兑换计划', conf.COMMAND_START+'兑换'}, priority=4, block=True)
-myb_exchange_plan.__help_name__ = "米游币兑换"
+myb_exchange_plan.__help_name__ = "兑换"
 myb_exchange_plan.__help_info__ = "跟随指引，配置米游币兑换计划，即可自动兑换米游社商品。在兑换商品前，请先调用商品列表命令查看您想兑换的商品的ID。换取实体商品前，必须要先配置地址id；兑换虚拟商品时，请跟随引导输入要兑换的账户的uid"
 myb_exchange_plan.__help_msg__ = f"""\
     具体用法：\
