@@ -186,7 +186,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     notice_string = "⚠️今日米游币任务未全部完成"
                 msg = f"""\
                     \n{notice_string}\
-                    \n账户『{account.phone}』\
+                    \n📱账户 {account.phone}\
                     \n- 签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
                     \n- 阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
                     \n- 点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
