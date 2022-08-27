@@ -128,7 +128,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         sign_award = month_sign_award[sign_info.totalDays-1]
                         if sign_info.isSign:
                             msg = f"""\
-                                \n{'⚠️📱账户 {0} 🎮『{1}』今日签到成功！'.format(account.phone, sign_game_name)}\
+                                \n{'📱账户 {0} 🎮『{1}』今日签到成功！'.format(account.phone, sign_game_name)}\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
                                 {sign_award.name} * {sign_award.count}\
@@ -171,7 +171,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 return
             gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
             if not IsAuto:
-                await bot.send_private_msg(user_id=qq, message=f'账户 {account.phone} 开始执行米游币任务')
+                await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} 开始执行米游币任务')
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
