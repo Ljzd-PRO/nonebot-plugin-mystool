@@ -109,6 +109,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     }
     Flag = True
     break_flag = False
+    good: Good = None
+    game: str = None
     for game, good_list in good_dict.items():
         for good in good_list:
             if good.goodID == arg[1]:
@@ -130,10 +132,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                 if isinstance(game_records, int):
                     pass
                 else:
-                    msg = f'您米游社账户下的『{GameInfo.ABBR_TO_ID[record.gameID][1]}』账号：'
+                    msg = f'您米游社账户下的『{list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
-                            msg += "\n" + f'{record.regionName}·{record.nickname} - UID {record.uid}'
+                            msg += f'\n🎮 {record.regionName}·{record.nickname} - UID {record.uid}'
                     await matcher.send(msg)
             else:
                 matcher.get_arg('uid', None)
