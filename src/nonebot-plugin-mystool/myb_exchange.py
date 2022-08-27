@@ -52,6 +52,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
 
 @myb_exchange_plan.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+    if isinstance(phone, Message):
+        phone = phone.extract_plain_text().strip()
     if phone == '退出':
         await matcher.finish('已成功退出')
     user_account = state['user_account']
