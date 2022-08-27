@@ -53,7 +53,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
         else:
             phones = [str(user_account[i].phone)
                       for i in range(len(user_account))]
-            await matcher.send(f"您有多个账号，您要配置以下哪个账号的兑换计划？\n{'，'.join(phones)}")
+            await matcher.send(f"您有多个账号，您要配置以下哪个账号的兑换计划？\n" + '\n'.join("📱 " + phones))
     # 如果未使用二级命令，则进行查询操作，并结束交互
     else:
         msg = ""
@@ -63,10 +63,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
                 msg += "-- 商品：{0}"\
-                    "\n- 商品ID：{1}"\
-                    "\n- 商品价格：{2}"\
-                    "\n- 兑换时间：{3}"\
-                    "\n- 账户：{4}\n\n".format(good.name, good.goodID,
+                    "\n- 🔢商品ID：{1}"\
+                    "\n- 💰商品价格：{2}"\
+                    "\n- 📅兑换时间：{3}"\
+                    "\n- 📱账户：{4}\n\n".format(good.name, good.goodID,
                                             good.price, good.time, account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
@@ -125,16 +125,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                 state['good'] = good
                 game_records = await get_game_record(account)
                 await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：")
-                send_flag = False
                 if isinstance(game_records, int):
                     pass
                 else:
+                    msg = f'您米游社账户下的『{GameInfo.ABBR_TO_ID[record.gameID][1]}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
-                            if not send_flag:
-                                send_flag = True
-                                await matcher.send(f'您米游社账户下的『{GameInfo.ABBR_TO_ID[record.gameID][1]}』账号：')
-                            await matcher.send(f'{record.regionName}·{record.nickname} - UID {record.uid}')
+                            msg += "\n" + f'{record.regionName}·{record.nickname} - UID {record.uid}'
+                    await matcher.send(msg)
             else:
                 matcher.get_arg('uid', None)
         else:
