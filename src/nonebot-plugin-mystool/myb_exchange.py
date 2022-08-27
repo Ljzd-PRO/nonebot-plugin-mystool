@@ -24,12 +24,12 @@ command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 myb_exchange_plan = on_command(
     conf.COMMAND_START+'兑换', aliases={conf.COMMAND_START+'myb_exchange', conf.COMMAND_START+'米游币兑换', conf.COMMAND_START+'米游币兑换计划', conf.COMMAND_START+'兑换计划', conf.COMMAND_START+'兑换'}, priority=4, block=True)
 myb_exchange_plan.__help_name__ = "兑换"
-myb_exchange_plan.__help_info__ = "跟随指引，配置米游币兑换计划，即可自动兑换米游社商品。在兑换商品前，请先调用商品列表命令查看您想兑换的商品的ID。换取实体商品前，必须要先配置地址id；兑换虚拟商品时，请跟随引导输入要兑换的账户的uid"
+myb_exchange_plan.__help_info__ = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『/地址』选择你要使用的地址。所需的商品ID可通过命令『/商品』获取。"
 myb_exchange_plan.__help_msg__ = f"""\
     具体用法：\
-    \n{command} + [商品id] -> 新增兑换计划\
-    \n{command} - [商品id] -> 删除兑换计划\
-    \n{command} 商品列表 -> 查看米游社商品
+    \n{command} + [商品ID] -> 新增兑换计划\
+    \n{command} - [商品ID] -> 删除兑换计划\
+    \n{command} 商品 -> 查看米游社商品
 """.strip()
 
 
@@ -60,7 +60,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone in phones:
         account = UserData.read_account(qq, int(phone))
     else:
-        myb_exchange_plan.reject('您输入的账号不在以上账号内，请重新输入')
+        myb_exchange_plan.reject('您发送的账号不在以上账号内，请重新发送')
     state['phone'] = int(phone)
     state['account'] = account
     if not matcher.get_arg('content'):
@@ -101,13 +101,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
         if break_flag:
             break
     if Flag:
-        await matcher.finish('您输入的商品id不在可兑换的商品列表内，程序已退出')
+        await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
     if arg[0] == '+':
         if good.time:
             if good.isVisual:
                 state['good'] = good
                 game_records = await get_game_record(account)
-                await matcher.send("您兑换的是虚拟物品哦，请输入对应账户的uid")
+                await matcher.send("您兑换的是虚拟物品哦，请发送对应账户的uid")
                 send_flag = False
                 if isinstance(game_records, int):
                     pass
@@ -135,21 +135,21 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
         else:
             await matcher.finish("您还没有配置兑换计划哦")
     else:
-        matcher.finish('您的输入有误，请重新输入')
+        matcher.finish('⚠️您的输入有误，请重新输入')
 
 
 @myb_exchange_plan.got('uid')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: Bot, uid=ArgPlainText()):
-    account = state['account']
+    account: UserAccount = state['account']
     if not uid:
         if not account.address:
-            await matcher.finish('您还没有配置地址哦，请先配置地址')
-    good = state['good']
+            await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
+    good: Good = state['good']
     phone = state['phone']
     qq = event.user_id
     for exchange_plan in account.exchange:
         if exchange_plan[0] == good.goodID:
-            await matcher.send('您已经配置过该商品的兑换哦！此次配置将会覆盖原来的记录')
+            await matcher.send('⚠️您已经配置过该商品的兑换哦！此次配置将会覆盖原来的记录')
             account.exchange.remove(exchange_plan)
     account.exchange.append((good.goodID, uid))
     UserData.set_account(account, event.user_id, phone)
@@ -186,7 +186,7 @@ async def exchange(exchange_plan: Exchange, qq: str):
     if flag:
         await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换成功，可前往米游社查看")
     else:
-        await bot.send_private_msg(user_id=qq, message=f"商品{exchange_plan.goodID}兑换失败\n{result[1]}")
+        await bot.send_private_msg(user_id=qq, message=f"⚠️商品{exchange_plan.goodID}兑换失败\n{result[1]}")
     for exchange_plan__ in exchange_plan.account.exchange:
         if exchange_plan__[0] == exchange_plan.goodID:
             exchange_plan.account.exchange.remove(exchange_plan__)
@@ -197,7 +197,7 @@ async def exchange(exchange_plan: Exchange, qq: str):
 get_good_image = on_command(
     conf.COMMAND_START+'商品列表', aliases={conf.COMMAND_START+'商品图片', conf.COMMAND_START+'米游社商品列表', conf.COMMAND_START+'米游币商品图片', conf.COMMAND_START+'商品'}, priority=4, block=True)
 get_good_image.__help_name__ = "商品"
-get_good_image.__help_info__ = "获取当日米游社商品信息，目前共有五个分类可选，分别为（崩坏3，原神，崩坏2，未定事件簿，大别野）。请记住您要兑换的商品的ID，以方便下一步兑换"
+get_good_image.__help_info__ = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
 
 @get_good_image.handle()
@@ -219,14 +219,14 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
     else:
-        await get_good_image.finish('您的输入有误，请重新输入')
+        await get_good_image.finish('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(
             f'file:///{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         await get_good_image.finish(MessageSegment.image(img_path))
     else:
-        await get_good_image.finish(f"{arg[1]}部分目前没有可兑换商品哦~")
+        await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
 
 @driver.on_startup
