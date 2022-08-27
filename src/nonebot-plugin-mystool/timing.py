@@ -172,12 +172,12 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
                 msg = f"""\
-                    \n🎉今日米游币任务执行完成！\
+                    \n🎉账户 {account.phone} 米游币任务执行完成！\
                     \n执行结果：\
-                    \n签到 ➢ {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
-                    \n阅读 ➢ {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
-                    \n点赞 ➢ {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
-                    \n转发 ➢ {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
+                    \n签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
+                    \n阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
+                    \n点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
+                    \n转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
                 \n💰米游币: {missions_state[1]}
                 """.strip()
                 await bot.send_msg(
