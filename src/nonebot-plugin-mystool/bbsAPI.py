@@ -383,7 +383,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 if res.json()["message"] != "OK":
-                    return -2
+                    raise ValueError
                 else:
                     return 1
     except KeyError and ValueError:
@@ -424,7 +424,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 if res.json()["message"] != "OK":
-                    return -2
+                    raise ValueError
                 else:
                     return 1
     except KeyError and ValueError:
