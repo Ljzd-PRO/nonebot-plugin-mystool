@@ -31,19 +31,19 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''移动端 x-rpc-device_model'''
     X_RPC_DEVICE_MODEL_PC: str = "OS X 10.15.7"
     '''桌面端 x-rpc-device_model'''
-    X_RPC_DEVICE_MODEL_MISSION: str = "Mi 10"
+    X_RPC_DEVICE_MODEL_MISSION: str = "MI 8 SE"
     '''安卓端 米游币任务 x-rpc-device_model'''
 
     X_RPC_DEVICE_NAME_MOBILE: str = "iPhone"
     '''移动端 x-rpc-device_name'''
     X_RPC_DEVICE_NAME_PC: str = "Microsoft Edge 103.0.1264.62"
     '''桌面端 x-rpc-device_name'''
-    X_RPC_DEVICE_NAME_MISSION: str = "Mi 10"
+    X_RPC_DEVICE_NAME_MISSION: str = "Xiaomi MI 8 SE"
     '''安卓端 米游币任务 x-rpc-device_name'''
 
     X_RPC_SYS_VERSION: str = "15.1"
     '''Headers所用的 x-rpc-sys_version'''
-    X_RPC_SYS_VERSION_MISSION: str = "12"
+    X_RPC_SYS_VERSION_MISSION: str = "11"
     '''安卓端 米游币任务 x-rpc-sys_version'''
 
     X_RPC_CHANNEL: str = "appstore"
@@ -51,7 +51,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_MISSION: str = "miyousheluodi"
     '''安卓端 米游币任务 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.34.1"
+    X_RPC_APP_VERSION: str = "2.29.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
