@@ -18,6 +18,8 @@ URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySTo
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
 URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
+URL_DEVICE_LOGIN = "https://bbs-api.mihoyo.com/apihub/api/deviceLogin"
+URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
 
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
@@ -76,6 +78,22 @@ HEADERS_MYB = {
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
+}
+HEADERS_DEVICE = {
+    "DS": None,
+    "x-rpc-client_type": "2",
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
+    "x-rpc-channel": "miyousheluodi",
+    "x-rpc-device_id": None,
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MISSION,
+    "Referer": "https://app.mihoyo.com",
+    "Content-Type": "application/json; charset=UTF-8",
+    "Host": "bbs-api.mihoyo.com",
+    "Connection": "Keep-Alive",
+    "Accept-Encoding": "gzip",
+    "User-Agent": conf.device.USER_AGENT_MISSION
 }
 
 
@@ -336,6 +354,83 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
         logger.error(conf.LOG_HEAD + "获取用户米游币 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
+
+
+async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -1, -2, -3]:
+    """
+    设备登录(deviceLogin)(适用于安卓设备)
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
+
+    - 若返回 `1` 说明成功
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
+    try:
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_DEVICE_LOGIN, headers=HEADERS_DEVICE, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "设备登录 - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                if res.json()["message"] != "OK":
+                    return -2
+                else:
+                    return 1
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "设备登录 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "设备登录 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
+
+
+async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -1, -2, -3]:
+    """
+    设备保存(saveDevice)(适用于安卓设备)
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
+
+    - 若返回 `1` 说明成功
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
+    try:
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_DEVICE_SAVE, headers=HEADERS_DEVICE, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "设备保存 - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                if res.json()["message"] != "OK":
+                    return -2
+                else:
+                    return 1
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "设备保存 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "设备保存 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
+
 
 driver = nonebot.get_driver()
 
