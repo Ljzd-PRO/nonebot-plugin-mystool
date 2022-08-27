@@ -303,7 +303,7 @@ class Action:
                                 logger.debug(conf.LOG_HEAD +
                                              "网络请求返回: {}".format(res.text))
                                 return -1
-                            if res.json()["data"] != "OK":
+                            if res.json()["message"] != "OK":
                                 raise ValueError
                             count += 1
                 except KeyError and ValueError:
