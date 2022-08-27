@@ -164,7 +164,8 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message='⚠️请求失败，请重新尝试')
                 return
             gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
-            await bot.send_private_msg(user_id=qq, message=f'账户 {account.phone} 开始执行米游币任务')
+            if not IsAuto:
+                await bot.send_private_msg(user_id=qq, message=f'账户 {account.phone} 开始执行米游币任务')
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
