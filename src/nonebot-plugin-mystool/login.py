@@ -166,9 +166,6 @@ class GetCookie:
         await self.client.aclose()
         return 1
 
-    async def __del__(self):
-        await self.client.aclose()
-
 
 get_cookie = on_command(
     conf.COMMAND_START+'cookie', aliases={conf.COMMAND_START+'cookie填写', conf.COMMAND_START+'cookie', conf.COMMAND_START+'login', conf.COMMAND_START+'登录', conf.COMMAND_START+'登陆'}, priority=4, block=True)

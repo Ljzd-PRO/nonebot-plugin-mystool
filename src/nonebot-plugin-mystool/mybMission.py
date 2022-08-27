@@ -367,9 +367,6 @@ class Action:
             return -3
         return 1
 
-    async def __del__(self):
-        await self.client.aclose()
-
     NAME_TO_FUNC: Dict[str, Action_Method] = {
         Mission.SIGN: sign,
         Mission.VIEW: read,
