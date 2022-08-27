@@ -128,7 +128,8 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                         sign_award = month_sign_award[sign_info.totalDays-1]
                         if sign_info.isSign:
                             msg = f"""\
-                                \n{'📱账户 {0} 🎮『{1}』今日签到成功！'.format(account.phone, sign_game_name)}\
+                                \n{'📱账户 {}'.format(account.phone)}\
+                                \n{'🎮『{}』今日签到成功！'.format(sign_game_name)}\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
                                 {sign_award.name} * {sign_award.count}\
