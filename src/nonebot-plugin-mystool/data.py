@@ -304,9 +304,11 @@ class UserData:
                 userdata[str(qq)]["accounts"][num] = account_raw
                 UserData.__set_all(userdata)
                 return
-        # 若找不到，进行新建
-        userdata[str(qq)]["accounts"].append(account_raw)
-        UserData.__set_all(userdata)
+
+        # 若找不到，则使用另一个查找方式，若还是找不到则进行新建
+        if not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
+            userdata[str(qq)]["accounts"].append(account_raw)
+            UserData.__set_all(userdata)
 
     @staticmethod
     def set_cookie(cookie: Dict[str, str], qq: int, by: Union[int, str]):
