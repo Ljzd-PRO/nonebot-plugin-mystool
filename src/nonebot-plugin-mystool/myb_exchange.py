@@ -27,9 +27,9 @@ myb_exchange_plan.__help_name__ = "兑换"
 myb_exchange_plan.__help_info__ = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『/地址』选择你要使用的地址。所需的商品ID可通过命令『/商品』获取。注意，不限兑换时间的商品将不会在此处显示。"
 myb_exchange_plan.__help_msg__ = f"""\
     具体用法：\
-    \n{command} + [商品ID] ➢ 新增兑换计划\
-    \n{command} - [商品ID] ➢ 删除兑换计划\
-    \n{command} 商品 ➢ 查看米游社商品
+    \n{command}+ [商品ID] ➢ 新增兑换计划\
+    \n{command}- [商品ID] ➢ 删除兑换计划\
+    \n{command}商品 ➢ 查看米游社商品
 """.strip()
 
 
@@ -73,11 +73,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
             for goodID in exchange_list:
                 good = await get_good_detail(goodID)
                 msg += """\
-                    -- 商品『{0}』
-                    - 商品ID：{1}
-                    - 商品价格：{2}
-                    - 兑换时间：{3}
-                    - 账户：{4}
+                -- 商品『{0}』
+                - 商品ID：{1}
+                - 商品价格：{2}
+                - 兑换时间：{3}
+                - 账户：{4}
                     """.format(good.name, good.goodID, good.price, good.time, account.phone)
             msg += '\n'
         else:
@@ -215,13 +215,13 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 
 
 @get_good_image.got("content", prompt="""\
-    请发送您要查看的商品类别:
-    - 崩坏3
-    - 原神
-    - 崩坏2
-    - 未定事件簿
-    - 米游社
-    —— 发送“退出”以结束\
+请发送您要查看的商品类别:
+- 崩坏3
+- 原神
+- 崩坏2
+- 未定事件簿
+- 米游社
+—— 发送“退出”以结束\
         """)
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     if arg in ['原神', 'ys']:
