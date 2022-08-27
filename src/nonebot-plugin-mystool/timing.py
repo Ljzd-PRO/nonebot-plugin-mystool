@@ -59,8 +59,8 @@ async def daily_bbs_sign_():
 
 
 manually_bbs_sign = on_command(
-    conf.COMMAND_START+'bbs_sign', aliases={conf.COMMAND_START+'米游社签到', conf.COMMAND_START+'米游币任务', conf.COMMAND_START+'米游币获取', conf.COMMAND_START+'bbssign', conf.COMMAND_START+'任务'}, priority=4, block=True)
-manually_bbs_sign.__help_name__ = '任务'
+    conf.COMMAND_START+'任务', aliases={conf.COMMAND_START+'米游社签到', conf.COMMAND_START+'米游币任务', conf.COMMAND_START+'米游币获取', conf.COMMAND_START+'bbssign', conf.COMMAND_START+'任务'}, priority=4, block=True)
+manually_bbs_sign.__help_name__ = '米游币任务'
 manually_bbs_sign.__help_info__ = '手动进行米游社每日任务，可以查看米游社任务完成情况'
 
 
