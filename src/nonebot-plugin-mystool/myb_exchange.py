@@ -195,8 +195,8 @@ async def exchange(exchange_plan: Exchange, qq: str):
 
 
 get_good_image = on_command(
-    conf.COMMAND_START+'商品列表', aliases={conf.COMMAND_START+'商品图片', conf.COMMAND_START+'米游社商品列表', conf.COMMAND_START+'米游币商品图片'}, priority=4, block=True)
-get_good_image.__help_name__ = "商品列表"
+    conf.COMMAND_START+'商品列表', aliases={conf.COMMAND_START+'商品图片', conf.COMMAND_START+'米游社商品列表', conf.COMMAND_START+'米游币商品图片', conf.COMMAND_START+'商品'}, priority=4, block=True)
+get_good_image.__help_name__ = "商品"
 get_good_image.__help_info__ = "获取当日米游社商品信息，目前共有五个分类可选，分别为（崩坏3，原神，崩坏2，未定事件簿，大别野）。请记住您要兑换的商品的ID，以方便下一步兑换"
 
 
