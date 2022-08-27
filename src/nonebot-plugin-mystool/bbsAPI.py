@@ -369,11 +369,13 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
+    headers = HEADERS_DEVICE.copy()
+    headers["DS"] = generateDS()
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_DEVICE_LOGIN, headers=HEADERS_DEVICE, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.get(URL_DEVICE_LOGIN, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备登录 - 用户 {} 登录失效".format(account.phone))
@@ -407,11 +409,13 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
+    headers = HEADERS_DEVICE.copy()
+    headers["DS"] = generateDS()
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_DEVICE_SAVE, headers=HEADERS_DEVICE, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.get(URL_DEVICE_SAVE, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备保存 - 用户 {} 登录失效".format(account.phone))
