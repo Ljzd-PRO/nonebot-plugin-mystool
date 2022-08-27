@@ -142,7 +142,7 @@ class Action:
     def __init__(self, account: UserAccount) -> None:
         self.account = account
         self.headers = HEADERS.copy()
-        self.headers["x-rpc-device_id"] = account.deviceID
+        self.headers["x-rpc-device_id"] = account.deviceID_2
         self.client = httpx.AsyncClient(cookies=account.cookie)
 
     async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[int, Literal[-1, -2, -3]]:

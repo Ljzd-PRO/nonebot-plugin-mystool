@@ -126,6 +126,8 @@ class UserAccount:
         '''游戏UID'''
         self.deviceID: str = generateDeviceID()
         '''设备 x-rpc-device_id'''
+        self.deviceID_2: str = generateDeviceID()
+        '''设备第二个 x-rpc-device_id(可用于安卓设备)'''
         self.address: Address = None
         '''地址数据'''
         self.bbsUID: str = None
@@ -160,6 +162,7 @@ class UserAccount:
         self.phone: int = account["phone"]
         self.cookie: dict[str, str] = account["cookie"]
         self.deviceID: str = account["xrpcDeviceID"]
+        self.deviceID_2: str = account["xrpcDeviceID_2"]
         self.address = Address(
             account["address"]) if account["address"] else None
         self.bbsUID: str = account["bbsUID"]
@@ -175,6 +178,7 @@ class UserAccount:
             "cookie": self.cookie,
             "gameUID": self.gameUID.to_dict(),
             "xrpcDeviceID": self.deviceID,
+            "xrpcDeviceID_2": self.deviceID_2,
             "address": None,
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
