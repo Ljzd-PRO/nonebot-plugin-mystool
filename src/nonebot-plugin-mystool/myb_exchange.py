@@ -69,7 +69,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                     "\n- 💰商品价格：{2}"\
                     "\n- 📅兑换时间：{3}"\
                     "\n- 📱账户：{4}\n\n".format(good.name, good.goodID,
-                                             good.price, good.time, account.phone)
+                                            good.price, good.time, account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + myb_exchange_plan.__help_msg__)
@@ -169,7 +169,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     if not account.address:
         await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
 
-    if account.exchange and filter(lambda plan: plan[0] == good.goodID and plan[1] == uid, account.exchange):
+    if account.exchange and (good.goodID, uid) in account.exchange:
         await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
     else:
         account.exchange.append((good.goodID, uid))
