@@ -168,9 +168,11 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
+
+        exchange = []
         for plan in account["exchange"]:
-            plan = tuple(plan)
-        self.exchange: List[Tuple[str, str]] = account["exchange"]
+            exchange.append(tuple(plan))
+        self.exchange: List[Tuple[str, str]] = exchange
 
     @property
     def to_dict(self) -> dict:
