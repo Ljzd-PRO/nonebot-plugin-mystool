@@ -91,7 +91,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     if not user_account:
         await get_address.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     else:
-        await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。过程中随时输入“退出”即可退出")
+        await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。过程中随时发送“退出”即可退出")
     if len(user_account) == 1:
         matcher.set_arg('phone', str(user_account[0].phone))
     else:
@@ -111,7 +111,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone in phones:
         account = UserData.read_account(qq_account, int(phone))
     else:
-        get_address.reject('⚠️您输入的账号不在以上账号内，请重新输入')
+        get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
 
     state['address_list']: List[Address] = await get(account)
@@ -123,14 +123,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         await get_address.send("以下为查询结果：")
         for address in state['address_list']:
             address_string = f"""\
-            ----------\
-            \n省：{address.province}\
-            \n市：{address.city}\
-            \n区/县：{address.county}\
-            \n详细地址：{address.detail}\
-            \n联系电话：{address.phone}\
-            \n联系人：{address.name}\
-            \n地址ID：{address.addressID}\
+            \n省 ➢ {address.province}\
+            \n市 ➢ {address.city}\
+            \n区/县 ➢ {address.county}\
+            \n详细地址 ➢ {address.detail}\
+            \n联系电话 ➢ {address.phone}\
+            \n联系人 ➢ {address.name}\
+            \n地址ID ➢ {address.addressID}\
             """.strip()
             await get_address.send(address_string)
             await asyncio.sleep(0.2)
@@ -138,7 +137,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         await get_address.finish("⚠️您还没有配置地址，请先前往米游社配置地址！")
 
 
-@get_address.got('address_id', prompt='请输入你要选择的地址ID')
+@get_address.got('address_id', prompt='请发送你要选择的地址ID')
 async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await get_address.finish("已成功退出")
@@ -148,6 +147,6 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText(
         account: UserAccount = state["account"]
         account.address = result_address[0]
         UserData.set_account(account, state['qq_account'], account.phone)
-        await get_address.finish("地址写入完成")
+        await get_address.finish("🎉已成功设置账户 {} 的地址".format(account.phone))
     else:
-        await get_address.reject("⚠️您输入的地址ID与查询结果不匹配，请重新输入")
+        await get_address.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")
