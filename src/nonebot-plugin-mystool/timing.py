@@ -171,13 +171,20 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
+                if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
+                        missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
+                        missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and\
+                        missions_state[0][3][1] >= missions_state[0][3][0].totalTimes:
+                    notice_string = "🎉已完成今日米游币任务"
+                else:
+                    notice_string = "⚠️今日米游币任务未全部完成"
                 msg = f"""\
-                    \n🎉账户 {account.phone} 米游币任务执行完成！\
-                    \n执行结果：\
-                    \n签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
-                    \n阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
-                    \n点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
-                    \n转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
+                    \n{notice_string}\
+                    \n账户『{account.phone}』\
+                    \n- 签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes else '✕'}\
+                    \n- 阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].totalTimes else '✕'}\
+                    \n- 点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].totalTimes else '✕'}\
+                    \n- 转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].totalTimes else '✕'}\
                 \n💰米游币: {missions_state[1]}
                 """.strip()
                 await bot.send_msg(
