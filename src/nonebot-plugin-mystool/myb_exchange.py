@@ -27,8 +27,8 @@ myb_exchange_plan.__help_name__ = "兑换"
 myb_exchange_plan.__help_info__ = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『/地址』选择你要使用的地址。所需的商品ID可通过命令『/商品』获取。注意，不限兑换时间的商品将不会在此处显示。"
 myb_exchange_plan.__help_msg__ = f"""\
     具体用法：\
-    \n{command}+ [商品ID] ➢ 新增兑换计划\
-    \n{command}- [商品ID] ➢ 删除兑换计划\
+    \n{command}兑换 + [商品ID] ➢ 新增兑换计划\
+    \n{command}兑换 - [商品ID] ➢ 删除兑换计划\
     \n{command}商品 ➢ 查看米游社商品
 """.strip()
 
@@ -67,11 +67,12 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     state['account'] = account
     if not matcher.get_arg('content'):
         state['account'] = account
-        exchange_list = account.exchange
         msg = ''
-        if exchange_list:
-            for goodID in exchange_list:
-                good = await get_good_detail(goodID)
+        if account.exchange:
+            for plan in account.exchange:
+                good = await get_good_detail(plan[0])
+                if not good:
+                    await matcher.finish("⚠️获取商品详情失败，请稍后再试")
                 msg += """\
                 -- 商品『{0}』
                 - 商品ID：{1}
@@ -160,7 +161,6 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
             await matcher.send('⚠️您已经配置过该商品的兑换哦！此次配置将会覆盖原来的记录')
             account.exchange.remove(exchange_plan)
     account.exchange.append((good.goodID, uid))
-    UserData.set_account(account, event.user_id, phone)
     exchange_plan = await Exchange(account, good.goodID, uid).async_init()
     if exchange_plan.result == -1:
         await matcher.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
@@ -177,6 +177,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, bot: B
     else:
         scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=exchange,
                           args=(exchange_plan, qq), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
+    UserData.set_account(account, event.user_id, phone)
     await matcher.finish(f'🎉设置兑换计划成功！将于 {good.time} 开始兑换，到时将会私聊告知您兑换结果')
 
 

@@ -3,7 +3,7 @@
 """
 import json
 import traceback
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import nonebot
 from nonebot.log import logger
@@ -136,8 +136,8 @@ class UserAccount:
         '''是否开启米游币任务计划'''
         self.gameSign: bool = True
         '''是否开启米游社游戏签到计划'''
-        self.exchange: List[str] = []
-        '''计划兑换的商品'''
+        self.exchange: List[Tuple[str, str]] = []
+        '''计划兑换的商品( 元组(商品ID, 游戏UID) )'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -168,7 +168,7 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
-        self.exchange: List[str] = account["exchange"]
+        self.exchange: List[Tuple[str, str]] = account["exchange"]
 
     @property
     def to_dict(self) -> dict:
