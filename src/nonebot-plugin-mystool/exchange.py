@@ -368,7 +368,7 @@ class Exchange:
             try:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(
-                        URL_EXCHANGE, headers=headers, cookies=self.account.cookie, timeout=conf.TIME_OUT)
+                        URL_EXCHANGE, headers=headers, json=self.content, cookies=self.account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
