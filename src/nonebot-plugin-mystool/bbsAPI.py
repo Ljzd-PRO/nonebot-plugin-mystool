@@ -376,7 +376,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_DEVICE_LOGIN, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_LOGIN, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备登录 - 用户 {} 登录失效".format(account.phone))
@@ -417,7 +417,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_DEVICE_SAVE, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_SAVE, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备保存 - 用户 {} 登录失效".format(account.phone))
