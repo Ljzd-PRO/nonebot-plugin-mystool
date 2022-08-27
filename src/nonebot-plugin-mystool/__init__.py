@@ -34,7 +34,7 @@ __plugin_meta__ = PluginMetadata(
     name="❖米游社小助手插件❖\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage="""
-    /登录 ➢ 跟随指引获取cookie\
+    /登录 ➢ 跟随指引获取绑定米游社账户\
     \n/地址 ➢ 获取地址ID\
     \n/设置 ➢ 配置签到、播报相关选项\
     \n/签到 ➢ 手动进行米哈游游戏签到\
@@ -42,7 +42,7 @@ __plugin_meta__ = PluginMetadata(
     \n/兑换 ➢ 进行米游社商品兑换\
     \n/商品 ➢ 查看米游社当前商品\
     \n/帮助 ➢ 查看帮助\
-    \n/帮助 <功能名> ➢ 查看某一用法具体帮助
+    \n/帮助 <功能名> ➢ 查看目标功能详细说明
     """.strip(),
     extra="🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
 )

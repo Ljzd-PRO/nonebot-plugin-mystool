@@ -17,9 +17,9 @@ COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
-    欢迎使用米游社小助手帮助系统！\
-    \n{COMMAND}帮助 -> 获取米游社小助手可调用帮助\
-    \n{COMMAND}帮助 <功能名> -> 调取目标功能帮助信息\
+    🍺欢迎使用米游社小助手帮助系统！\
+    \n{COMMAND}帮助 ➢ 查看米游社小助手使用说明\
+    \n{COMMAND}帮助 <功能名> ➢ 查看目标功能详细说明\
 '''.strip()
 
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
@@ -36,6 +36,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, arg
 @helper.got('content')
 async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
     arg = content.extract_plain_text().strip()
+    # 相似词
     if arg == '登陆':
         arg == '登录'
     matchers = PLUGIN.matcher
