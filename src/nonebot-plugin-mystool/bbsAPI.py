@@ -84,7 +84,7 @@ HEADERS_DEVICE = {
     "x-rpc-client_type": "2",
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
-    "x-rpc-channel": "miyousheluodi",
+    "x-rpc-channel": conf.device.X_RPC_CHANNEL_MISSION,
     "x-rpc-device_id": None,
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MISSION,
@@ -369,14 +369,22 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
+    data = {
+        "app_version": conf.device.X_RPC_APP_VERSION,
+        "device_id": account.deviceID_2,
+        "device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+        "os_version": "30",
+        "platform": "Android",
+        "registration_id": "1a0018970a5c00e814d"
+    }
     headers = HEADERS_DEVICE.copy()
-    headers["DS"] = generateDS()
+    headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(URL_DEVICE_LOGIN, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备登录 - 用户 {} 登录失效".format(account.phone))
@@ -410,14 +418,22 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
     """
+    data = {
+        "app_version": conf.device.X_RPC_APP_VERSION,
+        "device_id": account.deviceID_2,
+        "device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+        "os_version": "30",
+        "platform": "Android",
+        "registration_id": "1a0018970a5c00e814d"
+    }
     headers = HEADERS_DEVICE.copy()
-    headers["DS"] = generateDS()
+    headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(URL_DEVICE_SAVE, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "设备保存 - 用户 {} 登录失效".format(account.phone))
