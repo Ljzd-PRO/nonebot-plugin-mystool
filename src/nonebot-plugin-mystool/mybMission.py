@@ -12,6 +12,7 @@ from nonebot.log import logger
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import check_login, custom_attempt_times, generateDS
+from .bbsAPI import device_login, device_save
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
@@ -144,6 +145,14 @@ class Action:
         self.headers = HEADERS.copy()
         self.headers["x-rpc-device_id"] = account.deviceID_2
         self.client = httpx.AsyncClient(cookies=account.cookie)
+
+    async def async_init(self):
+        """
+        初始化米游币任务(异步，返回`self`对象)(执行deviceLogin和saveDevice)
+        """
+        await device_login(self.account)
+        await device_save(self.account)
+        return self
 
     async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[int, Literal[-1, -2, -3]]:
         """

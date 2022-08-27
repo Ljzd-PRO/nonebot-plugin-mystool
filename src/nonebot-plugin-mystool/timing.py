@@ -143,7 +143,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         missions_state = await get_missions_state(account)
-        mybmission = Action(account)
+        mybmission = await Action(account).async_init()
         if isinstance(missions_state, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
