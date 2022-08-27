@@ -2,7 +2,7 @@
 ### 米游社游戏签到相关
 """
 import traceback
-from typing import List, Literal
+from typing import List, Literal, Union
 
 import httpx
 import tenacity
@@ -176,9 +176,9 @@ class GameSign:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True):
+    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[Info, Literal[-1, -2, -3, -4]]:
         """
-        获取签到记录
+        获取签到记录，返回Info对象
 
         参数:
             `game`: 目标游戏缩写
@@ -232,7 +232,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, retry: bool = True):
+    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5]:
         """
         签到
 
@@ -246,6 +246,7 @@ class GameSign:
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
         - 若返回 `-4` 说明暂不支持该游戏
+        - 若返回 `-5` 说明可能被验证码阻拦
         """
         if game not in ("ys", "bh3"):
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
@@ -273,6 +274,12 @@ class GameSign:
                                      "网络请求返回: {}".format(res.text))
                         return -1
                     self.signResult = res.json()
+                    if self.signResult["data"]["risk_code"] != 0:
+                        logger.warning(
+                            conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
+                        logger.debug(conf.LOG_HEAD +
+                                     "网络请求返回: {}".format(res.text))
+                        return -5
                     return 1
         except KeyError:
             logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
