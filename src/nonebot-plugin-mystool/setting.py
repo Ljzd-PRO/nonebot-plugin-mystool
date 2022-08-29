@@ -4,7 +4,7 @@ from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
-from nonebot.params import ArgPlainText, T_State
+from nonebot.params import ArgPlainText, T_State, Arg
 
 from .config import mysTool_config as conf
 from .data import *
@@ -38,7 +38,9 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 
 @account_setting.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone: Message = ArgPlainText('phone')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone = Arg()):
+    if isinstance(phone, Message):
+        phone = phone.extract_plain_text().strip()
     if phone == '退出':
         await matcher.finish('已成功退出')
     user_account = state['user_account']
@@ -55,7 +57,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone:
 
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, state: T_State, arg: Message = ArgPlainText('arg')):
+async def _(event: PrivateMessageEvent, state: T_State, arg = ArgPlainText('arg')):
     account = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
