@@ -56,7 +56,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
 
 
-@daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
+@daily_bbs_sign.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_bbs_sign")
 async def daily_bbs_sign_():
     """
     自动米游币任务函数
@@ -86,7 +86,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
 update_timing = nonebot_plugin_apscheduler.scheduler
 
 
-@update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
+@update_timing.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_update")
 async def daily_update():
     """
     每日图片生成函数

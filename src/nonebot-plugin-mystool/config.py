@@ -111,6 +111,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''GitHub代理加速服务器(若为None则不启用代理)'''
     PLUGIN_NAME: str = "nonebot-plugin-mystool"
     '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
+    SIGN_TIME: str = "00:00"
+    '''每日自动签到，米游社任务时间，格式为HH:MM'''
 
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()
