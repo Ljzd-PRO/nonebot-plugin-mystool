@@ -106,7 +106,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
 
     LOG_SAVE: bool = True
-    '''是否输出日志到文件(只会输出本插件的日志)'''
+    '''是否输出日志到文件(将会输出NoneBot全部日志)'''
     LOG_PATH: Path = PATH / "mystool.log"
     '''日志保存路径'''
     LOG_ROTATION: Union[str, int, time, timedelta, "RotationFunction"] = "1 week"
