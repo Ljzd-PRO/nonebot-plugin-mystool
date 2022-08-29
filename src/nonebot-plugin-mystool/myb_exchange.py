@@ -20,18 +20,18 @@ from .utils import NtpTime
 
 driver = get_driver()
 
-command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 myb_exchange_plan = on_command(
     conf.COMMAND_START+'兑换', aliases={conf.COMMAND_START+'myb_exchange', conf.COMMAND_START+'米游币兑换', conf.COMMAND_START+'米游币兑换计划', conf.COMMAND_START+'兑换计划', conf.COMMAND_START+'兑换'}, priority=4, block=True)
 myb_exchange_plan.__help_name__ = "兑换"
 myb_exchange_plan.__help_info__ = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『/地址』选择你要使用的地址。所需的商品ID可通过命令『/商品』获取。注意，不限兑换时间的商品将不会在此处显示。"
-myb_exchange_plan.__help_msg__ = f"""\
-    具体用法：\
-    \n{command}兑换 + <商品ID> ➢ 新增兑换计划\
-    \n{command}兑换 - <商品ID> ➢ 删除兑换计划\
-    \n{command}商品 ➢ 查看米游社商品
-""".strip()
+myb_exchange_plan.__help_msg__ = """\
+具体用法：
+{}兑换 + <商品ID> ➢ 新增兑换计划
+{}兑换 - <商品ID> ➢ 删除兑换计划
+{}商品 ➢ 查看米游社商品\
+""".format(COMMAND)
 
 
 @myb_exchange_plan.handle()
@@ -65,13 +65,15 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 good = await get_good_detail(plan[0])
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-                msg += "-- 商品 {0}"\
-                    "\n- 🔢商品ID：{1}"\
-                    "\n- 💰商品价格：{2}"\
-                    "\n- 📅兑换时间：{3}"\
-                    "\n- 📱账户：{4}\n\n".format(good.name, good.goodID,
-                                             good.price, time.strftime("%Y-%m-%d %H:%M:%S",
-                                                                       time.localtime(good.time)), account.phone)
+                msg += """\
+                -- 商品 {0}
+                - 🔢商品ID：{1}
+                - 💰商品价格：{2}
+                - 📅兑换时间：{3}
+                - 📱账户：{4}\n\n\
+                    """.format(good.name, good.goodID,
+                               good.price, time.strftime("%Y-%m-%d %H:%M:%S",
+                                                         time.localtime(good.time)), account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + myb_exchange_plan.__help_msg__)
@@ -238,13 +240,15 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         matcher.set_arg("content", arg)
 
 
-@get_good_image.got("content", prompt="请发送您要查看的商品类别:"
-                    "\n- 崩坏3"
-                    "\n- 原神"
-                    "\n- 崩坏2"
-                    "\n- 未定事件簿"
-                    "\n- 米游社"
-                    "\n—— 发送“退出”以结束")
+@get_good_image.got("content", prompt="""\
+请发送您要查看的商品类别:"
+- 崩坏3
+- 原神
+- 崩坏2
+- 未定事件簿
+- 米游社
+—— 发送“退出”以结束\
+        """)
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
