@@ -70,10 +70,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
 - 🔢商品ID：{1}
 - 💰商品价格：{2}
 - 📅兑换时间：{3}
-- 📱账户：{4}\n\n\
-                    """.format(good.name, good.goodID,
-                               good.price, time.strftime("%Y-%m-%d %H:%M:%S",
-                                                         time.localtime(good.time)), account.phone)
+- 📱账户：{4}\n\n""".format(good.name, good.goodID,
+                        good.price, time.strftime("%Y-%m-%d %H:%M:%S",
+                                                  time.localtime(good.time)), account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + myb_exchange_plan.__help_msg__)
