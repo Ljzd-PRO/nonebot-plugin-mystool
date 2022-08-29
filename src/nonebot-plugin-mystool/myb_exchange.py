@@ -98,7 +98,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     """
     处理三级命令，即商品ID
     """
-    content = matcher.get_arg('content').extract_plain_text().strip()
+    content = matcher.get_arg('content').strip()
     account: UserAccount = state['account']
     arg = [content[0], content[1:].strip()]
     good_dict = {
