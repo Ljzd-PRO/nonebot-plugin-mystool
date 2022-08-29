@@ -119,7 +119,7 @@ class Good:
         return self.good_dict["price"]
 
     @property
-    def time(self) -> str:
+    def time(self) -> Union[int, None]:
         """
         兑换时间
         """
@@ -128,8 +128,7 @@ class Good:
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
         else:
-            return time.strftime("%Y-%m-%d %H:%M:%S",
-                                 time.localtime(self.good_dict["next_time"]))
+            return self.good_dict["next_time"]
 
     @property
     def num(self) -> int:
@@ -482,7 +481,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             if good.time is None:
                 start_time = "不限"
             else:
-                start_time = good.time
+                start_time = time.strftime("%Y-%m-%d %H:%M:%S",
+                                           time.localtime(good.time))
             draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
                       "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
             draw_y += (conf.goodListImage.ICON_SIZE[1] +

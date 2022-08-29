@@ -2,7 +2,7 @@
 ### 米游社收货地址相关前端
 """
 import asyncio
-import datetime
+from datetime import datetime
 
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageEvent, MessageSegment,
@@ -16,6 +16,7 @@ from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import *
 from .gameSign import GameInfo
+from .utils import NtpTime
 
 driver = get_driver()
 
@@ -69,7 +70,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                     "\n- 💰商品价格：{2}"\
                     "\n- 📅兑换时间：{3}"\
                     "\n- 📱账户：{4}\n\n".format(good.name, good.goodID,
-                                            good.price, good.time, account.phone)
+                                             good.price, time.strftime("%Y-%m-%d %H:%M:%S",
+                                                                       time.localtime(good.time)), account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + myb_exchange_plan.__help_msg__)
@@ -191,11 +193,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
         scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=exchange,
-                          args=(exchange_plan, event.user_id), next_run_time=datetime.datetime.strptime(good.time, "%Y-%m-%d %H:%M:%S"))
+                          args=(exchange_plan, event.user_id), next_run_time=good.time)
 
     UserData.set_account(account, event.user_id, account.phone)
 
-    await matcher.finish(f'🎉设置兑换计划成功！将于 {good.time} 开始兑换，到时将会私聊告知您兑换结果')
+    await matcher.finish(f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
 
 
 async def exchange(exchange_plan: Exchange, qq: str):
@@ -280,10 +282,10 @@ async def load_exchange_data():
             exchange_list = account.exchange
             for exchange_good in exchange_list:
                 good_detail = await get_good_detail(exchange_good[0])
-                if good_detail.time < datetime.datetime.now():
+                if good_detail.time < NtpTime.time():
                     # 若重启时兑换超时则删除该兑换
                     account.exchange.remove(exchange_good)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
                     scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
-                        exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
+                        exchange_plan, qq), next_run_time=good_detail.time)
