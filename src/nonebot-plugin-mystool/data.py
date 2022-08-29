@@ -212,8 +212,8 @@ class UserData:
         """
         return json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
 
-    @staticmethod
-    def read_account(qq: int, by: Union[int, str]):
+    @classmethod
+    def read_account(cls, qq: int, by: Union[int, str]):
         """
         获取用户的某个米游社帐号数据
 
@@ -226,7 +226,7 @@ class UserData:
         else:
             by_type = "phone"
         try:
-            for account in UserData.read_all()[str(qq)]["accounts"]:
+            for account in cls.read_all()[str(qq)]["accounts"]:
                 if account[by_type] == by:
                     userAccount = UserAccount()
                     userAccount.get(account)
@@ -235,8 +235,8 @@ class UserData:
             pass
         return None
 
-    @staticmethod
-    def read_account_all(qq: int) -> Union[List[UserAccount], None]:
+    @classmethod
+    def read_account_all(cls, qq: int) -> Union[List[UserAccount], None]:
         """
         获取用户的所有米游社帐号数据
 
@@ -245,7 +245,7 @@ class UserData:
         """
         accounts = []
         try:
-            accounts_raw = UserData.read_all()[str(qq)]["accounts"]
+            accounts_raw = cls.read_all()[str(qq)]["accounts"]
         except KeyError:
             return None
         for account_raw in accounts_raw:
@@ -284,8 +284,26 @@ class UserData:
         userdata[str(qq)]["accounts"].append(account)
         return userdata
 
-    @staticmethod
-    def set_account(account: UserAccount, qq: int, by: Union[int, str]):
+    @classmethod
+    def del_user(cls, qq: int):
+        """
+        删除某个QQ用户数据
+
+        参数:
+            `qq`: 用户的QQ号
+
+        若未找到返回`False`，否则返回`True`
+        """
+        userdata = cls.read_all()
+        try:
+            userdata.pop(str(qq))
+        except KeyError:
+            return False
+        cls.__set_all(userdata)
+        return True
+
+    @classmethod
+    def set_account(cls, account: UserAccount, qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号信息
 
@@ -295,27 +313,52 @@ class UserData:
             `by`: 索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict
-        userdata = UserData.read_all()
+        userdata = cls.read_all()
         if isinstance(by, str):
             by_type = "name"
         else:
             by_type = "phone"
         if qq not in userdata:
-            userdata = UserData.__create_user(userdata, qq)
+            userdata = cls.__create_user(userdata, qq)
 
         for num in range(0, len(userdata[str(qq)]["accounts"])):
             if userdata[str(qq)]["accounts"][num][by_type] == by:
                 userdata[str(qq)]["accounts"][num] = account_raw
-                UserData.__set_all(userdata)
+                cls.__set_all(userdata)
                 return
 
         # 若找不到，则使用另一个查找方式，若还是找不到则进行新建
         if not userdata[str(qq)]["accounts"] or not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
             userdata[str(qq)]["accounts"].append(account_raw)
-            UserData.__set_all(userdata)
+            cls.__set_all(userdata)
 
-    @staticmethod
-    def set_cookie(cookie: Dict[str, str], qq: int, by: Union[int, str]):
+    @classmethod
+    def del_account(cls, qq: int, by: Union[int, str]):
+        """
+        删除QQ用户的某个米哈游账号
+
+        参数:
+            `qq`: 用户的QQ号
+            `by`: 索引依据，可为备注名或手机号
+
+        若未找到返回`False`，否则返回`True`
+        """
+        if isinstance(by, str):
+            by_type = "name"
+        else:
+            by_type = "phone"
+            by = str(by)
+        userdata = cls.read_all()
+        try:
+            account_list: List[dict] = userdata[str(qq)]["accounts"]
+            account_list.remove(list(filter(lambda account: account[by_type] == by, account_list))[0])
+        except KeyError and IndexError:
+            return False
+        cls.__set_all(userdata)
+        return True
+
+    @classmethod
+    def set_cookie(cls, cookie: Dict[str, str], qq: int, by: Union[int, str]):
         """
         设置用户的某个米游社帐号的Cookie
 
@@ -324,7 +367,7 @@ class UserData:
             `qq`: 要设置的用户的QQ号
             `by`: 索引依据，可为备注名或手机号
         """
-        userdata = UserData.read_all()
+        userdata = cls.read_all()
         name, phone = None, None
         if isinstance(by, str):
             by_type = "name"
@@ -333,7 +376,7 @@ class UserData:
             by_type = "phone"
             phone = by
         if qq not in userdata:
-            userdata = UserData.__create_user(userdata, qq)
+            userdata = cls.__create_user(userdata, qq)
 
         def action() -> bool:
             for account in userdata[str(qq)]["accounts"]:
@@ -344,12 +387,12 @@ class UserData:
                             account["bbsUID"] = cookie[item]
                             break
                     account["cookie"].setdefault("stuid", account["bbsUID"])
-                    UserData.__set_all(userdata)
+                    cls.__set_all(userdata)
                     return True
             return False
 
         while not action():
-            userdata = UserData.__create_account(userdata, qq, name, phone)
+            userdata = cls.__create_account(userdata, qq, name, phone)
 
     @classmethod
     def isNotice(cls, qq: int) -> Union[bool, None]:
@@ -359,7 +402,7 @@ class UserData:
         参数:
             `qq`: 用户QQ号
         """
-        userdata = UserData.read_all()
+        userdata = cls.read_all()
         qq = str(qq)
         if qq not in userdata:
             return None
@@ -381,13 +424,13 @@ class UserData:
             `True`: 成功写入
             `False`: 写入失败，可能是不存在用户
         """
-        userdata = UserData.read_all()
+        userdata = cls.read_all()
         try:
             if cls.__OPTION_NOTICE not in userdata[qq]:
                 userdata[qq].setdefault(cls.__OPTION_NOTICE, isNotice)
             else:
                 userdata[qq][cls.__OPTION_NOTICE] = isNotice
-            UserData.__set_all(userdata)
+            cls.__set_all(userdata)
             return True
         except KeyError:
             return False
