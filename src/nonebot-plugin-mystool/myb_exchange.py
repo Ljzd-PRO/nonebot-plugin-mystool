@@ -246,8 +246,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 - 崩坏2
 - 未定事件簿
 - 米游社
-—— 发送“退出”以结束\
-        """)
+—— 发送“退出”以结束""")
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
