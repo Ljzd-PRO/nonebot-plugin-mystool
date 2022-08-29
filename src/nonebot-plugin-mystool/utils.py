@@ -8,7 +8,7 @@ import string
 import time
 import traceback
 import uuid
-from typing import Dict, Literal, Union
+from typing import TYPE_CHECKING, Dict, Literal, Union
 from urllib.parse import urlencode
 
 import httpx
@@ -16,10 +16,12 @@ import nonebot
 import nonebot.log
 import ntplib
 import tenacity
-from loguru import Logger
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
+
+if TYPE_CHECKING:
+    from loguru import Logger
 
 SALT_IOS = "N50pqm7FSy2AkFz2B3TqtuZMJ5TOl3Ep"
 '''iOS 设备生成 DS 所需的 salt'''
@@ -30,14 +32,18 @@ SALT_NEW = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
 
 driver = nonebot.get_driver()
 
-def set_logger(logger: Logger):
+
+def set_logger(logger: "Logger"):
     """
     给日志记录器对象增加输出到文件的Handler
     """
-    logger.add(conf.LOG_PATH, level=0, diagnose=False, format=nonebot.log.default_format, filter=nonebot.log.default_filter, rotation=conf.LOG_ROTATION)
+    logger.add(conf.LOG_PATH, level=0, diagnose=False, format=nonebot.log.default_format,
+               filter=nonebot.log.default_filter, rotation=conf.LOG_ROTATION)
     return logger
 
+
 logger = set_logger(logger)
+
 
 class NtpTime:
     """
