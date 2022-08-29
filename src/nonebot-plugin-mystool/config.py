@@ -3,11 +3,13 @@
 """
 from datetime import time, timedelta
 from pathlib import Path
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
-from loguru import RotationFunction
 from nonebot import get_driver
 from pydantic import BaseModel, Extra
+
+if TYPE_CHECKING:
+    from loguru import RotationFunction
 
 ROOT_PATH = Path(__name__).parent.absolute()
 '''NoneBot 机器人根目录'''
@@ -107,7 +109,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''是否输出日志到文件(只会输出本插件的日志)'''
     LOG_PATH: Path = PATH / "mystool.log"
     '''日志保存路径'''
-    LOG_ROTATION: Union[str, int, time, timedelta, RotationFunction] = "1 week"
+    LOG_ROTATION: Union[str, int, time, timedelta, "RotationFunction"] = "1 week"
     '''日志保留时长(需要按照格式设置)'''
 
     NTP_SERVER: str = "ntp.aliyun.com"
