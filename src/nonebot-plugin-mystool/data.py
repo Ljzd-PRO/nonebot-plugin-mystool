@@ -6,11 +6,12 @@ import traceback
 from typing import Dict, List, Tuple, Union
 
 import nonebot
+import nonebot.log
 from nonebot.log import logger
 
 from .config import PATH
 from .config import mysTool_config as conf
-from .utils import generateDeviceID
+from .utils import generateDeviceID, logger
 
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "userdata.json"
@@ -351,7 +352,8 @@ class UserData:
         userdata = cls.read_all()
         try:
             account_list: List[dict] = userdata[str(qq)]["accounts"]
-            account_list.remove(list(filter(lambda account: account[by_type] == by, account_list))[0])
+            account_list.remove(
+                list(filter(lambda account: account[by_type] == by, account_list))[0])
         except KeyError and IndexError:
             return False
         cls.__set_all(userdata)

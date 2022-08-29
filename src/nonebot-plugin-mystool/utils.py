@@ -13,8 +13,10 @@ from urllib.parse import urlencode
 
 import httpx
 import nonebot
+import nonebot.log
 import ntplib
 import tenacity
+from loguru import Logger
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
@@ -28,6 +30,14 @@ SALT_NEW = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
 
 driver = nonebot.get_driver()
 
+def set_logger(logger: Logger):
+    """
+    给日志记录器对象增加输出到文件的Handler
+    """
+    logger.add(conf.LOG_PATH, level=0, diagnose=False, format=nonebot.log.default_format, filter=nonebot.log.default_filter, rotation=conf.LOG_ROTATION)
+    return logger
+
+logger = set_logger(logger)
 
 class NtpTime:
     """

@@ -6,12 +6,11 @@ from typing import List, Literal, Union
 
 import httpx
 import tenacity
-from nonebot.log import logger
 
 from .bbsAPI import GameInfo, GameRecord, get_game_record
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDS
+from .utils import check_login, custom_attempt_times, generateDS, logger
 
 ACT_ID = {
     "ys": "e202009291139501",

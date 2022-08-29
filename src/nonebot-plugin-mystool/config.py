@@ -1,9 +1,11 @@
 """
 ### 插件配置相关
 """
+from datetime import time, timedelta
 from pathlib import Path
 from typing import Tuple, Union
 
+from loguru import RotationFunction
 from nonebot import get_driver
 from pydantic import BaseModel, Extra
 
@@ -93,8 +95,21 @@ class Config(BaseModel, extra=Extra.ignore):
     '''文件读写编码'''
     MAX_USER: int = 10
     '''支持最多用户数'''
+
+    COMMAND_START: str = ""
+    '''插件内部命令头(若为""空字符串则不启用)'''
+    PLUGIN_NAME: str = "nonebot-plugin-mystool"
+    '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
     LOG_HEAD: str = ""
     '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
+
+    LOG_SAVE: bool = True
+    '''是否输出日志到文件(只会输出本插件的日志)'''
+    LOG_PATH: Path = PATH / "mystool.log"
+    '''日志保存路径'''
+    LOG_ROTATION: Union[str, int, time, timedelta, RotationFunction] = "1 week"
+    '''日志保留时长(需要按照格式设置)'''
+
     NTP_SERVER: str = "ntp.aliyun.com"
     '''NTP服务器，用于获取网络时间'''
     MAX_RETRY_TIMES: int = 5
@@ -105,14 +120,11 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求出错的重试冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
-    COMMAND_START: str = ""
-    '''插件内部命令头(若为""空字符串则不启用)'''
     GITHUB_PROXY: Union[str, None] = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为None则不启用代理)'''
-    PLUGIN_NAME: str = "nonebot-plugin-mystool"
-    '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
-    SIGN_TIME: str = "00:00"
-    '''每日自动签到，米游社任务时间，格式为HH:MM'''
+
+    SIGN_TIME: str = "00:35"
+    '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
 
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()

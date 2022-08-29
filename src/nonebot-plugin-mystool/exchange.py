@@ -10,7 +10,6 @@ from typing import List, Literal, NewType, Tuple, Union
 
 import httpx
 import tenacity
-from nonebot.log import logger
 from PIL import Image, ImageDraw, ImageFont
 
 from .bbsAPI import GameRecord, get_game_record
@@ -18,7 +17,7 @@ from .config import PATH
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import (check_login, custom_attempt_times, generateDeviceID,
-                    get_file)
+                    get_file, logger)
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"

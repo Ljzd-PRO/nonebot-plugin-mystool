@@ -7,11 +7,10 @@ from typing import Any, Dict, List, Literal, NewType, Tuple, Union
 
 import httpx
 import tenacity
-from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDS
+from .utils import check_login, custom_attempt_times, generateDS, logger
 from .bbsAPI import device_login, device_save
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
