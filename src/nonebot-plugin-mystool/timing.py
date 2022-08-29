@@ -28,10 +28,13 @@ daily_game_sign = nonebot_plugin_apscheduler.scheduler
 
 @daily_game_sign.scheduled_job("cron", hour='0', minute='00', id="daily_game_sign")
 async def daily_game_sign_():
+    """
+    自动游戏签到函数
+    """
     bot = get_bot()
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        await send_game_sign_msg(bot=bot, qq=qq, IsAuto=True)
+        await perform_game_sign(bot=bot, qq=qq, IsAuto=True)
 
 
 manually_game_sign = on_command(
@@ -42,9 +45,12 @@ manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签�
 
 @manually_game_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
+    """
+    手动游戏签到函数
+    """
     bot = get_bot()
     qq = event.user_id
-    await send_game_sign_msg(bot=bot, qq=qq, IsAuto=False)
+    await perform_game_sign(bot=bot, qq=qq, IsAuto=False)
 
 
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
@@ -52,10 +58,13 @@ daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
 
 @daily_bbs_sign.scheduled_job("cron", hour='0', minute='00', id="daily_bbs_sign")
 async def daily_bbs_sign_():
+    """
+    自动米游币任务函数
+    """
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
-        await send_bbs_sign_msg(bot=bot, qq=qq, IsAuto=True)
+        await perform_bbs_sign(bot=bot, qq=qq, IsAuto=True)
 
 
 manually_bbs_sign = on_command(
@@ -66,9 +75,12 @@ manually_bbs_sign.__help_info__ = '手动执行米游币每日任务，可以查
 
 @manually_bbs_sign.handle()
 async def _(event: PrivateMessageEvent, state: T_State):
+    """
+    手动米游币任务函数
+    """
     qq = event.user_id
     bot = get_bot()
-    await send_bbs_sign_msg(bot=bot, qq=qq, IsAuto=False)
+    await perform_bbs_sign(bot=bot, qq=qq, IsAuto=False)
 
 
 update_timing = nonebot_plugin_apscheduler.scheduler
@@ -76,10 +88,20 @@ update_timing = nonebot_plugin_apscheduler.scheduler
 
 @update_timing.scheduled_job("cron", hour='0', minute='00', id="daily_update")
 async def daily_update():
+    """
+    每日图片生成函数
+    """
     generate_image()
 
 
-async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
+async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
+    """
+    执行游戏签到函数。并发送给用户签到消息。
+
+    参数:
+        `IsAuto`: bool 
+        True为当日自动签到，False为用户手动调用签到功能
+    """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         gamesign = GameSign(account)
@@ -100,6 +122,7 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
                 sign_info = await gamesign.info(sign_game, record.uid)
                 sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
+                # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
                     sign_flag = await gamesign.sign(sign_game, record.uid)
                     if sign_flag != 1:
@@ -148,7 +171,14 @@ async def send_game_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 await asyncio.sleep(conf.SLEEP_TIME)
 
 
-async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
+async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
+    """
+    执行米米游币任务函数。并发送给用户任务执行消息。
+
+    参数:
+        `IsAuto`: bool 
+        True为当日自动执行任务，False为用户手动调用任务功能
+    """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         missions_state = await get_missions_state(account)
@@ -163,6 +193,7 @@ async def send_bbs_sign_msg(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
             return
+        # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
         if (account.mybMission and IsAuto) or not IsAuto:
             record_list: List[GameRecord] = await get_game_record(account)
             if isinstance(record_list, int):
@@ -206,8 +237,10 @@ async def generate_image():
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
+            # 若图片开头为当日日期，则退出函数不执行
             if name.startswith(date):
                 return
+            # 删除旧图片，以方便生成当日图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
     for game in ("bh3", "ys", "bh2", "wd", "bbs"):
@@ -221,5 +254,5 @@ async def generate_image():
             with open(img_path, 'wb') as fp:
                 fp.write(image_bytes)
 
-
+# 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)
