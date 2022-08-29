@@ -193,7 +193,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
         scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=exchange,
-                          args=(exchange_plan, event.user_id), next_run_time=good.time)
+                          args=(exchange_plan, event.user_id), next_run_time=time.localtime(good.time))
 
     UserData.set_account(account, event.user_id, account.phone)
 
@@ -288,4 +288,4 @@ async def load_exchange_data():
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
                     scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
-                        exchange_plan, qq), next_run_time=good_detail.time)
+                        exchange_plan, qq), next_run_time=time.localtime(good_detail.time))
