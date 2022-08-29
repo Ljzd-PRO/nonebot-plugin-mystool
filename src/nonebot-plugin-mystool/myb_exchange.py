@@ -280,6 +280,10 @@ async def load_exchange_data():
             exchange_list = account.exchange
             for exchange_good in exchange_list:
                 good_detail = await get_good_detail(exchange_good[0])
-                exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
-                scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
-                    exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
+                if good_detail.time < datetime.datetime.now():
+                    # 若重启时兑换超时则删除该兑换
+                    account.exchange.remove(exchange_good)
+                else:
+                    exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
+                    scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
+                        exchange_plan, qq), next_run_time=datetime.datetime.strptime(good_detail.time, "%Y-%m-%d %H:%M:%S"))
