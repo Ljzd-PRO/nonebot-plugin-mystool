@@ -80,7 +80,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    phone: Message = phone.extract_plain_text().strip()
+    if isinstance(phone, Message):
+        phone = phone.extract_plain_text().strip()
     user_account: List[UserAccount] = state['user_account']
 
     if phone == '退出':
