@@ -240,7 +240,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 
 
 @get_good_image.got("content", prompt="""\
-请发送您要查看的商品类别:"
+请发送您要查看的商品类别:
 - 崩坏3
 - 原神
 - 崩坏2
@@ -251,7 +251,9 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
-    if arg in ['原神', 'ys']:
+    if arg == '退出':
+        await matcher.finish('已成功退出')
+    elif arg in ['原神', 'ys']:
         arg = ('ys', '原神')
     elif arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:
         arg = ('bh3', '崩坏3')
