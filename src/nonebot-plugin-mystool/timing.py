@@ -16,10 +16,10 @@ from nonebot.permission import SUPERUSER
 from .bbsAPI import *
 from .config import mysTool_config as conf
 from .data import UserData
-from .exchange import *
-from .gameSign import *
-from .mybMission import *
-from .utils import *
+from .exchange import get_good_list, game_list_to_image
+from .gameSign import GameSign, Info
+from .mybMission import get_missions_state, Action
+from .utils import get_file
 
 driver = nonebot.get_driver()
 
@@ -34,7 +34,7 @@ async def daily_game_sign_():
     bot = get_bot()
     qq_accounts = UserData.read_all().keys()
     for qq in qq_accounts:
-        await perform_game_sign(bot=bot, qq=qq, IsAuto=True)
+        await perform_game_sign(bot=bot, qq=qq, isAuto=True)
 
 
 manually_game_sign = on_command(
@@ -50,7 +50,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
     """
     bot = get_bot()
     qq = event.user_id
-    await perform_game_sign(bot=bot, qq=qq, IsAuto=False)
+    await perform_game_sign(bot=bot, qq=qq, isAuto=False)
 
 
 daily_bbs_sign = nonebot_plugin_apscheduler.scheduler
@@ -94,7 +94,7 @@ async def daily_update():
     generate_image()
 
 
-async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
+async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
     """
     执行游戏签到函数。并发送给用户签到消息。
 
@@ -111,7 +111,7 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
                 return
             else:
-                await bot.send_private_msg(user_id=qq, message="⚠️请求失败，请重新尝试")
+                await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 获取游戏账号信息失败，请重新尝试")
                 return
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
@@ -122,16 +122,25 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
                 sign_info = await gamesign.info(sign_game, record.uid)
                 game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
+
+                if sign_info == -1:
+                    await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
+                    return
+
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
-                if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
+                # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
+                if ((account.gameSign and isAuto) or not isAuto) and (isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1):
                     sign_flag = await gamesign.sign(sign_game, record.uid)
                     if sign_flag != 1:
                         if sign_flag == -1:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(account.phone, game_name)
+                            message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(
+                                account.phone, game_name)
                         elif sign_flag == -5:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请手动前往米游社签到".format(account.phone, game_name)
+                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请手动前往米游社签到".format(
+                                account.phone, game_name)
                         else:
-                            message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(account.phone, game_name)
+                            message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(
+                                account.phone, game_name)
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
@@ -139,9 +148,9 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
                         )
                         await asyncio.sleep(conf.SLEEP_TIME)
                         continue
-                elif sign_info.isSign:
-                    pass
-                else:
+                elif isinstance(sign_info, int):
+                    await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
+                        account.phone, game_name))
                     return
                 if UserData.isNotice(qq):
                     img = ""
