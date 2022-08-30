@@ -1,11 +1,11 @@
 """
-### 米游社收货地址相关前端
+### 米游社商品兑换前端以及计划任务相关
 """
 import asyncio
 from datetime import datetime
 
 from nonebot import get_bot, get_driver, on_command
-from nonebot.adapters.onebot.v11 import (Bot, MessageEvent, MessageSegment,
+from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
                                          PrivateMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
