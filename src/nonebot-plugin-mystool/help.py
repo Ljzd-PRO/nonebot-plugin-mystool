@@ -11,9 +11,11 @@ from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
 
+PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
+COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+
 helper = on_command(conf.COMMAND_START+"help", priority=1,
                     aliases={conf.COMMAND_START+"帮助"})
-COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
@@ -21,8 +23,6 @@ helper.__help_info__ = f'''\
     \n{COMMAND}帮助 ➢ 查看米游社小助手使用说明\
     \n{COMMAND}帮助 <功能名> ➢ 查看目标功能详细说明\
 '''.strip()
-
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 
 
 @helper.handle()
