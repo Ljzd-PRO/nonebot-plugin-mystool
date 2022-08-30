@@ -26,11 +26,11 @@ async def check_friend_list():
     检查用户是否仍在好友列表中，不在的话则删除
     """
     bot: Bot = get_bot()
-    friend_list = bot.get_friend_list()
+    friend_list = await bot.get_friend_list()
     user_list = UserData.read_all().keys()
     for user in user_list:
         if user not in str(friend_list):
-            ... # 删除用户数据函数
+            UserData.del_user(user)
 
 driver.on_bot_connect(check_friend_list)
 scheduler.add_job(id='check_friend', replace_existing=True, trigger="cron", hour='0', minute='00', func=check_friend_list)
