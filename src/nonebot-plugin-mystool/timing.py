@@ -121,22 +121,23 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
                 sign_info = await gamesign.info(sign_game, record.uid)
-                sign_game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
+                game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 if ((account.gameSign and IsAuto) or not IsAuto) and not sign_info.isSign:
                     sign_flag = await gamesign.sign(sign_game, record.uid)
                     if sign_flag != 1:
                         if sign_flag == -1:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(account.phone, GameInfo.ABBR_TO_ID[record.gameID][1])
+                            message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(account.phone, game_name)
                         elif sign_flag == -5:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请手动前往米游社签到".format(account.phone, GameInfo.ABBR_TO_ID[record.gameID][1])
+                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请手动前往米游社签到".format(account.phone, game_name)
                         else:
-                            message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(account.phone, GameInfo.ABBR_TO_ID[record.gameID][1])
+                            message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(account.phone, game_name)
                         await bot.send_msg(
                             message_type="private",
                             user_id=qq,
                             message=message
                         )
+                        await asyncio.sleep(conf.SLEEP_TIME)
                         continue
                 elif sign_info.isSign:
                     pass
@@ -148,13 +149,13 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
                     month_sign_award = await gamesign.reward(sign_game)
                     if isinstance(sign_info, int) or isinstance(month_sign_award, int):
                         msg = "⚠️账户 {0} 🎮『{1}』获取签到结果失败！请手动前往米游社查看".format(
-                            account.phone, sign_game_name)
+                            account.phone, game_name)
                     else:
                         sign_award = month_sign_award[sign_info.totalDays-1]
                         if sign_info.isSign:
                             msg = f"""\
                                 \n{'📱账户 {}'.format(account.phone)}\
-                                \n{'🎮『{}』今日签到成功！'.format(sign_game_name)}\
+                                \n{'🎮『{}』今日签到成功！'.format(game_name)}\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
                                 {sign_award.name} * {sign_award.count}\
@@ -164,7 +165,7 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
                             img = MessageSegment.image(img_file)
                         else:
                             msg = "⚠️账户 {0} 🎮『{1}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户".format(
-                                account.phone, sign_game_name)
+                                account.phone, game_name)
                     await bot.send_msg(
                         message_type="private",
                         user_id=qq,
