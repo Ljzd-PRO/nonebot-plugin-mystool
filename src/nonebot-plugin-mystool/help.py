@@ -9,7 +9,6 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
-from .__init__ import VERSION
 from .config import mysTool_config as conf
 
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
@@ -39,7 +38,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, arg
         await matcher.finish(
             PLUGIN.metadata.name +
             PLUGIN.metadata.description +
-            "\n具体用法：\n" +
+            "\n📖具体用法：\n" +
             PLUGIN.metadata.usage.format(HEAD=COMMAND) +
             '\n\n' +
             PLUGIN.metadata.extra)
