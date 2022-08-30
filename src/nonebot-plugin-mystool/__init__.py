@@ -42,7 +42,7 @@ __plugin_meta__ = PluginMetadata(
     name="❖米游社小助手插件❖\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage="""
-    {HEAD}登录 ➢ 跟随指引获取绑定米游社账户\
+    {HEAD}登录 ➢ 登录绑定米游社账户\
     \n{HEAD}地址 ➢ 设置收货地址ID\
     \n{HEAD}设置 ➢ 配置签到、播报相关选项
     \n{HEAD}签到 ➢ 手动进行游戏签到\
