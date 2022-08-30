@@ -99,7 +99,7 @@ async def perform_game_sign(bot: Bot, qq: str, IsAuto: bool):
     执行游戏签到函数。并发送给用户签到消息。
 
     参数:
-        `IsAuto`: bool 
+        `IsAuto`: bool
         True为当日自动签到，False为用户手动调用签到功能
     """
     accounts = UserData.read_account_all(qq)
@@ -179,7 +179,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
     执行米米游币任务函数。并发送给用户任务执行消息。
 
     参数:
-        `IsAuto`: bool 
+        `IsAuto`: bool
         True为当日自动执行任务，False为用户手动调用任务功能
     """
     accounts = UserData.read_account_all(qq)
@@ -196,6 +196,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
             return
+
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
         if (account.mybMission and IsAuto) or not IsAuto:
             record_list: List[GameRecord] = await get_game_record(account)
@@ -207,9 +208,12 @@ async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
             gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
             if not IsAuto:
                 await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} 开始执行米游币任务')
+
+            # 执行任务
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
+
             if UserData.isNotice(qq):
                 missions_state = await get_missions_state(account)
                 if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
