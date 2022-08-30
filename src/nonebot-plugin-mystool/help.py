@@ -23,7 +23,6 @@ helper.__help_info__ = f'''\
     🍺欢迎使用米游社小助手帮助系统！\
     \n{COMMAND}帮助 ➢ 查看米游社小助手使用说明\
     \n{COMMAND}帮助 <功能名> ➢ 查看目标功能详细说明\
-    \n{VERSION}\
 '''.strip()
 
 
