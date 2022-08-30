@@ -343,7 +343,7 @@ class Action:
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    self.headers["DS"] = generateDS(param={"entity_id": postID_list[0], "entity_type": 1})
+                    self.headers["DS"] = generateDS(params={"entity_id": postID_list[0], "entity_type": 1})
                     res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
