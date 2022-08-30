@@ -9,6 +9,7 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
+from .__init__ import VERSION
 from .config import mysTool_config as conf
 
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
@@ -22,23 +23,40 @@ helper.__help_info__ = f'''\
     🍺欢迎使用米游社小助手帮助系统！\
     \n{COMMAND}帮助 ➢ 查看米游社小助手使用说明\
     \n{COMMAND}帮助 <功能名> ➢ 查看目标功能详细说明\
+    \n{VERSION}\
 '''.strip()
 
 
 @helper.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, args: Message = CommandArg()):
+    """
+    主命令触发
+    """
+    # 二级命令
     if args:
         matcher.set_arg("content", args)
+    # 只有主命令“帮助”
     else:
-        await matcher.finish(PLUGIN.metadata.name + PLUGIN.metadata.description + "具体用法：\n" + PLUGIN.metadata.usage.replace('/', COMMAND) + '\n' + PLUGIN.metadata.extra)
+        await matcher.finish(
+            PLUGIN.metadata.name +
+            PLUGIN.metadata.description +
+            "\n具体用法：\n" +
+            PLUGIN.metadata.usage.format(HEAD=COMMAND) +
+            '\n\n' +
+            PLUGIN.metadata.extra)
 
 
 @helper.got('content')
 async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
+    """
+    二级命令触发。功能详细说明查询
+    """
     arg = content.extract_plain_text().strip()
+
     # 相似词
     if arg == '登陆':
         arg == '登录'
+
     matchers = PLUGIN.matcher
     for matcher in matchers:
         try:

@@ -28,29 +28,34 @@
 
 请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki)
 """
+
+import pkgutil
+from pathlib import Path
+
 from nonebot.plugin import PluginMetadata
+
+VERSION = "0.1.0-beta"
+'''插件版本号'''
+
 
 __plugin_meta__ = PluginMetadata(
     name="❖米游社小助手插件❖\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage="""
-    /登录 ➢ 跟随指引获取绑定米游社账户\
-    \n/地址 ➢ 获取地址ID\
-    \n/设置 ➢ 配置签到、播报相关选项\
-    \n/签到 ➢ 手动进行米哈游游戏签到\
-    \n/任务 ➢ 手动进行米游社签到\
-    \n/兑换 ➢ 进行米游社商品兑换\
-    \n/商品 ➢ 查看米游社当前商品\
-    \n/帮助 ➢ 查看帮助\
-    \n/帮助 <功能名> ➢ 查看目标功能详细说明
+    {HEAD}登录 ➢ 跟随指引获取绑定米游社账户\
+    \n{HEAD}地址 ➢ 设置收货地址ID\
+    \n{HEAD}设置 ➢ 配置签到、播报相关选项
+    \n{HEAD}签到 ➢ 手动进行游戏签到\
+    \n{HEAD}任务 ➢ 手动执行米游币任务
+    \n{HEAD}兑换 ➢ 米游币商品兑换相关\
+    \n{HEAD}商品 ➢ 查看米游币商品信息(商品ID)
+    \n{HEAD}帮助 ➢ 查看帮助信息\
+    \n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明
     """.strip(),
     extra="🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
 )
 
 # 加载其它代码
-
-import pkgutil
-from pathlib import Path
 
 FILE_PATH = Path(__file__).parent.absolute()
 
