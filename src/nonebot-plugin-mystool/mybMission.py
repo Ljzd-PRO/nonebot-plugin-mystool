@@ -337,13 +337,13 @@ class Action:
         - 若返回 `-4` 说明网络请求发送成功，但是可能未签到成功
         - 若返回 `-5` 说明获取文章失败
         """
-        self.headers["DS"] = generateDS(param={"entity_id": postID_list[0], "entity_type": 1})
         postID_list = await self.get_posts(game)
         if postID_list is None:
             return -5
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    self.headers["DS"] = generateDS(param={"entity_id": postID_list[0], "entity_type": 1})
                     res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
