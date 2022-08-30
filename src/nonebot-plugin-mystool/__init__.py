@@ -39,7 +39,7 @@ VERSION = "0.1.0-beta"
 
 
 __plugin_meta__ = PluginMetadata(
-    name="❖米游社小助手插件❖\n",
+    name="❖米游社小助手插件·{}❖\n".format(VERSION),
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage="""
     {HEAD}登录 ➢ 登录绑定米游社账户\
