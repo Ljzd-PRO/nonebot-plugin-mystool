@@ -273,7 +273,7 @@ class GameSign:
                                      "网络请求返回: {}".format(res.text))
                         return -1
                     self.signResult = res.json()
-                    if self.signResult["data"]["risk_code"] != 0:
+                    if game != "bh3" and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
                             conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
                         logger.debug(conf.LOG_HEAD +
