@@ -64,7 +64,7 @@ async def daily_bbs_sign_():
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
-        await perform_bbs_sign(bot=bot, qq=qq, IsAuto=True)
+        await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
 
 
 manually_bbs_sign = on_command(
@@ -80,7 +80,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
     """
     qq = event.user_id
     bot = get_bot()
-    await perform_bbs_sign(bot=bot, qq=qq, IsAuto=False)
+    await perform_bbs_sign(bot=bot, qq=qq, isAuto=False)
 
 
 update_timing = nonebot_plugin_apscheduler.scheduler
@@ -183,7 +183,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                 await asyncio.sleep(conf.SLEEP_TIME)
 
 
-async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
+async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     """
     执行米米游币任务函数。并发送给用户任务执行消息。
 
@@ -205,9 +205,8 @@ async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
             return
-
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
-        if (account.mybMission and IsAuto) or not IsAuto:
+        if (account.mybMission and isAuto) or not isAuto:
             record_list: List[GameRecord] = await get_game_record(account)
             if isinstance(record_list, int):
                 if mybmission == -1:
@@ -215,7 +214,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, IsAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
                 return
             gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
-            if not IsAuto:
+            if not isAuto:
                 await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} 开始执行米游币任务')
 
             # 执行任务
