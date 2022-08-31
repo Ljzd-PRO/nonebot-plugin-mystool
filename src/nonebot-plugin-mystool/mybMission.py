@@ -343,7 +343,7 @@ class Action:
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    self.headers["DS"] = generateDS(params={"entity_id": postID_list[0], "entity_type": 1})
+                    self.headers["DS"] = generateDS(platform="android")
                     res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
@@ -351,7 +351,7 @@ class Action:
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
-                    if res.json()["data"] != "OK":
+                    if res.json()["message"] != "OK":
                         return -4
         except KeyError and ValueError:
             logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
