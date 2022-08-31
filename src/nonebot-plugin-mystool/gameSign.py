@@ -146,9 +146,9 @@ class GameSign:
 
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
-        self.deviceID = account.deviceID
         self.account = account
         self.signResult: dict = None
+        '''签到返回结果'''
 
     async def reward(self, game: Literal["ys", "bh3"], retry: bool = True):
         """
@@ -191,7 +191,7 @@ class GameSign:
         - 若返回 `-4` 未找到对应游戏UID的游戏账户
         """
         headers = HEADERS_OTHER.copy()
-        headers["x-rpc-device_id"] = self.deviceID
+        headers["x-rpc-device_id"] = self.account.deviceID
 
         game_record: List[GameRecord] = await get_game_record(self.account)
         if game_record == -1:
@@ -231,13 +231,14 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5]:
+    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5]:
         """
         签到
 
         参数:
             `game`: 目标游戏缩写
             `gameUID`: 用户游戏UID
+            `platform`: 设备平台
             `retry`: 是否允许重试
 
         - 若执行成功，返回 `1`
@@ -250,9 +251,20 @@ class GameSign:
         if game not in ("ys", "bh3"):
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
             return -4
+
         headers = HEADERS_OTHER.copy()
-        headers["x-rpc-device_id"] = self.deviceID
-        headers["DS"] = generateDS()
+        if platform == "ios":
+            headers["x-rpc-device_id"] = self.account.deviceID
+            headers["DS"] = generateDS()
+        else:
+            headers["x-rpc-device_id"] = self.account.deviceID_2
+            headers["x-rpc-device_model"] = conf.device.X_RPC_DEVICE_MODEL_MISSION
+            headers["User-Agent"] = conf.device.USER_AGENT_MISSION
+            headers["x-rpc-device_name"] = conf.device.X_RPC_DEVICE_NAME_MISSION
+            headers["x-rpc-channel"] = "miyousheluodi"
+            headers["x-rpc-sys_version"] = conf.device.X_RPC_SYS_VERSION_MISSION
+            headers.pop("x-rpc-platform")
+
         for item in await get_game_record(self.account):
             if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
                 region = item.region
