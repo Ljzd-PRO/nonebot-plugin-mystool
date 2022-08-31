@@ -264,6 +264,7 @@ class GameSign:
             headers["x-rpc-channel"] = conf.device.X_RPC_CHANNEL_ANDROID
             headers["x-rpc-sys_version"] = conf.device.X_RPC_SYS_VERSION_ANDROID
             headers.pop("x-rpc-platform")
+            headers["DS"] = generateDS(platform="android")
 
         for item in await get_game_record(self.account):
             if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
