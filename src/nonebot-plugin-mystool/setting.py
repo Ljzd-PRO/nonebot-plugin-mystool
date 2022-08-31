@@ -10,7 +10,7 @@ from .config import mysTool_config as conf
 from .data import *
 from .data import UserData
 
-command = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 account_setting = on_command(
     conf.COMMAND_START+'游戏设置', aliases={conf.COMMAND_START+'账户设置', conf.COMMAND_START+'签到设置'}, priority=4, block=True)
@@ -20,7 +20,7 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 @account_setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg = ArgPlainText('arg')):
-    await account_setting.send(f"播报相关设置请调用 {command}播报设置 命令哦\n设置过程中随时输入“退出”即可退出")
+    await account_setting.send(f"播报相关设置请调用 {COMMAND}播报设置 命令哦\n设置过程中随时输入“退出”即可退出")
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
     state['qq'] = qq
@@ -82,7 +82,7 @@ global_setting.__help_info__ = "设置每日签到后是否进行qq通知"
 @global_setting.handle()
 async def _(event: PrivateMessageEvent, matcher: Matcher):
     qq = int(event.user_id)
-    await matcher.send(f"每日自动签到相关设置请调用 {command}签到设置 命令哦\n输入“退出”即可退出")
+    await matcher.send(f"每日自动签到相关设置请调用 {COMMAND}签到设置 命令哦\n输入“退出”即可退出")
     await asyncio.sleep(0.5)
     await matcher.send(f"每日签到后自动播报功能：{'开' if UserData.isNotice(qq) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
 
@@ -102,9 +102,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
 
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
-
+setting.__help_name__ = "设置"
+setting.__help_info__ = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}地址』命令。\n如需设置每日签到后是否进行qq通知，请调用『{COMMAND}地址』播报设置 命令。'
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
-    msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用 {command}游戏设置 命令\n如需设置每日签到后是否进行qq通知，请调用 {command}播报设置 命令'
+    msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}地址』命令\n如需设置每日签到后是否进行qq通知，请调用『{COMMAND}地址』播报设置 命令'
     await setting.send(msg)
