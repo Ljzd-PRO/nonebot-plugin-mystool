@@ -261,7 +261,7 @@ class GameSign:
             headers["x-rpc-device_model"] = conf.device.X_RPC_DEVICE_MODEL_ANDROID
             headers["User-Agent"] = conf.device.USER_AGENT_ANDROID_OTHER
             headers["x-rpc-device_name"] = conf.device.X_RPC_DEVICE_NAME_ANDROID
-            headers["x-rpc-channel"] = "miyousheluodi"
+            headers["x-rpc-channel"] = conf.device.X_RPC_CHANNEL_ANDROID
             headers["x-rpc-sys_version"] = conf.device.X_RPC_SYS_VERSION_ANDROID
             headers.pop("x-rpc-platform")
 
