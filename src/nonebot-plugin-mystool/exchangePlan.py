@@ -127,6 +127,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
         await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
 
     if arg[0] == '+':
+        uids = []
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.isVisual:
@@ -140,9 +141,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
                             msg += f'\n🎮 {record.regionName}·{record.nickname} - UID {record.uid}'
+                        uids.append(record.uid)
                     await matcher.send(msg)
             else:
                 matcher.get_arg('uid', None)
+            state['uids'] = ['uids']
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
@@ -169,7 +172,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     """
     account: UserAccount = state['account']
     good: Good = state['good']
-
+    uids: List[str] = state['uids']
+    if uid == '退出':
+        await matcher.finish('已成功退出')
+    if uid not in uids:
+        await matcher.reject('⚠️您输入的uid不在上述账号内，请重新输入')
     if not account.address:
         await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
 
@@ -241,13 +248,13 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
 
 
 @get_good_image.got("content", prompt="""\
-请发送您要查看的商品类别:
-- 崩坏3
-- 原神
-- 崩坏2
-- 未定事件簿
-- 米游社
-—— 发送“退出”以结束""")
+        \n请发送您要查看的商品类别:\
+        \n- 崩坏3\
+        \n- 原神\
+        \n- 崩坏2\
+        \n- 未定事件簿\
+        \n- 米游社\
+        \n—— 发送“退出”以结束""".strip())
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
