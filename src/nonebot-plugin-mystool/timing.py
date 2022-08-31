@@ -91,7 +91,7 @@ async def daily_update():
     """
     每日图片生成函数
     """
-    generate_image()
+    await generate_image()
 
 
 async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
