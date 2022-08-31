@@ -427,6 +427,7 @@ class UserData:
             `False`: 写入失败，可能是不存在用户
         """
         userdata = cls.read_all()
+        qq = str(qq)
         try:
             if cls.__OPTION_NOTICE not in userdata[qq]:
                 userdata[qq].setdefault(cls.__OPTION_NOTICE, isNotice)
