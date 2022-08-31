@@ -277,7 +277,7 @@ class Action:
             `likeTimes`: 点赞次数
             `retry`: 是否允许重试
 
-        - 若执行成功，返回 `True`
+        - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回或请求失败
         - 若返回 `-3` 说明请求失败
@@ -320,7 +320,7 @@ class Action:
             if postID_list is None:
                 return -4
 
-        return True
+        return 1
 
     async def share(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True):
         """
