@@ -85,17 +85,17 @@ HEADERS_DEVICE = {
     "DS": None,
     "x-rpc-client_type": "2",
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
-    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_MISSION,
-    "x-rpc-channel": conf.device.X_RPC_CHANNEL_MISSION,
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-channel": conf.device.X_RPC_CHANNEL_ANDROID,
     "x-rpc-device_id": None,
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MISSION,
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_ANDROID,
     "Referer": "https://app.mihoyo.com",
     "Content-Type": "application/json; charset=UTF-8",
     "Host": "bbs-api.mihoyo.com",
     "Connection": "Keep-Alive",
     "Accept-Encoding": "gzip",
-    "User-Agent": conf.device.USER_AGENT_MISSION
+    "User-Agent": conf.device.USER_AGENT_ANDROID
 }
 
 
@@ -374,7 +374,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     data = {
         "app_version": conf.device.X_RPC_APP_VERSION,
         "device_id": account.deviceID_2,
-        "device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+        "device_name": conf.device.X_RPC_DEVICE_NAME_ANDROID,
         "os_version": "30",
         "platform": "Android",
         "registration_id": "1a0018970a5c00e814d"
@@ -423,7 +423,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     data = {
         "app_version": conf.device.X_RPC_APP_VERSION,
         "device_id": account.deviceID_2,
-        "device_name": conf.device.X_RPC_DEVICE_NAME_MISSION,
+        "device_name": conf.device.X_RPC_DEVICE_NAME_ANDROID,
         "os_version": "30",
         "platform": "Android",
         "registration_id": "1a0018970a5c00e814d"
