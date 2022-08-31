@@ -23,7 +23,7 @@ URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsSt
 HEADERS = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': conf.device.USER_AGENT_ANDROID,
+    'User-Agent': conf.device.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "x-rpc-channel": conf.device.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",

@@ -95,7 +95,7 @@ HEADERS_DEVICE = {
     "Host": "bbs-api.mihoyo.com",
     "Connection": "Keep-Alive",
     "Accept-Encoding": "gzip",
-    "User-Agent": conf.device.USER_AGENT_ANDROID
+    "User-Agent": conf.device.USER_AGENT_ANDROID_OTHER
 }
 
 
