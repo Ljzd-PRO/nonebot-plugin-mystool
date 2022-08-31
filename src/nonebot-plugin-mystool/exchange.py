@@ -280,7 +280,7 @@ class Exchange:
 
     async def async_init(self, retry: bool = True):
         """
-        初始化兑换任务(异步，返回`self`对象)
+        初始化兑换任务(异步，返回自身`self`对象)
         """
         self.result = None
         self.goodID = self.goodID
@@ -307,21 +307,21 @@ class Exchange:
                             logger.error(
                                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
                             self.result = -2
-                            return
+                            return self
                         if self.account.cookie["stoken"].find("v2__") == 0 and "mid" not in self.account.cookie:
                             logger.error(
                                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(self.goodID))
                             self.result = -3
-                            return
+                            return self
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
                     else:
-                        return
+                        return self
 
                     if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                         logger.warning(
                             conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(self.goodID))
                         self.result = -4
-                        return
+                        return self
 
                     record_list: List[GameRecord] = await get_game_record(self.account)
                     if record_list == -1:
