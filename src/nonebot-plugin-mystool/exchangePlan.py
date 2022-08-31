@@ -209,7 +209,8 @@ async def exchange(exchange_plan: Exchange, qq: str):
     for i in range(5):
         results = []
         flag = False
-        results.append(exchange_plan.start())
+        result = await exchange_plan.start()
+        results.append(result)
         await asyncio.sleep(0.1)
     for result in results:
         if result[0]:
