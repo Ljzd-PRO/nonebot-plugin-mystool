@@ -125,13 +125,12 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             break
     if Flag:
         await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
-
+    state['good'] = good
     if arg[0] == '+':
         uids = []
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.isVisual:
-                state['good'] = good
                 game_records = await get_game_record(account)
                 await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：")
                 if isinstance(game_records, int):
@@ -144,7 +143,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                         uids.append(record.uid)
                     await matcher.send(msg)
             else:
-                matcher.get_arg('uid', None)
+                matcher.set_arg('uid', None)
             state['uids'] = ['uids']
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
@@ -173,10 +172,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     account: UserAccount = state['account']
     good: Good = state['good']
     uids: List[str] = state['uids']
-    if uid == '退出':
-        await matcher.finish('已成功退出')
-    if uid not in uids:
-        await matcher.reject('⚠️您输入的uid不在上述账号内，请重新输入')
+    if uid:
+        if uid == '退出':
+            await matcher.finish('已成功退出')
+        if uid not in uids:
+            await matcher.reject('⚠️您输入的uid不在上述账号内，请重新输入')
     if not account.address:
         await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
 
