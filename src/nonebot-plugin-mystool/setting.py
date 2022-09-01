@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
@@ -7,8 +8,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
 from .config import mysTool_config as conf
-from .data import *
-from .data import UserData
+from .data import UserAccount, UserData
 
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
@@ -19,7 +19,7 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 
 @account_setting.handle()
-async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg = ArgPlainText('arg')):
+async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
     await account_setting.send(f"播报相关设置请调用 {COMMAND}播报设置 命令哦\n设置过程中随时输入“退出”即可退出")
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
@@ -40,7 +40,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 
 @account_setting.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone = Arg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
@@ -59,7 +59,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone 
 
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, state: T_State, arg = ArgPlainText('arg')):
+async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
     account: UserAccount = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
@@ -106,6 +106,7 @@ setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
 setting.__help_info__ = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令。\n如需设置每日签到后是否进行qq通知，请调用『{COMMAND}播报设置』命令。'
+
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
