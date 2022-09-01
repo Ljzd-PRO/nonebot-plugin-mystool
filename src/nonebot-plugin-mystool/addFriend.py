@@ -1,3 +1,6 @@
+"""
+### QQ好友相关
+"""
 import asyncio
 
 from nonebot import get_bot, get_driver, on_request
