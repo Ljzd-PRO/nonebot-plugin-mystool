@@ -302,6 +302,7 @@ async def load_exchange_data():
                 if good_detail.time < NtpTime.time():
                     # 若重启时兑换超时则删除该兑换
                     account.exchange.remove(exchange_good)
+                    UserData.set_account(account, int(qq), account.phone)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
                     scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
