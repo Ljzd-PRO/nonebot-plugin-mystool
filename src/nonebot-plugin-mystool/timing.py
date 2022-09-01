@@ -16,9 +16,9 @@ from nonebot.permission import SUPERUSER
 from .bbsAPI import *
 from .config import mysTool_config as conf
 from .data import UserData
-from .exchange import get_good_list, game_list_to_image
+from .exchange import game_list_to_image, get_good_list
 from .gameSign import GameSign, Info
-from .mybMission import get_missions_state, Action, GAME_ID
+from .mybMission import GAME_ID, Action, Mission, get_missions_state
 from .utils import get_file
 
 driver = nonebot.get_driver()
@@ -186,7 +186,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
 async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     """
-    执行米米游币任务函数。并发送给用户任务执行消息。
+    执行米游币任务函数。并发送给用户任务执行消息。
 
     参数:
         `IsAuto`: bool
@@ -199,7 +199,8 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
         if isinstance(missions_state, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-            await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
+                return
+            await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
             return
         if isinstance(mybmission, int):
             if mybmission == -1:
@@ -221,14 +222,20 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
             # 执行任务
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
-                    if mission_state[0].keyName == 'continuous_sign':
-                        for game in GAME_ID.keys():
-                            mybmission.sign(game)
+                    if mission_state[0].keyName == Mission.SIGN:
+                        for game in GameInfo.ABBR_TO_ID.values():
+                            await mybmission.sign(game[0])
                     else:
                         await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
             # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
                 missions_state = await get_missions_state(account)
+                if isinstance(missions_state, int):
+                    if mybmission == -1:
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                        return
+                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
+                    return
                 if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
                         missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
                         missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and\
