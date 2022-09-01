@@ -7,7 +7,7 @@ name = "nonebot-plugin-mystool"
 version = "0.1.0"
 authors = [
   { name="Ljzd-PRO", email="ljzd@office.ljzd-pro.ml" },
-  { name="Everything0519", email="" },
+  { name="Everything0519", email="598139245@qq.com" },
 ]
 description = "NoneBot插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录"
 readme = "README.md"
