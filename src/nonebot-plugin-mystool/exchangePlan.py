@@ -17,6 +17,7 @@ from .data import UserData
 from .exchange import *
 from .gameSign import GameInfo
 from .utils import NtpTime
+from .timing import generate_image
 
 driver = get_driver()
 
@@ -66,11 +67,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
                 msg += """\
--- 商品 {0}
-- 🔢商品ID：{1}
-- 💰商品价格：{2}
-- 📅兑换时间：{3}
-- 📱账户：{4}\n\n""".format(good.name, good.goodID,
+                -- 商品 {0}\
+                \n- 🔢商品ID：{1}\
+                \n- 💰商品价格：{2}\
+                \n- 📅兑换时间：{3}\
+                \n- 📱账户：{4}\n\n""".format(good.name, good.goodID,
                         good.price, time.strftime("%Y-%m-%d %H:%M:%S",
                                                   time.localtime(good.time)), account.phone)
         if not msg:
@@ -144,7 +145,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                     await matcher.send(msg)
             else:
                 matcher.set_arg('uid', None)
-            state['uids'] = ['uids']
+            state['uids'] = uids
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
@@ -254,6 +255,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 崩坏2\
         \n- 未定事件簿\
         \n- 米游社\
+        \n- 若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 发送“退出”以结束""".strip())
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     """
@@ -271,6 +273,9 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
         arg = ('wd', '未定事件簿')
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
+    elif arg == '更新':
+        await generate_image(isauto=False)
+        await get_good_image.finish('图片刷新成功')
     else:
         await get_good_image.finish('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
