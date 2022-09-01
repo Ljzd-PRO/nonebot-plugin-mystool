@@ -23,7 +23,7 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 @account_setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
-    await account_setting.send(f"播报相关设置请调用 {COMMAND}播报设置 命令哦\n设置过程中随时输入“退出”即可退出")
+    await account_setting.send(f"播报相关设置请使用 {COMMAND}播报设置 命令\n设置过程中随时发送“退出”即可退出")
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
     state['qq'] = qq
@@ -58,7 +58,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     state['phone'] = phone
     state['account'] = account
     user_setting = f"1.米游币任务自动执行：{'开' if account.mybMission else '关'}\n2.游戏自动签到：{'开' if account.gameSign else '关'}\n"
-    await account_setting.send(user_setting+'您要更改哪一项呢？请输入“1”或“2”')
+    await account_setting.send(user_setting+'您要更改哪一项呢？请发送“1”或“2”')
 
 
 @account_setting.got('arg')
@@ -87,7 +87,7 @@ global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
 @global_setting.handle()
 async def _(event: PrivateMessageEvent, matcher: Matcher):
     qq = int(event.user_id)
-    await matcher.send(f"每日自动签到相关设置请调用 {COMMAND}签到设置 命令哦\n输入“退出”即可退出")
+    await matcher.send(f"每日自动签到相关设置请使用 {COMMAND}签到设置 命令\n发送“退出”即可退出")
     await asyncio.sleep(0.5)
     await matcher.send(f"每日签到后自动播报功能：{'开' if UserData.isNotice(qq) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
 
@@ -108,10 +108,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令。\n如需设置每日签到后是否进行QQ通知，请调用『{COMMAND}播报设置』命令。'
+setting.__help_info__ = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}游戏设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}播报设置』命令。'
 
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
-    msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令\n如需设置每日签到后是否进行QQ通知，请调用『{COMMAND}播报设置』命令'
+    msg = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}游戏设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}播报设置』命令'
     await setting.send(msg)
