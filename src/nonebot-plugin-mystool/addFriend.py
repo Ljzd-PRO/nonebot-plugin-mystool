@@ -13,12 +13,12 @@ async def _(bot: Bot, event: RequestEvent):
         await bot.set_friend_add_request(flag=event.flag, approve=True)
         # 等待腾讯服务器响应
         await asyncio.sleep(1.5)
-        await bot.send_private_msg(user_id=event.user_id, message=f'欢迎使用米游社小助手，请发送{command}help查看更多用法哦~')
+        await bot.send_private_msg(user_id=event.user_id, message=f'欢迎使用米游社小助手，请发送『{command}帮助』查看更多用法哦~')
     # 判断为邀请进群事件
     elif isinstance(event, GroupRequestEvent):
         # 等待腾讯服务器响应
         await asyncio.sleep(1.5)
-        await bot.send_group_msg(group_id=event.group_id, message=f'欢迎使用米游社小助手，请添加小助手为好友后，发送{command}help查看更多用法哦~')
+        await bot.send_group_msg(group_id=event.group_id, message=f'欢迎使用米游社小助手，请添加小助手为好友后，发送『{command}』帮助 查看更多用法哦~')
 
 
 async def check_friend_list():
