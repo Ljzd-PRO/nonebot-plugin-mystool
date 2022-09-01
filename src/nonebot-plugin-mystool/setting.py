@@ -34,7 +34,9 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
         matcher.set_arg('phone', str(user_account[0].phone))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
-        await matcher.send(f"您有多个账号，您要配置以下哪个账号的设置？\n{'，'.join(phones)}")
+        msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
+        msg += "📱" + "\n📱".join(phones)
+        await matcher.send(msg)
 
 
 @account_setting.got('phone')
