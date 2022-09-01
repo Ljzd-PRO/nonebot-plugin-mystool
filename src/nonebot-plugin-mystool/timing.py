@@ -248,13 +248,14 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
             await asyncio.sleep(conf.SLEEP_TIME)
 
 
-async def generate_image():
+async def generate_image(isauto=True):
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
             # 若图片开头为当日日期，则退出函数不执行
             if name.startswith(date):
-                return
+                if isauto:
+                    return
             # 删除旧图片，以方便生成当日图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
