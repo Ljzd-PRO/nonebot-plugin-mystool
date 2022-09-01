@@ -274,8 +274,9 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
     elif arg == '更新':
+        await get_good_image.send('正在生成商品信息图片...')
         await generate_image(isauto=False)
-        await get_good_image.finish('图片刷新成功')
+        await get_good_image.finish('商品信息图片刷新成功')
     else:
         await get_good_image.finish('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
