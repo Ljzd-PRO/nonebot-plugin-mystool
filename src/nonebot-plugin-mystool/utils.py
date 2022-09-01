@@ -184,8 +184,12 @@ async def get_file(url: str, retry: bool = True):
 def check_login(response: str):
     """
     通过网络请求返回的数据，检查是否登录失效
+
+    如果返回数据为`None`，返回`True`
     """
     try:
+        if response is None:
+            return True
         res_dict = json.loads(response)
         if "message" in res_dict:
             response: str = res_dict["message"]
