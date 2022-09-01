@@ -1,3 +1,6 @@
+"""
+### 用户设置相关
+"""
 import asyncio
 from typing import List
 
@@ -78,7 +81,7 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
 global_setting = on_command(
     conf.COMMAND_START+'global_setting', aliases={conf.COMMAND_START+'全局设置', conf.COMMAND_START+'播报设置'}, priority=4, block=True)
 global_setting.__help_name__ = "播报设置"
-global_setting.__help_info__ = "设置每日签到后是否进行qq通知"
+global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()
@@ -105,10 +108,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令。\n如需设置每日签到后是否进行qq通知，请调用『{COMMAND}播报设置』命令。'
+setting.__help_info__ = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令。\n如需设置每日签到后是否进行QQ通知，请调用『{COMMAND}播报设置』命令。'
 
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
-    msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令\n如需设置每日签到后是否进行qq通知，请调用『{COMMAND}播报设置』命令'
+    msg = f'如需配置游戏自动签到、米游币任务是否开启相关选项，请调用『{COMMAND}游戏设置』命令\n如需设置每日签到后是否进行QQ通知，请调用『{COMMAND}播报设置』命令'
     await setting.send(msg)
