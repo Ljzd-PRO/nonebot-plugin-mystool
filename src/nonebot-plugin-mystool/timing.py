@@ -152,7 +152,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                     await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
                         account.phone, game_name))
                     return
-                if UserData.isNotice(qq):
+                if UserData.isNotice(qq) or not isAuto:
                     img = ""
                     sign_info = await gamesign.info(sign_game, record.uid)
                     month_sign_award = await gamesign.reward(sign_game)
@@ -167,7 +167,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                                 \n{'🎮『{}』今日签到成功！'.format(game_name)}\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
-                                {sign_award.name} * {sign_award.count}\
+                                \n{sign_award.name} * {sign_award.count}\
                                 \n\n📅本月签到次数：{sign_info.totalDays}\
                             """.strip()
                             img_file = await get_file(sign_award.icon)
@@ -222,7 +222,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 if mission_state[1] < mission_state[0].totalTimes:
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
 
-            if UserData.isNotice(qq):
+            if UserData.isNotice(qq) or not isAuto:
                 missions_state = await get_missions_state(account)
                 if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
                         missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
