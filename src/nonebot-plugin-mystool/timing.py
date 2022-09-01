@@ -225,6 +225,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                     if mission_state[0].keyName == Mission.SIGN:
                         for game in GAME_ID.keys():
                             await mybmission.sign(game)
+                            await asyncio.sleep(conf.SLEEP_TIME)
                     else:
                         await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
             # 用户打开通知或手动任务时，进行通知
