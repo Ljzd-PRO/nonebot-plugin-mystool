@@ -1,15 +1,18 @@
 """
 ### 米游社登录获取Cookie相关
 """
+import traceback
+
 import httpx
 import requests.utils
+import tenacity
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import UserData
-from .utils import *
+from .utils import custom_attempt_times, generateDeviceID, logger
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
