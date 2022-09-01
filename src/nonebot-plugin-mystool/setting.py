@@ -23,7 +23,7 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 @account_setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
-    await account_setting.send(f"播报相关设置请使用 {COMMAND}播报设置 命令\n设置过程中随时发送“退出”即可退出")
+    await account_setting.send(f"通知相关设置请使用 {COMMAND}通知设置 命令\n设置过程中随时发送“退出”即可退出")
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
     state['qq'] = qq
@@ -79,8 +79,8 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
 
 
 global_setting = on_command(
-    conf.COMMAND_START+'global_setting', aliases={conf.COMMAND_START+'全局设置', conf.COMMAND_START+'播报设置'}, priority=4, block=True)
-global_setting.__help_name__ = "播报设置"
+    conf.COMMAND_START+'global_setting', aliases={conf.COMMAND_START+'全局设置', conf.COMMAND_START+'播报设置', conf.COMMAND_START+'通知设置'}, priority=4, block=True)
+global_setting.__help_name__ = "通知设置"
 global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
 
 
@@ -89,7 +89,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher):
     qq = int(event.user_id)
     await matcher.send(f"每日自动签到相关设置请使用 {COMMAND}签到设置 命令\n发送“退出”即可退出")
     await asyncio.sleep(0.5)
-    await matcher.send(f"每日签到后自动播报功能：{'开' if UserData.isNotice(qq) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
+    await matcher.send(f"自动通知每日计划任务结果：{'开' if UserData.isNotice(qq) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
 
 
 @global_setting.got('choice')
@@ -99,7 +99,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.finish("已成功退出")
     elif choice == '是':
         a = UserData.set_notice(not UserData.isNotice(qq), qq)
-        await matcher.finish(f"每日签到后自动播报功能已{'开启' if UserData.isNotice(qq) else '关闭'}")
+        await matcher.finish(f"自动通知每日计划任务结果 已{'开启' if UserData.isNotice(qq) else '关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:
@@ -108,10 +108,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}播报设置』命令。'
+setting.__help_info__ = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
 
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
-    msg = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}播报设置』命令'
+    msg = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
     await setting.send(msg)
