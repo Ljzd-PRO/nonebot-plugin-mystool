@@ -281,8 +281,15 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
     good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(
-            f'file:///{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
-        await get_good_image.finish(MessageSegment.image(img_path))
+            f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+        if os.path.exists(img_path):
+            await get_good_image.finish(MessageSegment.image('file:///'+img_path))
+        else:
+            await get_good_image.send('请稍等，商品图片正在生成哦~')
+            await generate_image(isauto=False)
+            img_path = time.strftime(
+                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+            await get_good_image.finish(MessageSegment.image('file:///'+img_path))
     else:
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
