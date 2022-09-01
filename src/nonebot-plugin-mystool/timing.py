@@ -152,6 +152,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                     await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
                         account.phone, game_name))
                     return
+                # 用户打开通知或手动签到时，进行通知
                 if UserData.isNotice(qq) or not isAuto:
                     img = ""
                     sign_info = await gamesign.info(sign_game, record.uid)
@@ -221,7 +222,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
                     await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
-
+            # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
                 missions_state = await get_missions_state(account)
                 if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
