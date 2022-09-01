@@ -161,6 +161,7 @@ class GameSign:
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    res = None
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URLS[game]["reward"], headers=HEADERS_REWARD, timeout=conf.TIME_OUT)
                     award_list: List[Award] = []
@@ -173,6 +174,8 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
+            if isinstance(res, httpx.Response):
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[Info, Literal[-1, -2, -3, -4]]:
@@ -212,6 +215,7 @@ class GameSign:
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    res = None
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
@@ -228,6 +232,8 @@ class GameSign:
             return -2
         except:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
+            if isinstance(res, httpx.Response):
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
@@ -277,6 +283,7 @@ class GameSign:
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    res = None
                     async with httpx.AsyncClient() as client:
                         res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
                     if not check_login(res.text):
@@ -300,5 +307,7 @@ class GameSign:
             return -2
         except:
             logger.error(conf.LOG_HEAD + "签到 - 请求失败")
+            if isinstance(res, httpx.Response):
+                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
