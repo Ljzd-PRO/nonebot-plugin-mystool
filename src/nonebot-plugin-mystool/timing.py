@@ -216,7 +216,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 return
             gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
             if not isAuto:
-                await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} 开始执行米游币任务')
+                await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
 
             # 执行任务
             for mission_state in missions_state[0]:
