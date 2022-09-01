@@ -260,6 +260,7 @@ class Exchange:
     - `result`属性为 `-4`: 暂不支持商品所属的游戏，放弃兑换
     - `result`属性为 `-5`: 获取商品的信息时，网络请求失败或服务器没有正确返回，放弃兑换
     - `result`属性为 `-6`: 获取用户游戏账户数据失败，放弃兑换
+    - `result`属性为 `-7`: 实体商品，用户未配置地址ID，放弃兑换
     """
 
     def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
@@ -269,12 +270,16 @@ class Exchange:
         self.result = None
         self.goodID = goodID
         self.account = account
+        if account.address is None:
+            address = None
+        else:
+            address = account.address.addressID
         self.content = {
             "app_id": 1,
             "point_sn": "myb",
             "goods_id": goodID,
             "exchange_num": 1,
-            "address_id": account.address.addressID
+            "address_id": address
         }
         self.gameUID = gameUID
 
@@ -303,6 +308,7 @@ class Exchange:
                             URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
                     goodInfo = res.json()["data"]
                     if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
+                        self.content.pop("address_id")
                         if "stoken" not in self.account.cookie:
                             logger.error(
                                 conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
@@ -315,6 +321,10 @@ class Exchange:
                             return self
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
                     else:
+                        if self.content["address_id"] is None:
+                            logger.error(
+                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为实体物品，由于未配置地址ID，放弃兑换".format(self.goodID))
+                            self.result = -7
                         return self
 
                     if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
