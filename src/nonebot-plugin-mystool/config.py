@@ -124,8 +124,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''网络请求出错的重试冷却时间'''
     TIME_OUT: Union[float, None] = None
     '''网络请求超时时间'''
-    GITHUB_PROXY: Union[str, None] = "https://ghproxy.com/"
-    '''GitHub代理加速服务器(若为None则不启用代理)'''
+    GITHUB_PROXY: str = "https://ghproxy.com/"
+    '''GitHub代理加速服务器(若为""空字符串则不启用)'''
 
     SIGN_TIME: str = "00:35"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
