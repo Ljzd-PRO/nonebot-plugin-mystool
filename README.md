@@ -35,4 +35,4 @@
 /帮助
 ```
 
-> ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki/Configuration)
+> ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki/Configuration#COMMAND_START)
