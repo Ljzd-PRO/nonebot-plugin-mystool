@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Natural Language :: Chinese",
 ]
 dependencies = [
     "httpx",
@@ -29,5 +30,6 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
+"Source" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
 "Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/issues"
-"Wiki" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
+"Documentation" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
