@@ -67,16 +67,16 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
                 msg += """\
-                -- 商品 {0}\
+                \n-- 商品 {0}\
                 \n- 🔢商品ID：{1}\
                 \n- 💰商品价格：{2}\
                 \n- 📅兑换时间：{3}\
-                \n- 📱账户：{4}\n\n""".format(good.name, good.goodID,
+                \n- 📱账户：{4}""".strip().format(good.name, good.goodID,
                         good.price, time.strftime("%Y-%m-%d %H:%M:%S",
                                                   time.localtime(good.time)), account.phone)
         if not msg:
-            msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg + myb_exchange_plan.__help_msg__)
+            msg = '您还没有兑换计划哦~'
+        await matcher.finish(msg + "\n\n" + myb_exchange_plan.__help_msg__)
 
 
 @myb_exchange_plan.got('phone')
@@ -255,7 +255,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 崩坏2\
         \n- 未定事件簿\
         \n- 米游社\
-        \n- 若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
+        \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 发送“退出”以结束""".strip())
 async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
     """
