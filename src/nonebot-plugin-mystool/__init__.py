@@ -52,7 +52,6 @@ __plugin_meta__ = PluginMetadata(
     \n{HEAD}账号设置 ➢ 设置是否开启每日米游币任务、游戏签到的计划任务\
     \n{HEAD}通知设置 ➢ 设置是否开启每日米游币任务、游戏签到的结果通知
     \n{HEAD}帮助 ➢ 查看帮助信息\
-    \n{HEAD}帮助 ➢ 查看帮助信息\
     \n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明
     """.strip(),
     extra="🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
