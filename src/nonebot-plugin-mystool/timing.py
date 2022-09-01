@@ -18,7 +18,7 @@ from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import get_good_list, game_list_to_image
 from .gameSign import GameSign, Info
-from .mybMission import get_missions_state, Action
+from .mybMission import get_missions_state, Action, GAME_ID
 from .utils import get_file
 
 driver = nonebot.get_driver()
@@ -221,7 +221,11 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
             # 执行任务
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
-                    await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
+                    if mission_state[0].keyName == 'continuous_sign':
+                        for game in GAME_ID.keys():
+                            mybmission.sign(game)
+                    else:
+                        await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
             # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
                 missions_state = await get_missions_state(account)
