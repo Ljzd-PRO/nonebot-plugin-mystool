@@ -1,10 +1,17 @@
-from nonebot.adapters.onebot.v11 import Bot, RequestEvent, FriendRequestEvent,GroupRequestEvent
-from nonebot import get_bot, get_driver, on_request
-from nonebot_plugin_apscheduler import scheduler
 import asyncio
-from .data import *
+
+from nonebot import get_bot, get_driver, on_request
+from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
+                                         GroupRequestEvent, RequestEvent)
+from nonebot_plugin_apscheduler import scheduler
+
+from .data import UserData
+
+driver = get_driver()
 
 FriendRequest = on_request(priority=1, block=True)
+
+
 @FriendRequest.handle()
 async def _(bot: Bot, event: RequestEvent):
     command = list(get_driver().config.command_start)[0]
@@ -33,4 +40,5 @@ async def check_friend_list():
             UserData.del_user(user)
 
 driver.on_bot_connect(check_friend_list)
-scheduler.add_job(id='check_friend', replace_existing=True, trigger="cron", hour='0', minute='00', func=check_friend_list)
+scheduler.add_job(id='check_friend', replace_existing=True,
+                  trigger="cron", hour='0', minute='00', func=check_friend_list)

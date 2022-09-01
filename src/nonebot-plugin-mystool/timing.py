@@ -11,17 +11,16 @@ from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
 from nonebot.params import T_State
-from nonebot.permission import SUPERUSER
 
-from .bbsAPI import *
+from .bbsAPI import GameInfo, GameRecord, get_game_record
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
 from .gameSign import GameSign, Info
 from .mybMission import GAME_ID, Action, Mission, get_missions_state
-from .utils import get_file
+from .utils import get_file, logger
 
-driver = nonebot.get_driver()
+driver = get_driver()
 
 daily_game_sign = nonebot_plugin_apscheduler.scheduler
 

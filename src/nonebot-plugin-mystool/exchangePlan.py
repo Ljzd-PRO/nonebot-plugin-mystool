@@ -2,7 +2,10 @@
 ### 米游社商品兑换前端以及计划任务相关
 """
 import asyncio
+import os
+import time
 from datetime import datetime
+from typing import List
 
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
@@ -12,12 +15,14 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
 from nonebot_plugin_apscheduler import scheduler
 
+from .bbsAPI import get_game_record
 from .config import mysTool_config as conf
 from .data import UserData
-from .exchange import *
+from .exchange import (Exchange, Good, UserAccount, get_good_detail,
+                       get_good_list)
 from .gameSign import GameInfo
-from .utils import NtpTime
 from .timing import generate_image
+from .utils import NtpTime
 
 driver = get_driver()
 
@@ -72,8 +77,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 \n- 💰商品价格：{2}\
                 \n- 📅兑换时间：{3}\
                 \n- 📱账户：{4}""".strip().format(good.name, good.goodID,
-                        good.price, time.strftime("%Y-%m-%d %H:%M:%S",
-                                                  time.localtime(good.time)), account.phone)
+                                              good.price, time.strftime("%Y-%m-%d %H:%M:%S",
+                                                                        time.localtime(good.time)), account.phone)
         if not msg:
             msg = '您还没有兑换计划哦~'
         await matcher.finish(msg + "\n\n" + myb_exchange_plan.__help_msg__)
