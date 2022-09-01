@@ -4,7 +4,7 @@ from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
-from nonebot.params import ArgPlainText, T_State, Arg
+from nonebot.params import Arg, ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import *
@@ -26,7 +26,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     state['qq'] = qq
     state['user_account'] = user_account
     if not user_account:
-        await account_setting.finish("您还没有登录哦！请先登录")
+        await account_setting.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     if arg:
         matcher.set_arg('phone', arg)
         return
@@ -45,13 +45,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone 
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
         await matcher.finish('已成功退出')
-    user_account = state['user_account']
+    user_account: List[UserAccount] = state['user_account']
     qq = state['qq']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
     if phone in phones:
         account = UserData.read_account(qq, int(phone))
     else:
-        await matcher.reject('您输入的账号不在以上账号内，请重新输入')
+        await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
     state['phone'] = phone
     state['account'] = account
     user_setting = f"1.米游币任务自动执行：{'开' if account.mybMission else '关'}\n2.游戏自动签到：{'开' if account.gameSign else '关'}\n"
@@ -60,7 +60,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone 
 
 @account_setting.got('arg')
 async def _(event: PrivateMessageEvent, state: T_State, arg = ArgPlainText('arg')):
-    account = state['account']
+    account: UserAccount = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
     elif arg == '1':
@@ -72,7 +72,7 @@ async def _(event: PrivateMessageEvent, state: T_State, arg = ArgPlainText('arg'
         UserData.set_account(account, event.user_id, state['phone'])
         await account_setting.send(f"米哈游游戏自动签到已{'开启' if account.gameSign else '关闭'}")
     else:
-        await account_setting.reject("您的输入有误，请重新输入")
+        await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
 global_setting = on_command(
@@ -100,7 +100,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:
-        await matcher.reject("您的输入有误，请重新输入")
+        await matcher.reject("⚠️您的输入有误，请重新输入")
 
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
