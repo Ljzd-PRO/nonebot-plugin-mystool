@@ -3,7 +3,7 @@
 """
 import json
 import traceback
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union
 
 import nonebot
 import nonebot.log
@@ -139,6 +139,8 @@ class UserAccount:
         '''是否开启米游社游戏签到计划'''
         self.exchange: List[Tuple[str, str]] = []
         '''计划兑换的商品( 元组(商品ID, 游戏UID) )'''
+        self.platform: Literal["ios", "android"] = "ios"
+        '''设备平台'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -169,6 +171,7 @@ class UserAccount:
         self.bbsUID: str = account["bbsUID"]
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
+        self.platform: Literal["ios", "android"] = account["platform"]
 
         exchange = []
         for plan in account["exchange"]:
@@ -188,7 +191,8 @@ class UserAccount:
             "bbsUID": self.bbsUID,
             "mybMission": self.mybMission,
             "gameSign": self.gameSign,
-            "exchange": self.exchange
+            "exchange": self.exchange,
+            "platform": self.platform
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict
