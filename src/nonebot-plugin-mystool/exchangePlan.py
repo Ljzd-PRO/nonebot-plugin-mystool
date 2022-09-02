@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Set
 
 from nonebot import get_bot, get_driver, on_command
-from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
+from nonebot.adapters.onebot.v11 import (Bot, MessageEvent, MessageSegment,
                                          PrivateMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
@@ -34,6 +34,7 @@ class ExchangeStart:
     """
     异步多线程兑换
     """
+
     def __init__(self, account: UserAccount, qq: int, exchangePlan: Exchange, thread: int) -> None:
         self.plans: List[Exchange] = []
         self.tasks: Set[asyncio.Task] = set()
@@ -43,44 +44,40 @@ class ExchangeStart:
 
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
-            task = asyncio.create_task(self.plans[-1].start())
-            task.add_done_callback(self.__check_result)
-            self.tasks.add(task)
-
-    async def __check_result(self):
-        """
-        检查结果并推送通知
-        """
-        self.finishedCount += 1
-        if self.finishedCount == len(self.tasks):
-            success_plans = list(filter(lambda plan: isinstance(
-                plan.result, tuple) and plan.result[0] == True, self.plans))
-            if success_plans:
-                await get_bot().send_private_msg(user_id=self.qq, message=f"🎉用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换成功，可前往米游社查看")
-            else:
-                msg = f"⚠️用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换失败\n返回结果：\n"
-                num = 0
-                for plan in self.plans:
-                    num += 1
-                    msg += f"{num}: "
-                    if isinstance(plan.result, tuple):
-                        msg += plan.result
-                    else:
-                        msg += f"异常，程序返回结果为 {plan.result}"
-                    msg += "\n"
-                await get_bot().send_private_msg(user_id=self.qq, message=msg)
-            for plan in self.account.exchange:
-                if plan == (success_plans[0].goodID, success_plans[0].gameUID):
-                    self.account.exchange.remove(plan)
-            UserData.set_account(self.account, self.qq,
-                                 self.account.phone)
 
     async def start(self):
         """
         执行兑换
         """
+        for plan in self.plans:
+            self.tasks.add(asyncio.create_task(plan.start()))
         for task in self.tasks:
             await task
+
+        bot: Bot = get_bot()
+
+        success_plans = list(filter(lambda plan: isinstance(
+            plan.result, tuple) and plan.result[0] == True, self.plans))
+        if success_plans:
+            bot.send_private_msg(
+                user_id=self.qq, message=f"🎉用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换成功，可前往米游社查看")
+        else:
+            msg = f"⚠️用户 📱{self.account.phone} 商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
+            num = 0
+            for plan in self.plans:
+                num += 1
+                msg += f"{num}: "
+                if isinstance(plan.result, tuple):
+                    msg += plan.result
+                else:
+                    msg += f"异常，程序返回结果为 {plan.result}"
+                msg += "\n"
+            bot.send_private_msg(user_id=self.qq, message=msg)
+        for plan in self.account.exchange:
+            if plan == (self.plans[0].goodID, self.plans[0].gameUID):
+                self.account.exchange.remove(plan)
+        UserData.set_account(self.account, self.qq,
+                             self.account.phone)
 
 
 myb_exchange_plan = on_command(
