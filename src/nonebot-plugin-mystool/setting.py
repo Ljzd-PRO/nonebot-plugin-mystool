@@ -65,7 +65,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
 
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg').strip()):
+async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+    arg = arg.strip()
     account: UserAccount = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
