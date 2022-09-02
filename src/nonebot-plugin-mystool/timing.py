@@ -10,7 +10,6 @@ import nonebot_plugin_apscheduler
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
-from nonebot.params import T_State
 
 from .bbsAPI import GameInfo, GameRecord, get_game_record
 from .config import mysTool_config as conf
@@ -41,7 +40,7 @@ manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签�
 
 
 @manually_game_sign.handle()
-async def _(event: PrivateMessageEvent, state: T_State):
+async def _(event: PrivateMessageEvent):
     """
     手动游戏签到函数
     """
@@ -57,7 +56,7 @@ manually_bbs_sign.__help_info__ = '手动执行米游币每日任务，可以查
 
 
 @manually_bbs_sign.handle()
-async def _(event: PrivateMessageEvent, state: T_State):
+async def _(event: PrivateMessageEvent):
     """
     手动米游币任务函数
     """
