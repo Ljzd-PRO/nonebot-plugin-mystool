@@ -49,8 +49,10 @@ class ExchangeStart:
         """
         执行兑换
         """
+        # 在后台启动兑换操作
         for plan in self.plans:
             self.tasks.add(asyncio.create_task(plan.start()))
+        # 等待兑换线程全部结束
         for task in self.tasks:
             await task
 
