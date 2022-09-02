@@ -130,6 +130,9 @@ class Config(BaseModel, extra=Extra.ignore):
     SIGN_TIME: str = "00:35"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
 
+    EXCHANGE_THREAD: int = 3
+    '''商品兑换线程数'''
+
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()
 
