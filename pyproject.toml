@@ -1,35 +1,39 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "nonebot-plugin-mystool"
 version = "0.1.0"
-authors = [
-  { name="Ljzd-PRO", email="ljzd@office.ljzd-pro.ml" },
-  { name="Everything0519", email="598139245@qq.com" },
-]
 description = "NoneBot插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录"
+license = "MIT"
+authors = [
+  "Ljzd-PRO <ljzd@office.ljzd-pro.ml>",
+  "Everything0519 <598139245@qq.com>",
+]
 readme = "README.md"
-license = { file="LICENSE" }
-requires-python = ">=3.8"
+homepage = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
+repository = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
+documentation = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
+keywords = ["bot", "qq", "qqbot", "mirai", "coolq", "nonebot", "mihoyo", "mihoyobbs"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Natural Language :: Chinese",
 ]
-dependencies = [
-    "httpx",
-    "nonebot_plugin_apscheduler",
-    "ntplib",
-    "Pillow",
-    "requests",
-    "nonebot_adapter_onebot",
+packages = [
+    { include = "nonebot-plugin-mystool", from = "src" },
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
-"Source" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
+[tool.poetry.dependencies]
+python = "^3.8"
+httpx = ">=0.22.0"
+nonebot_plugin_apscheduler = "*"
+ntplib = "*"
+Pillow = ">=9.1.1"
+requests = "*"
+nonebot_adapter_onebot = "*"
+
+[tool.poetry.urls]
 "Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/issues"
-"Documentation" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
