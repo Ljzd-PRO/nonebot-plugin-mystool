@@ -89,7 +89,7 @@ class Good:
 
     def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
-        self.time_by_detail = None
+        self.time_by_detail: int = None
         try:
             for func in dir(Good):
                 if func.startswith("__") and func == "async_init":
@@ -106,7 +106,7 @@ class Good:
         if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
             detail = await get_good_detail(self.goodID)
             if detail is not None:
-                self.time_by_detail = detail.time
+                self.time_by_detail = int(detail.time)
             else:
                 logger.error(f"{conf.LOG_HEAD}初始化商品数据对象 - 获取商品兑换时间失败")
         return self
@@ -141,7 +141,7 @@ class Good:
         # "type" 为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
-        elif self.good_dict["status"] != "not_in_sale":
+        elif self.good_dict["status"] != "not_in_sell":
             return self.good_dict["next_time"]
         elif "sale_start_time" in self.good_dict:
             return self.good_dict["sale_start_time"]
