@@ -385,10 +385,12 @@ class Exchange:
                 if res.json()["message"] == "OK":
                     logger.info(
                         conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换成功！可以自行确认。".format(self.account.phone, self.goodID))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return (True, res.json())
                 else:
                     logger.info(
                         conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换失败，可以自行确认。".format(self.account.phone, self.goodID))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return (False, res.json())
             except KeyError:
                 logger.error(
