@@ -194,7 +194,7 @@ def check_login(response: str):
         res_dict = json.loads(response)
         if "message" in res_dict:
             response: str = res_dict["message"]
-            for string in ("Please login", "登录失效"):
+            for string in ("Please login", "登录失效", "尚未登录"):
                 if response.find(string) != -1:
                     return False
             return True
