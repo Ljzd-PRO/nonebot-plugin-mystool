@@ -55,25 +55,37 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         account = UserData.read_account(qq, int(phone))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
-    state['phone'] = phone
     state['account'] = account
-    user_setting = f"1.米游币任务自动执行：{'开' if account.mybMission else '关'}\n2.游戏自动签到：{'开' if account.gameSign else '关'}\n"
-    await account_setting.send(user_setting+'您要更改哪一项呢？请发送“1”或“2”')
+    user_setting = ""
+    user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.mybMission else '关'}\n"
+    user_setting += f"2️⃣ 游戏自动签到：{'开' if account.gameSign else '关'}\n"
+    platform_show = "iOS" if account.platform == "ios" else "安卓"
+    user_setting += f"3️⃣ 设备平台：{platform_show}\n"
+    await account_setting.send(user_setting+'您要更改哪一项呢？请发送 “1”/“2”/“3”')
 
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg').strip()):
     account: UserAccount = state['account']
     if arg == '退出':
         await account_setting.finish('已成功退出')
     elif arg == '1':
         account.mybMission = not account.mybMission
-        UserData.set_account(account, event.user_id, int(state['phone']))
-        await account_setting.send(f"米游币任务自动执行已{'开启' if account.mybMission else '关闭'}")
+        UserData.set_account(account, event.user_id, account.phone)
+        await account_setting.send(f"📅米游币任务自动执行已 {'☑️开启' if account.mybMission else '⬛️关闭'}")
     elif arg == '2':
         account.gameSign = not account.gameSign
-        UserData.set_account(account, event.user_id, state['phone'])
-        await account_setting.send(f"米哈游游戏自动签到已{'开启' if account.gameSign else '关闭'}")
+        UserData.set_account(account, event.user_id, account.phone)
+        await account_setting.send(f"📅米哈游游戏自动签到已 {'☑️开启' if account.gameSign else '⬛️关闭'}")
+    elif arg == '3':
+        if account.platform == "ios":
+            account.platform == "android"
+            platform_show = "安卓"
+        else:
+            account.platform == "ios"
+            platform_show = "iOS"
+        UserData.set_account(account, event.user_id, account.phone)
+        await account_setting.send(f"📲设备配套已更改为 {platform_show}")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
@@ -89,7 +101,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher):
     qq = int(event.user_id)
     await matcher.send(f"每日自动签到相关设置请使用 {COMMAND}签到设置 命令\n发送“退出”即可退出")
     await asyncio.sleep(0.5)
-    await matcher.send(f"自动通知每日计划任务结果：{'开' if UserData.isNotice(qq) else '关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
+    await matcher.send(f"自动通知每日计划任务结果：{'🔔开' if UserData.isNotice(qq) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”")
 
 
 @global_setting.got('choice')
@@ -99,7 +111,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.finish("已成功退出")
     elif choice == '是':
         a = UserData.set_notice(not UserData.isNotice(qq), qq)
-        await matcher.finish(f"自动通知每日计划任务结果 已{'开启' if UserData.isNotice(qq) else '关闭'}")
+        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.isNotice(qq) else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:
