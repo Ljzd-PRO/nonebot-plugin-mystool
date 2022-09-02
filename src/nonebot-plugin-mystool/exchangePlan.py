@@ -290,10 +290,11 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 发送“退出”以结束""".strip())
-async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('content')):
+async def _(event: MessageEvent, matcher: Matcher, arg = ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
+    arg = arg.strip()
     if arg == '退出':
         await matcher.finish('已成功退出')
     elif arg in ['原神', 'ys']:
