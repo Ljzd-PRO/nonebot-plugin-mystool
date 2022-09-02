@@ -91,12 +91,12 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     if not user_account:
         await get_address.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     else:
-        await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
+        await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
         matcher.set_arg('phone', str(user_account[0].phone))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
-        msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
+        msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
         msg += "📱" + "\n📱".join(phones)
         await matcher.send(msg)
 
