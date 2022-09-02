@@ -39,12 +39,12 @@ from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-VERSION = "0.1.0"
+VERSION = "v0.1.0"
 '''插件版本号'''
 
 
 __plugin_meta__ = PluginMetadata(
-    name="❖米游社小助手插件❖\nver {}\n".format(VERSION),
+    name="❖米游社小助手插件❖\n版本 - {}\n".format(VERSION),
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage="""
     \n🔐 {HEAD}登录 ➢ 登录绑定米游社账户\
