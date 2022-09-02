@@ -21,18 +21,6 @@ from .utils import get_file, logger
 
 driver = get_driver()
 
-
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_game_sign")
-async def daily_game_sign_():
-    """
-    自动游戏签到函数
-    """
-    bot = get_bot()
-    qq_accounts = UserData.read_all().keys()
-    for qq in qq_accounts:
-        await perform_game_sign(bot=bot, qq=qq, isAuto=True)
-
-
 manually_game_sign = on_command(
     conf.COMMAND_START+'yssign', aliases={conf.COMMAND_START+'签到', conf.COMMAND_START+'手动签到', conf.COMMAND_START+'游戏签到', conf.COMMAND_START+'原神签到', conf.COMMAND_START+'gamesign'}, priority=4, block=True)
 manually_game_sign.__help_name__ = '签到'
@@ -254,7 +242,7 @@ async def generate_image(isAuto=True):
                 fp.write(image_bytes)
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_update")
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 async def daily_update():
     """
     每日图片生成函数
@@ -262,7 +250,7 @@ async def daily_update():
     await generate_image()
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_bbs_sign")
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
