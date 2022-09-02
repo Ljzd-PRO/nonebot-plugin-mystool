@@ -81,20 +81,35 @@ FONT_SAVE_PATH = PATH / "SourceHanSansHWSC-Regular.otf"
 class Good:
     """
     商品数据
+
+    如果是通过获取商品列表得到的数据，要额外使用`async_init`初始化
     """
     Used_Times = NewType("Used_Times", int)
     Total_Times = NewType("Total_Times", int)
 
     def __init__(self, good_dict: dict) -> None:
         self.good_dict = good_dict
+        self.time_by_detail = None
         try:
             for func in dir(Good):
-                if func.startswith("__") and func == "time":
+                if func.startswith("__") and func == "async_init":
                     continue
                 getattr(self, func)
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
+
+    async def async_init(self):
+        """
+        进一步异步初始化商品数据(生成商品时间Good.time)
+        """
+        if ["sale_start_time"] not in self.good_dict and self.good_dict["status"] == "not_in_sell":
+            detail = await get_good_detail(self.goodID)
+            if detail is not None:
+                self.time_by_detail = detail.time
+            else:
+                logger.error(f"{conf.LOG_HEAD}初始化商品数据对象 - 获取商品兑换时间失败")
+        return self
 
     @property
     def name(self) -> str:
@@ -126,8 +141,12 @@ class Good:
         # "type" 为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
-        else:
+        elif self.good_dict["status"] != "not_in_sale":
             return self.good_dict["next_time"]
+        elif ["sale_start_time"] in self.good_dict:
+            return self.good_dict["sale_start_time"]
+        else:
+            return self.time_by_detail
 
     @property
     def num(self) -> int:
@@ -181,11 +200,11 @@ async def get_good_detail(goodID: str, retry: bool = True):
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
                 return Good(res.json()["data"])
     except KeyError and ValueError:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 服务器没有正确返回")
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取开始时间: 网络请求失败")
+        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 网络请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
@@ -243,7 +262,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
         if good["next_time"] == 0 and good["type"] == 1 or good["unlimit"] == False and good["next_num"] == 0:
             continue
         else:
-            result.append(Good(good))
+            result.append(Good(good).async_init())
 
     return result
 
