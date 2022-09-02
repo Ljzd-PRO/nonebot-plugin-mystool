@@ -34,14 +34,13 @@ class ExchangeStart:
     """
     异步多线程兑换
     """
-    bot = get_bot()
-
     def __init__(self, account: UserAccount, qq: int, exchangePlan: Exchange, thread: int) -> None:
         self.plans: List[Exchange] = []
         self.tasks: List[asyncio.Task] = []
         self.finishedCount = 0
         self.account = account
         self.qq = qq
+        self.bot = get_bot()
 
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
