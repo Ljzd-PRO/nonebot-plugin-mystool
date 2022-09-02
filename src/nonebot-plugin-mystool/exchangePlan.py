@@ -43,7 +43,7 @@ class ExchangeStart:
 
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
-            self.tasks.append(asyncio.create_task(self.plans[-1].start))
+            self.tasks.append(asyncio.create_task(self.plans[-1].start()))
 
     async def __check_result(self):
         """
