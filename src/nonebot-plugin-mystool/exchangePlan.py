@@ -6,7 +6,7 @@ import os
 import time
 from copy import deepcopy
 from datetime import datetime
-from typing import List
+from typing import List, Set
 
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
@@ -36,14 +36,16 @@ class ExchangeStart:
     """
     def __init__(self, account: UserAccount, qq: int, exchangePlan: Exchange, thread: int) -> None:
         self.plans: List[Exchange] = []
-        self.tasks: List[asyncio.Task] = []
+        self.tasks: Set[asyncio.Task] = set()
         self.finishedCount = 0
         self.account = account
         self.qq = qq
 
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
-            self.tasks.append(asyncio.create_task(self.plans[-1].start()))
+            task = asyncio.create_task(self.plans[-1].start())
+            task.add_done_callback(self.__check_result)
+            self.tasks.add(task)
 
     async def __check_result(self):
         """
@@ -78,7 +80,6 @@ class ExchangeStart:
         执行兑换
         """
         for task in self.tasks:
-            task.add_done_callback(self.__check_result)
             await task
 
 
