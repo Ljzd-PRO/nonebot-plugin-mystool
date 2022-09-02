@@ -116,6 +116,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                       for i in range(len(user_account))]
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
             msg += "📱" + "\n📱".join(phones)
+            msg += "\n🚪发送“退出”即可退出"
             await matcher.send(msg)
     # 如果未使用二级命令，则进行查询操作，并结束交互
     else:
@@ -193,7 +194,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.isVisual:
                 game_records = await get_game_record(account)
-                await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：")
+                await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
                 if isinstance(game_records, int):
                     pass
                 else:
@@ -289,7 +290,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 未定事件簿\
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
-        \n—— 发送“退出”以结束""".strip())
+        \n—— 🚪发送“退出”以结束""".strip())
 async def _(event: MessageEvent, matcher: Matcher, arg = ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
