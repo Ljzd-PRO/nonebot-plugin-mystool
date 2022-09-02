@@ -5,5 +5,3 @@ updates:
     schedule:
       interval: "daily"
     target-branch: "main"
-    labels:
-      - "pip dependencies"
