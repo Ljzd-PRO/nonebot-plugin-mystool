@@ -18,7 +18,7 @@ COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 account_setting = on_command(
     conf.COMMAND_START+'账号设置', aliases={conf.COMMAND_START+'账户设置', conf.COMMAND_START+'签到设置', conf.COMMAND_START+'游戏设置'}, priority=4, block=True)
 account_setting.__help_name__ = "账号设置"
-account_setting.__help_info__ = "配置游戏自动签到、米游币任务是否开启相关选项"
+account_setting.__help_info__ = "配置游戏自动签到、米游币任务是否开启、设备平台相关选项"
 
 
 @account_setting.handle()
@@ -108,10 +108,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
 setting = on_command(
     conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
+setting.__help_info__ = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
 
 
 @setting.handle()
 async def _(event: PrivateMessageEvent):
-    msg = f'如需配置是否开启每日米游币任务、游戏签到等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
+    msg = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
     await setting.send(msg)
