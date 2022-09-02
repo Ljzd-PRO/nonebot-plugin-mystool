@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
-"Source" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
-"Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/issues"
-"Documentation" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
+"Homepage" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
+"Source" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
+"Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues"
+"Documentation" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki"

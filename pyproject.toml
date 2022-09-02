@@ -8,9 +8,9 @@ authors = [
   "Everything0519 <598139245@qq.com>",
 ]
 readme = "README.md"
-homepage = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
-repository = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool"
-documentation = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki"
+homepage = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
+repository = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
+documentation = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki"
 keywords = ["bot", "qq", "qqbot", "mirai", "coolq", "nonebot", "mihoyo", "mihoyobbs"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -32,7 +32,7 @@ requests = "*"
 nonebot_adapter_onebot = "*"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/issues"
+"Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

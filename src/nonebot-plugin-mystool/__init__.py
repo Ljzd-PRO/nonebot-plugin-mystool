@@ -22,11 +22,11 @@
 
 ### ⚙️ NoneBot 机器人部署和插件安装
 
-请查看 -> [🔗Installation](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki/Installation)
+请查看 -> [🔗Installation](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Installation)
 
 ### 📖 插件具体使用说明
 
-请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/wiki)
+请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki)
 """
 
 import pkgutil
@@ -54,7 +54,7 @@ __plugin_meta__ = PluginMetadata(
     \n{HEAD}帮助 ➢ 查看帮助信息\
     \n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明
     """.strip(),
-    extra="🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mysTool\n欢迎提出建议和意见！"
+    extra="🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mystool\n欢迎提出建议和意见！"
 )
 
 # 加载其它代码
