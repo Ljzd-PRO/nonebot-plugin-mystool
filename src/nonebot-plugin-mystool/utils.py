@@ -37,8 +37,9 @@ def set_logger(logger: "Logger"):
     """
     给日志记录器对象增加输出到文件的Handler
     """
+    # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     logger.add(conf.LOG_PATH, level=0, diagnose=False, format=nonebot.log.default_format,
-               filter=nonebot.log.default_filter, rotation=conf.LOG_ROTATION)
+               filter=lambda record: record["name"] == conf.PLUGIN_NAME or (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0), rotation=conf.LOG_ROTATION)
     return logger
 
 

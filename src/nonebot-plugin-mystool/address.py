@@ -16,9 +16,7 @@ from nonebot.params import Arg, ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
-from .utils import NtpTime, check_login, custom_attempt_times, set_logger
-
-logger = set_logger(logger)
+from .utils import NtpTime, check_login, custom_attempt_times, logger
 
 HEADERS = {
     "Host": "api-takumi.mihoyo.com",

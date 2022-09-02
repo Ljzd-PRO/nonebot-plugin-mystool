@@ -12,9 +12,7 @@ from nonebot.log import logger
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import (check_login, custom_attempt_times, generateDeviceID,
-                    generateDS, set_logger)
-
-logger = set_logger(logger)
+                    generateDS, logger)
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
