@@ -104,9 +104,9 @@ class Config(BaseModel, extra=Extra.ignore):
     '''插件内部命令头(若为""空字符串则不启用)'''
     PLUGIN_NAME: str = "nonebot-plugin-mystool"
     '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
+
     LOG_HEAD: str = ""
     '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
-
     LOG_SAVE: bool = True
     '''是否输出日志到文件(将会输出NoneBot全部日志)'''
     LOG_PATH: Path = PATH / "mystool.log"
