@@ -2,5 +2,5 @@ httpx>=0.22.0
 nonebot_plugin_apscheduler==0.1.4
 ntplib==0.4.0
 Pillow>=9.1.1
-requests==2.26.0
+requests==2.28.1
 nonebot_adapter_onebot==2.1.3
