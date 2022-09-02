@@ -224,7 +224,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
         else:
             await matcher.finish("您还没有配置兑换计划哦")
     else:
-        matcher.finish('⚠️您的输入有误，请重新输入')
+        matcher.reject('⚠️您的输入有误，请重新输入')
 
 
 @myb_exchange_plan.got('uid')
