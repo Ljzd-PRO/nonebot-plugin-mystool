@@ -71,8 +71,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
     执行游戏签到函数。并发送给用户签到消息。
 
     参数:
-        `IsAuto`: bool
-        True为当日自动签到，False为用户手动调用签到功能
+        `IsAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
