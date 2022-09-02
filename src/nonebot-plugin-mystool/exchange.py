@@ -83,6 +83,8 @@ class Good:
     商品数据
 
     如果是通过获取商品列表得到的数据，要额外使用`async_init`初始化
+
+    如果 `.time` 返回`None`，说明获取商品兑换时间失败
     """
     Used_Times = NewType("Used_Times", int)
     Total_Times = NewType("Total_Times", int)
