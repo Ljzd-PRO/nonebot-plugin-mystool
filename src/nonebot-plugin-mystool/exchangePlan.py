@@ -204,6 +204,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                         uids.append(record.uid)
                     await matcher.send(msg)
             else:
+                if not account.address:
+                    await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
                 matcher.set_arg('uid', None)
             state['uids'] = uids
         else:
@@ -238,8 +240,6 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
             await matcher.finish('已成功退出')
         if uid not in uids:
             await matcher.reject('⚠️您输入的uid不在上述账号内，请重新输入')
-    if not account.address:
-        await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
 
     if account.exchange and (good.goodID, uid) in account.exchange:
         await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
