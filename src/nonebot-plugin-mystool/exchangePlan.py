@@ -280,7 +280,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
         arg = ('bbs', '米游社')
     elif arg == '更新':
         await get_good_image.send('⏳正在生成商品信息图片...')
-        await generate_image(isauto=False)
+        await generate_image(isAuto=False)
         await get_good_image.finish('商品信息图片刷新成功')
     else:
         await get_good_image.finish('⚠️您的输入有误，请重新输入')
@@ -292,7 +292,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = ArgPlainText('
             await get_good_image.finish(MessageSegment.image('file:///'+img_path))
         else:
             await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
-            await generate_image(isauto=False)
+            await generate_image(isAuto=False)
             img_path = time.strftime(
                 f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
             await get_good_image.finish(MessageSegment.image('file:///'+img_path))
