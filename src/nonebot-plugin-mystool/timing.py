@@ -50,17 +50,6 @@ async def _(event: PrivateMessageEvent, state: T_State):
     await perform_game_sign(bot=bot, qq=qq, isAuto=False)
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_bbs_sign")
-async def daily_bbs_sign_():
-    """
-    自动米游币任务函数
-    """
-    qq_accounts = UserData.read_all().keys()
-    bot = get_bot()
-    for qq in qq_accounts:
-        await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
-
-
 manually_bbs_sign = on_command(
     conf.COMMAND_START+'任务', aliases={conf.COMMAND_START+'米游社签到', conf.COMMAND_START+'米游币任务', conf.COMMAND_START+'米游币获取', conf.COMMAND_START+'bbssign', conf.COMMAND_START+'米游社任务'}, priority=4, block=True)
 manually_bbs_sign.__help_name__ = '任务'
@@ -75,14 +64,6 @@ async def _(event: PrivateMessageEvent, state: T_State):
     qq = event.user_id
     bot = get_bot()
     await perform_bbs_sign(bot=bot, qq=qq, isAuto=False)
-
-
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_update")
-async def daily_update():
-    """
-    每日图片生成函数
-    """
-    await generate_image()
 
 
 async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
@@ -273,6 +254,26 @@ async def generate_image(isAuto=True):
                 return
             with open(img_path, 'wb') as fp:
                 fp.write(image_bytes)
+
+
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_update")
+async def daily_update():
+    """
+    每日图片生成函数
+    """
+    await generate_image()
+
+
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_bbs_sign")
+async def daily_schedule():
+    """
+    自动米游币任务、游戏签到函数
+    """
+    qq_accounts = UserData.read_all().keys()
+    bot = get_bot()
+    for qq in qq_accounts:
+        await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
+        await perform_game_sign(bot=bot, qq=qq, isAuto=True)
 
 # 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)
