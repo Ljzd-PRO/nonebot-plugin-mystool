@@ -91,7 +91,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     if not user_account:
         await get_address.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     else:
-        await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。过程中随时发送“退出”即可退出")
+        await get_address.send("请跟随指引配置地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
         matcher.set_arg('phone', str(user_account[0].phone))
     else:
@@ -106,7 +106,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
-        await get_address.finish('已成功退出')
+        await get_address.finish('🚪已成功退出')
     user_account = state['user_account']
     qq_account = state['qq_account']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
@@ -142,7 +142,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
 @get_address.got('address_id', prompt='请发送你要选择的地址ID')
 async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
-        await get_address.finish("已成功退出")
+        await get_address.finish("🚪已成功退出")
     result_address = list(
         filter(lambda address: address.addressID == address_id, state['address_list']))
     if result_address:

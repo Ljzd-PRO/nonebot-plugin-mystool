@@ -184,14 +184,14 @@ async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
     \n2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）\
     \n3.发送验证码给QQ机器人\
     \n4.刷新网页，再次获取验证码并发送给QQ机器人\
-    过程中随时输入“退出”即可退出\
+    \n🚪过程中发送“退出”即可退出\
         """.strip())
 
 
 @get_cookie.got('手机号', prompt='1.请发送您的手机号：')
 async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('手机号')):
     if phone == '退出':
-        await get_cookie.finish("已成功退出")
+        await get_cookie.finish("🚪已成功退出")
     try:
         phone_num = int(phone)
     except:
@@ -211,7 +211,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
 @get_cookie.got("验证码1", prompt='3.请发送验证码：')
 async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
     if captcha1 == '退出':
-        await get_cookie.finish("已成功退出")
+        await get_cookie.finish("🚪已成功退出")
     try:
         int(captcha1)
     except:
@@ -240,7 +240,7 @@ async def _(event: PrivateMessageEvent, state: T_State):
 @get_cookie.got('验证码2', prompt='4.请发送验证码：')
 async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlainText('验证码2')):
     if captcha2 == '退出':
-        await get_cookie.finish("已成功退出")
+        await get_cookie.finish("🚪已成功退出")
     try:
         int(captcha2)
     except:

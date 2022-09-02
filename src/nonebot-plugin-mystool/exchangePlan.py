@@ -149,7 +149,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     user_account: List[UserAccount] = state['user_account']
 
     if phone == '退出':
-        await matcher.finish('已成功退出')
+        await matcher.finish('🚪已成功退出')
     try:
         state["account"] = list(
             filter(lambda account: account.phone == int(phone), user_account))[0]
@@ -237,9 +237,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     uids: List[str] = state['uids']
     if uid:
         if uid == '退出':
-            await matcher.finish('已成功退出')
+            await matcher.finish('🚪已成功退出')
         if uid not in uids:
-            await matcher.reject('⚠️您输入的uid不在上述账号内，请重新输入')
+            await matcher.reject('⚠️您输入的UID不在上述账号内，请重新输入')
 
     if account.exchange and (good.goodID, uid) in account.exchange:
         await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
@@ -296,7 +296,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg = ArgPlainText('content')
     """
     arg = arg.strip()
     if arg == '退出':
-        await matcher.finish('已成功退出')
+        await matcher.finish('🚪已成功退出')
     elif arg in ['原神', 'ys']:
         arg = ('ys', '原神')
     elif arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:

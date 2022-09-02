@@ -94,7 +94,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                             message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(
                                 account.phone, game_name)
                         elif sign_flag == -5:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请手动前往米游社签到".format(
+                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请尝试使用命令『/账户设置』更改设备平台，若仍失败请手动前往米游社签到".format(
                                 account.phone, game_name)
                         else:
                             message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(
