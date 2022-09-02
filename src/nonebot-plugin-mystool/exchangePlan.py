@@ -4,6 +4,7 @@
 import asyncio
 import os
 import time
+from copy import deepcopy
 from datetime import datetime
 from typing import List
 
@@ -27,6 +28,60 @@ from .utils import NtpTime
 driver = get_driver()
 
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+
+
+class ExchangeStart:
+    """
+    异步多线程兑换
+    """
+    bot = get_bot()
+
+    def __init__(self, account: UserAccount, qq: int, exchangePlan: Exchange, thread: int) -> None:
+        self.plans: List[Exchange] = []
+        self.tasks: List[asyncio.Task] = []
+        self.finishedCount = 0
+        self.account = account
+        self.qq = qq
+
+        for _ in range(thread):
+            self.plans.append(deepcopy(exchangePlan))
+            self.tasks.append(asyncio.create_task(self.plans[-1].start()))
+
+    async def __check_result(self):
+        """
+        检查结果并推送通知
+        """
+        self.finishedCount += 1
+        if self.finishedCount == len(self.tasks):
+            success_plans = list(filter(lambda plan: isinstance(
+                plan.result, tuple) and plan.result[0] == True, self.plans))
+            if success_plans:
+                await self.bot.send_private_msg(user_id=self.qq, message=f"🎉用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换成功，可前往米游社查看")
+            else:
+                msg = f"⚠️用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换失败\n返回结果：\n"
+                num = 0
+                for plan in self.plans:
+                    num += 1
+                    msg += f"{num}: "
+                    if isinstance(plan.result, tuple):
+                        msg += plan.result
+                    else:
+                        msg += f"异常，程序返回结果为 {plan.result}"
+                    msg += "\n"
+                await self.bot.send_private_msg(user_id=self.qq, message=msg)
+            for plan in self.account.exchange:
+                if plan == (success_plans[0].goodID, success_plans[0].gameUID):
+                    self.account.exchange.remove(plan)
+            UserData.set_account(self.account, self.qq,
+                                 self.account.phone)
+
+    async def start(self):
+        """
+        执行兑换
+        """
+        for task in self.tasks:
+            task.add_done_callback(self.__check_result)
+
 
 myb_exchange_plan = on_command(
     conf.COMMAND_START+'兑换', aliases={conf.COMMAND_START+'myb_exchange', conf.COMMAND_START+'米游币兑换', conf.COMMAND_START+'米游币兑换计划', conf.COMMAND_START+'兑换计划', conf.COMMAND_START+'兑换'}, priority=4, block=True)
@@ -206,39 +261,12 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     elif exchange_plan.result == -6:
         await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
-        scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=exchange,
-                          args=(exchange_plan, event.user_id), next_run_time=datetime.fromtimestamp(good.time))
+        scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=ExchangeStart(
+            account, event.user_id, exchange_plan, conf.EXCHANGE_THREAD).start, next_run_time=datetime.fromtimestamp(good.time))
 
     UserData.set_account(account, event.user_id, account.phone)
 
     await matcher.finish(f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
-
-
-async def exchange(exchange_plan: Exchange, qq: str):
-    """
-    执行兑换，并进行通知
-    """
-    bot = get_bot()
-    for i in range(5):
-        results = []
-        flag = False
-        result = await exchange_plan.start()
-        results.append(result)
-        await asyncio.sleep(0.1)
-    for result in results:
-        if result[0]:
-            flag = True
-            break
-    if flag:
-        await bot.send_private_msg(user_id=qq, message=f"🎉商品 {exchange_plan.goodID} 兑换成功，可前往米游社查看")
-    else:
-        await bot.send_private_msg(user_id=qq, message=f"⚠️商品 {exchange_plan.goodID} 兑换失败\n{result[1]}")
-    for exchange_plan__ in exchange_plan.account.exchange:
-        if exchange_plan__[0] == exchange_plan.goodID:
-            exchange_plan.account.exchange.remove(exchange_plan__)
-    UserData.set_account(exchange_plan.account, qq,
-                         exchange_plan.account.phone)
-
 
 get_good_image = on_command(
     conf.COMMAND_START+'商品列表', aliases={conf.COMMAND_START+'商品图片', conf.COMMAND_START+'米游社商品列表', conf.COMMAND_START+'米游币商品图片', conf.COMMAND_START+'商品'}, priority=4, block=True)
@@ -307,6 +335,7 @@ async def load_exchange_data():
     """
     all_accounts = UserData.read_all()
     for qq in all_accounts.keys():
+        qq = int(qq)
         accounts = UserData.read_account_all(qq)
         for account in accounts:
             exchange_list = account.exchange
@@ -315,8 +344,8 @@ async def load_exchange_data():
                 if good_detail.time < NtpTime.time():
                     # 若重启时兑换超时则删除该兑换
                     account.exchange.remove(exchange_good)
-                    UserData.set_account(account, int(qq), account.phone)
+                    UserData.set_account(account, qq, account.phone)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
-                    scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=exchange, args=(
-                        exchange_plan, qq), next_run_time=datetime.fromtimestamp(good_detail.time))
+                    scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=ExchangeStart(
+                        account, qq, exchange_plan, conf.EXCHANGE_THREAD).start, next_run_time=datetime.fromtimestamp(good_detail.time))
