@@ -103,7 +103,7 @@ class Good:
         """
         进一步异步初始化商品数据(生成商品时间Good.time)
         """
-        if ["sale_start_time"] not in self.good_dict and self.good_dict["status"] == "not_in_sell":
+        if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
             detail = await get_good_detail(self.goodID)
             if detail is not None:
                 self.time_by_detail = detail.time
@@ -143,7 +143,7 @@ class Good:
             return None
         elif self.good_dict["status"] != "not_in_sale":
             return self.good_dict["next_time"]
-        elif ["sale_start_time"] in self.good_dict:
+        elif "sale_start_time" in self.good_dict:
             return self.good_dict["sale_start_time"]
         else:
             return self.time_by_detail
@@ -262,7 +262,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
         if good["next_time"] == 0 and good["type"] == 1 or good["unlimit"] == False and good["next_num"] == 0:
             continue
         else:
-            result.append(Good(good).async_init())
+            result.append(await Good(good).async_init())
 
     return result
 
