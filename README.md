@@ -5,6 +5,7 @@
  \ \_\ \ \_\  \/\_____\  \/\_____\    \ \_\  \ \_____\  \ \_____\  \ \_____\
   \/_/  \/_/   \/_____/   \/_____/     \/_/   \/_____/   \/_____/   \/_____/
 ```
+
 <div align="left">
   <a href="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool" target="_blank">
     <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool/badge?style=for-the-badge">
@@ -20,7 +21,9 @@
   </a>
 </div>
 
-# mysTool - 米游社辅助工具插件 v0.1.0
+# mysTool - 米游社辅助工具插件
+
+版本 - v0.1.0
 
 ## 功能和特性
 
