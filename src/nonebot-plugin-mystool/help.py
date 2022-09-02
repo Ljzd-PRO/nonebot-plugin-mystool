@@ -38,7 +38,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, arg
         await matcher.finish(
             PLUGIN.metadata.name +
             PLUGIN.metadata.description +
-            "\n📖具体用法：\n" +
+            "\n具体用法：\n" +
             PLUGIN.metadata.usage.format(HEAD=COMMAND) +
             '\n\n' +
             PLUGIN.metadata.extra)
