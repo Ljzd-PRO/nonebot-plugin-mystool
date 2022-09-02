@@ -15,6 +15,18 @@ from .data import UserAccount, UserData
 
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
+
+setting = on_command(
+    conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
+setting.__help_name__ = "设置"
+setting.__help_info__ = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
+
+
+@setting.handle()
+async def _(event: PrivateMessageEvent):
+    msg = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
+    await setting.send(msg)
+
 account_setting = on_command(
     conf.COMMAND_START+'账号设置', aliases={conf.COMMAND_START+'账户设置', conf.COMMAND_START+'签到设置', conf.COMMAND_START+'游戏设置'}, priority=4, block=True)
 account_setting.__help_name__ = "账号设置"
@@ -23,7 +35,9 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 @account_setting.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
-    await account_setting.send(f"通知相关设置请使用 {COMMAND}通知设置 命令\n设置过程中随时发送“退出”即可退出")
+    """
+    账号设置命令触发
+    """
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
     state['qq'] = qq
@@ -44,6 +58,9 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
 
 @account_setting.got('phone')
 async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+    """
+    根据手机号设置相应的账户
+    """
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
@@ -61,11 +78,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     user_setting += f"2️⃣ 游戏自动签到：{'开' if account.gameSign else '关'}\n"
     platform_show = "iOS" if account.platform == "ios" else "安卓"
     user_setting += f"3️⃣ 设备平台：{platform_show}\n"
-    await account_setting.send(user_setting+'您要更改哪一项呢？请发送 “1”/“2”/“3”')
+    await account_setting.send(user_setting+'\n您要更改哪一项呢？请发送 “1”/“2”/“3”')
 
 
 @account_setting.got('arg')
 async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+    """
+    根据所选更改相应账户的相应设置
+    """
     arg = arg.strip()
     account: UserAccount = state['account']
     if arg == '退出':
@@ -80,13 +100,13 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.send(f"📅米哈游游戏自动签到已 {'☑️开启' if account.gameSign else '⬛️关闭'}")
     elif arg == '3':
         if account.platform == "ios":
-            account.platform == "android"
+            account.platform = "android"
             platform_show = "安卓"
         else:
-            account.platform == "ios"
+            account.platform = "ios"
             platform_show = "iOS"
         UserData.set_account(account, event.user_id, account.phone)
-        await account_setting.send(f"📲设备配套已更改为 {platform_show}")
+        await account_setting.send(f"📲设备平台已更改为 {platform_show}")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
@@ -99,6 +119,9 @@ global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
 
 @global_setting.handle()
 async def _(event: PrivateMessageEvent, matcher: Matcher):
+    """
+    通知设置命令触发
+    """
     qq = int(event.user_id)
     await matcher.send(f"每日自动签到相关设置请使用 {COMMAND}签到设置 命令\n发送“退出”即可退出")
     await asyncio.sleep(0.5)
@@ -107,6 +130,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher):
 
 @global_setting.got('choice')
 async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgPlainText('choice')):
+    """
+    根据选择变更通知设置
+    """
     qq = int(event.user_id)
     if choice == '退出':
         await matcher.finish("已成功退出")
@@ -117,14 +143,3 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.finish("没有做修改哦~")
     else:
         await matcher.reject("⚠️您的输入有误，请重新输入")
-
-setting = on_command(
-    conf.COMMAND_START+'setting', aliases={conf.COMMAND_START+'设置'}, priority=4, block=True)
-setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
-
-
-@setting.handle()
-async def _(event: PrivateMessageEvent):
-    msg = f'如需配置是否开启每日任务、设备平台等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
-    await setting.send(msg)
