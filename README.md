@@ -5,6 +5,20 @@
  \ \_\ \ \_\  \/\_____\  \/\_____\    \ \_\  \ \_____\  \ \_____\  \ \_____\
   \/_/  \/_/   \/_____/   \/_____/     \/_/   \/_____/   \/_____/   \/_____/
 ```
+<div align="left">
+  <a href="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool" target="_blank">
+    <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool/badge?style=for-the-badge">
+  </a>
+  <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/releases/latest" target="_blank">
+    <img alt="最新发行版" src="https://img.shields.io/github/v/release/Ljzd-PRO/nonebot-plugin-mysTool?logo=python&style=for-the-badge">
+  </a>
+  <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mysTool/commits/" target="_blank">
+    <img alt="最后提交" src="https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool?style=for-the-badge">
+  </a>
+  <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/actions/workflows/codeql-analysis.yml" target="_blank">
+    <img alt="GitHub CodeQL 代码检查" src="https://img.shields.io/github/workflow/status/Ljzd-PRO/nonebot-plugin-mystool/CodeQL?logo=github&style=for-the-badge">
+  </a>
+</div>
 
 # mysTool - 米游社辅助工具插件 v0.1.0
 
