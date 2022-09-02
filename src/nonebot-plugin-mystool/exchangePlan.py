@@ -79,6 +79,7 @@ class ExchangeStart:
         """
         for task in self.tasks:
             task.add_done_callback(self.__check_result)
+            await task
 
 
 myb_exchange_plan = on_command(
