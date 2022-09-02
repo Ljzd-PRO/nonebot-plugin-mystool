@@ -108,7 +108,7 @@ class Good:
         if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
             detail = await get_good_detail(self.goodID)
             if detail is not None:
-                self.time_by_detail = int(detail.time)
+                self.time_by_detail = detail.time
             else:
                 logger.error(f"{conf.LOG_HEAD}初始化商品数据对象 - 获取商品兑换时间失败")
         return self
@@ -146,7 +146,7 @@ class Good:
         elif self.good_dict["status"] != "not_in_sell":
             return self.good_dict["next_time"]
         elif "sale_start_time" in self.good_dict:
-            return self.good_dict["sale_start_time"]
+            return int(self.good_dict["sale_start_time"])
         else:
             return self.time_by_detail
 
