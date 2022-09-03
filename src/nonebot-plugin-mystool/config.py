@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from loguru import RotationFunction
 
 ROOT_PATH = Path(__name__).parent.absolute()
-'''NoneBot 机器人根目录'''
+'''NoneBot2 机器人根目录'''
 PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 '''插件数据保存目录'''
 
