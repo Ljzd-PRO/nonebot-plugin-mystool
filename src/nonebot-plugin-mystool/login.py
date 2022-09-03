@@ -56,7 +56,6 @@ class GetCookie:
     """
     获取Cookie(需先初始化对象)
     """
-
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
         self.bbsUID: str = None
@@ -178,14 +177,18 @@ get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式绑定�
 
 @get_cookie.handle()
 async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
-    await get_cookie.send("""\
-    登录过程概览：\
-    \n1.发送手机号\
-    \n2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）\
-    \n3.发送验证码给QQ机器人\
-    \n4.刷新网页，再次获取验证码并发送给QQ机器人\
-    \n🚪过程中发送“退出”即可退出\
-        """.strip())
+    account_num = len(UserData.read_all())
+    if account_num < conf.MAX_USER:
+        await get_cookie.send("""\
+        登录过程概览：\
+        \n1.发送手机号\
+        \n2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）\
+        \n3.发送验证码给QQ机器人\
+        \n4.刷新网页，再次获取验证码并发送给QQ机器人\
+        \n🚪过程中发送“退出”即可退出\
+            """.strip())
+    else:
+        await get_cookie.finish('⚠️目前可支持使用用户数已经满啦~')
 
 
 @get_cookie.got('手机号', prompt='1.请发送您的手机号：')
