@@ -61,7 +61,7 @@ class ExchangeStart:
         success_plans = list(filter(lambda plan: isinstance(
             plan.result, tuple) and plan.result[0] == True, self.plans))
         if success_plans:
-            bot.send_private_msg(
+            await bot.send_private_msg(
                 user_id=self.qq, message=f"🎉用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换成功，可前往米游社查看")
         else:
             msg = f"⚠️用户 📱{self.account.phone} 商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
@@ -74,7 +74,7 @@ class ExchangeStart:
                 else:
                     msg += f"异常，程序返回结果为 {plan.result}"
                 msg += "\n"
-            bot.send_private_msg(user_id=self.qq, message=msg)
+            await bot.send_private_msg(user_id=self.qq, message=msg)
         for plan in self.account.exchange:
             if plan == (self.plans[0].goodID, self.plans[0].gameUID):
                 self.account.exchange.remove(plan)
