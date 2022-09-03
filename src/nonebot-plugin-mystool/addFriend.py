@@ -21,7 +21,7 @@ async def _(bot: Bot, event: RequestEvent):
     command = list(get_driver().config.command_start)[0]
     # 判断为加好友事件
     if isinstance(event, FriendRequestEvent):
-        if conf.ADD_FRIEND:
+        if conf.ADD_FRIEND_ACCEPT:
             await bot.set_friend_add_request(flag=event.flag, approve=True)
             # 等待腾讯服务器响应
             await asyncio.sleep(1.5)

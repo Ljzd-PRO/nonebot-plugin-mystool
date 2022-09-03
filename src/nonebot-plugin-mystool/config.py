@@ -127,13 +127,13 @@ class Config(BaseModel, extra=Extra.ignore):
     GITHUB_PROXY: str = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为""空字符串则不启用)'''
 
-    SIGN_TIME: str = "00:35"
+    SIGN_TIME: str = "00:30"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
 
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
-    ADD_FRIEND: bool = True
+    ADD_FRIEND_ACCEPT: bool = True
     '''是否开启自动加好友功能'''
 
     device: DeviceConfig = DeviceConfig()
