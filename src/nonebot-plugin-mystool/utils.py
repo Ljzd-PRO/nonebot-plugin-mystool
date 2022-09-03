@@ -82,7 +82,7 @@ def ntp_time_sync():
                     format_offset = "%.2f" % NtpTime.time_offset
                     logger.info(
                         f"{conf.LOG_HEAD}系统时间与网络时间的误差为 {format_offset} 秒")
-                    if NtpTime.time_offset > 0.2:
+                    if abs(NtpTime.time_offset) > 0.2:
                         logger.warning(
                             f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
                 except:
