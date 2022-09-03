@@ -250,7 +250,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
+    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
         """
         签到
 
@@ -268,7 +268,7 @@ class GameSign:
         - 若返回 `-5` 说明可能被验证码阻拦
         - 若返回 `-6` 说明未找到游戏账号
         """
-        if game not in ("ys", "bh3"):
+        if game not in self.SUPPORTED_GAMES:
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
             return -4
 
@@ -286,13 +286,12 @@ class GameSign:
             headers["x-rpc-client_type"] = "2"
             headers.pop("x-rpc-platform")
             await device_login(self.account)
-            await asyncio.sleep(conf.SLEEP_TIME)
             await device_save(self.account)
-            await asyncio.sleep(conf.SLEEP_TIME)
             headers["DS"] = generateDS(platform="android")
 
         record_list: List[GameRecord] = await get_game_record(self.account)
-        filter_record = list(filter(lambda record: record.uid == gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
+        filter_record = list(filter(lambda record: record.uid ==
+                             gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
         if not filter_record:
             return -6
 
@@ -314,6 +313,8 @@ class GameSign:
                                      "网络请求返回: {}".format(res.text))
                         return -1
                     self.signResult = res.json()
+                    if game == "ys" and self.signResult["message"] != "旅行者，你已经签到过了":
+                        return 1
                     if game != "bh3" and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
                             conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
