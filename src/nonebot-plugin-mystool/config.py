@@ -101,7 +101,7 @@ class Config(BaseModel, extra=Extra.ignore):
     MAX_USER: int = 10
     '''支持最多用户数'''
     ADD_FRIEND_ACCEPT: bool = True
-    '''是否开启自动加好友功能'''
+    '''是否自动同意好友申请'''
 
     COMMAND_START: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
