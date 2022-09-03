@@ -133,6 +133,9 @@ class Config(BaseModel, extra=Extra.ignore):
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
+    ADD_FRIEND: bool = True
+    '''是否开启自动加好友功能'''
+
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()
 
