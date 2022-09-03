@@ -79,6 +79,12 @@ def ntp_time_sync():
                 try:
                     NtpTime.time_offset = ntplib.NTPClient().request(
                         conf.NTP_SERVER).tx_time - time.time()
+                    format_offset = "%.2f" % NtpTime.time_offset
+                    logger.info(
+                        f"{conf.LOG_HEAD}系统时间与网络时间的误差为 {format_offset} 秒")
+                    if NtpTime.time_offset > 0.2:
+                        logger.warning(
+                            f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
                 except:
                     logger.warning(conf.LOG_HEAD +
                                    "校对互联网时间失败，正在重试")
