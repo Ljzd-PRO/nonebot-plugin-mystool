@@ -22,13 +22,13 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     设备信息
     DS算法与设备信息有关联，非必要请勿修改
     """
-    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.25.1"
+    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.36.1"
     '''移动端 User-Agent(Mozilla UA)'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
     '''桌面端 User-Agent(Mozilla UA)'''
     USER_AGENT_OTHER: str = "Hyperion/177 CFNetwork/1331.0.7 Darwin/21.4.0"
     '''获取用户 ActionTicket 时Headers所用的 User-Agent'''
-    USER_AGENT_ANDROID: str = "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.29.1"
+    USER_AGENT_ANDROID: str = "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.36.1"
     '''安卓端 User-Agent(Mozilla UA)'''
     USER_AGENT_ANDROID_OTHER: str = "okhttp/4.8.0"
     '''安卓端 User-Agent(专用于米游币任务等)'''
@@ -57,7 +57,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.35.2"
+    X_RPC_APP_VERSION: str = "2.36.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
