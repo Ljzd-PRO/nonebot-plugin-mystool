@@ -58,21 +58,21 @@ class ExchangeStart:
 
         bot: Bot = get_bot()
 
-        success_plans = list(filter(lambda plan: isinstance(
-            plan.result, tuple) and plan.result[0] == True, self.plans))
-        if success_plans:
+        success_tasks: List[Exchange] = list(filter(lambda task: isinstance(
+            task.result(), tuple) and task.result()[0] == True, self.tasks))
+        if success_tasks:
             await bot.send_private_msg(
-                user_id=self.qq, message=f"🎉用户 📱{self.account.phone} 商品 {success_plans[0].goodID} 兑换成功，可前往米游社查看")
+                user_id=self.qq, message=f"🎉用户 📱{self.account.phone}\n🛒商品 {success_tasks[0].goodID} 兑换成功，可前往米游社查看")
         else:
-            msg = f"⚠️用户 📱{self.account.phone} 商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
+            msg = f"⚠️用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
             num = 0
-            for plan in self.plans:
+            for task in self.tasks:
                 num += 1
                 msg += f"{num}: "
-                if isinstance(plan.result, tuple):
-                    msg += plan.result
+                if isinstance(task.result(), tuple):
+                    msg += str(task.result()[1])
                 else:
-                    msg += f"异常，程序返回结果为 {plan.result}"
+                    msg += f"异常，程序返回结果为 {task.result()}"
                 msg += "\n"
             await bot.send_private_msg(user_id=self.qq, message=msg)
         for plan in self.account.exchange:
@@ -291,7 +291,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 🚪发送“退出”以结束""".strip())
-async def _(event: MessageEvent, matcher: Matcher, arg = ArgPlainText('content')):
+async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
