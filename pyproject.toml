@@ -18,7 +18,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 packages = [
-    { include = "nonebot-plugin-mystool", from = "src" },
+    { include = "nonebot_plugin_mystool", from = "src" },
 ]
 
 [tool.poetry.dependencies]
