@@ -7,7 +7,7 @@ from typing import List, Literal, Union
 import httpx
 import tenacity
 
-from .bbsAPI import GameInfo, GameRecord, get_game_record
+from .bbsAPI import GameInfo, GameRecord, get_game_record, device_login, device_save
 from .config import mysTool_config as conf
 from .data import UserAccount
 from .utils import check_login, custom_attempt_times, generateDS, logger
@@ -284,6 +284,8 @@ class GameSign:
             headers["x-rpc-sys_version"] = conf.device.X_RPC_SYS_VERSION_ANDROID
             headers["x-rpc-client_type"] = "2"
             headers.pop("x-rpc-platform")
+            await device_login(self.account)
+            await device_save(self.account)
             headers["DS"] = generateDS(platform="android")
 
         record_list: List[GameRecord] = await get_game_record(self.account)
