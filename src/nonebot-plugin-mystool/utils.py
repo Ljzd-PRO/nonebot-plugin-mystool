@@ -23,13 +23,6 @@ from .config import mysTool_config as conf
 if TYPE_CHECKING:
     from loguru import Logger
 
-SALT_IOS = "N50pqm7FSy2AkFz2B3TqtuZMJ5TOl3Ep"
-'''iOS 设备生成 DS 所需的 salt'''
-SALT_ANDROID = "ZSHlXeQUBis52qD1kEgKt5lUYed4b7Bb"
-'''Android 设备生成 DS 所需的 salt'''
-SALT_NEW = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
-'''Android 设备传入content和url参数生成 DS 所需的 salt'''
-
 driver = nonebot.get_driver()
 
 
@@ -142,9 +135,9 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
     # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
     if data == "" and params == "":
         if platform == "ios":
-            salt = SALT_IOS
+            salt = conf.SALT_IOS
         else:
-            salt = SALT_ANDROID
+            salt = conf.SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -159,7 +152,7 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
         t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
-        c = hashlib.md5((f"salt={SALT_NEW}&t=" +
+        c = hashlib.md5((f"salt={conf.SALT_ANDROID_NEW}&t=" +
                         t + "&r=" + r + add).encode()).hexdigest()
         return f"{t},{r},{c}"
 

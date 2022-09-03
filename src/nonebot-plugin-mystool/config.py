@@ -97,8 +97,11 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
 class Config(BaseModel, extra=Extra.ignore):
     ENCODING: str = "utf-8"
     '''文件读写编码'''
+
     MAX_USER: int = 10
     '''支持最多用户数'''
+    ADD_FRIEND_ACCEPT: bool = True
+    '''是否开启自动加好友功能'''
 
     COMMAND_START: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
@@ -133,8 +136,12 @@ class Config(BaseModel, extra=Extra.ignore):
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
-    ADD_FRIEND_ACCEPT: bool = True
-    '''是否开启自动加好友功能'''
+    SALT_IOS: str = "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk"
+    '''生成Headers iOS DS所需的salt'''
+    SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
+    '''生成Headers Android DS所需的salt'''
+    SALT_ANDROID_NEW: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
+    '''Android 设备传入content和url参数生成 DS 所需的 salt'''
 
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()
