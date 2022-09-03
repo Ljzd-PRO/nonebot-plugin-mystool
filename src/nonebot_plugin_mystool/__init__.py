@@ -66,5 +66,5 @@ __plugin_meta__ = PluginMetadata(
 
 FILE_PATH = Path(__file__).parent.absolute()
 
-for _, file, _ in pkgutil.iter_modules([FILE_PATH]):
+for _, file, _ in pkgutil.iter_modules([str(FILE_PATH)]):
     __import__(file, globals(), level=1)
