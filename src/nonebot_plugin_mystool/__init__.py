@@ -39,7 +39,7 @@ from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-VERSION = "v0.1.3"
+VERSION = "v0.1.4"
 '''插件版本号'''
 
 
