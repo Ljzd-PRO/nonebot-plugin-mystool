@@ -105,7 +105,7 @@ class Config(BaseModel, extra=Extra.ignore):
 
     COMMAND_START: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
-    PLUGIN_NAME: str = "nonebot-plugin-mystool"
+    PLUGIN_NAME: str = "nonebot_plugin_mystool"
     '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
 
     LOG_HEAD: str = ""
