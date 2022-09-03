@@ -20,7 +20,7 @@
 
 ## 使用说明
 
-### 🛠️ NoneBot 机器人部署和插件安装
+### 🛠️ NoneBot2 机器人部署和插件安装
 请查看 -> [🔗Installation](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Installation)
 
 ### 📖 插件具体使用说明
