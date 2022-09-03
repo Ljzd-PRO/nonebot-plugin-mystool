@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "0.1.0"
-description = "NoneBot22插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录"
+version = "v0.1.0"
+description = "NoneBot2插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录"
 license = "MIT"
 authors = [
   "Ljzd-PRO <ljzd@office.ljzd-pro.ml>",
@@ -11,7 +11,7 @@ readme = "README.md"
 homepage = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
 repository = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool"
 documentation = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki"
-keywords = ["bot", "qq", "qqbot", "mirai", "coolq", "nonebot", "mihoyo", "mihoyobbs"]
+keywords = ["bot", "qq", "qqbot", "mirai", "coolq", "nonebot2", "nonebot", "mihoyo", "mihoyobbs"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
