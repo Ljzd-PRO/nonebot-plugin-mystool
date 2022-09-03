@@ -1,6 +1,7 @@
 """
 ### 米游社游戏签到相关
 """
+import asyncio
 import traceback
 from typing import List, Literal, Union
 
@@ -285,7 +286,9 @@ class GameSign:
             headers["x-rpc-client_type"] = "2"
             headers.pop("x-rpc-platform")
             await device_login(self.account)
+            await asyncio.sleep(conf.SLEEP_TIME)
             await device_save(self.account)
+            await asyncio.sleep(conf.SLEEP_TIME)
             headers["DS"] = generateDS(platform="android")
 
         record_list: List[GameRecord] = await get_game_record(self.account)
