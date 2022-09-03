@@ -1,7 +1,6 @@
 """
 ### 用户设置相关
 """
-import asyncio
 from typing import List
 
 from nonebot import get_driver, on_command
