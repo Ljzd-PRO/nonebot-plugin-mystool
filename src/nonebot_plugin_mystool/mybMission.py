@@ -295,7 +295,7 @@ class Action:
                 try:
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
-                            res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False,  'post_id': postID}, timeout=conf.TIME_OUT)
+                            res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False, 'post_id': postID}, timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
                                     conf.LOG_HEAD + "米游币任务 - 点赞: 用户 {} 登录失效".format(self.account.phone))

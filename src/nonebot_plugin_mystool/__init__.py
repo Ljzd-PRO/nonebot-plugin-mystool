@@ -39,7 +39,7 @@ from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-VERSION = "v0.1.3"
+VERSION = "v0.1.4"
 '''插件版本号'''
 
 
@@ -66,5 +66,5 @@ __plugin_meta__ = PluginMetadata(
 
 FILE_PATH = Path(__file__).parent.absolute()
 
-for _, file, _ in pkgutil.iter_modules([FILE_PATH]):
+for _, file, _ in pkgutil.iter_modules([str(FILE_PATH)]):
     __import__(file, globals(), level=1)
