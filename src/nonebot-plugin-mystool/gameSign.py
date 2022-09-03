@@ -269,6 +269,7 @@ class GameSign:
             headers["x-rpc-device_name"] = conf.device.X_RPC_DEVICE_NAME_ANDROID
             headers["x-rpc-channel"] = conf.device.X_RPC_CHANNEL_ANDROID
             headers["x-rpc-sys_version"] = conf.device.X_RPC_SYS_VERSION_ANDROID
+            headers["x-rpc-client_type"] = "2"
             headers.pop("x-rpc-platform")
             headers["DS"] = generateDS(platform="android")
 
