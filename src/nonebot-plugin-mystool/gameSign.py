@@ -14,7 +14,9 @@ from .utils import check_login, custom_attempt_times, generateDS, logger
 
 ACT_ID = {
     "ys": "e202009291139501",
-    "bh3": "e202207181446311"
+    "bh3": "e202207181446311",
+    "bh2": "e202203291431091",
+    "wd": "e202202251749321"
 }
 URLS = {
     "ys": {
@@ -25,6 +27,16 @@ URLS = {
     "bh3": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]),
         "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]), "&region={region}&uid={uid}")),
+        "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
+    },
+    "bh2": {
+        "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]), "&region={region}&uid={uid}")),
+        "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
+    },
+    "wd": {
+        "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["wd"]),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["wd"]), "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     }
 }
@@ -141,7 +153,7 @@ class GameSign:
     """
     游戏签到相关(需先初始化对象)
     """
-    SUPPORTED_GAMES = ["ys", "bh3"]
+    SUPPORTED_GAMES = ["ys", "bh3", "bh2", "wd"]
     '''目前支持签到的游戏'''
 
     def __init__(self, account: UserAccount) -> None:
@@ -237,7 +249,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5]:
+    async def sign(self, game: Literal["ys", "bh3"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
         """
         签到
 
@@ -253,6 +265,7 @@ class GameSign:
         - 若返回 `-3` 说明请求失败
         - 若返回 `-4` 说明暂不支持该游戏
         - 若返回 `-5` 说明可能被验证码阻拦
+        - 若返回 `-6` 说明未找到游戏账号
         """
         if game not in ("ys", "bh3"):
             logger.info("暂不支持游戏 {} 的游戏签到".format(game))
@@ -273,12 +286,14 @@ class GameSign:
             headers.pop("x-rpc-platform")
             headers["DS"] = generateDS(platform="android")
 
-        for item in await get_game_record(self.account):
-            if GameInfo.ABBR_TO_ID[item.gameID][0] == game:
-                region = item.region
+        record_list: List[GameRecord] = await get_game_record(self.account)
+        filter_record = list(filter(lambda record: record.uid == gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
+        if not filter_record:
+            return -6
+
         data = {
             "act_id": ACT_ID[game],
-            "region": region,
+            "region": filter_record[0].region,
             "uid": gameUID
         }
         try:
