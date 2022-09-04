@@ -166,29 +166,29 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     content = matcher.get_arg('content').extract_plain_text().strip()
     account: UserAccount = state['account']
     arg = [content[0], content[1:].strip()]
-    good_dict = {
+    if arg[0] == '+':
+        good_dict = {
         'bh3': await get_good_list('bh3'),
         'ys': await get_good_list('ys'),
         'bh2': await get_good_list('bh2'),
         'wd': await get_good_list('wd'),
         'bbs': await get_good_list('bbs')
-    }
-    Flag = True
-    break_flag = False
-    good: Good = None
-    game: str = None
-    for game, good_list in good_dict.items():
-        for good in good_list:
-            if good.goodID == arg[1]:
-                Flag = False
-                break_flag = True
+        }
+        Flag = True
+        break_flag = False
+        good: Good = None
+        game: str = None
+        for game, good_list in good_dict.items():
+            for good in good_list:
+                if good.goodID == arg[1]:
+                    Flag = False
+                    break_flag = True
+                    break
+            if break_flag:
                 break
-        if break_flag:
-            break
-    if Flag:
-        await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
-    state['good'] = good
-    if arg[0] == '+':
+        if Flag:
+            await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
+        state['good'] = good
         uids = []
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
@@ -215,17 +215,18 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     elif arg[0] == '-':
         if account.exchange:
             for exchange_good in account.exchange:
-                if exchange_good[0] == good.goodID:
+                if exchange_good[0] == arg[1]:
                     account.exchange.remove(exchange_good)
                     UserData.set_account(account, event.user_id, account.phone)
                     scheduler.remove_job(job_id=str(
-                        account.phone)+'_'+good.goodID)
+                        account.phone)+'_'+arg[1])
                     await matcher.finish('兑换计划删除成功')
-            await matcher.finish(f"您没有设置商品ID为 {good.goodID} 的兑换哦")
+            await matcher.finish(f"您没有设置商品ID为 {arg[1]} 的兑换哦~")
         else:
-            await matcher.finish("您还没有配置兑换计划哦")
+            await matcher.finish("您还没有配置兑换计划哦~")
+
     else:
-        matcher.reject('⚠️您的输入有误，请重新输入')
+        matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__ )
 
 
 @myb_exchange_plan.got('uid')
