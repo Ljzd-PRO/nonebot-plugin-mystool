@@ -194,16 +194,22 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.isVisual:
                 game_records = await get_game_record(account)
-                await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+
                 if isinstance(game_records, int):
                     pass
                 else:
-                    msg = f'您米游社账户下的『{list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]}』账号：'
+                    game_name = list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]                
+                    msg = f'您米游社账户下的『{game_name}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
                             msg += f'\n🎮 {record.regionName}·{record.nickname} - UID {record.uid}'
                         uids.append(record.uid)
-                    await matcher.send(msg)
+                    if uids:
+                        await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+                        await asyncio.sleep(0.5)
+                        await matcher.send(msg)
+                    else:
+                        await matcher.finish(f"您还没有绑定『{game_name}』账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
