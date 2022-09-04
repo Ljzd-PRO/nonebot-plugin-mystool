@@ -84,9 +84,8 @@ get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游�
 
 @get_address.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
-    qq_account = int(event.user_id)
-    user_account = UserData.read_account_all(qq_account)
-    state['qq_account'] = qq_account
+    user_account = UserData.read_account_all(event.user_id)
+    state['qq_account'] = event.user_id
     state['user_account'] = user_account
     if not user_account:
         await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
