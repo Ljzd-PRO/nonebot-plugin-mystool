@@ -141,6 +141,8 @@ class UserAccount:
         '''计划兑换的商品( 元组(商品ID, 游戏UID) )'''
         self.platform: Literal["ios", "android"] = "ios"
         '''设备平台'''
+        self.missionGame: List[Literal["ys", "bh3", "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
+        '''在哪些板块执行米游币任务计划'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -172,6 +174,7 @@ class UserAccount:
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
         self.platform: Literal["ios", "android"] = account["platform"]
+        self.missionGame: List[Literal["ys", "bh3", "bh2", "wd", "bbs", "xq", "jql"]] = account["missionGame"]
 
         exchange = []
         for plan in account["exchange"]:
@@ -192,7 +195,8 @@ class UserAccount:
             "mybMission": self.mybMission,
             "gameSign": self.gameSign,
             "exchange": self.exchange,
-            "platform": self.platform
+            "platform": self.platform,
+            "missionGame": self.missionGame
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict

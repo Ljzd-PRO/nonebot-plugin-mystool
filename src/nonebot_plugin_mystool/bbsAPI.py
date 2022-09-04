@@ -479,4 +479,4 @@ async def set_game_list():
         elif game.name == "崩坏：星穹铁道":
             GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("xq", game.name))
         elif game.name == "绝区零":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("jq", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("jql", game.name))
