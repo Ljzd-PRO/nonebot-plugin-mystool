@@ -4,7 +4,7 @@
 """
 import nonebot.plugin
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
@@ -26,7 +26,7 @@ helper.__help_info__ = f'''\
 
 
 @helper.handle()
-async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
     """
     主命令触发
     """
@@ -45,7 +45,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, arg
 
 
 @helper.got('content')
-async def get_result(event: PrivateMessageEvent, content: Message = Arg()):
+async def get_result(event: MessageEvent, content: Message = Arg()):
     """
     二级命令触发。功能详细说明查询
     """
