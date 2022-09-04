@@ -315,7 +315,7 @@ class GameSign:
                     self.signResult = res.json()
                     if game == "ys" and self.signResult["message"] != "旅行者，你已经签到过了":
                         return 1
-                    if game != "bh3" and self.signResult["data"]["risk_code"] != 0:
+                    if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
                             conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
                         logger.debug(conf.LOG_HEAD +
