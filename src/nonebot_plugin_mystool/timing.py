@@ -33,8 +33,9 @@ async def _(event: PrivateMessageEvent):
     手动游戏签到函数
     """
     bot = get_bot()
-    qq = event.user_id
-    await perform_game_sign(bot=bot, qq=qq, isAuto=False)
+    if len(UserData.read_account_all(event.user_id)) == 0:
+        manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+    await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
 manually_bbs_sign = on_command(
@@ -48,9 +49,10 @@ async def _(event: PrivateMessageEvent):
     """
     手动米游币任务函数
     """
-    qq = event.user_id
     bot = get_bot()
-    await perform_bbs_sign(bot=bot, qq=qq, isAuto=False)
+    if len(UserData.read_account_all(event.user_id)) == 0:
+        manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+    await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
 async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
