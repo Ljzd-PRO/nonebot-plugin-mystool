@@ -33,7 +33,7 @@ async def _(event: PrivateMessageEvent):
     手动游戏签到函数
     """
     bot = get_bot()
-    if len(UserData.read_account_all(event.user_id)) == 0:
+    if not UserData.read_account_all(event.user_id):
         manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
 
@@ -50,7 +50,7 @@ async def _(event: PrivateMessageEvent):
     手动米游币任务函数
     """
     bot = get_bot()
-    if len(UserData.read_account_all(event.user_id)) == 0:
+    if not UserData.read_account_all(event.user_id):
         manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
 
