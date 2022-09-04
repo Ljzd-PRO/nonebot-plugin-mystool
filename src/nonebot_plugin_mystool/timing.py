@@ -34,7 +34,7 @@ async def _(event: PrivateMessageEvent):
     """
     bot = get_bot()
     if not UserData.read_account_all(event.user_id):
-        await manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
@@ -51,7 +51,7 @@ async def _(event: PrivateMessageEvent):
     """
     bot = get_bot()
     if not UserData.read_account_all(event.user_id):
-        await manually_game_sign.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 

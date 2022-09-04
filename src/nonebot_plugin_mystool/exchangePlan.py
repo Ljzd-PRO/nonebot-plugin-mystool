@@ -102,7 +102,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     if not user_account:
-        await myb_exchange_plan.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await myb_exchange_plan.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
     state['qq_account'] = qq_account
     state['user_account'] = user_account
 

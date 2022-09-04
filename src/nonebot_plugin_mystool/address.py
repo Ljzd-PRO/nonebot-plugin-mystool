@@ -89,7 +89,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     state['qq_account'] = qq_account
     state['user_account'] = user_account
     if not user_account:
-        await get_address.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
     else:
         await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:

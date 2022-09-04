@@ -42,7 +42,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     state['qq'] = qq
     state['user_account'] = user_account
     if not user_account:
-        await account_setting.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await account_setting.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
     if arg:
         matcher.set_arg('phone', arg)
         return
