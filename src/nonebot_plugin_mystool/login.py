@@ -2,6 +2,7 @@
 ### 米游社登录获取Cookie相关
 """
 import traceback
+from typing import Literal
 
 import httpx
 import requests.utils
@@ -69,7 +70,7 @@ class GetCookie:
         else:
             self.deviceID = account.deviceID
 
-    async def get_1(self, captcha: str, retry: bool = True):
+    async def get_1(self, captcha: str, retry: bool = True) -> Literal[1, -1, -2, -3, -4]:
         """
         第一次获取Cookie(目标是login_ticket)
 
@@ -143,7 +144,7 @@ class GetCookie:
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return False
 
-    async def get_3(self, captcha: str, retry: bool = True):
+    async def get_3(self, captcha: str, retry: bool = True) -> Literal[1, -1, -2, -3]:
         """
         第二次获取Cookie(目标是cookie_token)
 
@@ -154,6 +155,7 @@ class GetCookie:
         - 若返回 `1` 说明已成功
         - 若返回 `-1` 说明Cookie缺少`cookie_token`
         - 若返回 `-2` 说明请求失败
+        - 若返回 `-3` 说明验证码错误
         """
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
@@ -165,16 +167,24 @@ class GetCookie:
                         "action_type": "login",
                         "token_type": 6
                     }, timeout=conf.TIME_OUT)
+                    try:
+                        res_json = res.json()
+                        if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
+                            logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
+                            return -3
+                    except:
+                        pass
+                    if "cookie_token" not in res.cookies:
+                        return -1
+                    self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
+                    await self.client.aclose()
+                    return 1
         except tenacity.RetryError:
             logger.error(
                 conf.LOG_HEAD + "登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
-        if "cookie_token" not in res.cookies:
-            return -1
-        self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
-        await self.client.aclose()
-        return 1
+
 
 
 get_cookie = on_command(
@@ -237,6 +247,8 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
             await get_cookie.finish("⚠️由于Cookie缺少uid，无法继续，请稍后再试")
         elif status == -3:
             await get_cookie.finish("⚠️网络请求失败，无法继续，请稍后再试")
+        elif status == -4:
+            await get_cookie.reject("⚠️验证码错误，注意不要在网页上使用掉验证码，请重新发送")
 
     status: bool = await state["getCookie"].get_2()
     if not status:
@@ -261,6 +273,8 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     else:
         status: bool = await state["getCookie"].get_3(captcha2)
         if status < 0:
+            if status == -3:
+                await get_cookie.reject("⚠️验证码错误，注意不要在网页上使用掉验证码，请重新发送")
             await get_cookie.finish("⚠️获取cookie_token失败，一种可能是登录失效，请稍后再试")
 
     UserData.set_cookie(state['getCookie'].cookie,
