@@ -169,28 +169,15 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
             continue
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
         if (account.mybMission and isAuto) or not isAuto:
-            record_list: List[GameRecord] = await get_game_record(account)
-            if isinstance(record_list, int):
-                if mybmission == -1:
-                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
-                continue
-            try:
-                gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
-            except IndexError:
-                gameID =  GameInfo.ABBR_TO_ID[2][0]
             if not isAuto:
                 await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
 
             # 执行任务
             for mission_state in missions_state[0]:
                 if mission_state[1] < mission_state[0].totalTimes:
-                    if mission_state[0].keyName == Mission.SIGN:
-                        for game in GAME_ID.keys():
-                            await mybmission.sign(game)
-                            await asyncio.sleep(conf.SLEEP_TIME)
-                    else:
+                    for gameID in account.missionGame:
                         await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
+
             # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
                 missions_state = await get_missions_state(account)
