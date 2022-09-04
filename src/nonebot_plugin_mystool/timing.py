@@ -70,10 +70,10 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
         if isinstance(record_list, int):
             if record_list == -1:
                 await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
-                return
+                continue
             else:
                 await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 获取游戏账号信息失败，请重新尝试")
-                return
+                continue
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
                 logger.info(
@@ -86,7 +86,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
                 if sign_info == -1:
                     await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
-                    return
+                    break
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
@@ -112,7 +112,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                 elif isinstance(sign_info, int):
                     await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
                         account.phone, game_name))
-                    return
+                    continue
                 # 用户打开通知或手动签到时，进行通知
                 if UserData.isNotice(qq) or not isAuto:
                     img = ""
@@ -150,8 +150,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     执行米游币任务函数。并发送给用户任务执行消息。
 
     参数:
-        `IsAuto`: bool
-        True为当日自动执行任务，False为用户手动调用任务功能
+        `IsAuto`: True为当日自动执行任务，False为用户手动调用任务功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -160,14 +159,14 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
         if isinstance(missions_state, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                return
+                continue
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
-            return
+            continue
         if isinstance(mybmission, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
-            return
+            continue
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
         if (account.mybMission and isAuto) or not isAuto:
             record_list: List[GameRecord] = await get_game_record(account)
@@ -175,8 +174,11 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 if mybmission == -1:
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
-                return
-            gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
+                continue
+            try:
+                gameID = GameInfo.ABBR_TO_ID[record_list[0].gameID][0]
+            except IndexError:
+                gameID =  GameInfo.ABBR_TO_ID[2][0]
             if not isAuto:
                 await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
 
@@ -195,9 +197,9 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 if isinstance(missions_state, int):
                     if mybmission == -1:
                         await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                        return
+                        continue
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
-                    return
+                    continue
                 if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
                         missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
                         missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and\
