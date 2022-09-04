@@ -56,6 +56,7 @@ class GetCookie:
     """
     获取Cookie(需先初始化对象)
     """
+
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
         self.bbsUID: str = None
@@ -80,6 +81,7 @@ class GetCookie:
         - 若返回 `-1` 说明Cookie缺少`login_ticket`
         - 若返回 `-2` 说明Cookie缺少米游社UID(bbsUID)，如`stuid`
         - 若返回 `-3` 说明请求失败
+        - 若返回 `-4` 说明验证码错误
         """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
@@ -88,23 +90,29 @@ class GetCookie:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
+                    try:
+                        res_json = res.json()
+                        if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
+                            logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
+                            return -4
+                    except:
+                        pass
+                    if "login_ticket" not in res.cookies:
+                        return -1
+                    for item in ("login_uid", "stuid", "ltuid", "account_id"):
+                        if item in res.cookies:
+                            self.bbsUID = res.cookies[item]
+                            break
+                    if not self.bbsUID:
+                        return -2
+                    self.cookie = requests.utils.dict_from_cookiejar(
+                        res.cookies.jar)
+                    return 1
         except tenacity.RetryError:
             logger.error(
                 conf.LOG_HEAD + "登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
-
-        if "login_ticket" not in res.cookies:
-            return -1
-
-        for item in ("login_uid", "stuid", "ltuid", "account_id"):
-            if item in res.cookies:
-                self.bbsUID = res.cookies[item]
-                break
-        if not self.bbsUID:
-            return -2
-        self.cookie = requests.utils.dict_from_cookiejar(res.cookies.jar)
-        return 1
 
     async def get_2(self, retry: bool = True):
         """
