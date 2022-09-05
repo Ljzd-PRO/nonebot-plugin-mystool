@@ -1,6 +1,7 @@
 """
 ### 用户数据相关
 """
+from copy import deepcopy
 import json
 import traceback
 from typing import Dict, List, Literal, Tuple, Union
@@ -208,10 +209,10 @@ class UserData:
     """
     用户数据相关
     """
-    __OPTION_NOTICE = "notice"
-    __USER_SAMPLE = {
+    OPTION_NOTICE = "notice"
+    USER_SAMPLE = {
         "accounts": [],
-        __OPTION_NOTICE: True
+        OPTION_NOTICE: True
     }
     '''QQ用户数据样例'''
 
@@ -280,7 +281,7 @@ class UserData:
         """
         创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(str(qq), cls.__USER_SAMPLE)
+        userdata.setdefault(str(qq), deepcopy(cls.USER_SAMPLE))
         return userdata
 
     @staticmethod
@@ -413,11 +414,11 @@ class UserData:
         qq = str(qq)
         if qq not in userdata:
             return None
-        elif cls.__OPTION_NOTICE not in userdata[qq]:
-            userdata[qq].setdefault(cls.__OPTION_NOTICE, True)
+        elif cls.OPTION_NOTICE not in userdata[qq]:
+            userdata[qq].setdefault(cls.OPTION_NOTICE, True)
             return True
         else:
-            return userdata[qq][cls.__OPTION_NOTICE]
+            return userdata[qq][cls.OPTION_NOTICE]
 
     @classmethod
     def set_notice(cls, isNotice: bool, qq: int):
@@ -434,10 +435,10 @@ class UserData:
         userdata = cls.read_all()
         qq = str(qq)
         try:
-            if cls.__OPTION_NOTICE not in userdata[qq]:
-                userdata[qq].setdefault(cls.__OPTION_NOTICE, isNotice)
+            if cls.OPTION_NOTICE not in userdata[qq]:
+                userdata[qq].setdefault(cls.OPTION_NOTICE, isNotice)
             else:
-                userdata[qq][cls.__OPTION_NOTICE] = isNotice
+                userdata[qq][cls.OPTION_NOTICE] = isNotice
             cls.__set_all(userdata)
             return True
         except KeyError:
