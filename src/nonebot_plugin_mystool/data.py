@@ -141,7 +141,8 @@ class UserAccount:
         '''计划兑换的商品( 元组(商品ID, 游戏UID) )'''
         self.platform: Literal["ios", "android"] = "ios"
         '''设备平台'''
-        self.missionGame: List[Literal["ys", "bh3", "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
+        self.missionGame: List[Literal["ys", "bh3",
+                                       "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
         '''在哪些板块执行米游币任务计划'''
 
     def get(self, account: dict):
@@ -174,7 +175,8 @@ class UserAccount:
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
         self.platform: Literal["ios", "android"] = account["platform"]
-        self.missionGame: List[Literal["ys", "bh3", "bh2", "wd", "bbs", "xq", "jql"]] = account["missionGame"]
+        self.missionGame: List[Literal["ys", "bh3", "bh2",
+                                       "wd", "bbs", "xq", "jql"]] = account["missionGame"]
 
         exchange = []
         for plan in account["exchange"]:
@@ -311,34 +313,30 @@ class UserData:
         return True
 
     @classmethod
-    def set_account(cls, account: UserAccount, qq: int, by: Union[int, str]):
+    def set_account(cls, account: UserAccount, qq: int, by: Union[int, str] = None):
         """
-        设置用户的某个米游社帐号信息
+        设置用户的某个米游社帐号信息，若`by`为`None`，则自动根据传入的`UserAccount.phone`查找
 
         参数:
             `account`: 米游社帐号信息
             `qq`: 要设置的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+            `by`: (可选)索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict()
         userdata = cls.read_all()
         if isinstance(by, str):
             by_type = "name"
+        elif isinstance(by, int):
+            by_type = "phone"
         else:
             by_type = "phone"
-        if qq not in userdata:
-            userdata = cls.__create_user(userdata, qq)
+            by = account.phone
 
         for num in range(0, len(userdata[str(qq)]["accounts"])):
             if userdata[str(qq)]["accounts"][num][by_type] == by:
                 userdata[str(qq)]["accounts"][num] = account_raw
                 cls.__set_all(userdata)
                 return
-
-        # 若找不到，则使用另一个查找方式，若还是找不到则进行新建
-        if not userdata[str(qq)]["accounts"] or not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
-            userdata[str(qq)]["accounts"].append(account_raw)
-            cls.__set_all(userdata)
 
     @classmethod
     def del_account(cls, qq: int, by: Union[int, str]):
