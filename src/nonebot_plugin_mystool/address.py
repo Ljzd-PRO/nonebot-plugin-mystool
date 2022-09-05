@@ -7,7 +7,7 @@ from typing import List, Literal, Union
 
 import httpx
 import tenacity
-from nonebot import on_command
+from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.log import logger
@@ -30,9 +30,8 @@ HEADERS = {
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br"
 }
-
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
-
+COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
     """
@@ -84,12 +83,11 @@ get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游�
 
 @get_address.handle()
 async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
-    qq_account = int(event.user_id)
-    user_account = UserData.read_account_all(qq_account)
-    state['qq_account'] = qq_account
+    user_account = UserData.read_account_all(event.user_id)
+    state['qq_account'] = event.user_id
     state['user_account'] = user_account
     if not user_account:
-        await get_address.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     else:
         await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:

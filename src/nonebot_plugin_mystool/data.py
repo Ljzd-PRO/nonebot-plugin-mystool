@@ -1,6 +1,7 @@
 """
 ### 用户数据相关
 """
+from copy import deepcopy
 import json
 import traceback
 from typing import Dict, List, Literal, Tuple, Union
@@ -141,10 +142,13 @@ class UserAccount:
         '''计划兑换的商品( 元组(商品ID, 游戏UID) )'''
         self.platform: Literal["ios", "android"] = "ios"
         '''设备平台'''
+        self.missionGame: List[Literal["ys", "bh3",
+                                       "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
+        '''在哪些板块执行米游币任务计划'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
-        sample = UserAccount().to_dict
+        sample = UserAccount().to_dict()
         if account.keys() != sample.keys():
             add = sample.keys() - account.keys()
             remove = account.keys() - sample.keys()
@@ -172,13 +176,14 @@ class UserAccount:
         self.mybMission: bool = account["mybMission"]
         self.gameSign: bool = account["gameSign"]
         self.platform: Literal["ios", "android"] = account["platform"]
+        self.missionGame: List[Literal["ys", "bh3", "bh2",
+                                       "wd", "bbs", "xq", "jql"]] = account["missionGame"]
 
         exchange = []
         for plan in account["exchange"]:
             exchange.append(tuple(plan))
         self.exchange: List[Tuple[str, str]] = exchange
 
-    @property
     def to_dict(self) -> dict:
         data = {
             "name": self.name,
@@ -192,7 +197,8 @@ class UserAccount:
             "mybMission": self.mybMission,
             "gameSign": self.gameSign,
             "exchange": self.exchange,
-            "platform": self.platform
+            "platform": self.platform,
+            "missionGame": self.missionGame
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict
@@ -203,10 +209,10 @@ class UserData:
     """
     用户数据相关
     """
-    __OPTION_NOTICE = "notice"
-    __USER_SAMPLE = {
+    OPTION_NOTICE = "notice"
+    USER_SAMPLE = {
         "accounts": [],
-        __OPTION_NOTICE: True
+        OPTION_NOTICE: True
     }
     '''QQ用户数据样例'''
 
@@ -241,7 +247,7 @@ class UserData:
         return None
 
     @classmethod
-    def read_account_all(cls, qq: int) -> Union[List[UserAccount], None]:
+    def read_account_all(cls, qq: int) -> List[UserAccount]:
         """
         获取用户的所有米游社帐号数据
 
@@ -251,12 +257,12 @@ class UserData:
         accounts = []
         try:
             accounts_raw = cls.read_all()[str(qq)]["accounts"]
+            for account_raw in accounts_raw:
+                account = UserAccount()
+                account.get(account_raw)
+                accounts.append(account)
         except KeyError:
-            return None
-        for account_raw in accounts_raw:
-            account = UserAccount()
-            account.get(account_raw)
-            accounts.append(account)
+            pass
         return accounts
 
     @staticmethod
@@ -275,7 +281,7 @@ class UserData:
         """
         创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(str(qq), cls.__USER_SAMPLE)
+        userdata.setdefault(str(qq), deepcopy(cls.USER_SAMPLE))
         return userdata
 
     @staticmethod
@@ -283,7 +289,7 @@ class UserData:
         """
         创建米哈游账户数据，返回创建后整体的userdata
         """
-        account = UserAccount().to_dict
+        account = UserAccount().to_dict()
         account["name"] = name
         account["phone"] = phone
         userdata[str(qq)]["accounts"].append(account)
@@ -308,34 +314,30 @@ class UserData:
         return True
 
     @classmethod
-    def set_account(cls, account: UserAccount, qq: int, by: Union[int, str]):
+    def set_account(cls, account: UserAccount, qq: int, by: Union[int, str] = None):
         """
-        设置用户的某个米游社帐号信息
+        设置用户的某个米游社帐号信息，若`by`为`None`，则自动根据传入的`UserAccount.phone`查找
 
         参数:
             `account`: 米游社帐号信息
             `qq`: 要设置的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+            `by`: (可选)索引依据，可为备注名或手机号
         """
-        account_raw = account.to_dict
+        account_raw = account.to_dict()
         userdata = cls.read_all()
         if isinstance(by, str):
             by_type = "name"
+        elif isinstance(by, int):
+            by_type = "phone"
         else:
             by_type = "phone"
-        if qq not in userdata:
-            userdata = cls.__create_user(userdata, qq)
+            by = account.phone
 
         for num in range(0, len(userdata[str(qq)]["accounts"])):
             if userdata[str(qq)]["accounts"][num][by_type] == by:
                 userdata[str(qq)]["accounts"][num] = account_raw
                 cls.__set_all(userdata)
                 return
-
-        # 若找不到，则使用另一个查找方式，若还是找不到则进行新建
-        if not userdata[str(qq)]["accounts"] or not filter(lambda account: account["phone"] == account_raw["phone"], userdata[str(qq)]["accounts"]):
-            userdata[str(qq)]["accounts"].append(account_raw)
-            cls.__set_all(userdata)
 
     @classmethod
     def del_account(cls, qq: int, by: Union[int, str]):
@@ -412,11 +414,11 @@ class UserData:
         qq = str(qq)
         if qq not in userdata:
             return None
-        elif cls.__OPTION_NOTICE not in userdata[qq]:
-            userdata[qq].setdefault(cls.__OPTION_NOTICE, True)
+        elif cls.OPTION_NOTICE not in userdata[qq]:
+            userdata[qq].setdefault(cls.OPTION_NOTICE, True)
             return True
         else:
-            return userdata[qq][cls.__OPTION_NOTICE]
+            return userdata[qq][cls.OPTION_NOTICE]
 
     @classmethod
     def set_notice(cls, isNotice: bool, qq: int):
@@ -433,10 +435,10 @@ class UserData:
         userdata = cls.read_all()
         qq = str(qq)
         try:
-            if cls.__OPTION_NOTICE not in userdata[qq]:
-                userdata[qq].setdefault(cls.__OPTION_NOTICE, isNotice)
+            if cls.OPTION_NOTICE not in userdata[qq]:
+                userdata[qq].setdefault(cls.OPTION_NOTICE, isNotice)
             else:
-                userdata[qq][cls.__OPTION_NOTICE] = isNotice
+                userdata[qq][cls.OPTION_NOTICE] = isNotice
             cls.__set_all(userdata)
             return True
         except KeyError:

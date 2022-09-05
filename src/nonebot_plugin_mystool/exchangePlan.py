@@ -102,7 +102,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     if not user_account:
-        await myb_exchange_plan.finish("⚠️你尚未绑定米游社账户，请先进行登录")
+        await myb_exchange_plan.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     state['qq_account'] = qq_account
     state['user_account'] = user_account
 
@@ -166,44 +166,50 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     content = matcher.get_arg('content').extract_plain_text().strip()
     account: UserAccount = state['account']
     arg = [content[0], content[1:].strip()]
-    good_dict = {
+    if arg[0] == '+':
+        good_dict = {
         'bh3': await get_good_list('bh3'),
         'ys': await get_good_list('ys'),
         'bh2': await get_good_list('bh2'),
         'wd': await get_good_list('wd'),
         'bbs': await get_good_list('bbs')
-    }
-    Flag = True
-    break_flag = False
-    good: Good = None
-    game: str = None
-    for game, good_list in good_dict.items():
-        for good in good_list:
-            if good.goodID == arg[1]:
-                Flag = False
-                break_flag = True
+        }
+        Flag = True
+        break_flag = False
+        good: Good = None
+        game: str = None
+        for game, good_list in good_dict.items():
+            for good in good_list:
+                if good.goodID == arg[1]:
+                    Flag = False
+                    break_flag = True
+                    break
+            if break_flag:
                 break
-        if break_flag:
-            break
-    if Flag:
-        await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
-    state['good'] = good
-    if arg[0] == '+':
+        if Flag:
+            await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
+        state['good'] = good
         uids = []
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.isVisual:
                 game_records = await get_game_record(account)
-                await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+
                 if isinstance(game_records, int):
                     pass
                 else:
-                    msg = f'您米游社账户下的『{list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]}』账号：'
+                    game_name = list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]                
+                    msg = f'您米游社账户下的『{game_name}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
                             msg += f'\n🎮 {record.regionName}·{record.nickname} - UID {record.uid}'
                         uids.append(record.uid)
-                    await matcher.send(msg)
+                    if uids:
+                        await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+                        await asyncio.sleep(0.5)
+                        await matcher.send(msg)
+                    else:
+                        await matcher.finish(f"您还没有绑定『{game_name}』账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
@@ -215,17 +221,18 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     elif arg[0] == '-':
         if account.exchange:
             for exchange_good in account.exchange:
-                if exchange_good[0] == good.goodID:
+                if exchange_good[0] == arg[1]:
                     account.exchange.remove(exchange_good)
                     UserData.set_account(account, event.user_id, account.phone)
                     scheduler.remove_job(job_id=str(
-                        account.phone)+'_'+good.goodID)
+                        account.phone)+'_'+arg[1])
                     await matcher.finish('兑换计划删除成功')
-            await matcher.finish(f"您没有设置商品ID为 {good.goodID} 的兑换哦")
+            await matcher.finish(f"您没有设置商品ID为 {arg[1]} 的兑换哦~")
         else:
-            await matcher.finish("您还没有配置兑换计划哦")
+            await matcher.finish("您还没有配置兑换计划哦~")
+
     else:
-        matcher.reject('⚠️您的输入有误，请重新输入')
+        matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__ )
 
 
 @myb_exchange_plan.got('uid')
