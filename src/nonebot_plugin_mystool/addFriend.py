@@ -13,10 +13,10 @@ from .data import UserData
 
 driver = get_driver()
 
-FriendRequest = on_request(priority=1, block=True)
+friendRequest = on_request(priority=1, block=True)
 
 
-@FriendRequest.handle()
+@friendRequest.handle()
 async def _(bot: Bot, event: RequestEvent):
     command = list(get_driver().config.command_start)[0]
     # 判断为加好友事件
