@@ -25,6 +25,8 @@
 
 **版本 - v0.1.5**
 
+📣 更新：修复多用户情况下登录操作会导致用户数据错位的问题([#18](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues/18))
+
 ## 功能和特性
 
 - 短信验证登录，免抓包获取 Cookie
