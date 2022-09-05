@@ -146,7 +146,7 @@ class UserAccount:
 
     def get(self, account: dict):
         # 适配旧版本的dict
-        sample = UserAccount().to_dict
+        sample = UserAccount().to_dict()
         if account.keys() != sample.keys():
             add = sample.keys() - account.keys()
             remove = account.keys() - sample.keys()
@@ -181,7 +181,6 @@ class UserAccount:
             exchange.append(tuple(plan))
         self.exchange: List[Tuple[str, str]] = exchange
 
-    @property
     def to_dict(self) -> dict:
         data = {
             "name": self.name,
@@ -287,7 +286,7 @@ class UserData:
         """
         创建米哈游账户数据，返回创建后整体的userdata
         """
-        account = UserAccount().to_dict
+        account = UserAccount().to_dict()
         account["name"] = name
         account["phone"] = phone
         userdata[str(qq)]["accounts"].append(account)
@@ -321,7 +320,7 @@ class UserData:
             `qq`: 要设置的用户的QQ号
             `by`: 索引依据，可为备注名或手机号
         """
-        account_raw = account.to_dict
+        account_raw = account.to_dict()
         userdata = cls.read_all()
         if isinstance(by, str):
             by_type = "name"
