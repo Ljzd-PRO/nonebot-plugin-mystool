@@ -180,6 +180,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 if mission_state[1] < mission_state[0].totalTimes:
                     for gameID in account.missionGame:
                         await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
+                        await asyncio.sleep(conf.SLEEP_TIME)
 
             # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
@@ -211,7 +212,6 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                     user_id=qq,
                     message=msg
                 )
-            await asyncio.sleep(conf.SLEEP_TIME)
 
 
 async def generate_image(isAuto=True):
