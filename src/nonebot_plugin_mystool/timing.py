@@ -61,7 +61,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
     执行游戏签到函数。并发送给用户签到消息。
 
     参数:
-        `IsAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
+        `isAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -74,6 +74,9 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
             else:
                 await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 获取游戏账号信息失败，请重新尝试")
                 continue
+        if not record_list and not isAuto:
+            await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 没有绑定任何游戏账号，跳过游戏签到")
+            continue
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
                 logger.info(
@@ -86,7 +89,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
                 if sign_info == -1:
                     await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
-                    break
+                    continue
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
