@@ -16,7 +16,7 @@ from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
 from .gameSign import GameSign, Info
-from .mybMission import GAME_ID, Action, Mission, get_missions_state
+from .mybMission import Action, get_missions_state
 from .utils import get_file, logger
 
 driver = get_driver()
