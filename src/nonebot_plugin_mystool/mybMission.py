@@ -263,7 +263,8 @@ class Action:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
-                await asyncio.sleep(conf.SLEEP_TIME)
+                if count != readTimes:
+                    await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
                 return -4
@@ -319,7 +320,8 @@ class Action:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
-                await asyncio.sleep(conf.SLEEP_TIME)
+                if count != likeTimes:
+                    await asyncio.sleep(conf.SLEEP_TIME)
             postID_list = await self.get_posts(game)
             if postID_list is None:
                 return -4
