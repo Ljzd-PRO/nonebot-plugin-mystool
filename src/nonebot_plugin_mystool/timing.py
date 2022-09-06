@@ -113,9 +113,14 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                         await asyncio.sleep(conf.SLEEP_TIME)
                         continue
                 elif isinstance(sign_info, int):
-                    await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
-                        account.phone, game_name))
+                    if UserData.isNotice(qq) or not isAuto:
+                        await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
+                            account.phone, game_name))
+                        continue
+                # 若用户未开启自动签到且手动签到过了，不再提醒
+                elif not account.gameSign and isAuto:
                     continue
+
                 # 用户打开通知或手动签到时，进行通知
                 if UserData.isNotice(qq) or not isAuto:
                     img = ""
