@@ -9,7 +9,8 @@ import string
 import time
 import traceback
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple, Union
+from typing import (TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple,
+                    Union)
 from urllib.parse import urlencode
 
 import httpx
@@ -19,8 +20,8 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
-from .config import mysTool_config as conf
 from .__init__ import VERSION
+from .config import mysTool_config as conf
 
 if TYPE_CHECKING:
     from loguru import Logger
