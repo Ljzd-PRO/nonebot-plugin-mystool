@@ -251,7 +251,7 @@ class Subscribe:
             return False
 
     @classmethod
-    async def get(cls, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = False) -> Union[Any, None]:
+    async def get(cls, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = True) -> Union[Any, None]:
         """
         优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
         若找不到属性，返回`None`
