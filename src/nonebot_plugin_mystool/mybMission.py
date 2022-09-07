@@ -181,7 +181,7 @@ class Action:
                         return -1
                     if not check_DS(res.text):
                         logger.info(conf.LOG_HEAD +
-                                    "米游币任务 - 讨论区签到 - DS无效，正在在线获取salt以重新生成...")
+                                    "米游币任务 - 讨论区签到: DS无效，正在在线获取salt以重新生成...")
                         conf.SALT_ANDROID_NEW = await Subscribe().get(
                             ("Config", "SALT_ANDROID_NEW"), index)
                         self.headers["DS"] = generateDS(data)
@@ -214,7 +214,7 @@ class Action:
                     res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_DS(res.text):
                         logger.info(conf.LOG_HEAD +
-                                    "米游币任务 - 获取文章列表 - DS无效，正在在线获取salt以重新生成...")
+                                    "米游币任务 - 获取文章列表: DS无效，正在在线获取salt以重新生成...")
                         conf.SALT_ANDROID = await Subscribe().get(
                             ("Config", "SALT_ANDROID"), index)
                         self.headers["DS"] = generateDS(platform="android")
@@ -272,7 +272,7 @@ class Action:
                                 return -1
                             if not check_DS(res.text):
                                 logger.info(conf.LOG_HEAD +
-                                            "米游币任务 - 阅读 - DS无效，正在在线获取salt以重新生成...")
+                                            "米游币任务 - 阅读: DS无效，正在在线获取salt以重新生成...")
                                 conf.SALT_ANDROID = await Subscribe().get(
                                     ("Config", "SALT_ANDROID"), index)
                                 self.headers["DS"] = generateDS(
@@ -338,7 +338,7 @@ class Action:
                                 return -1
                             if not check_DS(res.text):
                                 logger.info(conf.LOG_HEAD +
-                                            "米游币任务 - 点赞 - DS无效，正在在线获取salt以重新生成...")
+                                            "米游币任务 - 点赞: DS无效，正在在线获取salt以重新生成...")
                                 conf.SALT_ANDROID = await Subscribe().get(
                                     ("Config", "SALT_ANDROID"), index)
                                 self.headers["DS"] = generateDS(

@@ -317,7 +317,7 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                     return -1
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
-                                "获取ActionTicket - DS无效，正在在线获取salt以重新生成...")
+                                "获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
                     conf.SALT_IOS = await sub.get(
                         ("Config", "SALT_IOS"), index)
@@ -393,7 +393,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
-                                "获取游戏信息 - DS无效，正在在线获取salt以重新生成...")
+                                "获取游戏信息: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
                     conf.SALT_IOS = await sub.get(
                         ("Config", "SALT_IOS"), index)
@@ -485,7 +485,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                     return -1
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
-                                "设备登录 - DS无效，正在在线获取salt以重新生成...")
+                                "设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
                         ("Config", "SALT_ANDROID_NEW"), index)
                     index += 1
@@ -542,7 +542,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     return -1
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
-                                "设备登录 - DS无效，正在在线获取salt以重新生成...")
+                                "设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
                         ("Config", "SALT_ANDROID_NEW"), index)
                     index += 1
@@ -590,7 +590,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                     return -1
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
-                                "原神实时便笺 - DS无效，正在在线获取salt以重新生成...")
+                                "原神实时便笺: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_IOS = await Subscribe().get(
                         ("Config", "SALT_IOS"), index)
                     index += 1
