@@ -328,12 +328,12 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                     headers["DS"] = generateDS()
                 return res.json()["data"]["ticket"]
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取ActionTicket - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -365,12 +365,12 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
                     record_list.append(GameRecord(record))
                 return record_list
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取用户游戏数据 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取用户游戏数据 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取用户游戏数据 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -406,11 +406,11 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                     info_list.append(GameInfo(info))
                 return info_list
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取游戏信息 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取游戏信息 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取游戏信息 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取游戏信息 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
@@ -438,12 +438,12 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
                     return -1
                 return int(res.json()["data"]["points"])
     except KeyError or ValueError:
-        logger.error(conf.LOG_HEAD + "获取用户米游币 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取用户米游币 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取用户米游币 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取用户米游币 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -495,12 +495,12 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                 else:
                     return 1
     except KeyError or ValueError:
-        logger.error(conf.LOG_HEAD + "设备登录 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}设备登录 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "设备登录 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}设备登录 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -552,12 +552,12 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                 else:
                     return 1
     except KeyError or ValueError:
-        logger.error(conf.LOG_HEAD + "设备保存 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}设备保存 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "设备保存 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}设备保存 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -600,12 +600,12 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                     raise KeyError
                 return status
     except KeyError or ValueError:
-        logger.error(conf.LOG_HEAD + "原神实时便笺 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "原神实时便笺 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 

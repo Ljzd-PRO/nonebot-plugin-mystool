@@ -33,7 +33,7 @@ class Address:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "地址数据 - 初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}地址数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
@@ -449,7 +449,7 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning(conf.LOG_HEAD + "用户数据文件不存在，将重新生成...")
+        logger.warning(f"{conf.LOG_HEAD}用户数据文件不存在，将重新生成...")
     else:
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
@@ -457,7 +457,7 @@ def create_files():
             else:
                 return
         except json.JSONDecodeError or ValueError:
-            logger.warning(conf.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
+            logger.warning(f"{conf.LOG_HEAD}用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
         json.dump({}, fp, indent=4, ensure_ascii=False)

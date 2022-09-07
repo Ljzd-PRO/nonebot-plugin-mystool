@@ -63,12 +63,12 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
                 for address in res.json()["data"]["list"]:
                     address_list.append(Address(address))
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取地址数据 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取地址数据 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
     return address_list

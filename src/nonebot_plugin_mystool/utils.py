@@ -96,7 +96,7 @@ def ntp_time_sync():
                                    "校对互联网时间失败，正在重试")
                     raise
     except tenacity.RetryError:
-        logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
+        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，改为使用本地时间")
 
 
 def generateDeviceID() -> str:
@@ -183,7 +183,7 @@ async def get_file(url: str, retry: bool = True):
                     res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
+        logger.error(f"{conf.LOG_HEAD}下载文件 - {url} 失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 

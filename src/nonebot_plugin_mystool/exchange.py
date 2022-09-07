@@ -98,7 +98,7 @@ class Good:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}米游币商品数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     async def async_init(self):
@@ -202,11 +202,11 @@ async def get_good_detail(goodID: str, retry: bool = True):
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
                 return Good(res.json()["data"])
     except KeyError or ValueError:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except Exception:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 网络请求失败")
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品详细信息: 网络请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
 
@@ -246,11 +246,11 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
                     good_list += goods
                 page += 1
     except KeyError:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
     except Exception:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品列表: 网络请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     if not good_list:

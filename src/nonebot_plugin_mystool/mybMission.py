@@ -98,7 +98,7 @@ class Mission:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币任务数据 - 初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}米游币任务数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
@@ -175,7 +175,7 @@ class Action:
                     res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
-                            conf.LOG_HEAD + "米游币任务 - 讨论区签到: 用户 {} 登录失效".format(self.account.phone))
+                            f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 用户 {self.account.phone} 登录失效")
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
@@ -188,12 +188,12 @@ class Action:
                         index += 1
                     return res.json()["data"]["points"]
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
         except Exception:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 请求失败")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
 
@@ -225,12 +225,12 @@ class Action:
                             postID_list.append(post['post']['post_id'])
                     break
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return None
         except Exception:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 网络请求失败")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return None
         return postID_list
@@ -284,13 +284,13 @@ class Action:
                                 raise ValueError
                             count += 1
                 except KeyError or ValueError:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 服务器没有正确返回")
+                    logger.error(f"{conf.LOG_HEAD}米游币任务 - 阅读: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -2
                 except Exception:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 网络请求失败")
+                    logger.error(f"{conf.LOG_HEAD}米游币任务 - 阅读: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
                 if count != readTimes:
@@ -350,13 +350,13 @@ class Action:
                                 raise ValueError
                             count += 1
                 except KeyError or ValueError:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
+                    logger.error(f"{conf.LOG_HEAD}米游币任务 - 点赞: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -2
                 except Exception:
-                    logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 网络请求失败")
+                    logger.error(f"{conf.LOG_HEAD}米游币任务 - 点赞: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
                 if count != likeTimes:
@@ -392,7 +392,7 @@ class Action:
                     res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
-                            conf.LOG_HEAD + "米游币任务 - 分享: 用户 {} 登录失效".format(self.account.phone))
+                            f"{conf.LOG_HEAD}米游币任务 - 分享: 用户 {self.account.phone} 登录失效")
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
@@ -401,12 +401,12 @@ class Action:
                     elif res.json()["message"] != "OK":
                         return -4
         except KeyError or ValueError:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 分享: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
         except Exception:
-            logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 网络请求失败")
+            logger.error(f"{conf.LOG_HEAD}米游币任务 - 分享: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
         return 1
@@ -440,12 +440,12 @@ async def get_missions(account: UserAccount):
             mission_list.append(Mission(mission))
         return mission_list
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取米游币任务列表 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取米游币任务列表 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
@@ -486,11 +486,11 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
                 state_list.append((mission, 0))
         return (state_list, data["total_points"])
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}获取米游币任务完成情况 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
     except Exception:
-        logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}获取米游币任务完成情况 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3

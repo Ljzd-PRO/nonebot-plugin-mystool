@@ -88,7 +88,7 @@ class Award:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "签到奖励数据 - 初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}签到奖励数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
@@ -126,7 +126,7 @@ class Info:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "签到记录数据 - 初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}签到记录数据 - 初始化对象: dict数据不正确")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
     @property
@@ -183,11 +183,11 @@ class GameSign:
                         award_list.append(Award(award))
                     return award_list
         except KeyError:
-            logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
         except Exception:
-            logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
+            logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -234,8 +234,7 @@ class GameSign:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
-                        logger.info(
-                            conf.LOG_HEAD + "获取签到记录 - 用户 {} 登录失效".format(self.account.phone))
+                        logger.info(f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
@@ -252,12 +251,12 @@ class GameSign:
                         headers["DS"] = generateDS()
                     return Info(res.json()["data"])
         except KeyError:
-            logger.error(conf.LOG_HEAD + "获取签到记录 - 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}获取签到记录 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
         except Exception:
-            logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
+            logger.error(f"{conf.LOG_HEAD}获取签到记录 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -321,8 +320,7 @@ class GameSign:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
                     if not check_login(res.text):
-                        logger.info(
-                            conf.LOG_HEAD + "签到 - 用户 {} 登录失效".format(self.account.phone))
+                        logger.info(f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
@@ -356,12 +354,12 @@ class GameSign:
                         return -5
                     return 1
         except KeyError:
-            logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
+            logger.error(f"{conf.LOG_HEAD}签到 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
         except Exception:
-            logger.error(conf.LOG_HEAD + "签到 - 请求失败")
+            logger.error(f"{conf.LOG_HEAD}签到 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
