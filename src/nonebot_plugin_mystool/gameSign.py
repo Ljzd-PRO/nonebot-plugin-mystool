@@ -313,7 +313,7 @@ class GameSign:
                                      "网络请求返回: {}".format(res.text))
                         return -1
                     self.signResult = res.json()
-                    if game == "ys" and self.signResult["message"] != "旅行者，你已经签到过了":
+                    if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1
                     if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
