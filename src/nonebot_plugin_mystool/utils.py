@@ -241,7 +241,10 @@ class Subscribe:
         try:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
                 with attempt:
-                    conf_list: list = json.load(await get_file(self.URL))
+                    file = await get_file(self.URL)
+                    if not file:
+                        return False
+                    conf_list: list = json.load(file)
                     self.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
