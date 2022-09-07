@@ -253,7 +253,7 @@ class Action:
                             if "self_operation" not in res.json()["data"]["post"]:
                                 raise ValueError
                             count += 1
-                except KeyError and ValueError:
+                except KeyError or ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
@@ -310,7 +310,7 @@ class Action:
                             elif res.json()["message"] != "OK":
                                 raise ValueError
                             count += 1
-                except KeyError and ValueError:
+                except KeyError or ValueError:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 服务器没有正确返回")
                     logger.debug(conf.LOG_HEAD +
                                  "网络请求返回: {}".format(res.text))
@@ -361,7 +361,7 @@ class Action:
                         continue
                     elif res.json()["message"] != "OK":
                         return -4
-        except KeyError and ValueError:
+        except KeyError or ValueError:
             logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
