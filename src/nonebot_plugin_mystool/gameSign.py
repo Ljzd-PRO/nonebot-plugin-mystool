@@ -1,17 +1,18 @@
 """
 ### 米游社游戏签到相关
 """
-import asyncio
 import traceback
 from typing import List, Literal, Union
 
 import httpx
 import tenacity
 
-from .bbsAPI import GameInfo, GameRecord, get_game_record, device_login, device_save
+from .bbsAPI import (GameInfo, GameRecord, device_login, device_save,
+                     get_game_record)
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDS, logger
+from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
+                    generateDS, logger)
 
 ACT_ID = {
     "ys": "e202009291139501",
@@ -226,6 +227,7 @@ class GameSign:
 
         headers["DS"] = generateDS()
         try:
+            index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
@@ -237,6 +239,17 @@ class GameSign:
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
+                    if not check_DS(res.text):
+                        logger.info(conf.LOG_HEAD +
+                                    "获取签到记录 - DS无效，正在在线获取salt以重新生成...")
+                        sub = Subscribe()
+                        conf.SALT_IOS = await sub.get(
+                            ("Config", "SALT_IOS"), index)
+                        conf.device.USER_AGENT_MOBILE = await sub.get(
+                            ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                        headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
+                        index += 1
+                        headers["DS"] = generateDS()
                     return Info(res.json()["data"])
         except KeyError:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 服务器没有正确返回")
@@ -301,6 +314,7 @@ class GameSign:
             "uid": gameUID
         }
         try:
+            index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
@@ -312,6 +326,25 @@ class GameSign:
                         logger.debug(conf.LOG_HEAD +
                                      "网络请求返回: {}".format(res.text))
                         return -1
+                    if not check_DS(res.text):
+                        logger.info(conf.LOG_HEAD +
+                                    "签到 - DS无效，正在在线获取salt以重新生成...")
+                        sub = Subscribe()
+                        if platform == "ios":
+                            conf.SALT_IOS = await sub.get(
+                                ("Config", "SALT_IOS"), index)
+                            conf.device.USER_AGENT_MOBILE = await sub.get(
+                                ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                            headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
+                            headers["DS"] = generateDS()
+                        else:
+                            conf.SALT_ANDROID = await sub.get(
+                                ("Config", "SALT_ANDROID"), index)
+                            conf.device.USER_AGENT_ANDROID = await sub.get(
+                                ("DeviceConfig", "USER_AGENT_ANDROID"), index)
+                            headers["User-Agent"] = conf.device.USER_AGENT_ANDROID
+                            headers["DS"] = generateDS(platform="android")
+                        index += 1
                     self.signResult = res.json()
                     if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1

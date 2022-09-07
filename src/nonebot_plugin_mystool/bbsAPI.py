@@ -386,10 +386,22 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     headers["DS"] = generateDS()
     info_list = []
     try:
+        index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
+                if not check_DS(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "获取游戏信息 - DS无效，正在在线获取salt以重新生成...")
+                    sub = Subscribe()
+                    conf.SALT_IOS = await sub.get(
+                        ("Config", "SALT_IOS"), index)
+                    conf.device.USER_AGENT_MOBILE = await sub.get(
+                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
+                    index += 1
+                    headers["DS"] = generateDS()
                 for info in res.json()["data"]["list"]:
                     info_list.append(GameInfo(info))
                 return info_list
@@ -461,6 +473,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
+        index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
@@ -470,6 +483,13 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                                 "设备登录 - 用户 {} 登录失效".format(account.phone))
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
+                if not check_DS(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "设备登录 - DS无效，正在在线获取salt以重新生成...")
+                    conf.SALT_ANDROID_NEW = await Subscribe().get(
+                        ("Config", "SALT_ANDROID_NEW"), index)
+                    index += 1
+                    headers["DS"] = generateDS(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -510,6 +530,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
+        index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
@@ -519,6 +540,13 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                                 "设备保存 - 用户 {} 登录失效".format(account.phone))
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
+                if not check_DS(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "设备登录 - DS无效，正在在线获取salt以重新生成...")
+                    conf.SALT_ANDROID_NEW = await Subscribe().get(
+                        ("Config", "SALT_ANDROID_NEW"), index)
+                    index += 1
+                    headers["DS"] = generateDS(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:

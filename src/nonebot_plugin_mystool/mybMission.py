@@ -8,10 +8,11 @@ from typing import Any, Dict, List, Literal, NewType, Tuple, Union
 import httpx
 import tenacity
 
+from .bbsAPI import device_login, device_save
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDS, logger
-from .bbsAPI import device_login, device_save
+from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
+                    generateDS, logger)
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
@@ -153,27 +154,39 @@ class Action:
         await device_save(self.account)
         return self
 
-    async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"]) -> Union[int, Literal[-1, -2, -3]]:
+    async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[int, Literal[-1, -2, -3]]:
         """
         签到
 
         参数:
             `game`: 游戏简称
+            `retry`: 是否允许重试
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
         """
         data = {"gids": GAME_ID[game]["gids"]}
-        self.headers["DS"] = generateDS(data)
-        res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
-        if not check_login(res.text):
-            logger.info(
-                conf.LOG_HEAD + "米游币任务 - 讨论区签到: 用户 {} 登录失效".format(self.account.phone))
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            return -1
         try:
-            return res.json()["data"]["points"]
+            index = 0
+            self.headers["DS"] = generateDS(data)
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                with attempt:
+                    res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
+                    if not check_login(res.text):
+                        logger.info(
+                            conf.LOG_HEAD + "米游币任务 - 讨论区签到: 用户 {} 登录失效".format(self.account.phone))
+                        logger.debug(conf.LOG_HEAD +
+                                     "网络请求返回: {}".format(res.text))
+                        return -1
+                    if not check_DS(res.text):
+                        logger.info(conf.LOG_HEAD +
+                                    "米游币任务 - 讨论区签到 - DS无效，正在在线获取salt以重新生成...")
+                        conf.SALT_ANDROID_NEW = await Subscribe().get(
+                            ("Config", "SALT_ANDROID_NEW"), index)
+                        self.headers["DS"] = generateDS(data)
+                        index += 1
+                    return res.json()["data"]["points"]
         except KeyError:
             logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -194,10 +207,18 @@ class Action:
         """
         postID_list = []
         try:
+            index = 0
             self.headers["DS"] = generateDS(platform="android")
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
+                    if not check_DS(res.text):
+                        logger.info(conf.LOG_HEAD +
+                                    "米游币任务 - 获取文章列表 - DS无效，正在在线获取salt以重新生成...")
+                        conf.SALT_ANDROID = await Subscribe().get(
+                            ("Config", "SALT_ANDROID"), index)
+                        self.headers["DS"] = generateDS(platform="android")
+                        index += 1
                     data = res.json()["data"]["list"]
                     for post in data:
                         if post["self_operation"]["attitude"] == 0:
@@ -239,6 +260,7 @@ class Action:
                     break
                 self.headers["DS"] = generateDS(platform="android")
                 try:
+                    index = 0
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
                             res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
@@ -248,6 +270,14 @@ class Action:
                                 logger.debug(conf.LOG_HEAD +
                                              "网络请求返回: {}".format(res.text))
                                 return -1
+                            if not check_DS(res.text):
+                                logger.info(conf.LOG_HEAD +
+                                            "米游币任务 - 阅读 - DS无效，正在在线获取salt以重新生成...")
+                                conf.SALT_ANDROID = await Subscribe().get(
+                                    ("Config", "SALT_ANDROID"), index)
+                                self.headers["DS"] = generateDS(
+                                    platform="android")
+                                index += 1
                             if res.json()["message"] == "帖子不存在":
                                 continue
                             if "self_operation" not in res.json()["data"]["post"]:
@@ -296,6 +326,7 @@ class Action:
                     break
                 self.headers["DS"] = generateDS(platform="android")
                 try:
+                    index = 0
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
                             res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False, 'post_id': postID}, timeout=conf.TIME_OUT)
@@ -305,6 +336,14 @@ class Action:
                                 logger.debug(conf.LOG_HEAD +
                                              "网络请求返回: {}".format(res.text))
                                 return -1
+                            if not check_DS(res.text):
+                                logger.info(conf.LOG_HEAD +
+                                            "米游币任务 - 点赞 - DS无效，正在在线获取salt以重新生成...")
+                                conf.SALT_ANDROID = await Subscribe().get(
+                                    ("Config", "SALT_ANDROID"), index)
+                                self.headers["DS"] = generateDS(
+                                    platform="android")
+                                index += 1
                             if res.json()["message"] == "帖子不存在":
                                 continue
                             elif res.json()["message"] != "OK":
