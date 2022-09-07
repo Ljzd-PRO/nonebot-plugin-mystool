@@ -315,9 +315,11 @@ class Exchange:
             "app_id": 1,
             "point_sn": "myb",
             "goods_id": self.goodID,
-            "exchange_num": 1,
-            "address_id": self.account.address.addressID
+            "exchange_num": 1
         }
+        if self.account.address:
+            self.content.setdefault(
+                "address_id", self.account.address.addressID)
         logger.info(conf.LOG_HEAD +
                     "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(self.goodID))
         res = None
