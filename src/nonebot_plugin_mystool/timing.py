@@ -79,8 +79,8 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
             continue
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
-                logger.info(
-                    conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+                logger.info("{0}执行游戏签到 - {1} 暂不支持".format(conf.LOG_HEAD,
+                            GameInfo.ABBR_TO_ID[record.gameID][1]))
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]

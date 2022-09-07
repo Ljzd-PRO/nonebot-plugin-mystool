@@ -7,7 +7,7 @@ from typing import List, Literal, Union
 
 import httpx
 import tenacity
-from nonebot import on_command, get_driver
+from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.log import logger
@@ -33,6 +33,7 @@ HEADERS = {
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
+
 async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
     """
     获取用户的地址数据
@@ -55,21 +56,20 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
                     res = await client.get(URL.format(
                         round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
-                        logger.info(conf.LOG_HEAD +
-                                    "获取地址数据 - 用户 {} 登录失效".format(account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                        logger.info(
+                            f"{conf.LOG_HEAD}获取地址数据 - 用户 {account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
                 for address in res.json()["data"]["list"]:
                     address_list.append(Address(address))
     except KeyError:
         logger.error(f"{conf.LOG_HEAD}获取地址数据 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}获取地址数据 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
     return address_list
 

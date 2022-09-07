@@ -1,9 +1,9 @@
 """
 ### 用户数据相关
 """
-from copy import deepcopy
 import json
 import traceback
+from copy import deepcopy
 from typing import Dict, List, Literal, Tuple, Union
 
 import nonebot
@@ -34,7 +34,7 @@ class Address:
                 getattr(self, func)
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}地址数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
     def province(self) -> str:

@@ -81,7 +81,7 @@ def ntp_time_sync():
     try:
         for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
             with attempt:
-                logger.info(conf.LOG_HEAD + "正在校对互联网时间")
+                logger.info(f"{conf.LOG_HEAD}正在校对互联网时间")
                 try:
                     NtpTime.time_offset = ntplib.NTPClient().request(
                         conf.NTP_SERVER).tx_time - time.time()
@@ -92,8 +92,7 @@ def ntp_time_sync():
                         logger.warning(
                             f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
                 except Exception:
-                    logger.warning(conf.LOG_HEAD +
-                                   "校对互联网时间失败，正在重试")
+                    logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，正在重试")
                     raise
     except tenacity.RetryError:
         logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，改为使用本地时间")
@@ -184,7 +183,7 @@ async def get_file(url: str, retry: bool = True):
                 return res.content
     except tenacity.RetryError:
         logger.error(f"{conf.LOG_HEAD}下载文件 - {url} 失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
 def check_login(response: str):

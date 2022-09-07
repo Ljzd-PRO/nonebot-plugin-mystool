@@ -89,7 +89,7 @@ class Award:
                 getattr(self, func)
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}签到奖励数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
     def name(self) -> str:
@@ -127,7 +127,7 @@ class Info:
                 getattr(self, func)
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}签到记录数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
     def isSign(self) -> bool:
@@ -184,13 +184,13 @@ class GameSign:
                     return award_list
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         except Exception:
             logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[Info, Literal[-1, -2, -3, -4]]:
         """
@@ -234,13 +234,13 @@ class GameSign:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
-                        logger.info(f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                        logger.info(
+                            f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
                     if not check_DS(res.text):
-                        logger.info(conf.LOG_HEAD +
-                                    "获取签到记录: DS无效，正在在线获取salt以重新生成...")
+                        logger.info(
+                            f"{conf.LOG_HEAD}获取签到记录: DS无效，正在在线获取salt以重新生成...")
                         sub = Subscribe()
                         conf.SALT_IOS = await sub.get(
                             ("Config", "SALT_IOS"), index)
@@ -252,14 +252,14 @@ class GameSign:
                     return Info(res.json()["data"])
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}获取签到记录 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -2
         except Exception:
             logger.error(f"{conf.LOG_HEAD}获取签到记录 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
     async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
@@ -320,13 +320,13 @@ class GameSign:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
                     if not check_login(res.text):
-                        logger.info(f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                        logger.info(
+                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
                     if not check_DS(res.text):
-                        logger.info(conf.LOG_HEAD +
-                                    "签到: DS无效，正在在线获取salt以重新生成...")
+                        logger.info(
+                            f"{conf.LOG_HEAD}签到: DS无效，正在在线获取salt以重新生成...")
                         sub = Subscribe()
                         if platform == "ios":
                             conf.SALT_IOS = await sub.get(
@@ -348,19 +348,18 @@ class GameSign:
                         return 1
                     if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
-                            conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 可能被验证码阻拦".format())
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -5
                     return 1
         except KeyError:
             logger.error(f"{conf.LOG_HEAD}签到 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -2
         except Exception:
             logger.error(f"{conf.LOG_HEAD}签到 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3

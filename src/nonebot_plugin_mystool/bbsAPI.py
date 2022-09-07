@@ -311,13 +311,13 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}获取ActionTicket - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if not check_DS(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
+                    logger.info(
+                        f"{conf.LOG_HEAD}获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
                     conf.SALT_IOS = await sub.get(
                         ("Config", "SALT_IOS"), index)
@@ -329,12 +329,12 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                 return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
@@ -357,21 +357,21 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "获取用户游戏数据 - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}获取用户游戏数据 - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 for record in res.json()["data"]["list"]:
                     record_list.append(GameRecord(record))
                 return record_list
     except KeyError:
         logger.error(f"{conf.LOG_HEAD}获取用户游戏数据 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}获取用户游戏数据 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
@@ -392,8 +392,8 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
                 if not check_DS(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "获取游戏信息: DS无效，正在在线获取salt以重新生成...")
+                    logger.info(
+                        f"{conf.LOG_HEAD}获取游戏信息: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
                     conf.SALT_IOS = await sub.get(
                         ("Config", "SALT_IOS"), index)
@@ -407,11 +407,11 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                 return info_list
     except KeyError:
         logger.error(f"{conf.LOG_HEAD}获取游戏信息 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
     except Exception:
         logger.error(f"{conf.LOG_HEAD}获取游戏信息 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
 async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, Literal[-1, -2, -3]]:
@@ -432,19 +432,19 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "获取用户米游币 - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}获取用户米游币 - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 return int(res.json()["data"]["points"])
     except KeyError or ValueError:
         logger.error(f"{conf.LOG_HEAD}获取用户米游币 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}获取用户米游币 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
@@ -479,13 +479,13 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "设备登录 - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}设备登录 - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if not check_DS(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "设备登录: DS无效，正在在线获取salt以重新生成...")
+                    logger.info(
+                        f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
                         ("Config", "SALT_ANDROID_NEW"), index)
                     index += 1
@@ -496,12 +496,12 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                     return 1
     except KeyError or ValueError:
         logger.error(f"{conf.LOG_HEAD}设备登录 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}设备登录 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
@@ -536,13 +536,13 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "设备保存 - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}设备保存 - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if not check_DS(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "设备登录: DS无效，正在在线获取salt以重新生成...")
+                    logger.info(
+                        f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
                         ("Config", "SALT_ANDROID_NEW"), index)
                     index += 1
@@ -553,12 +553,12 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     return 1
     except KeyError or ValueError:
         logger.error(f"{conf.LOG_HEAD}设备保存 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}设备保存 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
@@ -584,13 +584,13 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "原神实时便笺 - 用户 {} 登录失效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    logger.info(
+                        f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if not check_DS(res.text):
-                    logger.info(conf.LOG_HEAD +
-                                "原神实时便笺: DS无效，正在在线获取salt以重新生成...")
+                    logger.info(
+                        f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_IOS = await Subscribe().get(
                         ("Config", "SALT_IOS"), index)
                     index += 1
@@ -601,12 +601,12 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                 return status
     except KeyError or ValueError:
         logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
         logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 

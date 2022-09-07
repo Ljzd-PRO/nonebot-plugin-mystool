@@ -110,9 +110,8 @@ class GetCookie:
                         res.cookies.jar)
                     return 1
         except tenacity.RetryError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
     async def get_2(self, retry: bool = True):
@@ -134,14 +133,12 @@ class GetCookie:
                     self.cookie["stoken"] = stoken
                     return True
         except KeyError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取stoken: 服务器没有正确返回")
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         except Exception:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取stoken: 网络请求失败")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return False
 
     async def get_3(self, captcha: str, retry: bool = True) -> Literal[1, -1, -2, -3]:
@@ -176,15 +173,14 @@ class GetCookie:
                         pass
                     if "cookie_token" not in res.cookies:
                         return -1
-                    self.cookie.update(requests.utils.dict_from_cookiejar(res.cookies.jar))
+                    self.cookie.update(
+                        requests.utils.dict_from_cookiejar(res.cookies.jar))
                     await self.client.aclose()
                     return 1
         except tenacity.RetryError:
-            logger.error(
-                conf.LOG_HEAD + "登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -2
-
 
 
 get_cookie = on_command(
