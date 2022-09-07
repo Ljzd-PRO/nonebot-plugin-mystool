@@ -123,7 +123,7 @@ class BaseData:
                 if func.startswith("__"):
                     continue
                 getattr(self, func)
-        except KeyError:
+        except KeyError and TypeError:
             logger.error(f"{conf.LOG_HEAD}{error_info}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
@@ -263,22 +263,26 @@ class GenshinStatus:
     def fromWidget(self, widget_dict):
         self.dict = widget_dict
 
-        self.name: str = widget_dict["nickname"]
-        self.gameUID: str = widget_dict["game_role_id"]
-        self.region: str = widget_dict["region"]
-        self.level: int = widget_dict["level"]
+        try:
+            self.name: str = widget_dict["nickname"]
+            self.gameUID: str = widget_dict["game_role_id"]
+            self.region: str = widget_dict["region"]
+            self.level: int = widget_dict["level"]
 
-        for status in widget_dict["data"]:
-            data: Tuple[int, int] = tuple(
-                [int(value) for value in status["value"].split("/")])
-            if status["name"] == "原粹树脂":
-                self.resin = data[0]
-            elif status["name"] == "探索派遣":
-                self.expedition = data
-            elif status["name"] == "每日委托进度":
-                self.task = data[0]
-            elif status["name"] == "洞天财瓮":
-                self.coin = data
+            for status in widget_dict["data"]:
+                data: Tuple[int, int] = tuple(
+                    [int(value) for value in status["value"].split("/")])
+                if status["name"] == "原粹树脂":
+                    self.resin = data[0]
+                elif status["name"] == "探索派遣":
+                    self.expedition = data
+                elif status["name"] == "每日委托进度":
+                    self.task = data[0]
+                elif status["name"] == "洞天财瓮":
+                    self.coin = data
+        except KeyError and TypeError:
+            logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     def fromBBS(self, bbs_dict):
         ...
