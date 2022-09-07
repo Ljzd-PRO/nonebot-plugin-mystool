@@ -1,6 +1,7 @@
 """
 ### 工具函数
 """
+import asyncio
 import hashlib
 import json
 import random
@@ -8,7 +9,8 @@ import string
 import time
 import traceback
 import uuid
-from typing import TYPE_CHECKING, Dict, Literal, Union
+from typing import (TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple,
+                    Union)
 from urllib.parse import urlencode
 
 import httpx
@@ -18,6 +20,7 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
+from .__init__ import VERSION
 from .config import mysTool_config as conf
 
 if TYPE_CHECKING:
@@ -34,8 +37,8 @@ def set_logger(logger: "Logger"):
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
     logger.add(conf.LOG_PATH, diagnose=False, format=nonebot.log.default_format,
                filter=lambda record: record["name"] == conf.PLUGIN_NAME or
-                (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
-                    record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1, rotation=conf.LOG_ROTATION)
+               (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
+               record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1, rotation=conf.LOG_ROTATION)
     return logger
 
 
@@ -200,5 +203,82 @@ def check_login(response: str):
                 if response.find(string) != -1:
                     return False
             return True
-    except json.JSONDecodeError and KeyError:
+    except Exception:
         return True
+
+
+def check_DS(response: str):
+    """
+    通过网络请求返回的数据，检查Header中DS是否有效
+
+    如果返回数据为`None`，返回`True`
+    """
+    try:
+        if response is None:
+            return True
+        res_dict = json.loads(response)
+        if res_dict["message"] == "invalid request":
+            return False
+    except Exception:
+        return True
+
+
+class Subscribe:
+    """
+    在线配置相关
+    """
+    ConfigClass = NewType("ConfigClass", str)
+    Attribute = NewType("Attribute", str)
+
+    URL = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json"
+    conf_list: List[Dict[str, Any]] = []
+    '''当前插件版本可用的配置资源'''
+
+    @classmethod
+    async def download(cls) -> bool:
+        """
+        读取在线配置资源
+        """
+        try:
+            for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
+                with attempt:
+                    conf_list: list = json.load(await get_file(cls.URL))
+                    cls.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
+                        key=lambda conf: conf["time"], reverse=True)
+                    return True
+        except json.JSONDecodeError and KeyError:
+            logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
+            return False
+
+    @classmethod
+    async def get(cls, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = True) -> Union[Any, None]:
+        """
+        优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
+        若找不到属性，返回`None`
+
+        参数:
+            `key`: (配置类名, 属性名)
+            `index`: 配置在`Subscribe.conf_list`中的位置
+            `force`: 是否强制在线读取配置，而不使用本地缓存的
+        """
+        if not cls.conf_list or force:
+            logger.info(f"{conf.LOG_HEAD}读取配置 - 开始下载配置...")
+            success = await cls.download()
+            if not success:
+                logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
+                if key[0] == "DeviceConfig":
+                    try:
+                        return list(filter(lambda attr: attr == key[1], dir(conf.device)))[0]
+                    except IndexError:
+                        return
+
+        return cls.conf_list[index]["config"][key[0]][key[1]]
+
+
+@driver.on_startup
+def subscribe():
+    """
+    启动时自动下载来自网络的配置资源
+    """
+    logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
+    asyncio.run(Subscribe.download())

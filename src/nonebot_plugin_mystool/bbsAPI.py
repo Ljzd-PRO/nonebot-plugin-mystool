@@ -11,8 +11,8 @@ from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import (check_login, custom_attempt_times, generateDeviceID,
-                    generateDS, logger)
+from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
+                    generateDeviceID, generateDS, logger)
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -236,6 +236,7 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     """
     headers = HEADERS_ACTION_TICKET.copy()
     headers["DS"] = generateDS()
+    index = 0
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -246,6 +247,13 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                                 "获取ActionTicket - 用户 {} 登录失效".format(account.phone))
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
+                if not check_DS(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "获取ActionTicket - DS无效")
+                    conf.SALT_IOS = Subscribe.get(
+                        ("Config", "SALT_IOS"), index)
+                    index += 1
+                    headers["DS"] = generateDS()
                 return res.json()["data"]["ticket"]
     except KeyError:
         logger.error(conf.LOG_HEAD + "获取ActionTicket - 服务器没有正确返回")
