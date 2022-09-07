@@ -280,6 +280,8 @@ class GenshinStatus:
                     self.task = data[0]
                 elif status["name"] == "洞天财瓮":
                     self.coin = data
+
+            return self
         except KeyError or TypeError:
             logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -534,7 +536,15 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
 
 async def genshin_status_widget(account: UserAccount, retry: bool = True):
     """
-    获取原神实时便笺
+    获取原神实时便笺，返回`GenshinStatus`对象
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
     """
     headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
     headers["DS"] = generateDS()
@@ -557,10 +567,10 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                         ("Config", "SALT_IOS"), index)
                     index += 1
                     headers["DS"] = generateDS()
-                if res.json()["message"] != "OK":
-                    raise ValueError
-                else:
-                    return 1
+                status = GenshinStatus().fromWidget(res.json()["data"]["data"])
+                if not status:
+                    raise KeyError
+                return status
     except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "原神实时便笺 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -572,10 +582,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
         return -3
 
 
-driver = nonebot.get_driver()
-
-
-@driver.on_startup
+@nonebot.get_driver().on_startup
 async def set_game_list():
     """
     设置游戏ID(gameID)与缩写和全称的对应关系
