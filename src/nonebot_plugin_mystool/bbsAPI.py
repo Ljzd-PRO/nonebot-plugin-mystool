@@ -529,10 +529,14 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
 
 
 async def genshin_status_widget(account: UserAccount, retry: bool = True):
+    """
+    获取原神实时便笺
+    """
     headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
     headers["DS"] = generateDS()
     headers["x-rpc-device_id"] = account.deviceID
     try:
+        index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
@@ -543,10 +547,12 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 if not check_DS(res.text):
-                    logger.error(conf.LOG_HEAD +
-                                 "原神实时便笺 - 用户 {} DS无效".format(account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                    Subscribe.get(("Config", ""))
+                    logger.info(conf.LOG_HEAD +
+                                "原神实时便笺 - DS无效")
+                    conf.SALT_IOS = Subscribe().get(
+                        ("Config", "SALT_IOS"), index)
+                    index += 1
+                    headers["DS"] = generateDS()
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
