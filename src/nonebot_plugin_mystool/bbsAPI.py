@@ -241,6 +241,25 @@ class GenshinStatus:
     """
     原神实时便笺数据
     """
+
+    def __init__(self) -> None:
+        self.name = None
+        '''游戏昵称'''
+        self.gameUID = None
+        '''游戏UID'''
+        self.region = None
+        '''游戏区服(如 "cn_gf01")'''
+        self.level = None
+        '''游戏等级'''
+        self.resin = None
+        '''当前树脂数量'''
+        self.expedition = None
+        '''探索派遣 `(进行中, 最多派遣数)`'''
+        self.task = None
+        '''每日委托完成数'''
+        self.coin = None
+        '''洞天财瓮 `(未收取, 最多可容纳宝钱数)`'''
+
     def fromWidget(self, widget_dict):
         self.dict = widget_dict
 
@@ -248,11 +267,6 @@ class GenshinStatus:
         self.gameUID: str = widget_dict["game_role_id"]
         self.region: str = widget_dict["region"]
         self.level: int = widget_dict["level"]
-
-        self.resin = None
-        self.expedition = None
-        self.task = None
-        self.coin = None
 
         for status in widget_dict["data"]:
             data: Tuple[int, int] = tuple(
@@ -265,6 +279,9 @@ class GenshinStatus:
                 self.task = data[0]
             elif status["name"] == "洞天财瓮":
                 self.coin = data
+
+    def fromBBS(self, bbs_dict):
+        ...
 
 
 async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[str, Literal[-1, -2, -3]]:
