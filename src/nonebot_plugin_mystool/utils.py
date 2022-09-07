@@ -203,7 +203,7 @@ def check_login(response: str):
                 if response.find(string) != -1:
                     return False
             return True
-    except Exception:
+    except json.JSONDecodeError or KeyError:
         return True
 
 
@@ -219,7 +219,7 @@ def check_DS(response: str):
         res_dict = json.loads(response)
         if res_dict["message"] == "invalid request":
             return False
-    except Exception:
+    except json.JSONDecodeError or KeyError:
         return True
 
 
@@ -245,7 +245,7 @@ class Subscribe:
                     self.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
-        except json.JSONDecodeError and KeyError:
+        except json.JSONDecodeError or KeyError:
             logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
             return False
 

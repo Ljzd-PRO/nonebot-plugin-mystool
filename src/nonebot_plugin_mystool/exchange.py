@@ -201,7 +201,7 @@ async def get_good_detail(goodID: str, retry: bool = True):
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
                 return Good(res.json()["data"])
-    except KeyError and ValueError:
+    except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())

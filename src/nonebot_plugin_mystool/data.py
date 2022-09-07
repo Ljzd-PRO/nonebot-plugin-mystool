@@ -360,7 +360,7 @@ class UserData:
             account_list: List[dict] = userdata[str(qq)]["accounts"]
             account_list.remove(
                 list(filter(lambda account: account[by_type] == by, account_list))[0])
-        except KeyError and IndexError:
+        except KeyError or IndexError:
             return False
         cls.__set_all(userdata)
         return True
@@ -456,7 +456,7 @@ def create_files():
                 raise ValueError
             else:
                 return
-        except json.JSONDecodeError and ValueError:
+        except json.JSONDecodeError or ValueError:
             logger.warning(conf.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:

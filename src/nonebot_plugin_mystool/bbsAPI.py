@@ -123,7 +123,7 @@ class BaseData:
                 if func.startswith("__"):
                     continue
                 getattr(self, func)
-        except KeyError and TypeError:
+        except KeyError or TypeError:
             logger.error(f"{conf.LOG_HEAD}{error_info}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
@@ -280,7 +280,7 @@ class GenshinStatus:
                     self.task = data[0]
                 elif status["name"] == "洞天财瓮":
                     self.coin = data
-        except KeyError and TypeError:
+        except KeyError or TypeError:
             logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
@@ -423,7 +423,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
                     logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                     return -1
                 return int(res.json()["data"]["points"])
-    except KeyError and ValueError:
+    except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "获取用户米游币 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -472,7 +472,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                     raise ValueError
                 else:
                     return 1
-    except KeyError and ValueError:
+    except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "设备登录 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -521,7 +521,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     raise ValueError
                 else:
                     return 1
-    except KeyError and ValueError:
+    except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "设备保存 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -561,7 +561,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                     raise ValueError
                 else:
                     return 1
-    except KeyError and ValueError:
+    except KeyError or ValueError:
         logger.error(conf.LOG_HEAD + "原神实时便笺 - 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
