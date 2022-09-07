@@ -115,66 +115,71 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
 }
 
 
-class GameRecord:
+class BaseData:
+    def __init__(self, data_dict: dict, error_info: str = "初始化对象: dict数据不正确") -> None:
+        self.dict = data_dict
+        try:
+            for func in dir(self):
+                if func.startswith("__"):
+                    continue
+                getattr(self, func)
+        except KeyError:
+            logger.error(f"{conf.LOG_HEAD}{error_info}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+
+
+class GameRecord(BaseData):
     """
     用户游戏数据
     """
 
     def __init__(self, gameRecord_dict: dict) -> None:
-        self.gameRecord_dict = gameRecord_dict
-        try:
-            for func in dir(GameRecord):
-                if func.startswith("__"):
-                    continue
-                getattr(self, func)
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "用户游戏数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        BaseData.__init__(self, gameRecord_dict, "用户游戏数据 - 初始化对象: dict数据不正确")
 
     @property
     def regionName(self) -> str:
         """
         服务器区名
         """
-        return self.gameRecord_dict["region_name"]
+        return self.dict["region_name"]
 
     @property
     def gameID(self) -> str:
         """
         游戏ID
         """
-        return self.gameRecord_dict["game_id"]
+        return self.dict["game_id"]
 
     @property
     def level(self) -> str:
         """
         用户游戏等级
         """
-        return self.gameRecord_dict["level"]
+        return self.dict["level"]
 
     @property
     def region(self) -> str:
         """
         服务器区号
         """
-        return self.gameRecord_dict["region"]
+        return self.dict["region"]
 
     @property
     def uid(self) -> str:
         """
         用户游戏UID
         """
-        return self.gameRecord_dict["game_role_id"]
+        return self.dict["game_role_id"]
 
     @property
     def nickname(self) -> str:
         """
         用户游戏昵称
         """
-        return self.gameRecord_dict["nickname"]
+        return self.dict["nickname"]
 
 
-class GameInfo:
+class GameInfo(BaseData):
     """
     游戏信息数据
     """
@@ -187,57 +192,79 @@ class GameInfo:
     '''
 
     def __init__(self, gameInfo_dict: dict) -> None:
-        self.gameInfo_dict = gameInfo_dict
-        try:
-            for func in dir(GameInfo):
-                if func.startswith("__"):
-                    continue
-                getattr(self, func)
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "游戏信息数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        BaseData.__init__(self, gameInfo_dict, "游戏信息数据 - 初始化对象: dict数据不正确")
 
     @property
     def gameID(self) -> int:
         """
         游戏ID
         """
-        return self.gameInfo_dict["id"]
+        return self.dict["id"]
 
     @property
     def appIcon(self) -> str:
         """
         游戏App图标链接(大)
         """
-        return self.gameInfo_dict["app_icon"]
+        return self.dict["app_icon"]
 
     @property
     def opName(self) -> str:
         """
         游戏代号(英文数字, 例如hk4e)
         """
-        return self.gameInfo_dict["op_name"]
+        return self.dict["op_name"]
 
     @property
     def enName(self) -> str:
         """
         游戏代号2(英文数字, 例如ys)
         """
-        return self.gameInfo_dict["en_name"]
+        return self.dict["en_name"]
 
     @property
     def miniIcon(self) -> str:
         """
         游戏图标链接(圆形, 小)
         """
-        return self.gameInfo_dict["icon"]
+        return self.dict["icon"]
 
     @property
     def name(self) -> str:
         """
         游戏名称
         """
-        return self.gameInfo_dict["name"]
+        return self.dict["name"]
+
+
+class GenshinStatus:
+    """
+    原神实时便笺数据
+    """
+    def fromWidget(self, widget_dict):
+        self.dict = widget_dict
+
+        self.name: str = widget_dict["nickname"]
+        self.gameUID: str = widget_dict["game_role_id"]
+        self.region: str = widget_dict["region"]
+        self.level: int = widget_dict["level"]
+
+        self.resin = None
+        self.expedition = None
+        self.task = None
+        self.coin = None
+
+        for status in widget_dict["data"]:
+            data: Tuple[int, int] = tuple(
+                [int(value) for value in status["value"].split("/")])
+            if status["name"] == "原粹树脂":
+                self.resin = data[0]
+            elif status["name"] == "探索派遣":
+                self.expedition = data
+            elif status["name"] == "每日委托进度":
+                self.task = data[0]
+            elif status["name"] == "洞天财瓮":
+                self.coin = data
 
 
 async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[str, Literal[-1, -2, -3]]:
@@ -480,6 +507,40 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
         return -2
     except:
         logger.error(conf.LOG_HEAD + "设备保存 - 请求失败")
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -3
+
+
+async def genshin_status_widget(account: UserAccount, retry: bool = True):
+    headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
+    headers["DS"] = generateDS()
+    headers["x-rpc-device_id"] = account.deviceID
+    try:
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                if not check_login(res.text):
+                    logger.info(conf.LOG_HEAD +
+                                "原神实时便笺 - 用户 {} 登录失效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    return -1
+                if not check_DS(res.text):
+                    logger.error(conf.LOG_HEAD +
+                                 "原神实时便笺 - 用户 {} DS无效".format(account.phone))
+                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                    Subscribe.get(("Config", ""))
+                if res.json()["message"] != "OK":
+                    raise ValueError
+                else:
+                    return 1
+    except KeyError and ValueError:
+        logger.error(conf.LOG_HEAD + "原神实时便笺 - 服务器没有正确返回")
+        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        return -2
+    except:
+        logger.error(conf.LOG_HEAD + "原神实时便笺 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
 
