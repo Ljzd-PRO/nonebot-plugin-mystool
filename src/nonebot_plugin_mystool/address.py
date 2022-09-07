@@ -67,7 +67,7 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
-    except:
+    except Exception:
         logger.error(conf.LOG_HEAD + "获取地址数据 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3

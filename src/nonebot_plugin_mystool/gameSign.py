@@ -185,7 +185,7 @@ class GameSign:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -243,7 +243,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
@@ -327,7 +327,7 @@ class GameSign:
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "签到 - 请求失败")
             if isinstance(res, httpx.Response):
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))

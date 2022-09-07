@@ -91,7 +91,7 @@ def ntp_time_sync():
                     if abs(NtpTime.time_offset) > 0.2:
                         logger.warning(
                             f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
-                except:
+                except Exception:
                     logger.warning(conf.LOG_HEAD +
                                    "校对互联网时间失败，正在重试")
                     raise

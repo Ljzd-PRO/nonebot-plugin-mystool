@@ -205,7 +205,7 @@ async def get_good_detail(goodID: str, retry: bool = True):
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
-    except:
+    except Exception:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 网络请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
@@ -249,7 +249,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
-    except:
+    except Exception:
         logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
 
@@ -421,7 +421,7 @@ class Exchange:
                 logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
                 return -2
-            except:
+            except Exception:
                 logger.error(
                     conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
                 logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -464,7 +464,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                             "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
                 try:
                     os.remove(TEMP_FONT_PATH)
-                except:
+                except Exception:
                     logger.warning(
                         conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
                     logger.debug(
@@ -528,7 +528,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         logger.info(conf.LOG_HEAD +
                     "商品列表图片生成 - 已生成图片...")
         return image_bytes.getvalue()
-    except:
+    except Exception:
         logger.error(
             conf.LOG_HEAD + "商品列表图片生成 - 无法完成图片生成")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())

@@ -179,7 +179,7 @@ class Action:
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "米游币任务 - 讨论区签到: 请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
@@ -208,7 +208,7 @@ class Action:
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return None
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "米游币任务 - 获取文章列表: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return None
@@ -259,7 +259,7 @@ class Action:
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -2
-                except:
+                except Exception:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 阅读: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
@@ -316,7 +316,7 @@ class Action:
                                  "网络请求返回: {}".format(res.text))
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -2
-                except:
+                except Exception:
                     logger.error(conf.LOG_HEAD + "米游币任务 - 点赞: 网络请求失败")
                     logger.debug(conf.LOG_HEAD + traceback.format_exc())
                     return -3
@@ -366,7 +366,7 @@ class Action:
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -2
-        except:
+        except Exception:
             logger.error(conf.LOG_HEAD + "米游币任务 - 分享: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
             return -3
@@ -405,7 +405,7 @@ async def get_missions(account: UserAccount):
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
-    except:
+    except Exception:
         logger.error(conf.LOG_HEAD + "获取米游币任务列表 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3
@@ -451,7 +451,7 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
         logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -2
-    except:
+    except Exception:
         logger.error(conf.LOG_HEAD + "获取米游币任务完成情况 - 请求失败")
         logger.debug(conf.LOG_HEAD + traceback.format_exc())
         return -3

@@ -96,7 +96,7 @@ class GetCookie:
                         if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
                             logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
                             return -4
-                    except:
+                    except Exception:
                         pass
                     if "login_ticket" not in res.cookies:
                         return -1
@@ -138,7 +138,7 @@ class GetCookie:
                 conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 服务器没有正确返回")
             logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        except:
+        except Exception:
             logger.error(
                 conf.LOG_HEAD + "登录米哈游账号 - 获取stoken: 网络请求失败")
             logger.debug(conf.LOG_HEAD + traceback.format_exc())
@@ -172,7 +172,7 @@ class GetCookie:
                         if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
                             logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
                             return -3
-                    except:
+                    except Exception:
                         pass
                     if "cookie_token" not in res.cookies:
                         return -1
@@ -215,7 +215,7 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainTex
         await get_cookie.finish("🚪已成功退出")
     try:
         phone_num = int(phone)
-    except:
+    except Exception:
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     if len(phone) != 11:
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
@@ -235,7 +235,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
         await get_cookie.finish("🚪已成功退出")
     try:
         int(captcha1)
-    except:
+    except Exception:
         await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     if len(captcha1) != 6:
         await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
@@ -266,7 +266,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
         await get_cookie.finish("🚪已成功退出")
     try:
         int(captcha2)
-    except:
+    except Exception:
         await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
     if len(captcha2) != 6:
         await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
