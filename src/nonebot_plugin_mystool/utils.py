@@ -225,7 +225,7 @@ def check_DS(response: str):
 
 class Subscribe:
     """
-    在线配置相关
+    在线配置相关(需实例化)
     """
     ConfigClass = NewType("ConfigClass", str)
     Attribute = NewType("Attribute", str)
@@ -234,24 +234,22 @@ class Subscribe:
     conf_list: List[Dict[str, Any]] = []
     '''当前插件版本可用的配置资源'''
 
-    @classmethod
-    async def download(cls) -> bool:
+    async def download(self) -> bool:
         """
         读取在线配置资源
         """
         try:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
                 with attempt:
-                    conf_list: list = json.load(await get_file(cls.URL))
-                    cls.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
+                    conf_list: list = json.load(await get_file(self.URL))
+                    self.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
         except json.JSONDecodeError and KeyError:
             logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
             return False
 
-    @classmethod
-    async def get(cls, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = True) -> Union[Any, None]:
+    async def get(self, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = False) -> Union[Any, None]:
         """
         优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
         若找不到属性，返回`None`
@@ -261,9 +259,9 @@ class Subscribe:
             `index`: 配置在`Subscribe.conf_list`中的位置
             `force`: 是否强制在线读取配置，而不使用本地缓存的
         """
-        if not cls.conf_list or force:
+        if not self.conf_list or force:
             logger.info(f"{conf.LOG_HEAD}读取配置 - 开始下载配置...")
-            success = await cls.download()
+            success = await self.download()
             if not success:
                 logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
                 if key[0] == "DeviceConfig":
@@ -272,7 +270,7 @@ class Subscribe:
                     except IndexError:
                         return
 
-        return cls.conf_list[index]["config"][key[0]][key[1]]
+        return self.conf_list[index]["config"][key[0]][key[1]]
 
 
 @driver.on_startup
