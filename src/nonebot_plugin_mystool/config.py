@@ -32,6 +32,8 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     '''安卓端 User-Agent(Mozilla UA)'''
     USER_AGENT_ANDROID_OTHER: str = "okhttp/4.8.0"
     '''安卓端 User-Agent(专用于米游币任务等)'''
+    USER_AGENT_WIDGET: str = "WidgetExtension/231 CFNetwork/1390 Darwin/22.0.0"
+    '''iOS 小组件 User-Agent(原神实时便笺)'''
 
     X_RPC_DEVICE_MODEL_MOBILE: str = "iPhone10,2"
     '''移动端 x-rpc-device_model'''
