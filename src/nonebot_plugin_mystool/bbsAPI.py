@@ -317,9 +317,9 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                     logger.info(conf.LOG_HEAD +
                                 "获取ActionTicket - DS无效")
                     sub = Subscribe()
-                    conf.SALT_IOS = sub.get(
+                    conf.SALT_IOS = await sub.get(
                         ("Config", "SALT_IOS"), index)
-                    conf.device.USER_AGENT_MOBILE = sub.get(
+                    conf.device.USER_AGENT_MOBILE = await sub.get(
                         ("DeviceConfig", "USER_AGENT_MOBILE"), index)
                     headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
                     index += 1
@@ -553,7 +553,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True):
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "原神实时便笺 - DS无效")
-                    conf.SALT_IOS = Subscribe().get(
+                    conf.SALT_IOS = await Subscribe().get(
                         ("Config", "SALT_IOS"), index)
                     index += 1
                     headers["DS"] = generateDS()
