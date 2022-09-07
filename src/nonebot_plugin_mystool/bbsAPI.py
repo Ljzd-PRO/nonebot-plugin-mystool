@@ -20,6 +20,7 @@ URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
 URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
 URL_DEVICE_LOGIN = "https://bbs-api.mihoyo.com/apihub/api/deviceLogin"
 URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
+URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
 
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
@@ -94,6 +95,23 @@ HEADERS_DEVICE = {
     "Connection": "Keep-Alive",
     "Accept-Encoding": "gzip",
     "User-Agent": conf.device.USER_AGENT_ANDROID_OTHER
+}
+HEADERS_GENSHIN_STATUS_WIDGET = {
+    "Host": "api-takumi-record.mihoyo.com",
+    "DS": None,
+    "Accept": "*/*",
+    "x-rpc-device_id": None,
+    "x-rpc-client_type": "1",
+    "x-rpc-channel": "appstore",
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+    "Referer": "https://app.mihoyo.com",
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "User-Agent": conf.device.USER_AGENT_WIDGET,
+    "Connection": "keep-alive",
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
 }
 
 
@@ -250,8 +268,12 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                 if not check_DS(res.text):
                     logger.info(conf.LOG_HEAD +
                                 "获取ActionTicket - DS无效")
-                    conf.SALT_IOS = Subscribe.get(
+                    sub = Subscribe()
+                    conf.SALT_IOS = sub.get(
                         ("Config", "SALT_IOS"), index)
+                    conf.device.USER_AGENT_MOBILE = sub.get(
+                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
                     index += 1
                     headers["DS"] = generateDS()
                 return res.json()["data"]["ticket"]
