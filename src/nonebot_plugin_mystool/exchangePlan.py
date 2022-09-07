@@ -62,7 +62,7 @@ class ExchangeStart:
             task.result(), tuple) and task.result()[0] == True, self.tasks))
         if success_tasks:
             await bot.send_private_msg(
-                user_id=self.qq, message=f"🎉用户 📱{self.account.phone}\n🛒商品 {success_tasks[0].goodID} 兑换成功，可前往米游社查看")
+                user_id=self.qq, message=f"🎉用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换成功，可前往米游社查看")
         else:
             msg = f"⚠️用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
             num = 0
@@ -198,7 +198,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                 if isinstance(game_records, int):
                     pass
                 else:
-                    game_name = list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]                
+                    game_name = list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]
                     msg = f'您米游社账户下的『{game_name}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
