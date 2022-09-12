@@ -93,15 +93,16 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
-                if ((account.gameSign and isAuto) or not isAuto) and (isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1):
+                if ((account.gameSign and isAuto) or not isAuto) and ((isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1)):
                     sign_flag = await gamesign.sign(sign_game, record.uid, account.platform)
                     if sign_flag != 1:
                         if sign_flag == -1:
                             message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(
                                 account.phone, game_name)
                         elif sign_flag == -5:
-                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请尝试使用命令『/账户设置』更改设备平台，若仍失败请手动前往米游社签到".format(
-                                account.phone, game_name)
+                            if UserData.isNotice(qq):
+                                message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请尝试使用命令『/账户设置』更改设备平台，若仍失败请手动前往米游社签到".format(
+                                    account.phone, game_name)
                         else:
                             message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(
                                 account.phone, game_name)
