@@ -11,6 +11,9 @@ from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
 
+VERSION = "v0.2.0-beta"
+'''插件版本号'''
+
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 

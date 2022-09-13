@@ -20,7 +20,7 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
-from .__init__ import VERSION
+from .help import VERSION
 from .config import mysTool_config as conf
 
 if TYPE_CHECKING:
