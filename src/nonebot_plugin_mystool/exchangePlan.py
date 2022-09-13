@@ -202,7 +202,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                     msg = f'您米游社账户下的『{game_name}』账号：'
                     for record in game_records:
                         if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
-                            msg += f'\n🎮 {record.regionName}·{record.nickname} - UID {record.uid}'
+                            msg += f'\n🎮 {record.regionName} - {record.nickname} - UID {record.uid}'
                         uids.append(record.uid)
                     if uids:
                         await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
