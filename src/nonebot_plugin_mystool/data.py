@@ -145,6 +145,8 @@ class UserAccount:
         self.missionGame: List[Literal["ys", "bh3",
                                        "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
         '''在哪些板块执行米游币任务计划'''
+        self.checkresin: bool = True
+        '''是否开启原神树脂提醒'''
 
     def get(self, account: dict):
         # 适配旧版本的dict

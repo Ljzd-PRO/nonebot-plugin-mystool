@@ -247,22 +247,23 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
-        genshinstatus = await genshin_status_widget(account)
-        if isinstance(genshinstatus, int):
-            if genshinstatus == -1:
-                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+        if account.checkresin or not isAuto:
+            genshinstatus = await genshin_status_widget(account)
+            if isinstance(genshinstatus, int):
+                if genshinstatus == -1:
+                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                    continue
+                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
-            await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
-            continue
-        msg = f"""\
-        ❖❖❖实时便笺❖❖❖\
-        \n{genshinstatus.name}·{genshinstatus.level}\
-        \n树脂数量：{genshinstatus.resin}/160\
-        \n探索派遣：{genshinstatus.expedition}\
-        \n每日委托：{genshinstatus.task}/4\
-        \n洞天财瓮：{genshinstatus.coin}
-        """.strip()
-        await bot.send_private_msg(user_id=qq, message=msg)
+            msg = f"""\
+            ❖❖❖实时便笺❖❖❖\
+            \n{genshinstatus.name}·{genshinstatus.level}\
+            \n树脂数量：{genshinstatus.resin}/160\
+            \n探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
+            \n每日委托：{genshinstatus.task}/4\
+            \n洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}
+            """.strip()
+            await bot.send_private_msg(user_id=qq, message=msg)
 
 
 async def generate_image(isAuto=True):
@@ -314,7 +315,7 @@ async def daily_schedule():
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=15, id="resin_check") # 后续改成从设置内读取时间
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check") # 后续改成从设置内读取时间
 async def auto_resin_check():
     """
     自动查看实时便笺
@@ -322,8 +323,7 @@ async def auto_resin_check():
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
-        if ...: #用户设置自动检查
-            await resin_check(bot=bot, qq=qq, isAuto=True)
+        await resin_check(bot=bot, qq=qq, isAuto=True)
 
 # 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)
