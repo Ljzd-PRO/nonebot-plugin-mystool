@@ -247,7 +247,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
-        if account.checkresin or not isAuto:
+        if (account.checkresin and isAuto) or not isAuto:
             genshinstatus = await genshin_status_widget(account)
             if isinstance(genshinstatus, int):
                 if genshinstatus == -1:
@@ -255,7 +255,12 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                     continue
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
-            msg = f"""\
+            msg = ''
+            if genshinstatus.resin == 160: # 应防止重复提醒
+                msg = '你的原神树脂已经满啦！'
+            elif isAuto:
+                continue
+            msg += f"""\
             ❖❖❖实时便笺❖❖❖\
             \n{genshinstatus.name}·{genshinstatus.level}\
             \n树脂数量：{genshinstatus.resin}/160\
