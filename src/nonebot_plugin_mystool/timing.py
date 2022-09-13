@@ -11,7 +11,7 @@ from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
 
-from .bbsAPI import GameInfo, GameRecord, get_game_record
+from .bbsAPI import GameInfo, GameRecord, GenshinStatus, get_game_record, genshin_status_widget
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
@@ -56,9 +56,26 @@ async def _(event: PrivateMessageEvent):
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
+manually_resin_check = on_command(
+    conf.COMMAND_START+'树脂', aliases={conf.COMMAND_START+'体力', conf.COMMAND_START+'树脂查看', conf.COMMAND_START+'实时便笺', conf.COMMAND_START+'便笺', conf.COMMAND_START+'原神便笺'}, priority=4, block=True)
+manually_resin_check.__help_name__ = '便笺'
+manually_resin_check.__help_info__ = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
+
+
+@manually_resin_check.handle()
+async def _(event: PrivateMessageEvent):
+    """
+    手动查看原神便笺
+    """
+    bot = get_bot()
+    if not UserData.read_account_all(event.user_id):
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
+    await resin_check(bot=bot, qq=event.user_id, isAuto=False)
+
+
 async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
     """
-    执行游戏签到函数。并发送给用户签到消息。
+    执行游戏签到函数，并发送给用户签到消息。
 
     参数:
         `isAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
@@ -156,7 +173,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
 async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     """
-    执行米游币任务函数。并发送给用户任务执行消息。
+    执行米游币任务函数，并发送给用户任务执行消息。
 
     参数:
         `IsAuto`: True为当日自动执行任务，False为用户手动调用任务功能
@@ -174,6 +191,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
         if isinstance(mybmission, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                continue
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
             continue
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
@@ -220,7 +238,40 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 )
 
 
+async def resin_check(bot: Bot, qq: str, isAuto: bool):
+    """
+    查看原神实时便笺函数，并发送给用户任务执行消息。
+
+    参数:
+        `IsAuto`: True为自动检查，False为用户手动调用该功能
+    """
+    accounts = UserData.read_account_all(qq)
+    for account in accounts:
+        genshinstatus = await genshin_status_widget(account)
+        if isinstance(genshinstatus, int):
+            if genshinstatus == -1:
+                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                continue
+            await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
+            continue
+        msg = f"""\
+        ❖❖❖实时便笺❖❖❖\
+        \n{genshinstatus.name}·{genshinstatus.level}\
+        \n树脂数量：{genshinstatus.resin}/160\
+        \n探索派遣：{genshinstatus.expedition}\
+        \n每日委托：{genshinstatus.task}/4\
+        \n洞天财瓮：{genshinstatus.coin}
+        """.strip()
+        await bot.send_private_msg(user_id=qq, message=msg)
+
+
 async def generate_image(isAuto=True):
+    """
+    生成米游币商品函数。
+
+    参数:
+        `IsAuto`: True为每日自动生成，False为用户手动更新
+    """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
@@ -261,6 +312,18 @@ async def daily_schedule():
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
+
+
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=15, id="resin_check") # 后续改成从设置内读取时间
+async def auto_resin_check():
+    """
+    自动查看实时便笺
+    """
+    qq_accounts = UserData.read_all().keys()
+    bot = get_bot()
+    for qq in qq_accounts:
+        if ...: #用户设置自动检查
+            await resin_check(bot=bot, qq=qq, isAuto=True)
 
 # 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)
