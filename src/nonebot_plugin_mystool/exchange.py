@@ -330,8 +330,9 @@ class Exchange:
                         res = await client.get(
                             URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
                     goodInfo = res.json()["data"]
-                    if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn" and self.content.get("address_id", False):
-                        self.content.pop("address_id")
+                    if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
+                        if self.content.get("address_id", False):
+                            self.content.pop("address_id")
                         if "stoken" not in self.account.cookie:
                             logger.error(
                                 f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为游戏内物品，由于未配置stoken，放弃兑换")
