@@ -330,7 +330,7 @@ class Exchange:
                         res = await client.get(
                             URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
                     goodInfo = res.json()["data"]
-                    if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
+                    if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn" and self.content['address_id']:
                         self.content.pop("address_id")
                         if "stoken" not in self.account.cookie:
                             logger.error(
