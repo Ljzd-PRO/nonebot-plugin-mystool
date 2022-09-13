@@ -9,6 +9,7 @@ import string
 import time
 import traceback
 import uuid
+import os
 from typing import (TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple,
                     Union)
 from urllib.parse import urlencode
@@ -218,6 +219,8 @@ def check_DS(response: str):
         res_dict = json.loads(response)
         if res_dict["message"] == "invalid request":
             return False
+        else:
+            return True
     except json.JSONDecodeError or KeyError:
         return True
 
@@ -228,8 +231,8 @@ class Subscribe:
     """
     ConfigClass = NewType("ConfigClass", str)
     Attribute = NewType("Attribute", str)
-
-    URL = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json"
+    URL = os.path.join(
+    conf.GITHUB_PROXY, "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json")
     conf_list: List[Dict[str, Any]] = []
     '''当前插件版本可用的配置资源'''
 
@@ -280,13 +283,12 @@ def subscribe():
     """
     启动时自动下载来自网络的配置资源
     """
-    async def _():
-        sub = Subscribe()
-        conf.SALT_IOS = await sub.get(("Config", "SALT_IOS"))
-        conf.SALT_ANDROID = await sub.get(("Config", "SALT_ANDROID"))
-        conf.SALT_ANDROID_NEW = await sub.get(("Config", "SALT_ANDROID_NEW"))
-        conf.device.USER_AGENT_MOBILE = await sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
-        conf.device.USER_AGENT_ANDROID = await sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
+    sub = Subscribe()
+    conf.SALT_IOS = sub.get(("Config", "SALT_IOS"))
+    conf.SALT_ANDROID = sub.get(("Config", "SALT_ANDROID"))
+    conf.SALT_ANDROID_NEW = sub.get(("Config", "SALT_ANDROID_NEW"))
+    conf.device.USER_AGENT_MOBILE = sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
+    conf.device.USER_AGENT_ANDROID = sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
 
     logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
-    asyncio.run(_())
+
