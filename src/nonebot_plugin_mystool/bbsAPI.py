@@ -562,7 +562,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
         return -3
 
 
-async def genshin_status_widget(account: UserAccount, retry: bool = True):
+async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
     """
     获取原神实时便笺，返回`GenshinStatus`对象
 
