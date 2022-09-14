@@ -244,10 +244,11 @@ class Subscribe:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
                 with attempt:
                     file = await get_file(self.URL)
+                    file = eval(bytes(file).decode().replace(' ','').replace('\n', ''))
                     if not file:
                         return False
-                    conf_list: list = json.load(file)
-                    self.conf_list = list(filter(lambda conf: VERSION in conf["version"], conf_list)).sort(
+                    self.conf_list = self.conf_list = list(filter(lambda conf: VERSION in conf["version"], file))
+                    self.conf_list.sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
         except json.JSONDecodeError or KeyError:
@@ -279,16 +280,16 @@ class Subscribe:
 
 
 @driver.on_startup
-def subscribe():
+async def subscribe():
     """
     启动时自动下载来自网络的配置资源
     """
     sub = Subscribe()
-    conf.SALT_IOS = sub.get(("Config", "SALT_IOS"))
-    conf.SALT_ANDROID = sub.get(("Config", "SALT_ANDROID"))
-    conf.SALT_ANDROID_NEW = sub.get(("Config", "SALT_ANDROID_NEW"))
-    conf.device.USER_AGENT_MOBILE = sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
-    conf.device.USER_AGENT_ANDROID = sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
+    conf.SALT_IOS = await sub.get(("Config", "SALT_IOS"))
+    conf.SALT_ANDROID = await sub.get(("Config", "SALT_ANDROID"))
+    conf.SALT_ANDROID_NEW = await sub.get(("Config", "SALT_ANDROID_NEW"))
+    conf.device.USER_AGENT_MOBILE = await sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
+    conf.device.USER_AGENT_ANDROID = await sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
 
     logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
 
