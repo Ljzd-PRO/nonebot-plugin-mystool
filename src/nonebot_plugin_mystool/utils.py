@@ -244,7 +244,7 @@ class Subscribe:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
                 with attempt:
                     file = await get_file(self.URL)
-                    file = eval(bytes(file).decode().replace(' ','').replace('\n', ''))
+                    file = json.loads(file.decode())
                     if not file:
                         return False
                     self.conf_list = self.conf_list = list(filter(lambda conf: VERSION in conf["version"], file))
