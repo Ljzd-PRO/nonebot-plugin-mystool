@@ -270,16 +270,19 @@ class GenshinStatus:
             self.level: int = widget_dict["level"]
 
             for status in widget_dict["data"]:
-                data: Tuple[int, int] = tuple(
-                    [int(value) for value in status["value"].split("/")])
+                data: Tuple = tuple(
+                    [value for value in status["value"].split("/")])
                 if status["name"] == "原粹树脂":
-                    self.resin = data[0]
+                    self.resin = int(data[0])
                 elif status["name"] == "探索派遣":
-                    self.expedition = data
-                elif status["name"] == "每日委托进度":
-                    self.task = data[0]
+                    self.expedition = tuple(int(value) for value in data)
+                elif status["name"] == "每日委托进度" or status["name"] == "每日委托奖励":
+                    if data[0] == "尚未领取" or data[0] == "全部完成":
+                        self.task = 4
+                    else:
+                        self.task = int(data[0])
                 elif status["name"] == "洞天财瓮":
-                    self.coin = data
+                    self.coin = tuple(int(value) for value in data)
 
             return self
         except KeyError or TypeError:
