@@ -85,8 +85,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         "、".join([game_tuple[1] for game_tuple in list(filter(
             lambda game_tuple: game_tuple[0] in account.missionGame,
             GameInfo.ABBR_TO_ID.values()))]) + "』\n"
+    user_setting += f"5 原神树脂恢复提醒：{'开' if account.checkresin else '关'}"
 
-    await account_setting.send(user_setting+'\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4\n🚪发送“退出”即可退出')
+    await account_setting.send(user_setting+'\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5\n🚪发送“退出”即可退出')
 
 
 @account_setting.got('arg')
@@ -124,6 +125,10 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
             f"可选的频道『{games_show}』\n"
             "🚪发送“退出”即可退出"
         )
+    elif arg == '5':
+        account.checkresin = not account.checkresin
+        UserData.set_account(account, event.user_id, account.phone)
+        await account_setting.finish(f"📅原神树脂恢复提醒已 {'☑️开启' if account.checkresin else '⬛️关闭'}")
 
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")

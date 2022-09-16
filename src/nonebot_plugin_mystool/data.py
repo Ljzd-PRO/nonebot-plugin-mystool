@@ -147,7 +147,7 @@ class UserAccount:
         '''在哪些板块执行米游币任务计划'''
         self.checkresin: bool = False
         '''是否开启原神树脂提醒'''
-        self.haschecked: bool = False
+        self.haschecked: bool = True
         '''是否树脂溢出已提醒'''
 
     def get(self, account: dict):
