@@ -135,7 +135,7 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: str = "", platform: Literal["ios", "android"] = "ios"):
+def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "", platform: Literal["ios", "android"] = "ios"):
     """
     获取Headers中所需DS
 
@@ -159,7 +159,8 @@ def generateDS(data: Union[str, dict, list] = "", params: str = "", platform: Li
     else:
         if not isinstance(data, str):
             data = json.dumps(data)
-        params = urlencode(params)
+        if not isinstance(params, str):
+            params = urlencode(params)
         t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
         add = f'&b={data}&q={params}'
