@@ -323,6 +323,7 @@ async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
+    logger.info("开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
