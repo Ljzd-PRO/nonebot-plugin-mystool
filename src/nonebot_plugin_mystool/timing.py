@@ -256,17 +256,27 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             msg = ''
-            if genshinstatus.resin == 160: # 应防止重复提醒
-                msg = '你的原神树脂已经满啦！'
-            elif isAuto:
+            if not isAuto:
                 continue
+            else:
+                if genshinstatus.resin == 160: # 应防止重复提醒
+                    if account.haschecked:
+                        return
+                    else:
+                        account.haschecked = True
+                        UserData.set_account(account, qq, account.phone)
+                        msg += '您的树脂已经满啦！'
+                else:
+                    account.haschecked = False
+                    UserData.set_account(account, qq, account.phone)
+                    return
             msg += f"""\
-            ❖❖❖实时便笺❖❖❖\
-            \n{genshinstatus.name}·{genshinstatus.level}\
-            \n树脂数量：{genshinstatus.resin}/160\
-            \n探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
-            \n每日委托：{genshinstatus.task}/4\
-            \n洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}
+            ❖实时便笺❖\
+            \n🎮{genshinstatus.name}·{genshinstatus.level}\
+            \n⏳树脂数量：{genshinstatus.resin}/160\
+            \n🕰️探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
+            \n📅每日委托：{genshinstatus.task}/4\
+            \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}
             """.strip()
             await bot.send_private_msg(user_id=qq, message=msg)
 
