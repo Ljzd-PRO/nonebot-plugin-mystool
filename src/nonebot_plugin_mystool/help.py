@@ -2,7 +2,6 @@
 ### 帮助相关
 #### 参考了`nonebot-plugin-help`
 """
-import nonebot.plugin
 from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
@@ -10,11 +9,8 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
+from .utils import PLUGIN
 
-VERSION = "v0.2.0-beta"
-'''插件版本号'''
-
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
 helper = on_command(conf.COMMAND_START+"help", priority=1,

@@ -11,7 +11,8 @@ from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
 
-from .bbsAPI import GameInfo, GameRecord, GenshinStatus, get_game_record, genshin_status_widget
+from .bbsAPI import (GameInfo, GameRecord, GenshinStatus,
+                     genshin_status_widget, get_game_record)
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
@@ -323,7 +324,7 @@ async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
-    logger.info("开始执行每日自动任务")
+    logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:

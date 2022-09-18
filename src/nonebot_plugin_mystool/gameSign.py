@@ -281,7 +281,7 @@ class GameSign:
         - 若返回 `-6` 说明未找到游戏账号
         """
         if game not in self.SUPPORTED_GAMES:
-            logger.info("暂不支持游戏 {} 的游戏签到".format(game))
+            logger.info(f"{conf.LOG_HEAD}暂不支持游戏 {game} 的游戏签到")
             return -4
 
         headers = HEADERS_OTHER.copy()
