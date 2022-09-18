@@ -16,17 +16,20 @@ from urllib.parse import urlencode
 import httpx
 import nonebot
 import nonebot.log
+import nonebot.plugin
 import ntplib
 import tenacity
 from nonebot.log import logger
 
 from .config import mysTool_config as conf
-from .help import VERSION
 
 if TYPE_CHECKING:
     from loguru import Logger
 
 driver = nonebot.get_driver()
+
+PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
+'''本插件数据'''
 
 
 def set_logger(logger: "Logger"):
@@ -247,7 +250,7 @@ class Subscribe:
                     if not file:
                         return False
                     self.conf_list = self.conf_list = list(
-                        filter(lambda conf: VERSION in conf["version"], file))
+                        filter(lambda conf: PLUGIN.metadata.extra["version"] in conf["version"], file))
                     self.conf_list.sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
