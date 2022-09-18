@@ -1,15 +1,14 @@
 """
 ### 工具函数
 """
-import asyncio
 import hashlib
 import json
+import os
 import random
 import string
 import time
 import traceback
 import uuid
-import os
 from typing import (TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple,
                     Union)
 from urllib.parse import urlencode
@@ -21,8 +20,8 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
-from .help import VERSION
 from .config import mysTool_config as conf
+from .help import VERSION
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -232,7 +231,7 @@ class Subscribe:
     ConfigClass = NewType("ConfigClass", str)
     Attribute = NewType("Attribute", str)
     URL = os.path.join(
-    conf.GITHUB_PROXY, "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json")
+        conf.GITHUB_PROXY, "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json")
     conf_list: List[Dict[str, Any]] = []
     '''当前插件版本可用的配置资源'''
 
@@ -247,7 +246,8 @@ class Subscribe:
                     file = json.loads(file.decode())
                     if not file:
                         return False
-                    self.conf_list = self.conf_list = list(filter(lambda conf: VERSION in conf["version"], file))
+                    self.conf_list = self.conf_list = list(
+                        filter(lambda conf: VERSION in conf["version"], file))
                     self.conf_list.sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
@@ -292,4 +292,3 @@ async def subscribe():
     conf.device.USER_AGENT_ANDROID = await sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
 
     logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
-
