@@ -105,13 +105,13 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                 sign_info = await gamesign.info(sign_game, record.uid)
                 game_name = GameInfo.ABBR_TO_ID[record.gameID][1]
 
-                if isinstance(sign_info, int):
-                    if sign_info == -1:
-                        await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
+                if sign_info == -1:
+                    await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.phone} 登录失效，请重新登录")
                     continue
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
-                if ((account.gameSign and isAuto) or not isAuto) and not sign_info.isSign:
+                # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
+                if ((account.gameSign and isAuto) or not isAuto) and ((isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1)):
                     sign_flag = await gamesign.sign(sign_game, record.uid, account.platform)
                     if sign_flag != 1:
                         if sign_flag == -1:
