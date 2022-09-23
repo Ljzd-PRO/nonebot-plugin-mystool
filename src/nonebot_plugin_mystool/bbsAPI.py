@@ -115,7 +115,14 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
 }
 HEADERS_GENSHIN_STATUS_BBS = {
+    "Host": "api-takumi-record.mihoyo.com",
+    "Accept-Encoding": "gzip,deflate,br",
     "DS": None,
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "accept": "application/json,text/plain,*/*",
+    "Origin": "https://webstatic.mihoyo.com",
+    "User-agent": conf.device.USER_AGENT_WIDGET,
+    "Referer": "https://webstatic.mihoyo.com",
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "x-rpc-client_type": "5"
 }
