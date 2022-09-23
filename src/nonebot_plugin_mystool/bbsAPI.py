@@ -646,15 +646,15 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
 
 
 async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
-    records: list[GameRecord] = get_game_record(account=account)
+    records: list[GameRecord] = await get_game_record(account=account)
     if isinstance(records, int):
         return
     for record in records:
         if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
             try:
-                url = URL_GENSHEN_STATUS_BBS.format(gameuid=record.uid, region=record.region)
+                url = URL_GENSHEN_STATUS_BBS.format(game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
-                headers["DS"] = generateDS(url.split('?'))
+                headers["DS"] = generateDS(url.split('?')[1])
                 index = 0
                 async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
@@ -671,7 +671,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                             conf.SALT_IOS = await Subscribe().get(
                                 ("Config", "SALT_IOS"), index)
                             index += 1
-                            headers["DS"] = generateDS(url.split('?'))
+                            headers["DS"] = generateDS(url.split('?')[1])
                         status = GenshinStatus().fromWidget(res.json()["text"]["data"])
                         if not status:
                             raise KeyError
