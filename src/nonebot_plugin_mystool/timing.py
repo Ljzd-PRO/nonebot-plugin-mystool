@@ -310,6 +310,8 @@ async def generate_image(isAuto=True):
                 return
             with open(img_path, 'wb') as fp:
                 fp.write(image_bytes)
+        else:
+            logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
 
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
@@ -317,6 +319,7 @@ async def daily_update():
     """
     每日图片生成函数
     """
+    logger.info(f"{conf.LOG_HEAD}开始生成每日商品图片")
     await generate_image()
 
 
