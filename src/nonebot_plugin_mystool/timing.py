@@ -11,7 +11,7 @@ from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
 
-from .bbsAPI import (GameInfo, GameRecord, GenshinStatus,
+from .bbsAPI import (GameInfo, GameRecord, GenshinStatus, genshin_status_bbs,
                      genshin_status_widget, get_game_record)
 from .config import mysTool_config as conf
 from .data import UserData
@@ -249,7 +249,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if (account.checkresin and isAuto) or not isAuto:
-            genshinstatus = await genshin_status_widget(account)
+            genshinstatus = await genshin_status_bbs(account)
             if isinstance(genshinstatus, int):
                 if genshinstatus == -1:
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
@@ -277,7 +277,8 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
             \n⏳树脂数量：{genshinstatus.resin}/160\
             \n🕰️探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
             \n📅每日委托：{genshinstatus.task}/4\
-            \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}
+            \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}\
+            \n🎰参量质变仪：{genshinstatus.transformer}
             """.strip()
             await bot.send_private_msg(user_id=qq, message=msg)
 

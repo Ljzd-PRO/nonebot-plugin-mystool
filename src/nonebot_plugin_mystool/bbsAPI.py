@@ -21,6 +21,7 @@ URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?a
 URL_DEVICE_LOGIN = "https://bbs-api.mihoyo.com/apihub/api/deviceLogin"
 URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
 URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
+URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id={game_uid}&server={region}"
 
 HEADERS_ACTION_TICKET = {
     "Host": "api-takumi.mihoyo.com",
@@ -112,6 +113,11 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
     "User-Agent": conf.device.USER_AGENT_WIDGET,
     "Connection": "keep-alive",
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
+}
+HEADERS_GENSHIN_STATUS_BBS = {
+    "DS": None,
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "x-rpc-client_type": "5"
 }
 
 
@@ -259,6 +265,8 @@ class GenshinStatus:
         '''每日委托完成数'''
         self.coin = None
         '''洞天财瓮 `(未收取, 最多可容纳宝钱数)`'''
+        self.transformer = None
+        '''参量质变仪'''
 
     def fromWidget(self, widget_dict):
         self.dict = widget_dict
@@ -289,8 +297,32 @@ class GenshinStatus:
             logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    def fromBBS(self, bbs_dict):
-        ...
+    def fromBBS(self, bbs_dict, record: GameRecord):
+        self.dict = bbs_dict
+
+        try:
+            self.name: str = record.nickname
+            self.gameUID: str = record.uid
+            self.region: str = record.region
+            self.level: int = record.level
+
+            status = bbs_dict['data']
+            self.resin = status['current_resin']
+            self.task = status['finishen_task_num']
+            self.expedition = (status['current_expedition_num'], status['max_expedition_num'])
+            self.coin = (status['current_home_coin'], status['max_home_coin'])
+            if not status['transformer']['obtained']:
+                self.transformer = '未获得'
+            elif status['transformer']['recovery_time']['reached']:
+                self.transformer = '已准备就绪'
+            else:
+                self.transformer = f"{status['transformer']['recovery_time']['Day']}天\
+                    {status['transformer']['recovery_time']['Hour']}小时{status['transformer']['recovery_time']['Minute']}分钟"
+
+            return self
+        except KeyError or TypeError:
+            logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
 async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[str, Literal[-1, -2, -3]]:
@@ -611,6 +643,48 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
         logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
+
+
+async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
+    records: list[GameRecord] = get_game_record(account=account)
+    if isinstance(records, int):
+        return
+    for record in records:
+        if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
+            try:
+                url = URL_GENSHEN_STATUS_BBS.format(gameuid=record.uid, region=record.region)
+                headers = HEADERS_GENSHIN_STATUS_BBS.copy()
+                headers["DS"] = generateDS(url.split('?'))
+                index = 0
+                async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                    with attempt:
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(url, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                        if not check_login(res.text):
+                            logger.info(
+                                f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
+                            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                            return -1
+                        if not check_DS(res.text):
+                            logger.info(
+                                f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
+                            conf.SALT_IOS = await Subscribe().get(
+                                ("Config", "SALT_IOS"), index)
+                            index += 1
+                            headers["DS"] = generateDS(url.split('?'))
+                        status = GenshinStatus().fromWidget(res.json()["text"]["data"])
+                        if not status:
+                            raise KeyError
+                        return status
+            except KeyError or ValueError:
+                logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 服务器没有正确返回")
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+                return -2
+            except Exception:
+                logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+                return -3
 
 
 @nonebot.get_driver().on_startup
