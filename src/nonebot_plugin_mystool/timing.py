@@ -334,6 +334,7 @@ async def daily_schedule():
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
+    logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
 
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check") # 后续改成从设置内读取时间
