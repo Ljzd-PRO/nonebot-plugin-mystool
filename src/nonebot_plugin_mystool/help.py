@@ -7,7 +7,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
-
+from urllib.parse import urlencode
 from .config import mysTool_config as conf
 from .utils import PLUGIN
 
@@ -40,7 +40,7 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Mess
             "\n具体用法：\n" +
             PLUGIN.metadata.usage.format(HEAD=COMMAND) +
             '\n\n' +
-            PLUGIN.metadata.extra)
+            urlencode(PLUGIN.metadata.extra))
 
 
 @helper.got('content')
