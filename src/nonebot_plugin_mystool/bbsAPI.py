@@ -115,15 +115,14 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
     "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
 }
 HEADERS_GENSHIN_STATUS_BBS = {
-    "Host": "api-takumi-record.mihoyo.com",
-    "Accept-Encoding": "gzip,deflate,br",
     "DS": None,
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "accept": "application/json,text/plain,*/*",
+    "x-rpc-device_id": None,
+    "Accept": "application/json,text/plain,*/*",
     "Origin": "https://webstatic.mihoyo.com",
-    "User-agent": conf.device.USER_AGENT_WIDGET,
-    "Referer": "https://webstatic.mihoyo.com",
-    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "User-agent": "Mozilla/5.0 (Linux; Android 12; Mi 10 Pro Build/SKQ1.211006.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/95.0.4638.74 Mobile Safari/537.36 miHoYoBBS/2.34.1",
+    "Referer": "https://webstatic.mihoyo.com/",
+    "x-rpc-app_version": "2.34.1",
+    "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-client_type": "5"
 }
 
@@ -661,7 +660,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
             try:
                 url = URL_GENSHEN_STATUS_BBS.format(game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
-                headers["DS"] = generateDS(url.split('?')[1])
+                headers["DS"] = generateDS(params=url.split('?')[1])
+                headers["x-rpc-device_id"] = account.deviceID
                 index = 0
                 async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
