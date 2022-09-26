@@ -186,9 +186,10 @@ class Good:
             return False
 
 
-async def get_good_detail(goodID: str, retry: bool = True):
+async def get_good_detail(goodID: str, retry: bool = True) -> Union[Good, -1] :
     """
     获取某商品的详细信息，若获取失败则返回`None`
+    - 若返回 `-1` 说明商品不存在
 
     参数:
         `goodID`: 商品ID
@@ -200,6 +201,8 @@ async def get_good_detail(goodID: str, retry: bool = True):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                    if res.json['message'] == ['商品不存在']:
+                        return -1
                 return Good(res.json()["data"])
     except KeyError or ValueError:
         logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
