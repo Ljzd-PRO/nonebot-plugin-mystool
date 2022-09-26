@@ -350,6 +350,10 @@ async def load_exchange_data():
             exchange_list = account.exchange
             for exchange_good in exchange_list:
                 good_detail = await get_good_detail(exchange_good[0])
+                if good_detail == -1:
+                    # 若商品不存在则删除
+                    account.exchange.remove(exchange_good)
+                    UserData.set_account(account, qq, account.phone)
                 if good_detail.time < NtpTime.time():
                     # 若重启时兑换超时则删除该兑换
                     account.exchange.remove(exchange_good)
