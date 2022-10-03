@@ -119,9 +119,9 @@ HEADERS_GENSHIN_STATUS_BBS = {
     "x-rpc-device_id": None,
     "Accept": "application/json,text/plain,*/*",
     "Origin": "https://webstatic.mihoyo.com",
-    "User-agent": "Mozilla/5.0 (Linux; Android 12; Mi 10 Pro Build/SKQ1.211006.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/95.0.4638.74 Mobile Safari/537.36 miHoYoBBS/2.34.1",
+    "User-agent": conf.device.USER_AGENT_ANDROID,
     "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-app_version": "2.34.1",
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-client_type": "5"
 }
@@ -611,7 +611,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
 
 async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
     """
-    获取原神实时便笺，返回`GenshinStatus`对象
+    使用iOS小组件API获取原神实时便笺，返回`GenshinStatus`对象
 
     参数:
         `account`: 用户账户数据
@@ -647,28 +647,39 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                     raise KeyError
                 return status
     except KeyError or ValueError:
-        logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 服务器没有正确返回")
+        logger.error(f"{conf.LOG_HEAD}原神实时便笺(小组件) - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
     except Exception:
-        logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
+        logger.error(f"{conf.LOG_HEAD}原神实时便笺(小组件) - 请求失败")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
 
 
 async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
+    """
+    使用米游社内页面API获取原神实时便笺，返回`GenshinStatus`对象
+
+    参数:
+        `account`: 用户账户数据
+        `retry`: 是否允许重试
+
+    - 若返回 `-1` 说明用户登录失效
+    - 若返回 `-2` 说明服务器没有正确返回
+    - 若返回 `-3` 说明请求失败
+    """
     records: list[GameRecord] = await get_game_record(account=account)
     if isinstance(records, int):
         return
     for record in records:
         if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
             try:
+                index = 0
                 url = URL_GENSHEN_STATUS_BBS.format(game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
-                headers["DS"] = generateDS(params=url.split('?')[1])
-                headers["x-rpc-device_id"] = account.deviceID
-                index = 0
+                headers["x-rpc-device_id"] = account.deviceID_2
+                headers["DS"] = generateDS(params={"role_id": record.uid, "server": record.region})
                 async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
                         async with httpx.AsyncClient() as client:
@@ -685,7 +696,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                                 ("Config", "SALT_IOS"), index)
                             index += 1
                             headers["DS"] = generateDS(url.split('?')[1])
-                        status = GenshinStatus().fromWidget(res.json()["text"]["data"])
+                        status = GenshinStatus().fromBBS(res.json()["text"]["data"])
                         if not status:
                             raise KeyError
                         return status
