@@ -186,7 +186,7 @@ class Good:
             return False
 
 
-async def get_good_detail(goodID: str, retry: bool = True) -> Union[Good, -1] :
+async def get_good_detail(goodID: str, retry: bool = True):
     """
     获取某商品的详细信息，若获取失败则返回`None`
     - 若返回 `-1` 说明商品不存在
