@@ -11,8 +11,7 @@ from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
 
-from .bbsAPI import (GameInfo, GameRecord, GenshinStatus, genshin_status_bbs,
-                     genshin_status_widget, get_game_record)
+from .bbsAPI import GameInfo, GameRecord, genshin_status_bbs, get_game_record
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
@@ -260,7 +259,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
             if not isAuto:
                 continue
             else:
-                if genshinstatus.resin == 160: # 应防止重复提醒
+                if genshinstatus.resin == 160:  # 应防止重复提醒
                     if account.haschecked:
                         return
                     else:
@@ -337,7 +336,8 @@ async def daily_schedule():
     logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check") # 后续改成从设置内读取时间
+# 后续改成从设置内读取时间
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
 async def auto_resin_check():
     """
     自动查看实时便笺
