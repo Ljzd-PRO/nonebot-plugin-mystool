@@ -275,6 +275,9 @@ class GenshinStatus:
         '''参量质变仪'''
 
     def fromWidget(self, widget_dict):
+        """
+        从iOS小组件API的返回数据初始化
+        """
         self.dict = widget_dict
 
         try:
@@ -304,6 +307,9 @@ class GenshinStatus:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     def fromBBS(self, bbs_dict, record: GameRecord):
+        """
+        从米游社内相关页面API的返回数据初始化
+        """
         self.dict = bbs_dict
 
         try:
@@ -327,7 +333,7 @@ class GenshinStatus:
 
             return self
         except KeyError or TypeError:
-            logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
+            logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从米游社页面接口请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
