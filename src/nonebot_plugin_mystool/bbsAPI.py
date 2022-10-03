@@ -362,7 +362,7 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                         f"{conf.LOG_HEAD}获取ActionTicket - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                if not check_DS(res.text) and ((index < len(Subscribe.conf_list) - 1 or not Subscribe.conf_list) or not Subscribe.conf_list):
                     logger.info(
                         f"{conf.LOG_HEAD}获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
@@ -438,7 +438,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
-                if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取游戏信息: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
@@ -530,7 +530,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                         f"{conf.LOG_HEAD}设备登录 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
@@ -587,7 +587,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                         f"{conf.LOG_HEAD}设备保存 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
@@ -635,7 +635,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                         f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1 and index < len(Subscribe.conf_list) - 1:
+                if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
                     conf.SALT_IOS = await Subscribe().get(
@@ -689,7 +689,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                                 f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
                             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                             return -1
-                        if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                        if not check_DS(res.text):
                             logger.info(
                                 f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
                             conf.SALT_IOS = await Subscribe().get(

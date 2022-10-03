@@ -249,7 +249,7 @@ class Subscribe:
                     file = json.loads(file.decode())
                     if not file:
                         return False
-                    self.conf_list = self.conf_list = list(
+                    self.conf_list = list(
                         filter(lambda conf: PLUGIN.metadata.extra["version"] in conf["version"], file))
                     self.conf_list.sort(
                         key=lambda conf: conf["time"], reverse=True)
@@ -261,23 +261,30 @@ class Subscribe:
     async def get(self, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = False) -> Union[Any, None]:
         """
         优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
-        若找不到属性，返回`None`
+        若找不到属性或`index`超出范围，返回`None`
 
         参数:
             `key`: (配置类名, 属性名)
             `index`: 配置在`Subscribe.conf_list`中的位置
             `force`: 是否强制在线读取配置，而不使用本地缓存的
         """
+        success = True
         if not self.conf_list or force:
             logger.info(f"{conf.LOG_HEAD}读取配置 - 开始下载配置...")
             success = await self.download()
-            if not success:
-                logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
-                if key[0] == "DeviceConfig":
-                    try:
-                        return list(filter(lambda attr: attr == key[1], dir(conf.device)))[0]
-                    except IndexError:
-                        return
+
+        if not success or index >= len(self.conf_list) or index < 0:
+            logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
+            if key[0] == "DeviceConfig":
+                try:
+                    return list(filter(lambda attr: attr == key[1], dir(conf.device)))[0]
+                except IndexError:
+                    return
+            else:
+                try:
+                    return list(filter(lambda attr: attr == key[1], dir(conf)))[0]
+                except IndexError:
+                    return
 
         return self.conf_list[index]["config"][key[0]][key[1]]
 

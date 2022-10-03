@@ -238,7 +238,7 @@ class GameSign:
                             f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
-                    if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                    if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}获取签到记录: DS无效，正在在线获取salt以重新生成...")
                         sub = Subscribe()
@@ -324,7 +324,7 @@ class GameSign:
                             f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
-                    if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
+                    if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}签到: DS无效，正在在线获取salt以重新生成...")
                         sub = Subscribe()
