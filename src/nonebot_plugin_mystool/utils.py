@@ -288,10 +288,9 @@ async def subscribe():
     启动时自动下载来自网络的配置资源
     """
     sub = Subscribe()
+    logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
     conf.SALT_IOS = await sub.get(("Config", "SALT_IOS"))
     conf.SALT_ANDROID = await sub.get(("Config", "SALT_ANDROID"))
     conf.SALT_ANDROID_NEW = await sub.get(("Config", "SALT_ANDROID_NEW"))
     conf.device.USER_AGENT_MOBILE = await sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
     conf.device.USER_AGENT_ANDROID = await sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))
-
-    logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
