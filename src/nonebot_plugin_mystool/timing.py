@@ -247,7 +247,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
-        if (account.checkresin and isAuto) or not isAuto:
+        if (account.checkResin and isAuto) or not isAuto:
             genshinstatus = await genshin_status_bbs(account)
             if isinstance(genshinstatus, int):
                 if genshinstatus == -1:

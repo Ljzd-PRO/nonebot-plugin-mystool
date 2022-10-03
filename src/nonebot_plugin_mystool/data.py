@@ -145,7 +145,7 @@ class UserAccount:
         self.missionGame: List[Literal["ys", "bh3",
                                        "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
         '''在哪些板块执行米游币任务计划'''
-        self.checkresin: bool = False
+        self.checkResin: bool = False
         '''是否开启原神树脂提醒'''
         self.haschecked: bool = True
         '''是否树脂溢出已提醒'''
@@ -182,6 +182,7 @@ class UserAccount:
         self.platform: Literal["ios", "android"] = account["platform"]
         self.missionGame: List[Literal["ys", "bh3", "bh2",
                                        "wd", "bbs", "xq", "jql"]] = account["missionGame"]
+        self.checkResin: bool = account["checkResin"]
 
         exchange = []
         for plan in account["exchange"]:
@@ -202,7 +203,8 @@ class UserAccount:
             "gameSign": self.gameSign,
             "exchange": self.exchange,
             "platform": self.platform,
-            "missionGame": self.missionGame
+            "missionGame": self.missionGame,
+            "checkResin": self.checkResin
         }
         if isinstance(self.address, Address):
             data["address"] = self.address.address_dict

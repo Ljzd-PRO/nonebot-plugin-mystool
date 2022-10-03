@@ -9,6 +9,8 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
+from .mybMission import GAME_ID
+
 from .bbsAPI import GameInfo
 from .config import mysTool_config as conf
 from .data import UserAccount, UserData
@@ -85,7 +87,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         "、".join([game_tuple[1] for game_tuple in list(filter(
             lambda game_tuple: game_tuple[0] in account.missionGame,
             GameInfo.ABBR_TO_ID.values()))]) + "』\n"
-    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkresin else '关'}"
+    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}"
 
     await account_setting.send(user_setting+'\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5\n🚪发送“退出”即可退出')
 
@@ -118,7 +120,11 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif arg == '4':
         games_show = "、".join([name_tuple[1]
-                              for name_tuple in GameInfo.ABBR_TO_ID.values()])
+                              for name_tuple in list(
+            filter(lambda name_tuple: name_tuple[0] in GAME_ID,
+                   GameInfo.ABBR_TO_ID.values())
+        )
+        ])
         await account_setting.send(
             "请发送你想要执行米游币任务的频道：\n"
             "❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”\n"
@@ -126,9 +132,9 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
             "🚪发送“退出”即可退出"
         )
     elif arg == '5':
-        account.checkresin = not account.checkresin
+        account.checkResin = not account.checkResin
         UserData.set_account(account, event.user_id, account.phone)
-        await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.checkresin else '❌关闭'}")
+        await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.checkResin else '❌关闭'}")
 
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
