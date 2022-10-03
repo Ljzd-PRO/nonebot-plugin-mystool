@@ -178,7 +178,7 @@ class Action:
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
-                    if not check_DS(res.text):
+                    if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: DS无效，正在在线获取salt以重新生成...")
                         conf.SALT_ANDROID_NEW = await Subscribe().get(
@@ -211,7 +211,7 @@ class Action:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
-                    if not check_DS(res.text):
+                    if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: DS无效，正在在线获取salt以重新生成...")
                         conf.SALT_ANDROID = await Subscribe().get(
@@ -269,7 +269,7 @@ class Action:
                                 logger.debug(
                                     f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                                 return -1
-                            if not check_DS(res.text):
+                            if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 阅读: DS无效，正在在线获取salt以重新生成...")
                                 conf.SALT_ANDROID = await Subscribe().get(
@@ -334,7 +334,7 @@ class Action:
                                 logger.debug(
                                     f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                                 return -1
-                            if not check_DS(res.text):
+                            if not check_DS(res.text) and index < len(Subscribe.conf_list) - 1:
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 点赞: DS无效，正在在线获取salt以重新生成...")
                                 conf.SALT_ANDROID = await Subscribe().get(
