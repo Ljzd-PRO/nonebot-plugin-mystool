@@ -321,7 +321,8 @@ class GenshinStatus:
             status = bbs_dict['data']
             self.resin = status['current_resin']
             self.task = status['finishen_task_num']
-            self.expedition = (status['current_expedition_num'], status['max_expedition_num'])
+            self.expedition = (
+                status['current_expedition_num'], status['max_expedition_num'])
             self.coin = (status['current_home_coin'], status['max_home_coin'])
             if not status['transformer']['obtained']:
                 self.transformer = '未获得'
@@ -333,7 +334,8 @@ class GenshinStatus:
 
             return self
         except KeyError or TypeError:
-            logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从米游社页面接口请求初始化对象: dict数据不正确")
+            logger.error(
+                f"{conf.LOG_HEAD}原神实时便笺数据 - 从米游社页面接口请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
@@ -350,11 +352,11 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     - 若返回 `-3` 说明请求失败
     """
     headers = HEADERS_ACTION_TICKET.copy()
-    headers["DS"] = generateDS()
     index = 0
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
+                headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
@@ -430,12 +432,12 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
         `retry`: 是否允许重试
     """
     headers = HEADERS_GAME_LIST.copy()
-    headers["DS"] = generateDS()
     info_list = []
     try:
         index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
+                headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
                 if not check_DS(res.text):
@@ -517,12 +519,12 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
         "registration_id": "1a0018970a5c00e814d"
     }
     headers = HEADERS_DEVICE.copy()
-    headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
+                headers["DS"] = generateDS(data)
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
@@ -574,12 +576,12 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
         "registration_id": "1a0018970a5c00e814d"
     }
     headers = HEADERS_DEVICE.copy()
-    headers["DS"] = generateDS(data)
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
+                headers["DS"] = generateDS(data)
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
@@ -593,7 +595,6 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     conf.SALT_ANDROID_NEW = await Subscribe().get(
                         ("Config", "SALT_ANDROID_NEW"), index)
                     index += 1
-                    headers["DS"] = generateDS(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -622,12 +623,12 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
     - 若返回 `-3` 说明请求失败
     """
     headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
-    headers["DS"] = generateDS()
     headers["x-rpc-device_id"] = account.deviceID
     try:
         index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
+                headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
@@ -641,7 +642,6 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                     conf.SALT_IOS = await Subscribe().get(
                         ("Config", "SALT_IOS"), index)
                     index += 1
-                    headers["DS"] = generateDS()
                 status = GenshinStatus().fromWidget(res.json()["data"]["data"])
                 if not status:
                     raise KeyError
@@ -676,12 +676,14 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
         if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
             try:
                 index = 0
-                url = URL_GENSHEN_STATUS_BBS.format(game_uid=record.uid, region=record.region)
+                url = URL_GENSHEN_STATUS_BBS.format(
+                    game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.deviceID_2
-                headers["DS"] = generateDS(params={"role_id": record.uid, "server": record.region})
                 async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
+                        headers["DS"] = generateDS(
+                            params={"role_id": record.uid, "server": record.region})
                         async with httpx.AsyncClient() as client:
                             res = await client.get(url, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                         if not check_login(res.text):
@@ -695,8 +697,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                             conf.SALT_IOS = await Subscribe().get(
                                 ("Config", "SALT_IOS"), index)
                             index += 1
-                            headers["DS"] = generateDS(url.split('?')[1])
-                        status = GenshinStatus().fromBBS(res.json()["text"]["data"])
+                        status = GenshinStatus().fromBBS(
+                            res.json()["text"]["data"])
                         if not status:
                             raise KeyError
                         return status
