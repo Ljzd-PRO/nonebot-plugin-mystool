@@ -145,8 +145,6 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
         `data`: 可选，网络请求中需要发送的数据
         `params`: 可选，URL参数
     """
-    # DS 加密算法:
-    # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
     if data == "" and params == "":
         if platform == "ios":
             salt = conf.SALT_IOS
@@ -165,9 +163,8 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
             params = urlencode(params)
         t = str(int(NtpTime.time()))
         r = str(random.randint(100001, 200000))
-        add = f'&b={data}&q={params}'
-        c = hashlib.md5((f"salt={conf.SALT_ANDROID_NEW}&t=" +
-                        t + "&r=" + r + add).encode()).hexdigest()
+        c = hashlib.md5(
+            (f"salt={conf.SALT_ANDROID_NEW}&t={t}&r={r}&b={data}&q={params}").encode()).hexdigest()
         return f"{t},{r},{c}"
 
 
