@@ -271,7 +271,8 @@ class Subscribe:
             success = await self.download()
 
         if not success or index >= len(self.conf_list) or index < 0:
-            logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
+            if not success:
+                logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
             if key[0] == "DeviceConfig":
                 try:
                     return list(filter(lambda attr: attr == key[1], dir(conf.device)))[0]
