@@ -169,9 +169,9 @@ class Action:
         data = {"gids": GAME_ID[game]["gids"]}
         try:
             index = 0
-            self.headers["DS"] = generateDS(data)
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    self.headers["DS"] = generateDS(data)
                     res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
@@ -207,9 +207,9 @@ class Action:
         postID_list = []
         try:
             index = 0
-            self.headers["DS"] = generateDS(platform="android")
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
+                    self.headers["DS"] = generateDS(platform="android")
                     res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
                     if not check_DS(res.text):
                         logger.info(
@@ -257,11 +257,11 @@ class Action:
             for postID in postID_list:
                 if count == readTimes:
                     break
-                self.headers["DS"] = generateDS(platform="android")
                 try:
                     index = 0
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
+                            self.headers["DS"] = generateDS(platform="android")
                             res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
@@ -322,11 +322,11 @@ class Action:
             for postID in postID_list:
                 if count == likeTimes:
                     break
-                self.headers["DS"] = generateDS(platform="android")
                 try:
                     index = 0
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
+                            self.headers["DS"] = generateDS(platform="android")
                             res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False, 'post_id': postID}, timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(

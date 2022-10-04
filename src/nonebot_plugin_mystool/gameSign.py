@@ -225,12 +225,12 @@ class GameSign:
         if not region:
             return -4
 
-        headers["DS"] = generateDS()
         try:
             index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
+                    headers["DS"] = generateDS()
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
@@ -284,6 +284,18 @@ class GameSign:
             logger.info(f"{conf.LOG_HEAD}暂不支持游戏 {game} 的游戏签到")
             return -4
 
+
+        record_list: List[GameRecord] = await get_game_record(self.account)
+        filter_record = list(filter(lambda record: record.uid ==
+                             gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
+        if not filter_record:
+            return -6
+        data = {
+            "act_id": ACT_ID[game],
+            "region": filter_record[0].region,
+            "uid": gameUID
+        }
+
         headers = HEADERS_OTHER.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.deviceID
@@ -300,18 +312,6 @@ class GameSign:
             await device_login(self.account)
             await device_save(self.account)
             headers["DS"] = generateDS(platform="android")
-
-        record_list: List[GameRecord] = await get_game_record(self.account)
-        filter_record = list(filter(lambda record: record.uid ==
-                             gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
-        if not filter_record:
-            return -6
-
-        data = {
-            "act_id": ACT_ID[game],
-            "region": filter_record[0].region,
-            "uid": gameUID
-        }
         try:
             index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
