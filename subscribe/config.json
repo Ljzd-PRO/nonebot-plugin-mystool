@@ -8,7 +8,8 @@
             "Config": {
                 "SALT_IOS": "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk",
                 "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
-                "SALT_ANDROID_NEW": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
+                "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
+                "SALT_PARAMS": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
             },
             "DeviceConfig": {
                 "USER_AGENT_MOBILE": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.36.1",

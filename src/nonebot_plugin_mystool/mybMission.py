@@ -181,8 +181,8 @@ class Action:
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: DS无效，正在在线获取salt以重新生成...")
-                        conf.SALT_ANDROID_NEW = await Subscribe().get(
-                            ("Config", "SALT_ANDROID_NEW"), index)
+                        conf.SALT_DATA = await Subscribe().get(
+                            ("Config", "SALT_DATA"), index)
                         self.headers["DS"] = generateDS(data)
                         index += 1
                     return res.json()["data"]["points"]

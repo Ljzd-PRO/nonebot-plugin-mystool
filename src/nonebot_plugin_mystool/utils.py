@@ -159,12 +159,14 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
     else:
         if not isinstance(data, str):
             data = json.dumps(data)
+            salt = conf.SALT_DATA
         if not isinstance(params, str):
             params = urlencode(params)
-        t = str(int(NtpTime.time()))
-        r = str(random.randint(100001, 200000))
+            salt = conf.SALT_PARAMS
+        t = str(int(time.time()))
+        r = str(random.randint(100000, 200000))
         c = hashlib.md5(
-            (f"salt={conf.SALT_ANDROID_NEW}&t={t}&r={r}&b={data}&q={params}").encode()).hexdigest()
+            (f"salt={salt}&t={t}&r={r}&b={data}&q={params}").encode()).hexdigest()
         return f"{t},{r},{c}"
 
 
@@ -296,6 +298,6 @@ async def subscribe():
     logger.info(f"{conf.LOG_HEAD}正在下载在线配置资源...")
     conf.SALT_IOS = await sub.get(("Config", "SALT_IOS"))
     conf.SALT_ANDROID = await sub.get(("Config", "SALT_ANDROID"))
-    conf.SALT_ANDROID_NEW = await sub.get(("Config", "SALT_ANDROID_NEW"))
+    conf.SALT_DATA = await sub.get(("Config", "SALT_DATA"))
     conf.device.USER_AGENT_MOBILE = await sub.get(("DeviceConfig", "USER_AGENT_MOBILE"))
     conf.device.USER_AGENT_ANDROID = await sub.get(("DeviceConfig", "USER_AGENT_ANDROID"))

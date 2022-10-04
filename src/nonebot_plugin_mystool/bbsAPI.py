@@ -535,8 +535,8 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_ANDROID_NEW = await Subscribe().get(
-                        ("Config", "SALT_ANDROID_NEW"), index)
+                    conf.SALT_DATA = await Subscribe().get(
+                        ("Config", "SALT_DATA"), index)
                     index += 1
                     headers["DS"] = generateDS(data)
                 if res.json()["message"] != "OK":
@@ -592,8 +592,8 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_ANDROID_NEW = await Subscribe().get(
-                        ("Config", "SALT_ANDROID_NEW"), index)
+                    conf.SALT_DATA = await Subscribe().get(
+                        ("Config", "SALT_DATA"), index)
                     index += 1
                 if res.json()["message"] != "OK":
                     raise ValueError
@@ -628,7 +628,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
         index = 0
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS()
+                headers["DS"] = generateDS(params={"game_id": "2"})
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
@@ -639,8 +639,8 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_IOS = await Subscribe().get(
-                        ("Config", "SALT_IOS"), index)
+                    conf.SALT_PARAMS = await Subscribe().get(
+                        ("Config", "SALT_PARAMS"), index)
                     index += 1
                 status = GenshinStatus().fromWidget(res.json()["data"]["data"])
                 if not status:
@@ -694,8 +694,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                         if not check_DS(res.text):
                             logger.info(
                                 f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                            conf.SALT_IOS = await Subscribe().get(
-                                ("Config", "SALT_IOS"), index)
+                            conf.SALT_PARAMS = await Subscribe().get(
+                                ("Config", "SALT_PARAMS"), index)
                             index += 1
                         status = GenshinStatus().fromBBS(
                             res.json()["text"]["data"])
