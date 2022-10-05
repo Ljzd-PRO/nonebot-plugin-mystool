@@ -4,7 +4,7 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union
 
 import nonebot
 import nonebot.log
