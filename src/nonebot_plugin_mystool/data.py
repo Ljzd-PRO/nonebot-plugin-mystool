@@ -4,7 +4,7 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import nonebot
 import nonebot.log
@@ -25,16 +25,43 @@ class Address:
     地址数据
     """
 
-    def __init__(self, adress_dict: dict) -> None:
-        self.address_dict = adress_dict
-        try:
-            for func in dir(Address):
-                if func.startswith("__"):
-                    continue
-                getattr(self, func)
-        except KeyError:
-            logger.error(f"{conf.LOG_HEAD}地址数据 - 初始化对象: dict数据不正确")
-            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+    def __init__(self, src: Union[dict, int]) -> None:
+        """
+        初始化地址数据对象
+
+        参数:
+            `src`: 可为地址数据dict或地址ID(int)
+        """
+        if isinstance(src, dict):
+            self.address_dict = src
+            try:
+                for func in dir(Address):
+                    if func.startswith("__"):
+                        continue
+                    getattr(self, func)
+            except KeyError:
+                logger.error(f"{conf.LOG_HEAD}地址数据 - 初始化对象: dict数据不正确")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+        elif isinstance(src, str):
+            self.address_dict = {
+                "id": src,
+                "connect_name": None,
+                "connect_areacode": None,
+                "connect_mobile": None,
+                "country": None,
+                "province": None,
+                "city": None,
+                "county": None,
+                "province_name": None,
+                "city_name": None,
+                "county_name": None,
+                "addr_ext": None,
+                "is_default": None,
+                "status": None
+            }
+        else:
+            logger.error(
+                f"{conf.LOG_HEAD}地址数据 - 初始化对象: 传入数据不正确(传入了{str(type(src))})")
 
     @property
     def province(self) -> str:
@@ -79,7 +106,7 @@ class Address:
         return self.address_dict["connect_name"]
 
     @property
-    def addressID(self) -> int:
+    def addressID(self) -> str:
         """
         地址ID
         """
@@ -207,7 +234,9 @@ class UserAccount:
             "checkResin": self.checkResin
         }
         if isinstance(self.address, Address):
-            data["address"] = self.address.address_dict
+            data["address"] = self.address.addressID
+        elif isinstance(self.address, int):
+            data["address"] = self.address
         return data
 
 
