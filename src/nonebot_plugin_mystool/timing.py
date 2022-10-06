@@ -260,14 +260,36 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                 continue
             else:
                 if genshinstatus.resin == 160:  # 应防止重复提醒
-                    if account.haschecked:
+                    if account.haschecked['resin']:
                         return
                     else:
-                        account.haschecked = True
+                        account.haschecked['resin'] = True
                         UserData.set_account(account, qq, account.phone)
                         msg += '您的树脂已经满啦！'
                 else:
-                    account.haschecked = False
+                    account.haschecked['resin'] = False
+                    UserData.set_account(account, qq, account.phone)
+                    return
+                if genshinstatus.coin[0] == genshinstatus.coin[1]:  # 应防止重复提醒
+                    if account.haschecked['coin']:
+                        return
+                    else:
+                        account.haschecked['coin'] = True
+                        UserData.set_account(account, qq, account.phone)
+                        msg += '您的洞天财瓮已经满啦！'
+                else:
+                    account.haschecked['coin'] = False
+                    UserData.set_account(account, qq, account.phone)
+                    return
+                if genshinstatus.transformer == '已准备就绪':  # 应防止重复提醒
+                    if account.haschecked['transformer']:
+                        return
+                    else:
+                        account.haschecked['transformer'] = True
+                        UserData.set_account(account, qq, account.phone)
+                        msg += '您的参量质变仪已准备就绪！'
+                else:
+                    account.haschecked['transformer'] = False
                     UserData.set_account(account, qq, account.phone)
                     return
             msg += f"""\
