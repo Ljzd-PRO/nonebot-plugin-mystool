@@ -257,7 +257,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                 continue
             msg = ''
             if not isAuto:
-                continue
+                pass
             else:
                 if genshinstatus.resin == 160:  # 应防止重复提醒
                     if account.haschecked['resin']:

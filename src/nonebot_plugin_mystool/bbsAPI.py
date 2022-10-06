@@ -318,9 +318,9 @@ class GenshinStatus:
             self.region: str = record.region
             self.level: int = record.level
 
-            status = bbs_dict['data']
+            status = bbs_dict
             self.resin = status['current_resin']
-            self.task = status['finishen_task_num']
+            self.task = status['finished_task_num']
             self.expedition = (
                 status['current_expedition_num'], status['max_expedition_num'])
             self.coin = (status['current_home_coin'], status['max_home_coin'])
@@ -698,7 +698,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                                 ("Config", "SALT_PARAMS"), index)
                             index += 1
                         status = GenshinStatus().fromBBS(
-                            res.json()["text"]["data"])
+                            res.json()["data"], record)
                         if not status:
                             raise KeyError
                         return status
