@@ -176,7 +176,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     执行米游币任务函数，并发送给用户任务执行消息。
 
     参数:
-        `IsAuto`: True为当日自动执行任务，False为用户手动调用任务功能
+        `isAuto`: True为当日自动执行任务，False为用户手动调用任务功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -243,7 +243,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
     参数:
-        `IsAuto`: True为自动检查，False为用户手动调用该功能
+        `isAuto`: True为自动检查，False为用户手动调用该功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -309,7 +309,7 @@ async def generate_image(isAuto=True):
     生成米游币商品函数。
 
     参数:
-        `IsAuto`: True为每日自动生成，False为用户手动更新
+        `isAuto`: True为每日自动生成，False为用户手动更新
     """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
@@ -358,7 +358,6 @@ async def daily_schedule():
     logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
 
 
-# 后续改成从设置内读取时间
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
 async def auto_resin_check():
     """
