@@ -66,7 +66,7 @@ for qq in qq_accounts:
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HASCHCKED[account] = HASCHCKED.get(account, {{"resin": False, "coin": False, "transformer": False}})
+            HASCHCKED[account] = HASCHCKED.get(account, {"resin": False, "coin": False, "transformer": False})
 
 @manually_resin_check.handle()
 async def _(event: PrivateMessageEvent):
