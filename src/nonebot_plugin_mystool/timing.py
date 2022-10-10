@@ -281,7 +281,6 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         msg += '您的树脂已经满啦！'
                 else:
                     HASCHCKED[account]['resin'] = False
-                    return
                 # 洞天财瓮溢出提醒
                 if genshinstatus.coin[0] == genshinstatus.coin[1]:
                     # 防止重复提醒
@@ -292,7 +291,6 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         msg += '您的洞天财瓮已经满啦！'
                 else:
                     HASCHCKED[account]['coin'] = False
-                    return
                 # 参量质变仪就绪提醒
                 if genshinstatus.transformer == '已准备就绪':
                     # 防止重复提醒
