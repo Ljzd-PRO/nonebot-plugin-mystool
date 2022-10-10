@@ -668,13 +668,18 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
+    - 若返回 `-4` 说明用户没有任何原神账户
     """
     records: list[GameRecord] = await get_game_record(account=account)
+    if records == []:
+        return -4
     if isinstance(records, int):
-        return
+        return -3
+    flag = True
     for record in records:
         if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
             try:
+                flag = False
                 index = 0
                 url = URL_GENSHEN_STATUS_BBS.format(
                     game_uid=record.uid, region=record.region)
@@ -711,6 +716,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                 logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 请求失败")
                 logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 return -3
+    if flag:
+        return -4
 
 
 @nonebot.get_driver().on_startup

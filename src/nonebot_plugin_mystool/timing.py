@@ -262,6 +262,9 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                 if genshinstatus == -1:
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
                     continue
+                if genshinstatus == -4:
+                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 没有绑定任何原神账户，请绑定后再重试')
+                    continue
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             msg = ''
