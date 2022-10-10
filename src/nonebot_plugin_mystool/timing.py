@@ -304,7 +304,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         HASCHCKED[account.phone]['transformer'] = True
                         msg += '您的参量质变仪已准备就绪！\n'
                 else:
-                    HASCHCKED['account']['transformer'] = False
+                    HASCHCKED[account.phone]['transformer'] = False
                     return
             msg += f"""\
             ❖实时便笺❖\
