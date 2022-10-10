@@ -252,6 +252,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
         `isAuto`: True为自动检查，False为用户手动调用该功能
     """
     global HASCHCKED
+    accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
             HASCHCKED[account] = HASCHCKED.get(account, {"resin": False, "coin": False, "transformer": False})
