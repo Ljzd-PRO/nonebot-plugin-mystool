@@ -263,11 +263,15 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
                     continue
                 if genshinstatus == -4:
-                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 没有绑定任何原神账户，请绑定后再重试')
+                    if not isAuto:
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 没有绑定任何原神账户，请绑定后再重试')
+                        account.checkResin = False
+                        UserData.set_account(account, qq, account.phone)
                     continue
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             msg = ''
+            # 手动查询体力时，无需判断是否溢出
             if not isAuto:
                 pass
             else:
@@ -278,7 +282,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         return
                     else:
                         HASCHCKED[account]['resin'] = True
-                        msg += '您的树脂已经满啦！'
+                        msg += '您的树脂已经满啦\n！'
                 else:
                     HASCHCKED[account]['resin'] = False
                 # 洞天财瓮溢出提醒
@@ -288,7 +292,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         return
                     else:
                         HASCHCKED[account]['coin'] = True
-                        msg += '您的洞天财瓮已经满啦！'
+                        msg += '您的洞天财瓮已经满啦！\n'
                 else:
                     HASCHCKED[account]['coin'] = False
                 # 参量质变仪就绪提醒
@@ -298,7 +302,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         return
                     else:
                         HASCHCKED[account]['transformer'] = True
-                        msg += '您的参量质变仪已准备就绪！'
+                        msg += '您的参量质变仪已准备就绪！\n'
                 else:
                     HASCHCKED['account']['transformer'] = False
                     return
