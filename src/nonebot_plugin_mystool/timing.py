@@ -66,7 +66,7 @@ for qq in qq_accounts:
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HASCHCKED[account.phone] = HASCHCKED.get(account, {"resin": False, "coin": False, "transformer": False})
+            HASCHCKED[account.phone] = HASCHCKED.get(account.phone, {"resin": False, "coin": False, "transformer": False})
 
 @manually_resin_check.handle()
 async def _(event: PrivateMessageEvent):
@@ -255,7 +255,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HASCHCKED[account.phone] = HASCHCKED.get(account, {"resin": False, "coin": False, "transformer": False})
+            HASCHCKED[account.phone] = HASCHCKED.get(account.phone, {"resin": False, "coin": False, "transformer": False})
         if (account.checkResin and isAuto) or not isAuto:
             genshinstatus = await genshin_status_bbs(account)
             if isinstance(genshinstatus, int):
