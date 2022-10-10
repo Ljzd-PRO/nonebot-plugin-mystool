@@ -260,7 +260,8 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
             genshinstatus = await genshin_status_bbs(account)
             if isinstance(genshinstatus, int):
                 if genshinstatus == -1:
-                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                    if not isAuto:
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
                     continue
                 if genshinstatus == -4:
                     if not isAuto:
