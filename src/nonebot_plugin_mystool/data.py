@@ -6,9 +6,7 @@ import traceback
 from copy import deepcopy
 from typing import Dict, List, Literal, Tuple, Union
 
-import nonebot
 import nonebot.log
-from nonebot.log import logger
 
 from .config import PATH
 from .config import mysTool_config as conf
@@ -307,7 +305,7 @@ class UserData:
             `userdata`: 完整用户数据(包含所有用户)
         """
         json.dump(userdata, open(USERDATA_PATH, "w",
-                  encoding=ENCODING), indent=4, ensure_ascii=False)
+                                 encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
     def __create_user(cls, userdata: Dict[str, dict], qq: int) -> dict:

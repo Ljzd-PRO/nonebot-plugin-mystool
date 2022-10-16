@@ -7,7 +7,6 @@ from typing import Dict, List, Literal, NewType, Tuple, Union
 import httpx
 import nonebot
 import tenacity
-from nonebot.log import logger
 
 from .config import mysTool_config as conf
 from .data import UserAccount
@@ -354,17 +353,21 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     headers = HEADERS_ACTION_TICKET.copy()
     index = 0
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.get(
+                        URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID),
+                        headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取ActionTicket - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and ((index < len(Subscribe.conf_list) - 1 or not Subscribe.conf_list) or not Subscribe.conf_list):
+                if not check_DS(res.text) and (
+                        (index < len(Subscribe.conf_list) - 1 or not Subscribe.conf_list) or not Subscribe.conf_list):
                     logger.info(
                         f"{conf.LOG_HEAD}获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
                     sub = Subscribe()
@@ -401,10 +404,12 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
     """
     record_list = []
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.get(URL_GAME_RECORD.format(account.bbsUID), headers=HEADERS_GAME_RECORD,
+                                           cookies=account.cookie, timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取用户游戏数据 - 用户 {account.phone} 登录失效")
@@ -435,7 +440,8 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     info_list = []
     try:
         index = 0
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
@@ -476,7 +482,8 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
     - 若返回 `-3` 说明请求失败
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookie, timeout=conf.TIME_OUT)
@@ -522,11 +529,13 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         index = 0
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 headers["DS"] = generateDS(data)
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie,
+                                            timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录 - 用户 {account.phone} 登录失效")
@@ -579,11 +588,13 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
         index = 0
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 headers["DS"] = generateDS(data)
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie,
+                                            timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备保存 - 用户 {account.phone} 登录失效")
@@ -626,11 +637,13 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
     headers["x-rpc-device_id"] = account.deviceID
     try:
         index = 0
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 headers["DS"] = generateDS()
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
+                    res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie,
+                                           timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
@@ -685,7 +698,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                     game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.deviceID_2
-                async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                            wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
                         headers["DS"] = generateDS(
                             params={"role_id": record.uid, "server": record.region})

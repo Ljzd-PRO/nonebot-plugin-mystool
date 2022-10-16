@@ -45,32 +45,32 @@ HEADERS_GOOD_LIST = {
 }
 HEADERS_EXCHANGE = {
     "Accept":
-    "application/json, text/plain, */*",
+        "application/json, text/plain, */*",
     "Accept-Encoding":
-    "gzip, deflate, br",
+        "gzip, deflate, br",
     "Accept-Language":
-    "zh-CN,zh-Hans;q=0.9",
+        "zh-CN,zh-Hans;q=0.9",
     "Connection":
-    "keep-alive",
+        "keep-alive",
     "Content-Type":
-    "application/json;charset=utf-8",
+        "application/json;charset=utf-8",
     "Host":
-    "api-takumi.mihoyo.com",
+        "api-takumi.mihoyo.com",
     "User-Agent":
-    conf.device.USER_AGENT_MOBILE,
+        conf.device.USER_AGENT_MOBILE,
     "x-rpc-app_version":
-    conf.device.X_RPC_APP_VERSION,
+        conf.device.X_RPC_APP_VERSION,
     "x-rpc-channel":
-    "appstore",
+        "appstore",
     "x-rpc-client_type":
-    "1",
+        "1",
     "x-rpc-device_id": None,
     "x-rpc-device_model":
-    conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+        conf.device.X_RPC_DEVICE_MODEL_MOBILE,
     "x-rpc-device_name":
-    conf.device.X_RPC_DEVICE_NAME_MOBILE,
+        conf.device.X_RPC_DEVICE_NAME_MOBILE,
     "x-rpc-sys_version":
-    conf.device.X_RPC_SYS_VERSION
+        conf.device.X_RPC_SYS_VERSION
 }
 FONT_URL = os.path.join(
     conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
@@ -197,7 +197,8 @@ async def get_good_detail(goodID: str, retry: bool = True):
     """
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
@@ -236,11 +237,13 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
     page = 1
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GOOD_LIST.format(page=page,
-                                                                game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                                                                game=game), headers=HEADERS_GOOD_LIST,
+                                           timeout=conf.TIME_OUT)
                 goods = res.json()["data"]["list"]
                 # 判断是否已经读完所有商品
                 if goods == []:
@@ -327,7 +330,8 @@ class Exchange:
             f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 开始获取商品 {self.goodID} 的信息")
         res = None
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
@@ -402,7 +406,8 @@ class Exchange:
             try:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(
-                        URL_EXCHANGE, headers=headers, json=self.content, cookies=self.account.cookie, timeout=conf.TIME_OUT)
+                        URL_EXCHANGE, headers=headers, json=self.content, cookies=self.account.cookie,
+                        timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 登录失效".format())
@@ -486,7 +491,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         '''商品预览图'''
 
         for good in good_list:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         icon = await client.get(good.icon, timeout=conf.TIME_OUT)
@@ -497,7 +503,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             position.append((0, size_y))
             # 调整下一个粘贴的位置
             size_y += conf.goodListImage.ICON_SIZE[1] + \
-                conf.goodListImage.PADDING_ICON
+                      conf.goodListImage.PADDING_ICON
             imgs.append(img)
 
         preview = Image.new(
@@ -519,7 +525,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 start_time = time.strftime("%Y-%m-%d %H:%M:%S",
                                            time.localtime(good.time))
             draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
+                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price),
+                      (0, 0, 0), font)
             draw_y += (conf.goodListImage.ICON_SIZE[1] +
                        conf.goodListImage.PADDING_ICON)
 

@@ -10,7 +10,6 @@ import tenacity
 from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
-from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
@@ -50,7 +49,8 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL.format(
@@ -75,7 +75,9 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
 
 
 get_address = on_command(
-    conf.COMMAND_START+'地址', aliases={conf.COMMAND_START+'地址填写', conf.COMMAND_START+'地址', conf.COMMAND_START+'地址获取'}, priority=4, block=True)
+    conf.COMMAND_START + '地址',
+    aliases={conf.COMMAND_START + '地址填写', conf.COMMAND_START + '地址', conf.COMMAND_START + '地址获取'}, priority=4,
+    block=True)
 
 get_address.__help_name__ = '地址'
 get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'

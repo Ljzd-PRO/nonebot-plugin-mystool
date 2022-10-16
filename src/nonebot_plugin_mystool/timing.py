@@ -23,7 +23,9 @@ driver = get_driver()
 COMMAND = list(driver.config.command_start)[0] + conf.COMMAND_START
 
 manually_game_sign = on_command(
-    conf.COMMAND_START+'yssign', aliases={conf.COMMAND_START+'签到', conf.COMMAND_START+'手动签到', conf.COMMAND_START+'游戏签到', conf.COMMAND_START+'原神签到', conf.COMMAND_START+'gamesign'}, priority=4, block=True)
+    conf.COMMAND_START + 'yssign',
+    aliases={conf.COMMAND_START + '签到', conf.COMMAND_START + '手动签到', conf.COMMAND_START + '游戏签到',
+             conf.COMMAND_START + '原神签到', conf.COMMAND_START + 'gamesign'}, priority=4, block=True)
 manually_game_sign.__help_name__ = '签到'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
@@ -40,7 +42,9 @@ async def _(event: PrivateMessageEvent):
 
 
 manually_bbs_sign = on_command(
-    conf.COMMAND_START+'任务', aliases={conf.COMMAND_START+'米游社签到', conf.COMMAND_START+'米游币任务', conf.COMMAND_START+'米游币获取', conf.COMMAND_START+'bbssign', conf.COMMAND_START+'米游社任务'}, priority=4, block=True)
+    conf.COMMAND_START + '任务',
+    aliases={conf.COMMAND_START + '米游社签到', conf.COMMAND_START + '米游币任务', conf.COMMAND_START + '米游币获取',
+             conf.COMMAND_START + 'bbssign', conf.COMMAND_START + '米游社任务'}, priority=4, block=True)
 manually_bbs_sign.__help_name__ = '任务'
 manually_bbs_sign.__help_info__ = '手动执行米游币每日任务，可以查看米游币任务完成情况'
 
@@ -57,7 +61,9 @@ async def _(event: PrivateMessageEvent):
 
 
 manually_resin_check = on_command(
-    conf.COMMAND_START+'树脂', aliases={conf.COMMAND_START+'体力', conf.COMMAND_START+'树脂查看', conf.COMMAND_START+'实时便笺', conf.COMMAND_START+'便笺', conf.COMMAND_START+'原神便笺'}, priority=4, block=True)
+    conf.COMMAND_START + '树脂',
+    aliases={conf.COMMAND_START + '体力', conf.COMMAND_START + '树脂查看', conf.COMMAND_START + '实时便笺',
+             conf.COMMAND_START + '便笺', conf.COMMAND_START + '原神便笺'}, priority=4, block=True)
 manually_resin_check.__help_name__ = '便笺'
 manually_resin_check.__help_info__ = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 HASCHCKED = {}
@@ -66,7 +72,9 @@ for qq in qq_accounts:
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HASCHCKED[account.phone] = HASCHCKED.get(account.phone, {"resin": False, "coin": False, "transformer": False})
+            HASCHCKED[account.phone] = HASCHCKED.get(account.phone,
+                                                     {"resin": False, "coin": False, "transformer": False})
+
 
 @manually_resin_check.handle()
 async def _(event: PrivateMessageEvent):
@@ -103,7 +111,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
                 logger.info("{0}执行游戏签到 - {1} 暂不支持".format(conf.LOG_HEAD,
-                            GameInfo.ABBR_TO_ID[record.gameID][1]))
+                                                          GameInfo.ABBR_TO_ID[record.gameID][1]))
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
@@ -116,7 +124,9 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
-                if ((account.gameSign and isAuto) or not isAuto) and ((isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1)):
+                if ((account.gameSign and isAuto) or not isAuto) and (
+                        (isinstance(sign_info, Info) and not sign_info.isSign) or (
+                        isinstance(sign_info, int) and sign_info != -1)):
                     sign_flag = await gamesign.sign(sign_game, record.uid, account.platform)
                     if sign_flag != 1:
                         if sign_flag == -1:
@@ -154,7 +164,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                         msg = "⚠️账户 {0} 🎮『{1}』获取签到结果失败！请手动前往米游社查看".format(
                             account.phone, game_name)
                     else:
-                        sign_award = month_sign_award[sign_info.totalDays-1]
+                        sign_award = month_sign_award[sign_info.totalDays - 1]
                         if sign_info.isSign:
                             msg = f"""\
                                 \n📱账户 {account.phone}\
@@ -221,9 +231,9 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                         continue
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
                     continue
-                if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
-                        missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
-                        missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and\
+                if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and \
+                        missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and \
+                        missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and \
                         missions_state[0][3][1] >= missions_state[0][3][0].totalTimes:
                     notice_string = "🎉已完成今日米游币任务"
                 else:
@@ -255,7 +265,8 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HASCHCKED[account.phone] = HASCHCKED.get(account.phone, {"resin": False, "coin": False, "transformer": False})
+            HASCHCKED[account.phone] = HASCHCKED.get(account.phone,
+                                                     {"resin": False, "coin": False, "transformer": False})
         if (account.checkResin and isAuto) or not isAuto:
             genshinstatus = await genshin_status_bbs(account)
             if isinstance(genshinstatus, int):
@@ -359,7 +370,8 @@ async def daily_update():
     await generate_image()
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
+@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
+                                                    minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
@@ -382,6 +394,7 @@ async def auto_resin_check():
     bot = get_bot()
     for qq in qq_accounts:
         await resin_check(bot=bot, qq=qq, isAuto=True)
+
 
 # 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)

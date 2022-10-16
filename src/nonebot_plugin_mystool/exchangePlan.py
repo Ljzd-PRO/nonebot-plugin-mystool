@@ -83,7 +83,9 @@ class ExchangeStart:
 
 
 myb_exchange_plan = on_command(
-    conf.COMMAND_START+'兑换', aliases={conf.COMMAND_START+'myb_exchange', conf.COMMAND_START+'米游币兑换', conf.COMMAND_START+'米游币兑换计划', conf.COMMAND_START+'兑换计划', conf.COMMAND_START+'兑换'}, priority=4, block=True)
+    conf.COMMAND_START + '兑换',
+    aliases={conf.COMMAND_START + 'myb_exchange', conf.COMMAND_START + '米游币兑换', conf.COMMAND_START + '米游币兑换计划',
+             conf.COMMAND_START + '兑换计划', conf.COMMAND_START + '兑换'}, priority=4, block=True)
 myb_exchange_plan.__help_name__ = "兑换"
 myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND}商品』获取。注意，不限兑换时间的商品将不会在此处显示。"
 myb_exchange_plan.__help_msg__ = """\
@@ -132,8 +134,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
                 \n- 💰商品价格：{2} 米游币\
                 \n- 📅兑换时间：{3}\
                 \n- 📱账户：{4}""".strip().format(good.name, good.goodID,
-                                              good.price, time.strftime("%Y-%m-%d %H:%M:%S",
-                                                                        time.localtime(good.time)), account.phone)
+                                               good.price, time.strftime("%Y-%m-%d %H:%M:%S",
+                                                                         time.localtime(good.time)), account.phone)
                 msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
@@ -168,11 +170,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
     arg = [content[0], content[1:].strip()]
     if arg[0] == '+':
         good_dict = {
-        'bh3': await get_good_list('bh3'),
-        'ys': await get_good_list('ys'),
-        'bh2': await get_good_list('bh2'),
-        'wd': await get_good_list('wd'),
-        'bbs': await get_good_list('bbs')
+            'bh3': await get_good_list('bh3'),
+            'ys': await get_good_list('ys'),
+            'bh2': await get_good_list('bh2'),
+            'wd': await get_good_list('wd'),
+            'bbs': await get_good_list('bbs')
         }
         Flag = True
         break_flag = False
@@ -225,14 +227,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                     account.exchange.remove(exchange_good)
                     UserData.set_account(account, event.user_id, account.phone)
                     scheduler.remove_job(job_id=str(
-                        account.phone)+'_'+arg[1])
+                        account.phone) + '_' + arg[1])
                     await matcher.finish('兑换计划删除成功')
             await matcher.finish(f"您没有设置商品ID为 {arg[1]} 的兑换哦~")
         else:
             await matcher.finish("您还没有配置兑换计划哦~")
 
     else:
-        matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__ )
+        matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__)
 
 
 @myb_exchange_plan.got('uid')
@@ -269,15 +271,21 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     elif exchange_plan.result == -6:
         await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
     else:
-        scheduler.add_job(id=str(account.phone)+'_'+good.goodID, replace_existing=True, trigger='date', func=ExchangeStart(
-            account, event.user_id, exchange_plan, conf.EXCHANGE_THREAD).start, next_run_time=datetime.fromtimestamp(good.time))
+        scheduler.add_job(id=str(account.phone) + '_' + good.goodID, replace_existing=True, trigger='date',
+                          func=ExchangeStart(
+                              account, event.user_id, exchange_plan, conf.EXCHANGE_THREAD).start,
+                          next_run_time=datetime.fromtimestamp(good.time))
 
     UserData.set_account(account, event.user_id, account.phone)
 
-    await matcher.finish(f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
+    await matcher.finish(
+        f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
+
 
 get_good_image = on_command(
-    conf.COMMAND_START+'商品列表', aliases={conf.COMMAND_START+'商品图片', conf.COMMAND_START+'米游社商品列表', conf.COMMAND_START+'米游币商品图片', conf.COMMAND_START+'商品'}, priority=4, block=True)
+    conf.COMMAND_START + '商品列表',
+    aliases={conf.COMMAND_START + '商品图片', conf.COMMAND_START + '米游社商品列表', conf.COMMAND_START + '米游币商品图片',
+             conf.COMMAND_START + '商品'}, priority=4, block=True)
 get_good_image.__help_name__ = "商品"
 get_good_image.__help_info__ = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
@@ -326,13 +334,13 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
         img_path = time.strftime(
             f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         if os.path.exists(img_path):
-            await get_good_image.finish(MessageSegment.image('file:///'+img_path))
+            await get_good_image.finish(MessageSegment.image('file:///' + img_path))
         else:
             await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
             await generate_image(isAuto=False)
             img_path = time.strftime(
                 f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
-            await get_good_image.finish(MessageSegment.image('file:///'+img_path))
+            await get_good_image.finish(MessageSegment.image('file:///' + img_path))
     else:
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
@@ -360,5 +368,7 @@ async def load_exchange_data():
                     UserData.set_account(account, qq, account.phone)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
-                    scheduler.add_job(id=str(account.phone)+'_'+exchange_good[0], replace_existing=True, trigger='date', func=ExchangeStart(
-                        account, qq, exchange_plan, conf.EXCHANGE_THREAD).start, next_run_time=datetime.fromtimestamp(good_detail.time))
+                    scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
+                                      trigger='date', func=ExchangeStart(
+                            account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
+                                      next_run_time=datetime.fromtimestamp(good_detail.time))

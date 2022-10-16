@@ -40,8 +40,9 @@ def set_logger(logger: "Logger"):
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
     logger.add(conf.LOG_PATH, diagnose=False, format=nonebot.log.default_format,
                filter=lambda record: record["name"] == conf.PLUGIN_NAME or
-               (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
-               record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1, rotation=conf.LOG_ROTATION)
+                                     (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
+                                     record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1,
+               rotation=conf.LOG_ROTATION)
     return logger
 
 
@@ -137,7 +138,8 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "", platform: Literal["ios", "android"] = "ios"):
+def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
+               platform: Literal["ios", "android"] = "ios"):
     """
     获取Headers中所需DS
 
@@ -178,7 +180,8 @@ async def get_file(url: str, retry: bool = True):
         `retry`: 是否允许重试
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)

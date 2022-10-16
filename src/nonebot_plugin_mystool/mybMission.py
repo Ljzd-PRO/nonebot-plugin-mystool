@@ -154,7 +154,8 @@ class Action:
         await device_save(self.account)
         return self
 
-    async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[int, Literal[-1, -2, -3]]:
+    async def sign(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[
+        int, Literal[-1, -2, -3]]:
         """
         签到
 
@@ -169,7 +170,8 @@ class Action:
         data = {"gids": GAME_ID[game]["gids"]}
         try:
             index = 0
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     self.headers["DS"] = generateDS(data)
                     res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
@@ -196,7 +198,8 @@ class Action:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[List[str], None]:
+    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[
+        List[str], None]:
         """
         获取文章ID列表，若失败返回`None`
 
@@ -207,10 +210,12 @@ class Action:
         postID_list = []
         try:
             index = 0
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     self.headers["DS"] = generateDS(platform="android")
-                    res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers, timeout=conf.TIME_OUT)
+                    res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers,
+                                                timeout=conf.TIME_OUT)
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: DS无效，正在在线获取salt以重新生成...")
@@ -259,10 +264,12 @@ class Action:
                     break
                 try:
                     index = 0
-                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                                wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
                             self.headers["DS"] = generateDS(platform="android")
-                            res = await self.client.get(URL_READ.format(postID), headers=self.headers, timeout=conf.TIME_OUT)
+                            res = await self.client.get(URL_READ.format(postID), headers=self.headers,
+                                                        timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 阅读: 用户 {self.account.phone} 登录失效".format())
@@ -324,10 +331,13 @@ class Action:
                     break
                 try:
                     index = 0
-                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+                    async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                                wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
                             self.headers["DS"] = generateDS(platform="android")
-                            res = await self.client.post(URL_LIKE, headers=self.headers, json={'is_cancel': False, 'post_id': postID}, timeout=conf.TIME_OUT)
+                            res = await self.client.post(URL_LIKE, headers=self.headers,
+                                                         json={'is_cancel': False, 'post_id': postID},
+                                                         timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 点赞: 用户 {self.account.phone} 登录失效".format())
@@ -383,10 +393,12 @@ class Action:
         if postID_list is None:
             return -5
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     self.headers["DS"] = generateDS(platform="android")
-                    res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers, timeout=conf.TIME_OUT)
+                    res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers,
+                                                timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 分享: 用户 {self.account.phone} 登录失效")
@@ -465,7 +477,8 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
             return -3
     try:
         async with httpx.AsyncClient() as client:
-            res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie, timeout=conf.TIME_OUT)
+            res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookie,
+                                   timeout=conf.TIME_OUT)
         if not check_login(res.text):
             logger.info(
                 f"{conf.LOG_HEAD}获取米游币任务完成情况 - 用户 {account.phone} 登录失效")
@@ -476,7 +489,8 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
         for mission in missions:
             try:
                 state_list.append((mission, list(filter(lambda state: state["mission_key"] ==
-                                                        mission.keyName, data["states"]))[0]["happened_times"]))
+                                                                      mission.keyName, data["states"]))[0][
+                    "happened_times"]))
             except IndexError:
                 state_list.append((mission, 0))
         return (state_list, data["total_points"])

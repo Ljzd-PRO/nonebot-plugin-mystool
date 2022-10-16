@@ -88,9 +88,12 @@ class GetCookie:
         headers["x-rpc-device_id"] = self.deviceID
         res = None
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    res = await self.client.post(URL_1, headers=headers, data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(self.phone, captcha), timeout=conf.TIME_OUT)
+                    res = await self.client.post(URL_1, headers=headers,
+                                                 data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(
+                                                     self.phone, captcha), timeout=conf.TIME_OUT)
                     try:
                         res_json = res.json()
                         if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
@@ -125,9 +128,11 @@ class GetCookie:
         - 若返回 `False` 说明网络请求失败或服务器没有正确返回
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID), timeout=conf.TIME_OUT)
+                    res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID),
+                                                timeout=conf.TIME_OUT)
                     stoken = list(filter(
                         lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
                     self.cookie["stoken"] = stoken
@@ -155,7 +160,8 @@ class GetCookie:
         - 若返回 `-3` 说明验证码错误
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.post(URL_3, headers=HEADERS_2, json={
                         "is_bh2": False,
@@ -184,7 +190,9 @@ class GetCookie:
 
 
 get_cookie = on_command(
-    conf.COMMAND_START+'cookie', aliases={conf.COMMAND_START+'cookie填写', conf.COMMAND_START+'cookie', conf.COMMAND_START+'login', conf.COMMAND_START+'登录', conf.COMMAND_START+'登陆'}, priority=4, block=True)
+    conf.COMMAND_START + 'cookie',
+    aliases={conf.COMMAND_START + 'cookie填写', conf.COMMAND_START + 'cookie', conf.COMMAND_START + 'login',
+             conf.COMMAND_START + '登录', conf.COMMAND_START + '登陆'}, priority=4, block=True)
 get_cookie.__help_name__ = '登录'
 get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 

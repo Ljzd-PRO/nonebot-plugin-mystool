@@ -49,6 +49,7 @@ async def check_friend_list():
             logger.info(f'{conf.LOG_HEAD}用户{user}不在好友列表内，已删除其数据')
             UserData.del_user(user)
 
+
 driver.on_bot_connect(check_friend_list)
 scheduler.add_job(id='check_friend', replace_existing=True,
                   trigger="cron", hour='23', minute='59', func=check_friend_list)

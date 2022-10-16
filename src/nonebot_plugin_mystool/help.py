@@ -7,13 +7,14 @@ from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
+
 from .config import mysTool_config as conf
 from .utils import PLUGIN
 
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
-helper = on_command(conf.COMMAND_START+"help", priority=1,
-                    aliases={conf.COMMAND_START+"帮助"})
+helper = on_command(conf.COMMAND_START + "help", priority=1,
+                    aliases={conf.COMMAND_START + "帮助"})
 
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\

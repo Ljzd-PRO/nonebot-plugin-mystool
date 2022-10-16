@@ -23,22 +23,26 @@ ACT_ID = {
 URLS = {
     "ys": {
         "reward": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id={}".format(ACT_ID["ys"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={}".format(ACT_ID["ys"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
     },
     "bh3": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     },
     "bh2": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     },
     "wd": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["wd"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["wd"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["wd"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     }
 }
@@ -173,7 +177,8 @@ class GameSign:
             `retry`: 是否允许重试
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
                     async with httpx.AsyncClient() as client:
@@ -192,7 +197,8 @@ class GameSign:
                 logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[Info, Literal[-1, -2, -3, -4]]:
+    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[
+        Info, Literal[-1, -2, -3, -4]]:
         """
         获取签到记录，返回Info对象
 
@@ -227,12 +233,14 @@ class GameSign:
 
         try:
             index = 0
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
                     headers["DS"] = generateDS()
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+                        res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers,
+                                               cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
@@ -262,7 +270,9 @@ class GameSign:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
+    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str,
+                   platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[
+        1, -1, -2, -3, -4, -5, -6]:
         """
         签到
 
@@ -284,10 +294,10 @@ class GameSign:
             logger.info(f"{conf.LOG_HEAD}暂不支持游戏 {game} 的游戏签到")
             return -4
 
-
         record_list: List[GameRecord] = await get_game_record(self.account)
         filter_record = list(filter(lambda record: record.uid ==
-                             gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
+                                                   gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game,
+                                    record_list))
         if not filter_record:
             return -6
         data = {
@@ -314,11 +324,13 @@ class GameSign:
             headers["DS"] = generateDS(platform="android")
         try:
             index = 0
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
+                        res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie,
+                                                timeout=conf.TIME_OUT, json=data)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
