@@ -19,7 +19,8 @@ from .data import UserAccount
 from .utils import (check_login, custom_attempt_times, generateDeviceID,
                     get_file, logger)
 
-URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
+URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={" \
+                "page}&game={game} "
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
 URL_EXCHANGE = "https://api-takumi.mihoyo.com/mall/v1/web/goods/exchange"
 HEADERS_GOOD_LIST = {
@@ -432,12 +433,12 @@ class Exchange:
                     logger.info(
                         f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 兑换成功！可以自行确认。")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
-                    return (True, res.json())
+                    return True, res.json()
                 else:
                     logger.info(
                         f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 兑换失败，可以自行确认。")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
-                    return (False, res.json())
+                    return False, res.json()
             except KeyError:
                 logger.error(
                     f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 服务器没有正确返回")

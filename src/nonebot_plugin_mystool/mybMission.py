@@ -15,7 +15,8 @@ from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
                     generateDS, logger)
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
-URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
+URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={" \
+               "}&is_good=false&is_hot=false&page_size=20&sort_type=1 "
 URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
 URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
 URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
