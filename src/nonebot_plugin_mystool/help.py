@@ -50,7 +50,7 @@ async def get_result(event: MessageEvent, content: Message = Arg()):
 
     # 相似词
     if arg == '登陆':
-        arg == '登录'
+        arg = '登录'
 
     matchers = PLUGIN.matcher
     for matcher in matchers:
