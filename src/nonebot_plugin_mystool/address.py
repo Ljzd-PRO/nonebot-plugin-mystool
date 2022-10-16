@@ -112,7 +112,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone in phones:
         account = UserData.read_account(qq_account, int(phone))
     else:
-        get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+        await get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
 
     state['address_list']: List[Address] = await get(account)
