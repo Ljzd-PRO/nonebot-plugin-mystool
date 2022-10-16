@@ -25,10 +25,9 @@ class Address:
 
     def __init__(self, src: Union[dict, int]) -> None:
         """
-        初始化地址数据对象
+        初始化地址数据
 
-        参数:
-            `src`: 可为地址数据dict或地址ID(int)
+        :param src: 可为地址数据dict或地址ID(int)
         """
         if isinstance(src, dict):
             self.address_dict = src
@@ -259,9 +258,9 @@ class UserData:
         """
         获取用户的某个米游社帐号数据
 
-        参数:
-            `qq`: 要查找的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param qq: 要查找的用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
+        :return: 返回用户的某个米游社帐号数据
         """
         if isinstance(by, str):
             by_type = "name"
@@ -282,8 +281,8 @@ class UserData:
         """
         获取用户的所有米游社帐号数据
 
-        参数:
-            `qq`: 要查找的用户的QQ号
+        :param qq: 要查找的用户的QQ号
+        :return: 返回用户的所有米游社帐号数据
         """
         accounts = []
         try:
@@ -301,8 +300,7 @@ class UserData:
         """
         写入用户数据文件(整体覆盖)
 
-        参数:
-            `userdata`: 完整用户数据(包含所有用户)
+        :param userdata: 完整用户数据(包含所有用户)
         """
         json.dump(userdata, open(USERDATA_PATH, "w",
                                  encoding=ENCODING), indent=4, ensure_ascii=False)
@@ -331,8 +329,7 @@ class UserData:
         """
         删除某个QQ用户数据
 
-        参数:
-            `qq`: 用户的QQ号
+        :param qq: 用户的QQ号
 
         若未找到返回`False`，否则返回`True`
         """
@@ -349,10 +346,9 @@ class UserData:
         """
         设置用户的某个米游社帐号信息，若`by`为`None`，则自动根据传入的`UserAccount.phone`查找
 
-        参数:
-            `account`: 米游社帐号信息
-            `qq`: 要设置的用户的QQ号
-            `by`: (可选)索引依据，可为备注名或手机号
+        :param account: 米游社帐号信息
+        :param qq: 要设置的用户的QQ号
+        :param by: (可选)索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict()
         userdata = cls.read_all()
@@ -375,9 +371,8 @@ class UserData:
         """
         删除QQ用户的某个米哈游账号
 
-        参数:
-            `qq`: 用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param qq: 用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
 
         若未找到返回`False`，否则返回`True`
         """
@@ -401,10 +396,9 @@ class UserData:
         """
         设置用户的某个米游社帐号的Cookie
 
-        参数:
-            `cookie`: Cookie数据
-            `qq`: 要设置的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param cookie: Cookie数据
+        :param qq: 要设置的用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
         """
         userdata = cls.read_all()
         name, phone = None, None
@@ -438,8 +432,8 @@ class UserData:
         """
         查看用户是否开启了通知，若不存在用户则返回None
 
-        参数:
-            `qq`: 用户QQ号
+        :param qq: 用户QQ号
+        :return: 是否开启通知
         """
         userdata = cls.read_all()
         qq = str(qq)
@@ -456,11 +450,12 @@ class UserData:
         """
         设置用户的通知开关
 
-        参数:
-            `isNotice`: 是否开启通知
-            `qq`: 用户QQ号
+        :param isNotice: 是否开启通知
+        :param qq: 用户QQ号
+
         返回:
             `True`: 成功写入
+
             `False`: 写入失败，可能是不存在用户
         """
         userdata = cls.read_all()

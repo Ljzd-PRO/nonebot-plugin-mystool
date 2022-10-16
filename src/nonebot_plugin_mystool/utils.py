@@ -143,9 +143,8 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
     """
     获取Headers中所需DS
 
-    参数:
-        `data`: 可选，网络请求中需要发送的数据
-        `params`: 可选，URL参数
+    :param data: 可选，网络请求中需要发送的数据
+    :param params: 可选，URL参数
     """
     if data == "" and params == "":
         if platform == "ios":
@@ -159,16 +158,16 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
             f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
+        salt = conf.SALT_DATA
         if not isinstance(data, str):
             data = json.dumps(data)
-            salt = conf.SALT_DATA
         if not isinstance(params, str):
             params = urlencode(params)
             salt = conf.SALT_PARAMS
         t = str(int(time.time()))
         r = str(random.randint(100000, 200000))
         c = hashlib.md5(
-            (f"salt={salt}&t={t}&r={r}&b={data}&q={params}").encode()).hexdigest()
+            f"salt={salt}&t={t}&r={r}&b={data}&q={params}".encode()).hexdigest()
         return f"{t},{r},{c}"
 
 
@@ -176,8 +175,9 @@ async def get_file(url: str, retry: bool = True):
     """
     下载文件
 
-    参数:
-        `retry`: 是否允许重试
+    :param url: 文件URL
+    :param retry: 是否允许重试
+    :return: 文件数据
     """
     try:
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
@@ -196,6 +196,9 @@ def check_login(response: str):
     通过网络请求返回的数据，检查是否登录失效
 
     如果返回数据为`None`，返回`True`
+
+    :param response: 网络请求返回的数据
+    :return: 是否登录失效
     """
     try:
         if response is None:
@@ -216,6 +219,9 @@ def check_DS(response: str):
     通过网络请求返回的数据，检查Header中DS是否有效
 
     如果返回数据为`None`，返回`True`
+
+    :param response: 网络请求返回的数据
+    :return: DS是否有效
     """
     try:
         if response is None:
@@ -243,6 +249,7 @@ class Subscribe:
     async def download(self) -> bool:
         """
         读取在线配置资源
+        :return: 是否成功
         """
         try:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
@@ -265,10 +272,10 @@ class Subscribe:
         优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
         若找不到属性或`index`超出范围，返回`None`
 
-        参数:
-            `key`: (配置类名, 属性名)
-            `index`: 配置在`Subscribe.conf_list`中的位置
-            `force`: 是否强制在线读取配置，而不使用本地缓存的
+        :param key: (配置类名, 属性名)
+        :param index: 配置在`Subscribe.conf_list`中的位置
+        :param force: 是否强制在线读取配置，而不使用本地缓存的
+        :return: 属性值
         """
         success = True
         if not self.conf_list or force:

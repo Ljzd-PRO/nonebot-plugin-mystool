@@ -172,9 +172,8 @@ class GameSign:
         """
         获取签到奖励信息，若返回`None`说明失败
 
-        参数:
-            `game`: 目标游戏缩写
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param retry: 是否允许重试
         """
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
@@ -202,11 +201,10 @@ class GameSign:
         """
         获取签到记录，返回Info对象
 
-        参数:
-            `game`: 目标游戏缩写
-            `gameUID`: 用户游戏UID
-            `region`: 用户游戏区服(若为`None`将会自动获取)
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param gameUID: 用户游戏UID
+        :param region: 用户游戏区服(若为`None`将会自动获取)
+        :param retry: 是否允许重试
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -276,11 +274,10 @@ class GameSign:
         """
         签到
 
-        参数:
-            `game`: 目标游戏缩写
-            `gameUID`: 用户游戏UID
-            `platform`: 设备平台
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param gameUID: 用户游戏UID
+        :param platform: 设备平台
+        :param retry: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效

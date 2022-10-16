@@ -74,9 +74,8 @@ class GetCookie:
         """
         第一次获取Cookie(目标是login_ticket)
 
-        参数:
-            `captcha`: 短信验证码
-            `retry`: 是否允许重试
+        :param captcha: 短信验证码
+        :param retry: 是否允许重试
 
         - 若返回 `1` 说明已成功
         - 若返回 `-1` 说明Cookie缺少`login_ticket`
@@ -121,8 +120,7 @@ class GetCookie:
         """
         获取stoken
 
-        参数:
-            `retry`: 是否允许重试
+        :param retry: 是否允许重试
 
         - 若返回 `True` 说明Cookie缺少`cookie_token`
         - 若返回 `False` 说明网络请求失败或服务器没有正确返回
@@ -150,9 +148,8 @@ class GetCookie:
         """
         第二次获取Cookie(目标是cookie_token)
 
-        参数:
-            `captcha`: 短信验证码
-            `retry`: 是否允许重试
+        :param captcha: 短信验证码
+        :param retry: 是否允许重试
 
         - 若返回 `1` 说明已成功
         - 若返回 `-1` 说明Cookie缺少`cookie_token`

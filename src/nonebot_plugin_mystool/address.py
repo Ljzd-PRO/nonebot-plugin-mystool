@@ -37,13 +37,12 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
     """
     获取用户的地址数据
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
-
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
     """
     address_list = []
     headers = HEADERS.copy()

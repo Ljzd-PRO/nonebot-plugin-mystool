@@ -91,8 +91,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
-    参数:
-        `isAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
+    :param isAuto: `True`为当日自动签到，`False`为用户手动调用签到功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -191,8 +190,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
-    参数:
-        `isAuto`: True为当日自动执行任务，False为用户手动调用任务功能
+    :param isAuto: True为当日自动执行任务，False为用户手动调用任务功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -258,8 +256,7 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
-    参数:
-        `isAuto`: True为自动检查，False为用户手动调用该功能
+    :param isAuto: True为自动检查，False为用户手动调用该功能
     """
     global HASCHCKED
     accounts = UserData.read_account_all(qq)
@@ -334,8 +331,7 @@ async def generate_image(isAuto=True):
     """
     生成米游币商品函数。
 
-    参数:
-        `isAuto`: True为每日自动生成，False为用户手动更新
+    :param isAuto: True为每日自动生成，False为用户手动更新
     """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:

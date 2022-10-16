@@ -90,6 +90,11 @@ class Good:
     Total_Times = NewType("Total_Times", int)
 
     def __init__(self, good_dict: dict) -> None:
+        """
+        初始化商品数据
+
+        :param good_dict: 网络请求返回的商品数据字典
+        """
         self.good_dict = good_dict
         self.time_by_detail: int = None
         try:
@@ -104,6 +109,8 @@ class Good:
     async def async_init(self):
         """
         进一步异步初始化商品数据(生成商品时间Good.time)
+
+        :return: 自身对象
         """
         if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
             detail = await get_good_detail(self.goodID)
@@ -151,7 +158,7 @@ class Good:
             return self.time_by_detail
 
     @property
-    def num(self) -> int:
+    def num(self) -> Union[None, int]:
         """
         库存
         """
@@ -191,9 +198,9 @@ async def get_good_detail(goodID: str, retry: bool = True):
     获取某商品的详细信息，若获取失败则返回`None`
     - 若返回 `-1` 说明商品不存在
 
-    参数:
-        `goodID`: 商品ID
-        `retry`: 是否允许重试
+    :param goodID: 商品ID
+    :param retry: 是否允许重试
+    :return: 商品数据
     """
 
     try:
@@ -218,9 +225,9 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
     """
     获取商品信息列表，若获取失败则返回`None`
 
-    参数:
-        `game`: 游戏简称
-        `retry`: 是否允许重试
+    :param game: 游戏简称
+    :param retry: 是否允许重试
+    :return: 商品信息列表
     """
     if game == "bh3":
         game = "bh3"
@@ -246,7 +253,7 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
                                            timeout=conf.TIME_OUT)
                 goods = res.json()["data"]["list"]
                 # 判断是否已经读完所有商品
-                if goods == []:
+                if not goods:
                     break
                 else:
                     good_list += goods
@@ -293,6 +300,10 @@ class Exchange:
     def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
         """
         初始化兑换任务(仅导入参数)
+
+        :param account: 用户账户数据
+        :param goodID: 商品ID
+        :param gameUID: 游戏UID
         """
         self.result = None
         self.goodID = goodID
@@ -312,7 +323,10 @@ class Exchange:
 
     async def async_init(self, retry: bool = True):
         """
-        初始化兑换任务(异步，返回自身`self`对象)
+        初始化兑换任务
+
+        :param retry: 是否重试
+        :return: 异步，返回自身对象
         """
         self.result = None
         self.goodID = self.goodID
@@ -388,10 +402,11 @@ class Exchange:
             self.result = -5
         return self
 
-    async def start(self) -> Union[Tuple[bool, dict], Literal[-1, -2, -3]]:
+    async def start(self) -> Union[None, Tuple[bool, dict], Literal[-1, -2, -3]]:
         """
         执行兑换操作
-        返回元组 (是否成功, 服务器返回数据)
+
+        :return: 兑换结果 返回元组 (是否成功, 服务器返回数据)
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -440,9 +455,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
     将商品信息列表转换为图片数据，若返回`None`说明生成失败
 
-    参数:
-        `good_list`: 商品列表数据
-        `retry`: 是否允许重试
+    :param good_list: 商品列表数据
+    :param retry: 是否允许重试
     """
     try:
         font_path = conf.goodListImage.FONT_PATH
@@ -451,7 +465,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 font_path = FONT_SAVE_PATH
             else:
                 logger.warning(
-                    f"{conf.LOG_HEAD}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
+                    f"{conf.LOG_HEAD}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release "
+                    f"下载字体...")
                 try:
                     os.makedirs(os.path.dirname(TEMP_FONT_PATH))
                 except FileExistsError:

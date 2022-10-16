@@ -159,9 +159,8 @@ class Action:
         """
         签到
 
-        参数:
-            `game`: 游戏简称
-            `retry`: 是否允许重试
+        :param game: 游戏简称
+        :param retry: 是否允许重试
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -201,11 +200,11 @@ class Action:
     async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[
         List[str], None]:
         """
-        获取文章ID列表，若失败返回`None`
+        获取文章ID列表，若失败返回 `None`
 
-        参数:
-            `game`: 游戏简称
-            `retry`: 是否允许重试
+        :param game: 游戏简称
+        :param retry: 是否允许重试
+        :return: 文章ID列表
         """
         postID_list = []
         try:
@@ -243,10 +242,9 @@ class Action:
         """
         阅读
 
-        参数:
-            `game`: 游戏简称
-            `readTimes`: 阅读文章数
-            `retry`: 是否允许重试
+        :param game: 游戏简称
+        :param readTimes: 阅读文章数
+        :param retry: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
@@ -310,10 +308,9 @@ class Action:
         """
         点赞文章
 
-        参数:
-            `game`: 游戏简称
-            `likeTimes`: 点赞次数
-            `retry`: 是否允许重试
+        :param game: 游戏简称
+        :param likeTimes: 点赞次数
+        :param retry: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
@@ -378,9 +375,8 @@ class Action:
         """
         分享文章
 
-        参数:
-            `game`: 游戏简称
-            `retry`: 是否允许重试
+        :param game: 游戏简称
+        :param retry: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
@@ -457,9 +453,10 @@ async def get_missions(account: UserAccount):
         return -3
 
 
-async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, Prograss_Now]], Myb_Num]:
+async def get_missions_state(account: UserAccount) -> Union[Tuple[List[Tuple[Mission, Prograss_Now]], Myb_Num], int]:
     """
-    获取米游币任务完成情况\n
+    获取米游币任务完成情况
+
     返回数据格式:
     >>> tuple[ list[ tuple[任务信息对象, 当前进度] ], 用户当前米游币数量 ]
 
@@ -493,7 +490,7 @@ async def get_missions_state(account: UserAccount) -> Tuple[List[Tuple[Mission, 
                     "happened_times"]))
             except IndexError:
                 state_list.append((mission, 0))
-        return (state_list, data["total_points"])
+        return state_list, data["total_points"]
     except KeyError:
         logger.error(f"{conf.LOG_HEAD}获取米游币任务完成情况 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")

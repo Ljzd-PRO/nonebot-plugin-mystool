@@ -276,6 +276,8 @@ class GenshinStatus:
     def fromWidget(self, widget_dict):
         """
         从iOS小组件API的返回数据初始化
+
+        :param widget_dict: iOS小组件API的返回数据
         """
         self.dict = widget_dict
 
@@ -308,6 +310,9 @@ class GenshinStatus:
     def fromBBS(self, bbs_dict, record: GameRecord):
         """
         从米游社内相关页面API的返回数据初始化
+
+        :param bbs_dict: 米游社内相关页面API的返回数据
+        :param record: 用户GameRecord对象
         """
         self.dict = bbs_dict
 
@@ -342,9 +347,8 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     """
     获取ActionTicket，返回str
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -394,9 +398,8 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
     """
     获取用户绑定的游戏账户信息，返回一个GameRecord对象的列表
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -433,8 +436,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     """
     获取米哈游游戏的详细信息，若返回`None`说明获取失败
 
-    参数:
-        `retry`: 是否允许重试
+    :param retry: 是否允许重试
     """
     headers = HEADERS_GAME_LIST.copy()
     info_list = []
@@ -473,9 +475,9 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
     """
     获取用户当前米游币数量
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -508,9 +510,8 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     """
     设备登录(deviceLogin)(适用于安卓设备)
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `1` 说明成功
     - 若返回 `-1` 说明用户登录失效
@@ -567,9 +568,8 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     """
     设备保存(saveDevice)(适用于安卓设备)
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `1` 说明成功
     - 若返回 `-1` 说明用户登录失效
@@ -625,9 +625,8 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
     """
     使用iOS小组件API获取原神实时便笺，返回`GenshinStatus`对象
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
@@ -674,9 +673,8 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
     """
     使用米游社内页面API获取原神实时便笺，返回`GenshinStatus`对象
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
