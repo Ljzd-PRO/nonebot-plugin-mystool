@@ -157,7 +157,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         state["account"] = list(
             filter(lambda account: account.phone == int(phone), user_account))[0]
     except IndexError:
-        myb_exchange_plan.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+        await myb_exchange_plan.reject('⚠️您发送的账号不在以上账号内，请重新发送')
 
 
 @myb_exchange_plan.got('content')
@@ -234,7 +234,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             await matcher.finish("您还没有配置兑换计划哦~")
 
     else:
-        matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__)
+        await matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__)
 
 
 @myb_exchange_plan.got('uid')
