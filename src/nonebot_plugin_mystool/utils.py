@@ -145,6 +145,7 @@ def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
 
     :param data: 可选，网络请求中需要发送的数据
     :param params: 可选，URL参数
+    :param platform: 可选，平台，ios或android
     """
     if data == "" and params == "":
         if platform == "ios":

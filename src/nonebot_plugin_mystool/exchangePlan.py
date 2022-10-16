@@ -87,7 +87,7 @@ myb_exchange_plan = on_command(
     aliases={conf.COMMAND_START + 'myb_exchange', conf.COMMAND_START + '米游币兑换', conf.COMMAND_START + '米游币兑换计划',
              conf.COMMAND_START + '兑换计划', conf.COMMAND_START + '兑换'}, priority=4, block=True)
 myb_exchange_plan.__help_name__ = "兑换"
-myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND}商品』获取。注意，不限兑换时间的商品将不会在此处显示。"
+myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.__help_msg__ = """\
 具体用法：
 {0}兑换 + <商品ID> ➢ 新增兑换计划
