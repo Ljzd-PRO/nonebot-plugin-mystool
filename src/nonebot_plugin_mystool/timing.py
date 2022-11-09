@@ -277,8 +277,9 @@ async def resin_check(bot: Bot, qq: str, isAuto: bool):
                         account.checkResin = False
                         UserData.set_account(account, qq, account.phone)
                     continue
-                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
-                continue
+                if not isAuto:
+                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
+                    continue
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not isAuto:
