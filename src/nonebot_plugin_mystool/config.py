@@ -134,7 +134,7 @@ class Config(BaseModel, extra=Extra.ignore):
 
     SIGN_TIME: str = "00:30"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
-    RESIN_CHECK_INTERVAL: int = 15
+    RESIN_CHECK_INTERVAL: int = 60
     '''每次检查原神便笺间隔，单位为分钟'''
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
