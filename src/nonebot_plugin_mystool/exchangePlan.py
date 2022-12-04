@@ -362,6 +362,12 @@ async def load_exchange_data():
                     # 若商品不存在则删除
                     account.exchange.remove(exchange_good)
                     UserData.set_account(account, qq, account.phone)
+                    continue
+                if not good_detail.time:
+                    # 若商品已下架则删除
+                    account.exchange.remove(exchange_good)
+                    UserData.set_account(account, qq, account.phone)
+                    continue
                 if good_detail.time < NtpTime.time():
                     # 若重启时兑换超时则删除该兑换
                     account.exchange.remove(exchange_good)
