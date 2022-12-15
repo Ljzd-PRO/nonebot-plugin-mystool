@@ -35,7 +35,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动游戏签到函数
     """
-    bot = get_bot()
+    bot = get_bot(event.self_id)
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
@@ -54,7 +54,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动米游币任务函数
     """
-    bot = get_bot()
+    bot = get_bot(event.self_id)
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
@@ -81,7 +81,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动查看原神便笺
     """
-    bot = get_bot()
+    bot = get_bot(event.self_id)
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, isAuto=False)
@@ -373,7 +373,7 @@ async def daily_schedule():
     """
     logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot()
+    bot = get_bot(event.self_id)
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
@@ -386,7 +386,7 @@ async def auto_resin_check():
     自动查看实时便笺
     """
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot()
+    bot = get_bot(event.self_id)
     for qq in qq_accounts:
         await resin_check(bot=bot, qq=qq, isAuto=True)
 

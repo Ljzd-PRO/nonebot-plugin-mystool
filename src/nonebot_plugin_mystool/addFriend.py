@@ -41,7 +41,7 @@ async def check_friend_list():
     检查用户是否仍在好友列表中，不在的话则删除
     """
     logger.info(f'{conf.LOG_HEAD}正在检查好友列表...')
-    bot: Bot = get_bot()
+    bot: bot = get_bot(event.self_id)
     friend_list = await bot.get_friend_list()
     user_list = UserData.read_all().keys()
     for user in user_list:

@@ -56,7 +56,7 @@ class ExchangeStart:
         for task in self.tasks:
             await task
 
-        bot: Bot = get_bot()
+        bot: bot = get_bot(event.self_id)
 
         success_tasks: List[Exchange] = list(filter(lambda task: isinstance(
             task.result(), tuple) and task.result()[0] == True, self.tasks))
