@@ -16,9 +16,6 @@
   <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/commits/" target="_blank">
     <img alt="最后提交" src="https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool?style=for-the-badge">
   </a>
-  <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/actions/workflows/codeql-analysis.yml" target="_blank">
-    <img alt="GitHub CodeQL 代码检查" src="https://img.shields.io/github/workflow/status/Ljzd-PRO/nonebot-plugin-mystool/CodeQL?logo=github&style=for-the-badge">
-  </a>
 </div>
 
 # mysTool - 米游社辅助工具插件
