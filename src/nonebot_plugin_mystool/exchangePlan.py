@@ -4,6 +4,7 @@
 import asyncio
 import os
 import time
+import io
 from copy import deepcopy
 from datetime import datetime
 from typing import List, Set
@@ -334,7 +335,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
         img_path = time.strftime(
             f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         if os.path.exists(img_path):
-            await get_good_image.finish(MessageSegment.image('file:///' + img_path))
+           imagebytes = io.BytesIO(open(img_path, 'rb').read()) 
+           await get_good_image.finish(MessageSegment.image(imagebytes))
         else:
             await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
             await generate_image(isAuto=False)
