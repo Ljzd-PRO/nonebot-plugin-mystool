@@ -310,7 +310,7 @@ class UserData:
         for key in userdata:
             userdata_json.setdefault(str(key), userdata[key])
         json.dump(userdata_json, open(USERDATA_PATH, "w",
-                                 encoding=ENCODING), indent=4, ensure_ascii=False)
+                                      encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
     def __create_user(cls, userdata: Dict[int, dict], qq: int) -> dict:

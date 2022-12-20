@@ -333,8 +333,8 @@ class GenshinStatus:
             elif status['transformer']['recovery_time']['reached']:
                 self.transformer = '已准备就绪'
             else:
-                self.transformer = f"{status['transformer']['recovery_time']['Day']}天"\
-                    f"{status['transformer']['recovery_time']['Hour']}小时{status['transformer']['recovery_time']['Minute']}分钟"
+                self.transformer = f"{status['transformer']['recovery_time']['Day']}天" \
+                                   f"{status['transformer']['recovery_time']['Hour']}小时{status['transformer']['recovery_time']['Minute']}分钟"
 
             return self
         except KeyError or TypeError:
