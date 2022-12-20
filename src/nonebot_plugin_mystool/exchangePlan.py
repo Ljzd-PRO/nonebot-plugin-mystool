@@ -2,15 +2,15 @@
 ### 米游社商品兑换前端以及计划任务相关
 """
 import asyncio
+import io
 import os
 import time
-import io
 from copy import deepcopy
 from datetime import datetime
 from typing import List, Set
 
 from nonebot import get_bot, get_driver, on_command
-from nonebot.adapters.onebot.v11 import (Bot, MessageEvent, MessageSegment,
+from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
                                          PrivateMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
@@ -46,7 +46,7 @@ class ExchangeStart:
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
 
-    async def start(self):
+    async def start(self, event: PrivateMessageEvent):
         """
         执行兑换
         """
@@ -57,9 +57,9 @@ class ExchangeStart:
         for task in self.tasks:
             await task
 
-        bot: bot = get_bot(event.self_id)
+        bot = get_bot(str(event.self_id))
 
-        success_tasks: List[Exchange] = list(filter(lambda task: isinstance(
+        success_tasks: List[asyncio.Task] = list(filter(lambda task: isinstance(
             task.result(), tuple) and task.result()[0] == True, self.tasks))
         if success_tasks:
             await bot.send_private_msg(
@@ -113,7 +113,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=C
     if args:
         matcher.set_arg("content", args)
         if len(user_account) == 1:
-            matcher.set_arg('phone', str(user_account[0].phone))
+            matcher.set_arg('phone', Message(str(user_account[0].phone)))
         else:
             phones = [str(user_account[i].phone)
                       for i in range(len(user_account))]

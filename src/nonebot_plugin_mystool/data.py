@@ -247,11 +247,15 @@ class UserData:
     '''QQ用户数据样例'''
 
     @staticmethod
-    def read_all() -> Dict[str, dict]:
+    def read_all() -> Dict[int, dict]:
         """
         以dict形式获取userdata.json
         """
-        return json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
+        origin = json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
+        userdata = {}
+        for key in userdata:
+            userdata.setdefault(int(key), origin[key])
+        return userdata
 
     @classmethod
     def read_account(cls, qq: int, by: Union[int, str]):
@@ -267,7 +271,7 @@ class UserData:
         else:
             by_type = "phone"
         try:
-            for account in cls.read_all()[str(qq)]["accounts"]:
+            for account in cls.read_all()[qq]["accounts"]:
                 if account[by_type] == by:
                     userAccount = UserAccount()
                     userAccount.get(account)
@@ -286,7 +290,7 @@ class UserData:
         """
         accounts = []
         try:
-            accounts_raw = cls.read_all()[str(qq)]["accounts"]
+            accounts_raw = cls.read_all()[qq]["accounts"]
             for account_raw in accounts_raw:
                 account = UserAccount()
                 account.get(account_raw)
@@ -296,21 +300,24 @@ class UserData:
         return accounts
 
     @staticmethod
-    def __set_all(userdata: Dict[str, dict]):
+    def __set_all(userdata: Dict[int, dict]):
         """
         写入用户数据文件(整体覆盖)
 
         :param userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(USERDATA_PATH, "w",
+        userdata_json = {}
+        for key in userdata:
+            userdata_json.setdefault(str(key), userdata[key])
+        json.dump(userdata_json, open(USERDATA_PATH, "w",
                                  encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
-    def __create_user(cls, userdata: Dict[str, dict], qq: int) -> dict:
+    def __create_user(cls, userdata: Dict[int, dict], qq: int) -> dict:
         """
         创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(str(qq), deepcopy(cls.USER_SAMPLE))
+        userdata.setdefault(qq, deepcopy(cls.USER_SAMPLE))
         return userdata
 
     @staticmethod
@@ -335,7 +342,7 @@ class UserData:
         """
         userdata = cls.read_all()
         try:
-            userdata.pop(str(qq))
+            userdata.pop(qq)
         except KeyError:
             return False
         cls.__set_all(userdata)
@@ -360,9 +367,9 @@ class UserData:
             by_type = "phone"
             by = account.phone
 
-        for num in range(0, len(userdata[str(qq)]["accounts"])):
-            if userdata[str(qq)]["accounts"][num][by_type] == by:
-                userdata[str(qq)]["accounts"][num] = account_raw
+        for num in range(0, len(userdata[qq]["accounts"])):
+            if userdata[qq]["accounts"][num][by_type] == by:
+                userdata[qq]["accounts"][num] = account_raw
                 cls.__set_all(userdata)
                 return
 
@@ -383,7 +390,7 @@ class UserData:
             by = str(by)
         userdata = cls.read_all()
         try:
-            account_list: List[dict] = userdata[str(qq)]["accounts"]
+            account_list: List[dict] = userdata[qq]["accounts"]
             account_list.remove(
                 list(filter(lambda account: account[by_type] == by, account_list))[0])
         except KeyError or IndexError:
@@ -412,7 +419,7 @@ class UserData:
             userdata = cls.__create_user(userdata, qq)
 
         def action() -> bool:
-            for account in userdata[str(qq)]["accounts"]:
+            for account in userdata[qq]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
                     for item in ("login_uid", "stuid", "ltuid", "account_id"):
@@ -436,7 +443,6 @@ class UserData:
         :return: 是否开启通知
         """
         userdata = cls.read_all()
-        qq = str(qq)
         if qq not in userdata:
             return None
         elif cls.OPTION_NOTICE not in userdata[qq]:
@@ -459,7 +465,6 @@ class UserData:
             `False`: 写入失败，可能是不存在用户
         """
         userdata = cls.read_all()
-        qq = str(qq)
         try:
             if cls.OPTION_NOTICE not in userdata[qq]:
                 userdata[qq].setdefault(cls.OPTION_NOTICE, isNotice)

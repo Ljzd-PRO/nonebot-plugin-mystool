@@ -381,9 +381,9 @@ class Exchange:
 
                     record_list: List[GameRecord] = await get_game_record(self.account)
                     if record_list == -1:
-                        self.result - 1
+                        self.result = -1
                     elif isinstance(record_list, int):
-                        self.result - 6
+                        self.result = -6
 
                     for record in record_list:
                         if record.uid == self.gameUID:

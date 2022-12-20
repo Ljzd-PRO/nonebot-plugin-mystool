@@ -155,18 +155,18 @@ class GameRecord(BaseData):
         return self.dict["region_name"]
 
     @property
-    def gameID(self) -> str:
+    def gameID(self) -> int:
         """
         游戏ID
         """
-        return self.dict["game_id"]
+        return int(self.dict["game_id"])
 
     @property
-    def level(self) -> str:
+    def level(self) -> int:
         """
         用户游戏等级
         """
-        return self.dict["level"]
+        return int(self.dict["level"])
 
     @property
     def region(self) -> str:
@@ -669,7 +669,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
         return -3
 
 
-async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3]]:
+async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[GenshinStatus, Literal[-1, -2, -3, -4]]:
     """
     使用米游社内页面API获取原神实时便笺，返回`GenshinStatus`对象
 

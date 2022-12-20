@@ -87,7 +87,7 @@ async def _(event: PrivateMessageEvent):
     await resin_check(bot=bot, qq=event.user_id, isAuto=False)
 
 
-async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
+async def perform_game_sign(bot: Bot, qq: int, isAuto: bool):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -132,19 +132,20 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                             message = "⚠️账户 {0} 🎮『{1}』签到时服务器返回登录失效，请尝试重新登录绑定账户".format(
                                 account.phone, game_name)
                         elif sign_flag == -5:
-                            if UserData.isNotice(qq):
-                                message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请尝试使用命令『/账户设置』更改设备平台，若仍失败请手动前往米游社签到".format(
-                                    account.phone, game_name)
+                            message = "⚠️账户 {0} 🎮『{1}』签到时可能遇到验证码拦截，请尝试使用命令『/账户设置』更改设备平台，若仍失败请手动前往米游社签到".format(
+                                account.phone, game_name)
                         else:
                             message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(
                                 account.phone, game_name)
-                        await bot.send_msg(
-                            message_type="private",
-                            user_id=qq,
-                            message=message
-                        )
+                        if UserData.isNotice(qq):
+                            await bot.send_msg(
+                                message_type="private",
+                                user_id=qq,
+                                message=message
+                            )
                         await asyncio.sleep(conf.SLEEP_TIME)
                         continue
+                    await asyncio.sleep(conf.SLEEP_TIME)
                 elif isinstance(sign_info, int):
                     if UserData.isNotice(qq) or not isAuto:
                         await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
@@ -186,7 +187,7 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                 await asyncio.sleep(conf.SLEEP_TIME)
 
 
-async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
+async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
@@ -252,7 +253,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 )
 
 
-async def resin_check(bot: Bot, qq: str, isAuto: bool):
+async def resin_check(bot: Bot, qq: int, isAuto: bool):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
@@ -367,13 +368,13 @@ async def daily_update():
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
                                                     minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
-async def daily_schedule():
+async def daily_schedule(event: PrivateMessageEvent):
     """
     自动米游币任务、游戏签到函数
     """
     logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot(event.self_id)
+    bot = get_bot(str(event.self_id))
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
@@ -381,12 +382,12 @@ async def daily_schedule():
 
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
-async def auto_resin_check():
+async def auto_resin_check(event: PrivateMessageEvent):
     """
     自动查看实时便笺
     """
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot(event.self_id)
+    bot = get_bot(str(event.self_id))
     for qq in qq_accounts:
         await resin_check(bot=bot, qq=qq, isAuto=True)
 
