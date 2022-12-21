@@ -59,9 +59,7 @@ async def check_friend_list_on_connect(bot: Bot):
     return await check_friend_list(bot)
 
 
-async def check_friend_list_scheduler(event: PrivateMessageEvent):
+@scheduler.add_job(id='check_friend', replace_existing=True,
+                   trigger="cron", hour='23', minute='59')
+async def check_friend_list_on_connect(event: PrivateMessageEvent):
     return await check_friend_list(event)
-
-
-scheduler.add_job(id='check_friend', replace_existing=True,
-                  trigger="cron", hour='23', minute='59', func=check_friend_list_scheduler)
