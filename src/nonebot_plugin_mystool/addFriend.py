@@ -3,9 +3,9 @@
 """
 import asyncio
 
-from nonebot import get_bot, get_driver, on_request
+from nonebot import get_driver, on_request
 from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
-                                         GroupRequestEvent, RequestEvent, PrivateMessageEvent)
+                                         GroupRequestEvent, RequestEvent)
 from nonebot_plugin_apscheduler import scheduler
 
 from .config import mysTool_config as conf
@@ -36,6 +36,7 @@ async def _(bot: Bot, event: RequestEvent):
         await bot.send_group_msg(group_id=event.group_id, message=f'欢迎使用米游社小助手，请添加小助手为好友后，发送『{command}』帮助 查看更多用法哦~')
 
 
+@driver.on_bot_connect
 async def check_friend_list(bot: Bot):
     """
     检查用户是否仍在好友列表中，不在的话则删除
@@ -49,6 +50,7 @@ async def check_friend_list(bot: Bot):
             UserData.del_user(user)
 
 
-driver.on_bot_connect(check_friend_list)
-scheduler.add_job(id='check_friend', replace_existing=True,
-                  trigger="cron", hour='23', minute='59', func=check_friend_list)
+@driver.on_bot_connect
+async def _(bot: Bot):
+    scheduler.add_job(id='check_friend', replace_existing=True,
+                      trigger="cron", hour='23', minute='59', func=check_friend_list, args=(bot,))
