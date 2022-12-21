@@ -46,7 +46,7 @@ class ExchangeStart:
         for _ in range(thread):
             self.plans.append(deepcopy(exchangePlan))
 
-    async def start(self, event: PrivateMessageEvent):
+    async def start(self):
         """
         执行兑换
         """
@@ -57,7 +57,7 @@ class ExchangeStart:
         for task in self.tasks:
             await task
 
-        bot = get_bot(str(event.self_id))
+        bot = get_bot()
 
         success_tasks: List[asyncio.Task] = list(filter(lambda task: isinstance(
             task.result(), tuple) and task.result()[0] == True, self.tasks))

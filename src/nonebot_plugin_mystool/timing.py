@@ -368,13 +368,13 @@ async def daily_update():
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
                                                     minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
-async def daily_schedule(event: PrivateMessageEvent):
+async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
     logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot(str(event.self_id))
+    bot = get_bot()
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
@@ -382,12 +382,12 @@ async def daily_schedule(event: PrivateMessageEvent):
 
 
 @nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
-async def auto_resin_check(event: PrivateMessageEvent):
+async def auto_resin_check():
     """
     自动查看实时便笺
     """
     qq_accounts = UserData.read_all().keys()
-    bot = get_bot(str(event.self_id))
+    bot = get_bot()
     for qq in qq_accounts:
         await resin_check(bot=bot, qq=qq, isAuto=True)
 
