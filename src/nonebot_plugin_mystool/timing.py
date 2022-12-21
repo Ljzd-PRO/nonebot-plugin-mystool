@@ -35,7 +35,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动游戏签到函数
     """
-    bot = get_bot(event.self_id)
+    bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
@@ -54,7 +54,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动米游币任务函数
     """
-    bot = get_bot(event.self_id)
+    bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
@@ -81,7 +81,7 @@ async def _(event: PrivateMessageEvent):
     """
     手动查看原神便笺
     """
-    bot = get_bot(event.self_id)
+    bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, isAuto=False)

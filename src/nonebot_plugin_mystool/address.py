@@ -92,7 +92,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     else:
         await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', str(user_account[0].phone))
+        matcher.set_arg('phone', Message(str(user_account[0].phone)))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
