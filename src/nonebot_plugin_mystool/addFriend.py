@@ -36,12 +36,11 @@ async def _(bot: Bot, event: RequestEvent):
         await bot.send_group_msg(group_id=event.group_id, message=f'欢迎使用米游社小助手，请添加小助手为好友后，发送『{command}』帮助 查看更多用法哦~')
 
 
-async def check_friend_list(event: PrivateMessageEvent):
+async def check_friend_list(bot: Bot):
     """
     检查用户是否仍在好友列表中，不在的话则删除
     """
     logger.info(f'{conf.LOG_HEAD}正在检查好友列表...')
-    bot = get_bot(str(event.self_id))
     friend_list = await bot.get_friend_list()
     user_list = UserData.read_all().keys()
     for user in user_list:
