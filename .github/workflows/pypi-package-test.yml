@@ -1,4 +1,4 @@
-name: Check if the project is ready for PyPI
+name: PyPI package test
 
 on:
   push:
