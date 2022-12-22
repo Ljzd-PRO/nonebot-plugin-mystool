@@ -6,7 +6,7 @@ import os
 import time
 from typing import List
 
-import nonebot_plugin_apscheduler
+from nonebot_plugin_apscheduler import scheduler
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
@@ -358,7 +358,7 @@ async def generate_image(isAuto=True):
             logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
+@scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 async def daily_update():
     """
     每日图片生成函数
@@ -367,7 +367,7 @@ async def daily_update():
     await generate_image()
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
+@scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
                                                     minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
 async def daily_schedule():
     """
@@ -382,7 +382,7 @@ async def daily_schedule():
     logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
+@scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
 async def auto_resin_check():
     """
     自动查看实时便笺
