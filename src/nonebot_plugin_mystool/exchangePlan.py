@@ -378,13 +378,7 @@ async def load_exchange_data():
                     UserData.set_account(account, qq, account.phone)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
-                    if account.phone == "18159299081":
-                        scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
-                                          trigger='date', func=ExchangeStart(
-                                account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
-                                          next_run_time=datetime.fromtimestamp(1671714471))
-                    else:
-                        scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
-                                          trigger='date', func=ExchangeStart(
-                                account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
-                                          next_run_time=datetime.fromtimestamp(good_detail.time))
+                    scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
+                                      trigger='date', func=ExchangeStart(
+                            account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
+                                      next_run_time=datetime.fromtimestamp(good_detail.time))

@@ -14,7 +14,7 @@ from .data import UserAccount
 from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
                     generateDS, logger)
 
-URL_SIGN = "https://bbs-api.miyoushe.com/apihub/app/api/signIn"
+URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.miyoushe.com/post/api/feeds/posts?fresh_action=1&gids={}&is_first_initialize=false" \
                "&last_id= "
 URL_READ = "https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={}"
@@ -62,7 +62,9 @@ HEADERS_GET_POSTS = {
     "User-Agent": conf.device.USER_AGENT_OTHER,
     "Connection": "keep-alive"
 }
-HEADERS_LIKE = {
+
+# 点赞和签到使用旧的API
+HEADERS_OLD = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
     'User-Agent': conf.device.USER_AGENT_ANDROID_OTHER,
@@ -201,8 +203,10 @@ class Action:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    self.headers["DS"] = generateDS(data)
-                    res = await self.client.post(URL_SIGN, headers=self.headers, json=data, timeout=conf.TIME_OUT)
+                    headers = HEADERS_OLD.copy()
+                    headers["x-rpc-device_id"] = self.account.deviceID_2
+                    headers["DS"] = generateDS(data)
+                    res = await self.client.post(URL_SIGN, headers=headers, json=data, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 用户 {self.account.phone} 登录失效")
@@ -213,7 +217,7 @@ class Action:
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: DS无效，正在在线获取salt以重新生成...")
                         conf.SALT_DATA = await Subscribe().get(
                             ("Config", "SALT_DATA"), index)
-                        self.headers["DS"] = generateDS(data)
+                        headers["DS"] = generateDS(data)
                         index += 1
                     return res.json()["data"]["points"]
         except KeyError and ValueError and TypeError:
@@ -355,7 +359,7 @@ class Action:
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                                 wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
-                            headers = HEADERS_LIKE.copy()
+                            headers = HEADERS_OLD.copy()
                             headers["x-rpc-device_id"] = self.account.deviceID_2
                             headers["DS"] = generateDS(platform="android")
                             res = await self.client.post(URL_LIKE, headers=headers,
