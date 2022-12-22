@@ -487,7 +487,7 @@ def create_files():
                 raise ValueError
             else:
                 return
-        except json.JSONDecodeError or ValueError:
+        except (json.JSONDecodeError, ValueError):
             logger.warning(f"{conf.LOG_HEAD}用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
