@@ -134,7 +134,7 @@ class BaseData:
                 if func.startswith("__"):
                     continue
                 getattr(self, func)
-        except KeyError or TypeError:
+        except KeyError and TypeError and ValueError:
             logger.error(f"{conf.LOG_HEAD}{error_info}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
@@ -254,23 +254,23 @@ class GenshinStatus:
     """
 
     def __init__(self) -> None:
-        self.name = None
+        self.name: str = ""
         '''游戏昵称'''
-        self.gameUID = None
+        self.gameUID: str = ""
         '''游戏UID'''
-        self.region = None
+        self.region: str = ""
         '''游戏区服(如 "cn_gf01")'''
-        self.level = None
+        self.level: int = -1
         '''游戏等级'''
-        self.resin = None
+        self.resin: int = -1
         '''当前树脂数量'''
-        self.expedition = None
+        self.expedition: Tuple[int] = (-1,)
         '''探索派遣 `(进行中, 最多派遣数)`'''
-        self.task = None
+        self.task: int = -1
         '''每日委托完成数'''
-        self.coin = None
+        self.coin: Tuple[int] = (-1,)
         '''洞天财瓮 `(未收取, 最多可容纳宝钱数)`'''
-        self.transformer = None
+        self.transformer: str = ""
         '''参量质变仪'''
 
     def fromWidget(self, widget_dict):
@@ -303,7 +303,7 @@ class GenshinStatus:
                     self.coin = tuple(int(value) for value in data)
 
             return self
-        except KeyError or TypeError:
+        except KeyError and TypeError and ValueError:
             logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
@@ -337,7 +337,7 @@ class GenshinStatus:
                                    f"{status['transformer']['recovery_time']['Hour']}小时{status['transformer']['recovery_time']['Minute']}分钟"
 
             return self
-        except KeyError or TypeError:
+        except KeyError and TypeError and ValueError:
             logger.error(
                 f"{conf.LOG_HEAD}原神实时便笺数据 - 从米游社页面接口请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -383,7 +383,7 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                     index += 1
                     headers["DS"] = generateDS()
                 return res.json()["data"]["ticket"]
-    except KeyError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -421,7 +421,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
                 for record in res.json()["data"]["list"]:
                     record_list.append(GameRecord(record))
                 return record_list
-    except KeyError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}获取用户游戏数据 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -462,7 +462,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                 for info in res.json()["data"]["list"]:
                     info_list.append(GameInfo(info))
                 return info_list
-    except KeyError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}获取游戏信息 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -495,7 +495,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Union[int, L
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 return int(res.json()["data"]["points"])
-    except KeyError or ValueError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}获取用户米游币 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -553,7 +553,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                     raise ValueError
                 else:
                     return 1
-    except KeyError or ValueError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}设备登录 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -610,7 +610,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     raise ValueError
                 else:
                     return 1
-    except KeyError or ValueError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}设备保存 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -658,7 +658,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                 if not status:
                     raise KeyError
                 return status
-    except KeyError or ValueError:
+    except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}原神实时便笺(小组件) - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -719,7 +719,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                         if not status:
                             raise KeyError
                         return status
-            except KeyError or ValueError:
+            except KeyError and TypeError and ValueError:
                 logger.error(f"{conf.LOG_HEAD}原神实时便笺 - 服务器没有正确返回")
                 logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                 logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
