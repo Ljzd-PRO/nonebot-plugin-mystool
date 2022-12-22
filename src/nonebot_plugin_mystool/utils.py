@@ -211,7 +211,7 @@ def check_login(response: str):
                 if response.find(string) != -1:
                     return False
             return True
-    except json.JSONDecodeError or KeyError:
+    except (json.JSONDecodeError, KeyError):
         return True
 
 
