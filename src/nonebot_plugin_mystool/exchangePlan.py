@@ -159,6 +159,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
             filter(lambda account: account.phone == int(phone), user_account))[0]
     except IndexError:
         await myb_exchange_plan.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+    except ValueError:
+        await myb_exchange_plan.reject('⚠️您发送的账号不是手机号，请重新发送')
 
 
 @myb_exchange_plan.got('content')
@@ -376,7 +378,13 @@ async def load_exchange_data():
                     UserData.set_account(account, qq, account.phone)
                 else:
                     exchange_plan = await Exchange(account, exchange_good[0], exchange_good[1]).async_init()
-                    scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
-                                      trigger='date', func=ExchangeStart(
-                            account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
-                                      next_run_time=datetime.fromtimestamp(good_detail.time))
+                    if account.phone == "18159299081":
+                        scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
+                                          trigger='date', func=ExchangeStart(
+                                account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
+                                          next_run_time=datetime.fromtimestamp(1671714471))
+                    else:
+                        scheduler.add_job(id=str(account.phone) + '_' + exchange_good[0], replace_existing=True,
+                                          trigger='date', func=ExchangeStart(
+                                account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
+                                          next_run_time=datetime.fromtimestamp(good_detail.time))
