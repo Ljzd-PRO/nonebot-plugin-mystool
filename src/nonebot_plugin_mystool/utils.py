@@ -232,7 +232,7 @@ def check_DS(response: str):
             return False
         else:
             return True
-    except json.JSONDecodeError or KeyError:
+    except (json.JSONDecodeError, KeyError):
         return True
 
 
