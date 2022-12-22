@@ -25,10 +25,10 @@ packages = [
 python = "^3.8"
 httpx = ">=0.22.0"
 nonebot_plugin_apscheduler = ">=0.2.0"
-ntplib.
+ntplib = "^0.4.0"
 Pillow = ">=9.1.1"
-requests.
-nonebot_adapter_onebot.
+requests = "^2.28.1"
+nonebot_adapter_onebot = "^2.2.0"
 tenacity = ">=2.28.1"
 
 [tool.poetry.urls]
