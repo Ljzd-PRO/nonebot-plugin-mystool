@@ -6,10 +6,10 @@ import os
 import time
 from typing import List
 
-from nonebot_plugin_apscheduler import scheduler
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
+from nonebot_plugin_apscheduler import scheduler
 
 from .bbsAPI import GameInfo, GameRecord, genshin_status_bbs, get_game_record
 from .config import mysTool_config as conf
@@ -368,7 +368,7 @@ async def daily_update():
 
 
 @scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
-                                                    minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
+                         minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
