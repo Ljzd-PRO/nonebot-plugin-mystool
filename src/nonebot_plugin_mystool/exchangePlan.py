@@ -159,6 +159,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
             filter(lambda account: account.phone == int(phone), user_account))[0]
     except IndexError:
         await myb_exchange_plan.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+    except ValueError:
+        await myb_exchange_plan.reject('⚠️您发送的账号不是手机号，请重新发送')
 
 
 @myb_exchange_plan.got('content')
