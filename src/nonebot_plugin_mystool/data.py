@@ -393,7 +393,7 @@ class UserData:
             account_list: List[dict] = userdata[qq]["accounts"]
             account_list.remove(
                 list(filter(lambda account: account[by_type] == by, account_list))[0])
-        except KeyError or IndexError:
+        except (KeyError, IndexError):
             return False
         cls.__set_all(userdata)
         return True
