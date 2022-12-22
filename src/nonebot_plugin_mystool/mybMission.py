@@ -63,7 +63,7 @@ HEADERS_GET_POSTS = {
     "Connection": "keep-alive"
 }
 
-# 点赞和签到使用旧的API
+# 旧的API
 HEADERS_OLD = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
@@ -419,17 +419,28 @@ class Action:
         if postID_list is None:
             return -5
         try:
+            index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    self.headers["DS"] = generateDS(platform="android")
-                    res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=self.headers,
+                    headers = HEADERS_OLD.copy()
+                    headers["x-rpc-device_id"] = self.account.deviceID_2
+                    headers["DS"] = generateDS(platform="android")
+                    res = await self.client.get(URL_SHARE.format(postID_list[0]), headers=headers,
                                                 timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 分享: 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
+                    if not check_DS(res.text):
+                        logger.info(
+                            f"{conf.LOG_HEAD}米游币任务 - 分享: DS无效，正在在线获取salt以重新生成...")
+                        conf.SALT_ANDROID = await Subscribe().get(
+                            ("Config", "SALT_ANDROID"), index)
+                        headers["DS"] = generateDS(
+                            platform="android")
+                        index += 1
                     if res.json()["message"] == "帖子不存在":
                         continue
                     elif res.json()["message"] != "OK":
