@@ -17,8 +17,8 @@ URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySTo
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
 URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
-URL_DEVICE_LOGIN = "https://bbs-api.mihoyo.com/apihub/api/deviceLogin"
-URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
+URL_DEVICE_LOGIN = "https://bbs-api.miyoushe.com/apihub/api/deviceLogin"
+URL_DEVICE_SAVE = "https://bbs-api.miyoushe.com/apihub/api/saveDevice"
 URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
 URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id={game_uid}&server={region}"
 
@@ -89,7 +89,7 @@ HEADERS_DEVICE = {
     "x-rpc-device_id": None,
     "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_ANDROID,
     "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_ANDROID,
-    "Referer": "https://app.mihoyo.com",
+    "Referer": "bbs-api.miyoushe.com",
     "Content-Type": "application/json; charset=UTF-8",
     "Host": "bbs-api.mihoyo.com",
     "Connection": "Keep-Alive",

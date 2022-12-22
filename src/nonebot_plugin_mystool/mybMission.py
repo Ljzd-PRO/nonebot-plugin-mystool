@@ -24,6 +24,7 @@ URL_MISSION = "https://api-takumi.mihoyo.com/apihub/wapi/getMissions?point_sn=my
 URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsState?point_sn=myb"
 HEADERS = {
     "Host": "bbs-api.miyoushe.com",
+    "Referer": "https://app.mihoyo.com",
     'User-Agent': conf.device.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "x-rpc-channel": conf.device.X_RPC_CHANNEL_ANDROID,
@@ -60,6 +61,21 @@ HEADERS_GET_POSTS = {
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "User-Agent": conf.device.USER_AGENT_OTHER,
     "Connection": "keep-alive"
+}
+HEADERS_LIKE = {
+    "Host": "bbs-api.mihoyo.com",
+    "Referer": "https://app.mihoyo.com",
+    'User-Agent': conf.device.USER_AGENT_ANDROID_OTHER,
+    "x-rpc-app_version": "2.36.1",
+    "x-rpc-channel": conf.device.X_RPC_CHANNEL_ANDROID,
+    "x-rpc-client_type": "2",
+    "x-rpc-device_id": None,
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION_ANDROID,
+    "Accept-Encoding": "gzip",
+    "Connection": "Keep-Alive",
+    "DS": None
 }
 
 
@@ -339,8 +355,10 @@ class Action:
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                                 wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
-                            self.headers["DS"] = generateDS(platform="android")
-                            res = await self.client.post(URL_LIKE, headers=self.headers,
+                            headers = HEADERS_LIKE.copy()
+                            headers["x-rpc-device_id"] = self.account.deviceID_2
+                            headers["DS"] = generateDS(platform="android")
+                            res = await self.client.post(URL_LIKE, headers=headers,
                                                          json={'is_cancel': False, 'post_id': postID},
                                                          timeout=conf.TIME_OUT)
                             if not check_login(res.text):
@@ -354,7 +372,7 @@ class Action:
                                     f"{conf.LOG_HEAD}米游币任务 - 点赞: DS无效，正在在线获取salt以重新生成...")
                                 conf.SALT_ANDROID = await Subscribe().get(
                                     ("Config", "SALT_ANDROID"), index)
-                                self.headers["DS"] = generateDS(
+                                headers["DS"] = generateDS(
                                     platform="android")
                                 index += 1
                             if res.json()["message"] == "帖子不存在":
