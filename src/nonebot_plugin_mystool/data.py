@@ -253,7 +253,7 @@ class UserData:
         """
         origin = json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
         userdata = {}
-        for key in userdata:
+        for key in origin:
             userdata.setdefault(int(key), origin[key])
         return userdata
 
