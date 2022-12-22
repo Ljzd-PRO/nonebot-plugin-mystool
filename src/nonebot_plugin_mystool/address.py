@@ -7,10 +7,9 @@ from typing import List, Literal, Union
 
 import httpx
 import tenacity
-from nonebot import on_command, get_driver
+from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
-from nonebot.log import logger
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
@@ -33,49 +32,51 @@ HEADERS = {
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
+
 async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
     """
     获取用户的地址数据
 
-    参数:
-        `account`: 用户账户数据
-        `retry`: 是否允许重试
-
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
     - 若返回 `-3` 说明请求失败
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
     """
     address_list = []
     headers = HEADERS.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL.format(
                         round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
-                        logger.info(conf.LOG_HEAD +
-                                    "获取地址数据 - 用户 {} 登录失效".format(account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                        logger.info(
+                            f"{conf.LOG_HEAD}获取地址数据 - 用户 {account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
                 for address in res.json()["data"]["list"]:
                     address_list.append(Address(address))
     except KeyError:
-        logger.error(conf.LOG_HEAD + "获取地址数据 - 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 服务器没有正确返回")
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -2
-    except:
-        logger.error(conf.LOG_HEAD + "获取地址数据 - 请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except Exception:
+        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 请求失败")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
         return -3
     return address_list
 
 
 get_address = on_command(
-    conf.COMMAND_START+'地址', aliases={conf.COMMAND_START+'地址填写', conf.COMMAND_START+'地址', conf.COMMAND_START+'地址获取'}, priority=4, block=True)
+    conf.COMMAND_START + '地址',
+    aliases={conf.COMMAND_START + '地址填写', conf.COMMAND_START + '地址', conf.COMMAND_START + '地址获取'}, priority=4,
+    block=True)
 
 get_address.__help_name__ = '地址'
 get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
@@ -91,7 +92,7 @@ async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, sta
     else:
         await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', str(user_account[0].phone))
+        matcher.set_arg('phone', Message(str(user_account[0].phone)))
     else:
         phones = [str(user_account[i].phone) for i in range(len(user_account))]
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
@@ -111,7 +112,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone in phones:
         account = UserData.read_account(qq_account, int(phone))
     else:
-        get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+        await get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
 
     state['address_list']: List[Address] = await get(account)

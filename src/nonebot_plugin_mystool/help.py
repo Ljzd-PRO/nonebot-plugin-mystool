@@ -2,7 +2,6 @@
 ### 帮助相关
 #### 参考了`nonebot-plugin-help`
 """
-import nonebot.plugin
 from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
@@ -10,12 +9,12 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
+from .utils import PLUGIN
 
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
 
-helper = on_command(conf.COMMAND_START+"help", priority=1,
-                    aliases={conf.COMMAND_START+"帮助"})
+helper = on_command(conf.COMMAND_START + "help", priority=1,
+                    aliases={conf.COMMAND_START + "帮助"})
 
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
@@ -39,9 +38,7 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Mess
             PLUGIN.metadata.name +
             PLUGIN.metadata.description +
             "\n具体用法：\n" +
-            PLUGIN.metadata.usage.format(HEAD=COMMAND) +
-            '\n\n' +
-            PLUGIN.metadata.extra)
+            PLUGIN.metadata.usage.format(HEAD=COMMAND))
 
 
 @helper.got('content')
@@ -53,7 +50,7 @@ async def get_result(event: MessageEvent, content: Message = Arg()):
 
     # 相似词
     if arg == '登陆':
-        arg == '登录'
+        arg = '登录'
 
     matchers = PLUGIN.matcher
     for matcher in matchers:

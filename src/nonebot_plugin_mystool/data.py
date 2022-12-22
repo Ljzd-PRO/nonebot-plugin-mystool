@@ -1,14 +1,12 @@
 """
 ### 用户数据相关
 """
-from copy import deepcopy
 import json
 import traceback
+from copy import deepcopy
 from typing import Dict, List, Literal, Tuple, Union
 
-import nonebot
 import nonebot.log
-from nonebot.log import logger
 
 from .config import PATH
 from .config import mysTool_config as conf
@@ -25,16 +23,42 @@ class Address:
     地址数据
     """
 
-    def __init__(self, adress_dict: dict) -> None:
-        self.address_dict = adress_dict
-        try:
-            for func in dir(Address):
-                if func.startswith("__"):
-                    continue
-                getattr(self, func)
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "地址数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    def __init__(self, src: Union[dict, int]) -> None:
+        """
+        初始化地址数据
+
+        :param src: 可为地址数据dict或地址ID(int)
+        """
+        if isinstance(src, dict):
+            self.address_dict = src
+            try:
+                for func in dir(Address):
+                    if func.startswith("__"):
+                        continue
+                    getattr(self, func)
+            except KeyError:
+                logger.error(f"{conf.LOG_HEAD}地址数据 - 初始化对象: dict数据不正确")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+        elif isinstance(src, str):
+            self.address_dict = {
+                "id": src,
+                "connect_name": None,
+                "connect_areacode": None,
+                "connect_mobile": None,
+                "country": None,
+                "province": None,
+                "city": None,
+                "county": None,
+                "province_name": None,
+                "city_name": None,
+                "county_name": None,
+                "addr_ext": None,
+                "is_default": None,
+                "status": None
+            }
+        else:
+            logger.error(
+                f"{conf.LOG_HEAD}地址数据 - 初始化对象: 传入数据不正确(传入了{str(type(src))})")
 
     @property
     def province(self) -> str:
@@ -79,7 +103,7 @@ class Address:
         return self.address_dict["connect_name"]
 
     @property
-    def addressID(self) -> int:
+    def addressID(self) -> str:
         """
         地址ID
         """
@@ -145,6 +169,8 @@ class UserAccount:
         self.missionGame: List[Literal["ys", "bh3",
                                        "bh2", "wd", "bbs", "xq", "jql"]] = ["ys"]
         '''在哪些板块执行米游币任务计划'''
+        self.checkResin: bool = True
+        '''是否开启原神树脂提醒'''
 
     def get(self, account: dict):
         # 适配旧版本的dict
@@ -178,6 +204,7 @@ class UserAccount:
         self.platform: Literal["ios", "android"] = account["platform"]
         self.missionGame: List[Literal["ys", "bh3", "bh2",
                                        "wd", "bbs", "xq", "jql"]] = account["missionGame"]
+        self.checkResin: bool = account["checkResin"]
 
         exchange = []
         for plan in account["exchange"]:
@@ -198,10 +225,13 @@ class UserAccount:
             "gameSign": self.gameSign,
             "exchange": self.exchange,
             "platform": self.platform,
-            "missionGame": self.missionGame
+            "missionGame": self.missionGame,
+            "checkResin": self.checkResin
         }
         if isinstance(self.address, Address):
-            data["address"] = self.address.address_dict
+            data["address"] = self.address.addressID
+        elif isinstance(self.address, int):
+            data["address"] = self.address
         return data
 
 
@@ -217,27 +247,31 @@ class UserData:
     '''QQ用户数据样例'''
 
     @staticmethod
-    def read_all() -> Dict[str, dict]:
+    def read_all() -> Dict[int, dict]:
         """
         以dict形式获取userdata.json
         """
-        return json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
+        origin = json.load(open(USERDATA_PATH, encoding=conf.ENCODING))
+        userdata = {}
+        for key in origin:
+            userdata.setdefault(int(key), origin[key])
+        return userdata
 
     @classmethod
     def read_account(cls, qq: int, by: Union[int, str]):
         """
         获取用户的某个米游社帐号数据
 
-        参数:
-            `qq`: 要查找的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param qq: 要查找的用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
+        :return: 返回用户的某个米游社帐号数据
         """
         if isinstance(by, str):
             by_type = "name"
         else:
             by_type = "phone"
         try:
-            for account in cls.read_all()[str(qq)]["accounts"]:
+            for account in cls.read_all()[qq]["accounts"]:
                 if account[by_type] == by:
                     userAccount = UserAccount()
                     userAccount.get(account)
@@ -251,12 +285,12 @@ class UserData:
         """
         获取用户的所有米游社帐号数据
 
-        参数:
-            `qq`: 要查找的用户的QQ号
+        :param qq: 要查找的用户的QQ号
+        :return: 返回用户的所有米游社帐号数据
         """
         accounts = []
         try:
-            accounts_raw = cls.read_all()[str(qq)]["accounts"]
+            accounts_raw = cls.read_all()[qq]["accounts"]
             for account_raw in accounts_raw:
                 account = UserAccount()
                 account.get(account_raw)
@@ -266,22 +300,24 @@ class UserData:
         return accounts
 
     @staticmethod
-    def __set_all(userdata: Dict[str, dict]):
+    def __set_all(userdata: Dict[int, dict]):
         """
         写入用户数据文件(整体覆盖)
 
-        参数:
-            `userdata`: 完整用户数据(包含所有用户)
+        :param userdata: 完整用户数据(包含所有用户)
         """
-        json.dump(userdata, open(USERDATA_PATH, "w",
-                  encoding=ENCODING), indent=4, ensure_ascii=False)
+        userdata_json = {}
+        for key in userdata:
+            userdata_json.setdefault(str(key), userdata[key])
+        json.dump(userdata_json, open(USERDATA_PATH, "w",
+                                      encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
-    def __create_user(cls, userdata: Dict[str, dict], qq: int) -> dict:
+    def __create_user(cls, userdata: Dict[int, dict], qq: int) -> dict:
         """
         创建用户数据，返回创建后整体的userdata
         """
-        userdata.setdefault(str(qq), deepcopy(cls.USER_SAMPLE))
+        userdata.setdefault(qq, deepcopy(cls.USER_SAMPLE))
         return userdata
 
     @staticmethod
@@ -300,14 +336,13 @@ class UserData:
         """
         删除某个QQ用户数据
 
-        参数:
-            `qq`: 用户的QQ号
+        :param qq: 用户的QQ号
 
         若未找到返回`False`，否则返回`True`
         """
         userdata = cls.read_all()
         try:
-            userdata.pop(str(qq))
+            userdata.pop(qq)
         except KeyError:
             return False
         cls.__set_all(userdata)
@@ -318,10 +353,9 @@ class UserData:
         """
         设置用户的某个米游社帐号信息，若`by`为`None`，则自动根据传入的`UserAccount.phone`查找
 
-        参数:
-            `account`: 米游社帐号信息
-            `qq`: 要设置的用户的QQ号
-            `by`: (可选)索引依据，可为备注名或手机号
+        :param account: 米游社帐号信息
+        :param qq: 要设置的用户的QQ号
+        :param by: (可选)索引依据，可为备注名或手机号
         """
         account_raw = account.to_dict()
         userdata = cls.read_all()
@@ -333,9 +367,9 @@ class UserData:
             by_type = "phone"
             by = account.phone
 
-        for num in range(0, len(userdata[str(qq)]["accounts"])):
-            if userdata[str(qq)]["accounts"][num][by_type] == by:
-                userdata[str(qq)]["accounts"][num] = account_raw
+        for num in range(0, len(userdata[qq]["accounts"])):
+            if userdata[qq]["accounts"][num][by_type] == by:
+                userdata[qq]["accounts"][num] = account_raw
                 cls.__set_all(userdata)
                 return
 
@@ -344,9 +378,8 @@ class UserData:
         """
         删除QQ用户的某个米哈游账号
 
-        参数:
-            `qq`: 用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param qq: 用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
 
         若未找到返回`False`，否则返回`True`
         """
@@ -357,10 +390,10 @@ class UserData:
             by = str(by)
         userdata = cls.read_all()
         try:
-            account_list: List[dict] = userdata[str(qq)]["accounts"]
+            account_list: List[dict] = userdata[qq]["accounts"]
             account_list.remove(
                 list(filter(lambda account: account[by_type] == by, account_list))[0])
-        except KeyError and IndexError:
+        except (KeyError, IndexError):
             return False
         cls.__set_all(userdata)
         return True
@@ -370,10 +403,9 @@ class UserData:
         """
         设置用户的某个米游社帐号的Cookie
 
-        参数:
-            `cookie`: Cookie数据
-            `qq`: 要设置的用户的QQ号
-            `by`: 索引依据，可为备注名或手机号
+        :param cookie: Cookie数据
+        :param qq: 要设置的用户的QQ号
+        :param by: 索引依据，可为备注名或手机号
         """
         userdata = cls.read_all()
         name, phone = None, None
@@ -387,7 +419,7 @@ class UserData:
             userdata = cls.__create_user(userdata, qq)
 
         def action() -> bool:
-            for account in userdata[str(qq)]["accounts"]:
+            for account in userdata[qq]["accounts"]:
                 if account[by_type] == by:
                     account["cookie"] = cookie
                     for item in ("login_uid", "stuid", "ltuid", "account_id"):
@@ -407,11 +439,10 @@ class UserData:
         """
         查看用户是否开启了通知，若不存在用户则返回None
 
-        参数:
-            `qq`: 用户QQ号
+        :param qq: 用户QQ号
+        :return: 是否开启通知
         """
         userdata = cls.read_all()
-        qq = str(qq)
         if qq not in userdata:
             return None
         elif cls.OPTION_NOTICE not in userdata[qq]:
@@ -425,15 +456,15 @@ class UserData:
         """
         设置用户的通知开关
 
-        参数:
-            `isNotice`: 是否开启通知
-            `qq`: 用户QQ号
+        :param isNotice: 是否开启通知
+        :param qq: 用户QQ号
+
         返回:
             `True`: 成功写入
+
             `False`: 写入失败，可能是不存在用户
         """
         userdata = cls.read_all()
-        qq = str(qq)
         try:
             if cls.OPTION_NOTICE not in userdata[qq]:
                 userdata[qq].setdefault(cls.OPTION_NOTICE, isNotice)
@@ -449,15 +480,15 @@ class UserData:
 def create_files():
     if not USERDATA_PATH.exists():
         USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-        logger.warning(conf.LOG_HEAD + "用户数据文件不存在，将重新生成...")
+        logger.warning(f"{conf.LOG_HEAD}用户数据文件不存在，将重新生成...")
     else:
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
                 raise ValueError
             else:
                 return
-        except json.JSONDecodeError and ValueError:
-            logger.warning(conf.LOG_HEAD + "用户数据文件格式错误，将重新生成...")
+        except (json.JSONDecodeError, ValueError):
+            logger.warning(f"{conf.LOG_HEAD}用户数据文件格式错误，将重新生成...")
 
     with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
         json.dump({}, fp, indent=4, ensure_ascii=False)

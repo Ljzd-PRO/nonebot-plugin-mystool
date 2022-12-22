@@ -22,16 +22,18 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     设备信息
     DS算法与设备信息有关联，非必要请勿修改
     """
-    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.36.1"
+    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.42.1"
     '''移动端 User-Agent(Mozilla UA)'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
     '''桌面端 User-Agent(Mozilla UA)'''
-    USER_AGENT_OTHER: str = "Hyperion/177 CFNetwork/1331.0.7 Darwin/21.4.0"
+    USER_AGENT_OTHER: str = "Hyperion/275 CFNetwork/1402.0.8 Darwin/22.2.0"
     '''获取用户 ActionTicket 时Headers所用的 User-Agent'''
     USER_AGENT_ANDROID: str = "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.36.1"
     '''安卓端 User-Agent(Mozilla UA)'''
-    USER_AGENT_ANDROID_OTHER: str = "okhttp/4.8.0"
+    USER_AGENT_ANDROID_OTHER: str = "okhttp/4.9.3"
     '''安卓端 User-Agent(专用于米游币任务等)'''
+    USER_AGENT_WIDGET: str = "WidgetExtension/231 CFNetwork/1390 Darwin/22.0.0"
+    '''iOS 小组件 User-Agent(原神实时便笺)'''
 
     X_RPC_DEVICE_MODEL_MOBILE: str = "iPhone10,2"
     '''移动端 x-rpc-device_model'''
@@ -47,7 +49,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_DEVICE_NAME_ANDROID: str = "Xiaomi MI 8 SE"
     '''安卓端 x-rpc-device_name'''
 
-    X_RPC_SYS_VERSION: str = "15.1"
+    X_RPC_SYS_VERSION: str = "15.4"
     '''Headers所用的 x-rpc-sys_version'''
     X_RPC_SYS_VERSION_ANDROID: str = "11"
     '''安卓端 x-rpc-sys_version'''
@@ -57,7 +59,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.36.1"
+    X_RPC_APP_VERSION: str = "2.42.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
@@ -132,7 +134,8 @@ class Config(BaseModel, extra=Extra.ignore):
 
     SIGN_TIME: str = "00:30"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
-
+    RESIN_CHECK_INTERVAL: int = 60
+    '''每次检查原神便笺间隔，单位为分钟'''
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
@@ -140,8 +143,10 @@ class Config(BaseModel, extra=Extra.ignore):
     '''生成Headers iOS DS所需的salt'''
     SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
     '''生成Headers Android DS所需的salt'''
-    SALT_ANDROID_NEW: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
-    '''Android 设备传入content和url参数生成 DS 所需的 salt'''
+    SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
+    '''Android 设备传入content生成 DS 所需的 salt'''
+    SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
+    '''Android 设备传入url参数生成 DS 所需的 salt'''
 
     device: DeviceConfig = DeviceConfig()
     goodListImage: GoodListImage = GoodListImage()

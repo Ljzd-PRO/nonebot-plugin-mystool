@@ -6,12 +6,12 @@ import os
 import time
 from typing import List
 
-import nonebot_plugin_apscheduler
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent)
+from nonebot_plugin_apscheduler import scheduler
 
-from .bbsAPI import GameInfo, GameRecord, get_game_record
+from .bbsAPI import GameInfo, GameRecord, genshin_status_bbs, get_game_record
 from .config import mysTool_config as conf
 from .data import UserData
 from .exchange import game_list_to_image, get_good_list
@@ -23,7 +23,9 @@ driver = get_driver()
 COMMAND = list(driver.config.command_start)[0] + conf.COMMAND_START
 
 manually_game_sign = on_command(
-    conf.COMMAND_START+'yssign', aliases={conf.COMMAND_START+'签到', conf.COMMAND_START+'手动签到', conf.COMMAND_START+'游戏签到', conf.COMMAND_START+'原神签到', conf.COMMAND_START+'gamesign'}, priority=4, block=True)
+    conf.COMMAND_START + 'yssign',
+    aliases={conf.COMMAND_START + '签到', conf.COMMAND_START + '手动签到', conf.COMMAND_START + '游戏签到',
+             conf.COMMAND_START + '原神签到', conf.COMMAND_START + 'gamesign'}, priority=4, block=True)
 manually_game_sign.__help_name__ = '签到'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
@@ -33,14 +35,16 @@ async def _(event: PrivateMessageEvent):
     """
     手动游戏签到函数
     """
-    bot = get_bot()
+    bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
 manually_bbs_sign = on_command(
-    conf.COMMAND_START+'任务', aliases={conf.COMMAND_START+'米游社签到', conf.COMMAND_START+'米游币任务', conf.COMMAND_START+'米游币获取', conf.COMMAND_START+'bbssign', conf.COMMAND_START+'米游社任务'}, priority=4, block=True)
+    conf.COMMAND_START + '任务',
+    aliases={conf.COMMAND_START + '米游社签到', conf.COMMAND_START + '米游币任务', conf.COMMAND_START + '米游币获取',
+             conf.COMMAND_START + 'bbssign', conf.COMMAND_START + '米游社任务'}, priority=4, block=True)
 manually_bbs_sign.__help_name__ = '任务'
 manually_bbs_sign.__help_info__ = '手动执行米游币每日任务，可以查看米游币任务完成情况'
 
@@ -50,18 +54,44 @@ async def _(event: PrivateMessageEvent):
     """
     手动米游币任务函数
     """
-    bot = get_bot()
+    bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False)
 
 
-async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
-    """
-    执行游戏签到函数。并发送给用户签到消息。
+manually_resin_check = on_command(
+    conf.COMMAND_START + '树脂',
+    aliases={conf.COMMAND_START + '体力', conf.COMMAND_START + '树脂查看', conf.COMMAND_START + '实时便笺',
+             conf.COMMAND_START + '便笺', conf.COMMAND_START + '原神便笺'}, priority=4, block=True)
+manually_resin_check.__help_name__ = '便笺'
+manually_resin_check.__help_info__ = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
+HAS_CHECKED = {}
+qq_accounts = UserData.read_all().keys()
+for qq in qq_accounts:
+    accounts = UserData.read_account_all(qq)
+    for account in accounts:
+        if account.checkResin:
+            HAS_CHECKED[account.phone] = HAS_CHECKED.get(account.phone,
+                                                         {"resin": False, "coin": False, "transformer": False})
 
-    参数:
-        `isAuto`: `True`为当日自动签到，`False`为用户手动调用签到功能
+
+@manually_resin_check.handle()
+async def _(event: PrivateMessageEvent):
+    """
+    手动查看原神便笺
+    """
+    bot = get_bot(str(event.self_id))
+    if not UserData.read_account_all(event.user_id):
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
+    await resin_check(bot=bot, qq=event.user_id, isAuto=False)
+
+
+async def perform_game_sign(bot: Bot, qq: int, isAuto: bool):
+    """
+    执行游戏签到函数，并发送给用户签到消息。
+
+    :param isAuto: `True`为当日自动签到，`False`为用户手动调用签到功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -79,8 +109,8 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
             continue
         for record in record_list:
             if GameInfo.ABBR_TO_ID[record.gameID][0] not in GameSign.SUPPORTED_GAMES:
-                logger.info(
-                    conf.LOG_HEAD + "执行游戏签到 - {} 暂不支持".format(GameInfo.ABBR_TO_ID[record.gameID][1]))
+                logger.info("{0}执行游戏签到 - {1} 暂不支持".format(conf.LOG_HEAD,
+                                                          GameInfo.ABBR_TO_ID[record.gameID][1]))
                 continue
             else:
                 sign_game = GameInfo.ABBR_TO_ID[record.gameID][0]
@@ -93,7 +123,9 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
 
                 # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
                 # 若获取今日签到情况失败，但不是登录失效的情况，仍可继续
-                if ((account.gameSign and isAuto) or not isAuto) and (isinstance(sign_info, Info) and not sign_info.isSign) or (isinstance(sign_info, int) and sign_info != -1):
+                if ((account.gameSign and isAuto) or not isAuto) and (
+                        (isinstance(sign_info, Info) and not sign_info.isSign) or (
+                        isinstance(sign_info, int) and sign_info != -1)):
                     sign_flag = await gamesign.sign(sign_game, record.uid, account.platform)
                     if sign_flag != 1:
                         if sign_flag == -1:
@@ -105,17 +137,24 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                         else:
                             message = "⚠️账户 {0} 🎮『{1}』签到失败，请稍后再试".format(
                                 account.phone, game_name)
-                        await bot.send_msg(
-                            message_type="private",
-                            user_id=qq,
-                            message=message
-                        )
+                        if UserData.isNotice(qq):
+                            await bot.send_msg(
+                                message_type="private",
+                                user_id=qq,
+                                message=message
+                            )
                         await asyncio.sleep(conf.SLEEP_TIME)
                         continue
+                    await asyncio.sleep(conf.SLEEP_TIME)
                 elif isinstance(sign_info, int):
-                    await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
-                        account.phone, game_name))
+                    if UserData.isNotice(qq) or not isAuto:
+                        await bot.send_private_msg(user_id=qq, message="账户 {0} 🎮『{1}』已尝试签到，但获取签到结果失败".format(
+                            account.phone, game_name))
+                        continue
+                # 若用户未开启自动签到且手动签到过了，不再提醒
+                elif not account.gameSign and isAuto:
                     continue
+
                 # 用户打开通知或手动签到时，进行通知
                 if UserData.isNotice(qq) or not isAuto:
                     img = ""
@@ -125,11 +164,11 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                         msg = "⚠️账户 {0} 🎮『{1}』获取签到结果失败！请手动前往米游社查看".format(
                             account.phone, game_name)
                     else:
-                        sign_award = month_sign_award[sign_info.totalDays-1]
+                        sign_award = month_sign_award[sign_info.totalDays - 1]
                         if sign_info.isSign:
                             msg = f"""\
-                                \n{'📱账户 {}'.format(account.phone)}\
-                                \n{'🎮『{}』今日签到成功！'.format(game_name)}\
+                                \n📱账户 {account.phone}\
+                                \n🎮『{game_name}』今日签到成功！\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
                                 \n{sign_award.name} * {sign_award.count}\
@@ -148,12 +187,11 @@ async def perform_game_sign(bot: Bot, qq: str, isAuto: bool):
                 await asyncio.sleep(conf.SLEEP_TIME)
 
 
-async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
+async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool):
     """
-    执行米游币任务函数。并发送给用户任务执行消息。
+    执行米游币任务函数，并发送给用户任务执行消息。
 
-    参数:
-        `IsAuto`: True为当日自动执行任务，False为用户手动调用任务功能
+    :param isAuto: True为当日自动执行任务，False为用户手动调用任务功能
     """
     accounts = UserData.read_account_all(qq)
     for account in accounts:
@@ -168,6 +206,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
         if isinstance(mybmission, int):
             if mybmission == -1:
                 await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                continue
             await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
             continue
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
@@ -180,6 +219,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                 if mission_state[1] < mission_state[0].totalTimes:
                     for gameID in account.missionGame:
                         await mybmission.NAME_TO_FUNC[mission_state[0].keyName](mybmission, gameID)
+                        await asyncio.sleep(conf.SLEEP_TIME)
 
             # 用户打开通知或手动任务时，进行通知
             if UserData.isNotice(qq) or not isAuto:
@@ -190,9 +230,9 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                         continue
                     await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
                     continue
-                if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and\
-                        missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and\
-                        missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and\
+                if missions_state[0][0][1] >= missions_state[0][0][0].totalTimes and \
+                        missions_state[0][1][1] >= missions_state[0][1][0].totalTimes and \
+                        missions_state[0][2][1] >= missions_state[0][2][0].totalTimes and \
                         missions_state[0][3][1] >= missions_state[0][3][0].totalTimes:
                     notice_string = "🎉已完成今日米游币任务"
                 else:
@@ -211,10 +251,89 @@ async def perform_bbs_sign(bot: Bot, qq: str, isAuto: bool):
                     user_id=qq,
                     message=msg
                 )
-            await asyncio.sleep(conf.SLEEP_TIME)
+
+
+async def resin_check(bot: Bot, qq: int, isAuto: bool):
+    """
+    查看原神实时便笺函数，并发送给用户任务执行消息。
+
+    :param isAuto: True为自动检查，False为用户手动调用该功能
+    """
+    global HAS_CHECKED
+    accounts = UserData.read_account_all(qq)
+    for account in accounts:
+        if account.checkResin:
+            HAS_CHECKED[account.phone] = HAS_CHECKED.get(account.phone,
+                                                         {"resin": False, "coin": False, "transformer": False})
+        if (account.checkResin and isAuto) or not isAuto:
+            genshinstatus = await genshin_status_bbs(account)
+            if isinstance(genshinstatus, int):
+                if genshinstatus == -1:
+                    if not isAuto:
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                if genshinstatus == -4:
+                    if not isAuto:
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 没有绑定任何原神账户，请绑定后再重试')
+                        account.checkResin = False
+                        UserData.set_account(account, qq, account.phone)
+                        continue
+                if not isAuto:
+                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 获取实时便笺请求失败，你可以手动前往App查看')
+                continue
+            msg = ''
+            # 手动查询体力时，无需判断是否溢出
+            if not isAuto:
+                pass
+            else:
+                # 体力溢出提醒
+                if genshinstatus.resin == 160:
+                    # 防止重复提醒
+                    if HAS_CHECKED[account.phone]['resin']:
+                        return
+                    else:
+                        HAS_CHECKED[account.phone]['resin'] = True
+                        msg += '❕您的树脂已经满啦\n'
+                else:
+                    HAS_CHECKED[account.phone]['resin'] = False
+                # 洞天财瓮溢出提醒
+                if genshinstatus.coin[0] == genshinstatus.coin[1]:
+                    # 防止重复提醒
+                    if HAS_CHECKED[account.phone]['coin']:
+                        return
+                    else:
+                        HAS_CHECKED[account.phone]['coin'] = True
+                        msg += '❕您的洞天财瓮已经满啦\n'
+                else:
+                    HAS_CHECKED[account.phone]['coin'] = False
+                # 参量质变仪就绪提醒
+                if genshinstatus.transformer == '已准备就绪':
+                    # 防止重复提醒
+                    if HAS_CHECKED[account.phone]['transformer']:
+                        return
+                    else:
+                        HAS_CHECKED[account.phone]['transformer'] = True
+                        msg += '❕您的参量质变仪已准备就绪\n\n'
+                else:
+                    HAS_CHECKED[account.phone]['transformer'] = False
+                    return
+            msg += f"""\
+            ❖实时便笺❖\
+            \n🎮{genshinstatus.name}·{genshinstatus.level}\
+            \n⏳树脂数量：{genshinstatus.resin}/160\
+            \n🕰️探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
+            \n📅每日委托：{4 - genshinstatus.task} 个任务未完成\
+            \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}\
+            \n🎰参量质变仪：{genshinstatus.transformer}
+            """.strip()
+            await bot.send_private_msg(user_id=qq, message=msg)
 
 
 async def generate_image(isAuto=True):
+    """
+    生成米游币商品函数。
+
+    :param isAuto: True为每日自动生成，False为用户手动更新
+    """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
@@ -235,26 +354,44 @@ async def generate_image(isAuto=True):
                 return
             with open(img_path, 'wb') as fp:
                 fp.write(image_bytes)
+        else:
+            logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
+@scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 async def daily_update():
     """
     每日图片生成函数
     """
+    logger.info(f"{conf.LOG_HEAD}开始生成每日商品图片")
     await generate_image()
 
 
-@nonebot_plugin_apscheduler.scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0], minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
+@scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
+                         minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
+    logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
     for qq in qq_accounts:
         await perform_bbs_sign(bot=bot, qq=qq, isAuto=True)
         await perform_game_sign(bot=bot, qq=qq, isAuto=True)
+    logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
+
+
+@scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
+async def auto_resin_check():
+    """
+    自动查看实时便笺
+    """
+    qq_accounts = UserData.read_all().keys()
+    bot = get_bot()
+    for qq in qq_accounts:
+        await resin_check(bot=bot, qq=qq, isAuto=True)
+
 
 # 启动时，自动生成当日米游社商品图片
 driver.on_startup(generate_image)

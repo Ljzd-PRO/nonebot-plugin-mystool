@@ -16,16 +16,13 @@
   <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/commits/" target="_blank">
     <img alt="最后提交" src="https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool?style=for-the-badge">
   </a>
-  <a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/actions/workflows/codeql-analysis.yml" target="_blank">
-    <img alt="GitHub CodeQL 代码检查" src="https://img.shields.io/github/workflow/status/Ljzd-PRO/nonebot-plugin-mystool/CodeQL?logo=github&style=for-the-badge">
-  </a>
 </div>
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.1.5**
+**版本 - v0.2.0**
 
-📣 更新：修复多用户情况下登录操作会导致用户数据错位的问题([#18](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues/18))
+📣 更新：进行了修复与优化。新增原神树脂、洞天宝盆、质量参变仪状态查看和提醒等功能。
 
 ## 功能和特性
 
@@ -35,6 +32,7 @@
 - 可制定米游币商品兑换计划，到点兑换
 - 可支持多个 QQ 账号，每个 QQ 账号可绑定多个米哈游账户
 - QQ 推送执行结果通知
+- 原神树脂、洞天宝盆、质量参变仪已满时推送通知
 
 ## 使用说明
 

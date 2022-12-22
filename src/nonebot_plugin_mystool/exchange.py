@@ -19,7 +19,8 @@ from .data import UserAccount
 from .utils import (check_login, custom_attempt_times, generateDeviceID,
                     get_file, logger)
 
-URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={page}&game={game}"
+URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={" \
+                "page}&game={game} "
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
 URL_EXCHANGE = "https://api-takumi.mihoyo.com/mall/v1/web/goods/exchange"
 HEADERS_GOOD_LIST = {
@@ -45,32 +46,32 @@ HEADERS_GOOD_LIST = {
 }
 HEADERS_EXCHANGE = {
     "Accept":
-    "application/json, text/plain, */*",
+        "application/json, text/plain, */*",
     "Accept-Encoding":
-    "gzip, deflate, br",
+        "gzip, deflate, br",
     "Accept-Language":
-    "zh-CN,zh-Hans;q=0.9",
+        "zh-CN,zh-Hans;q=0.9",
     "Connection":
-    "keep-alive",
+        "keep-alive",
     "Content-Type":
-    "application/json;charset=utf-8",
+        "application/json;charset=utf-8",
     "Host":
-    "api-takumi.mihoyo.com",
+        "api-takumi.mihoyo.com",
     "User-Agent":
-    conf.device.USER_AGENT_MOBILE,
+        conf.device.USER_AGENT_MOBILE,
     "x-rpc-app_version":
-    conf.device.X_RPC_APP_VERSION,
+        conf.device.X_RPC_APP_VERSION,
     "x-rpc-channel":
-    "appstore",
+        "appstore",
     "x-rpc-client_type":
-    "1",
+        "1",
     "x-rpc-device_id": None,
     "x-rpc-device_model":
-    conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+        conf.device.X_RPC_DEVICE_MODEL_MOBILE,
     "x-rpc-device_name":
-    conf.device.X_RPC_DEVICE_NAME_MOBILE,
+        conf.device.X_RPC_DEVICE_NAME_MOBILE,
     "x-rpc-sys_version":
-    conf.device.X_RPC_SYS_VERSION
+        conf.device.X_RPC_SYS_VERSION
 }
 FONT_URL = os.path.join(
     conf.GITHUB_PROXY, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
@@ -90,6 +91,11 @@ class Good:
     Total_Times = NewType("Total_Times", int)
 
     def __init__(self, good_dict: dict) -> None:
+        """
+        初始化商品数据
+
+        :param good_dict: 网络请求返回的商品数据字典
+        """
         self.good_dict = good_dict
         self.time_by_detail: int = None
         try:
@@ -98,12 +104,14 @@ class Good:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "米游币商品数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}米游币商品数据 - 初始化对象: dict数据不正确")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     async def async_init(self):
         """
         进一步异步初始化商品数据(生成商品时间Good.time)
+
+        :return: 自身对象
         """
         if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
             detail = await get_good_detail(self.goodID)
@@ -151,7 +159,7 @@ class Good:
             return self.time_by_detail
 
     @property
-    def num(self) -> int:
+    def num(self) -> Union[None, int]:
         """
         库存
         """
@@ -189,34 +197,38 @@ class Good:
 async def get_good_detail(goodID: str, retry: bool = True):
     """
     获取某商品的详细信息，若获取失败则返回`None`
+    - 若返回 `-1` 说明商品不存在
 
-    参数:
-        `goodID`: 商品ID
-        `retry`: 是否允许重试
+    :param goodID: 商品ID
+    :param retry: 是否允许重试
+    :return: 商品数据
     """
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                if res.json()['message'] == '商品不存在':
+                    return -1
                 return Good(res.json()["data"])
-    except KeyError and ValueError:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
-    except:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品详细信息: 网络请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except KeyError or ValueError:
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+    except Exception:
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品详细信息: 网络请求失败")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
 async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: bool = True) -> Union[List[Good], None]:
     """
     获取商品信息列表，若获取失败则返回`None`
 
-    参数:
-        `game`: 游戏简称
-        `retry`: 是否允许重试
+    :param game: 游戏简称
+    :param retry: 是否允许重试
+    :return: 商品信息列表
     """
     if game == "bh3":
         game = "bh3"
@@ -233,25 +245,27 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
     page = 1
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GOOD_LIST.format(page=page,
-                                                                game=game), headers=HEADERS_GOOD_LIST, timeout=conf.TIME_OUT)
+                                                                game=game), headers=HEADERS_GOOD_LIST,
+                                           timeout=conf.TIME_OUT)
                 goods = res.json()["data"]["list"]
                 # 判断是否已经读完所有商品
-                if goods == []:
+                if not goods:
                     break
                 else:
                     good_list += goods
                 page += 1
     except KeyError:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
-        logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
-    except:
-        logger.error(conf.LOG_HEAD + "米游币商品兑换 - 获取商品列表: 网络请求失败")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+    except Exception:
+        logger.error(f"{conf.LOG_HEAD}米游币商品兑换 - 获取商品列表: 网络请求失败")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     if not good_list:
         return None
@@ -287,6 +301,10 @@ class Exchange:
     def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
         """
         初始化兑换任务(仅导入参数)
+
+        :param account: 用户账户数据
+        :param goodID: 商品ID
+        :param gameUID: 游戏UID
         """
         self.result = None
         self.goodID = goodID
@@ -306,7 +324,10 @@ class Exchange:
 
     async def async_init(self, retry: bool = True):
         """
-        初始化兑换任务(异步，返回自身`self`对象)
+        初始化兑换任务
+
+        :param retry: 是否重试
+        :return: 异步，返回自身对象
         """
         self.result = None
         self.goodID = self.goodID
@@ -315,50 +336,54 @@ class Exchange:
             "app_id": 1,
             "point_sn": "myb",
             "goods_id": self.goodID,
-            "exchange_num": 1,
-            "address_id": self.account.address.addressID
+            "exchange_num": 1
         }
-        logger.info(conf.LOG_HEAD +
-                    "米游币商品兑换 - 初始化兑换任务: 开始获取商品 {} 的信息".format(self.goodID))
+        if self.account.address:
+            self.content.setdefault(
+                "address_id", self.account.address.addressID)
+        logger.info(
+            f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 开始获取商品 {self.goodID} 的信息")
         res = None
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
                             URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
                     goodInfo = res.json()["data"]
                     if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
-                        self.content.pop("address_id")
+                        if self.content.get("address_id", False):
+                            self.content.pop("address_id")
                         if "stoken" not in self.account.cookie:
                             logger.error(
-                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(self.goodID))
+                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为游戏内物品，由于未配置stoken，放弃兑换")
                             self.result = -2
                             return self
                         if self.account.cookie["stoken"].find("v2__") == 0 and "mid" not in self.account.cookie:
                             logger.error(
-                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(self.goodID))
+                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format())
                             self.result = -3
                             return self
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
                     else:
                         if self.content["address_id"] is None:
                             logger.error(
-                                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 商品 {} 为实体物品，由于未配置地址ID，放弃兑换".format(self.goodID))
+                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为实体物品，由于未配置地址ID，放弃兑换".format())
                             self.result = -7
                         return self
 
                     if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                         logger.warning(
-                            conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {} 所属的游戏".format(self.goodID))
+                            f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {self.goodID} 所属的游戏".format())
                         self.result = -4
                         return self
 
                     record_list: List[GameRecord] = await get_game_record(self.account)
                     if record_list == -1:
-                        self.result - 1
+                        self.result = -1
                     elif isinstance(record_list, int):
-                        self.result - 6
+                        self.result = -6
 
                     for record in record_list:
                         if record.uid == self.gameUID:
@@ -371,25 +396,25 @@ class Exchange:
                             break
         except tenacity.RetryError:
             logger.error(
-                conf.LOG_HEAD + "米游币商品兑换 - 初始化兑换任务: 获取商品 {} 的信息失败".format(self.goodID))
+                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 获取商品 {self.goodID} 的信息失败".format())
             if res is not None:
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             self.result = -5
         return self
 
-    async def start(self) -> Union[Tuple[bool, dict], Literal[-1, -2, -3]]:
+    async def start(self) -> Union[None, Tuple[bool, dict], Literal[-1, -2, -3]]:
         """
         执行兑换操作
-        返回元组 (是否成功, 服务器返回数据)
+
+        :return: 兑换结果 返回元组 (是否成功, 服务器返回数据)
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
         """
         if self.result is not None and self.result < 0:
-            logger.error(conf.LOG_HEAD +
-                         "商品：{} 未初始化完成，放弃兑换".format(self.goodID))
+            logger.error(f"{conf.LOG_HEAD}商品：{self.goodID} 未初始化完成，放弃兑换")
             return None
         else:
             headers = HEADERS_EXCHANGE
@@ -397,32 +422,33 @@ class Exchange:
             try:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(
-                        URL_EXCHANGE, headers=headers, json=self.content, cookies=self.account.cookie, timeout=conf.TIME_OUT)
+                        URL_EXCHANGE, headers=headers, json=self.content, cookies=self.account.cookie,
+                        timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
-                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {} 登录失效".format(self.account.phone))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
+                        f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 登录失效".format())
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if res.json()["message"] == "OK":
                     logger.info(
-                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换成功！可以自行确认。".format(self.account.phone, self.goodID))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                    return (True, res.json())
+                        f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 兑换成功！可以自行确认。")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                    return True, res.json()
                 else:
                     logger.info(
-                        conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 兑换失败，可以自行确认。".format(self.account.phone, self.goodID))
-                    logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                    return (False, res.json())
+                        f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 兑换失败，可以自行确认。")
+                    logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                    return False, res.json()
             except KeyError:
                 logger.error(
-                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 服务器没有正确返回".format(self.account.phone, self.goodID))
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 服务器没有正确返回")
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 return -2
-            except:
+            except Exception:
                 logger.error(
-                    conf.LOG_HEAD + "米游币商品兑换 - 执行兑换: 用户 {0} 商品 {1} 请求失败".format(self.account.phone, self.goodID))
-                logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                    f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 商品 {self.goodID} 请求失败")
+                logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 return -3
 
 
@@ -430,9 +456,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
     """
     将商品信息列表转换为图片数据，若返回`None`说明生成失败
 
-    参数:
-        `good_list`: 商品列表数据
-        `retry`: 是否允许重试
+    :param good_list: 商品列表数据
+    :param retry: 是否允许重试
     """
     try:
         font_path = conf.goodListImage.FONT_PATH
@@ -441,7 +466,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 font_path = FONT_SAVE_PATH
             else:
                 logger.warning(
-                    conf.LOG_HEAD + "商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release 下载字体...")
+                    f"{conf.LOG_HEAD}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release "
+                    f"下载字体...")
                 try:
                     os.makedirs(os.path.dirname(TEMP_FONT_PATH))
                 except FileExistsError:
@@ -450,7 +476,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                     content = await get_file(FONT_URL)
                     if content is None:
                         logger.error(
-                            conf.LOG_HEAD + "商品列表图片生成 - 字体下载失败，无法继续生成图片")
+                            f"{conf.LOG_HEAD}商品列表图片生成 - 字体下载失败，无法继续生成图片")
                         return None
                     fp.write(content)
                 with open(TEMP_FONT_PATH, "rb") as fp:
@@ -458,19 +484,17 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                         with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
                             with open(FONT_SAVE_PATH, "wb") as fp_font:
                                 fp_font.write(zip_font.read())
-                logger.info(conf.LOG_HEAD +
-                            "商品列表图片生成 - 已完成字体下载 -> {}".format(FONT_SAVE_PATH))
+                logger.info(
+                    f"{conf.LOG_HEAD}商品列表图片生成 - 已完成字体下载 -> {FONT_SAVE_PATH}")
                 try:
                     os.remove(TEMP_FONT_PATH)
-                except:
+                except Exception:
                     logger.warning(
-                        conf.LOG_HEAD + "商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
-                    logger.debug(
-                        conf.LOG_HEAD + traceback.format_exc())
+                        f"{conf.LOG_HEAD}商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
+                    logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 font_path = FONT_SAVE_PATH
 
-        logger.info(conf.LOG_HEAD +
-                    "商品列表图片生成 - 正在生成图片...")
+        logger.info(f"{conf.LOG_HEAD}商品列表图片生成 - 正在生成图片...")
 
         font = ImageFont.truetype(
             str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
@@ -483,7 +507,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
         '''商品预览图'''
 
         for good in good_list:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         icon = await client.get(good.icon, timeout=conf.TIME_OUT)
@@ -494,7 +519,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
             position.append((0, size_y))
             # 调整下一个粘贴的位置
             size_y += conf.goodListImage.ICON_SIZE[1] + \
-                conf.goodListImage.PADDING_ICON
+                      conf.goodListImage.PADDING_ICON
             imgs.append(img)
 
         preview = Image.new(
@@ -516,17 +541,16 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 start_time = time.strftime("%Y-%m-%d %H:%M:%S",
                                            time.localtime(good.time))
             draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price), (0, 0, 0), font)
+                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price),
+                      (0, 0, 0), font)
             draw_y += (conf.goodListImage.ICON_SIZE[1] +
                        conf.goodListImage.PADDING_ICON)
 
         # 导出
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
-        logger.info(conf.LOG_HEAD +
-                    "商品列表图片生成 - 已生成图片...")
+        logger.info(f"{conf.LOG_HEAD}商品列表图片生成 - 已生成图片...")
         return image_bytes.getvalue()
-    except:
-        logger.error(
-            conf.LOG_HEAD + "商品列表图片生成 - 无法完成图片生成")
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+    except Exception:
+        logger.error(f"{conf.LOG_HEAD}商品列表图片生成 - 无法完成图片生成")
+        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")

@@ -1,17 +1,18 @@
 """
 ### 米游社游戏签到相关
 """
-import asyncio
 import traceback
 from typing import List, Literal, Union
 
 import httpx
 import tenacity
 
-from .bbsAPI import GameInfo, GameRecord, get_game_record, device_login, device_save
+from .bbsAPI import (GameInfo, GameRecord, device_login, device_save,
+                     get_game_record)
 from .config import mysTool_config as conf
 from .data import UserAccount
-from .utils import check_login, custom_attempt_times, generateDS, logger
+from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
+                    generateDS, logger)
 
 ACT_ID = {
     "ys": "e202009291139501",
@@ -22,22 +23,26 @@ ACT_ID = {
 URLS = {
     "ys": {
         "reward": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id={}".format(ACT_ID["ys"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={}".format(ACT_ID["ys"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/bbs_sign_reward/info?act_id={}".format(ACT_ID["ys"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
     },
     "bh3": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh3"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     },
     "bh2": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     },
     "wd": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["wd"]),
-        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["wd"]), "&region={region}&uid={uid}")),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["wd"]),
+                         "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     }
 }
@@ -87,8 +92,8 @@ class Award:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "签到奖励数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}签到奖励数据 - 初始化对象: dict数据不正确")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
     def name(self) -> str:
@@ -125,8 +130,8 @@ class Info:
                     continue
                 getattr(self, func)
         except KeyError:
-            logger.error(conf.LOG_HEAD + "签到记录数据 - 初始化对象: dict数据不正确")
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+            logger.error(f"{conf.LOG_HEAD}签到记录数据 - 初始化对象: dict数据不正确")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
     def isSign(self) -> bool:
@@ -167,12 +172,12 @@ class GameSign:
         """
         获取签到奖励信息，若返回`None`说明失败
 
-        参数:
-            `game`: 目标游戏缩写
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param retry: 是否允许重试
         """
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
                     async with httpx.AsyncClient() as client:
@@ -181,25 +186,25 @@ class GameSign:
                     for award in res.json()["data"]["awards"]:
                         award_list.append(Award(award))
                     return award_list
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
-        except:
-            logger.error(conf.LOG_HEAD + "获取签到奖励信息 - 请求失败")
+        except KeyError and ValueError and TypeError:
+            logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 服务器没有正确返回")
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
+        except Exception:
+            logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[Info, Literal[-1, -2, -3, -4]]:
+    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[
+        Info, Literal[-1, -2, -3, -4]]:
         """
         获取签到记录，返回Info对象
 
-        参数:
-            `game`: 目标游戏缩写
-            `gameUID`: 用户游戏UID
-            `region`: 用户游戏区服(若为`None`将会自动获取)
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param gameUID: 用户游戏UID
+        :param region: 用户游戏区服(若为`None`将会自动获取)
+        :param retry: 是否允许重试
 
         - 若返回 `-1` 说明用户登录失效
         - 若返回 `-2` 说明服务器没有正确返回
@@ -224,41 +229,55 @@ class GameSign:
         if not region:
             return -4
 
-        headers["DS"] = generateDS()
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            index = 0
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
+                    headers["DS"] = generateDS()
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT)
+                        res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers,
+                                               cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
-                            conf.LOG_HEAD + "获取签到记录 - 用户 {} 登录失效".format(self.account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                            f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
+                    if not check_DS(res.text):
+                        logger.info(
+                            f"{conf.LOG_HEAD}获取签到记录: DS无效，正在在线获取salt以重新生成...")
+                        sub = Subscribe()
+                        conf.SALT_IOS = await sub.get(
+                            ("Config", "SALT_IOS"), index)
+                        conf.device.USER_AGENT_MOBILE = await sub.get(
+                            ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                        headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
+                        index += 1
+                        headers["DS"] = generateDS()
                     return Info(res.json()["data"])
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "获取签到记录 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        except KeyError and ValueError and TypeError:
+            logger.error(f"{conf.LOG_HEAD}获取签到记录 - 服务器没有正确返回")
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -2
-        except:
-            logger.error(conf.LOG_HEAD + "获取签到记录 - 请求失败")
+        except Exception:
+            logger.error(f"{conf.LOG_HEAD}获取签到记录 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[1, -1, -2, -3, -4, -5, -6]:
+    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str,
+                   platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[
+        1, -1, -2, -3, -4, -5, -6]:
         """
         签到
 
-        参数:
-            `game`: 目标游戏缩写
-            `gameUID`: 用户游戏UID
-            `platform`: 设备平台
-            `retry`: 是否允许重试
+        :param game: 目标游戏缩写
+        :param gameUID: 用户游戏UID
+        :param platform: 设备平台
+        :param retry: 是否允许重试
 
         - 若执行成功，返回 `1`
         - 若返回 `-1` 说明用户登录失效
@@ -269,8 +288,20 @@ class GameSign:
         - 若返回 `-6` 说明未找到游戏账号
         """
         if game not in self.SUPPORTED_GAMES:
-            logger.info("暂不支持游戏 {} 的游戏签到".format(game))
+            logger.info(f"{conf.LOG_HEAD}暂不支持游戏 {game} 的游戏签到")
             return -4
+
+        record_list: List[GameRecord] = await get_game_record(self.account)
+        filter_record = list(filter(lambda record: record.uid ==
+                                                   gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game,
+                                    record_list))
+        if not filter_record:
+            return -6
+        data = {
+            "act_id": ACT_ID[game],
+            "region": filter_record[0].region,
+            "uid": gameUID
+        }
 
         headers = HEADERS_OTHER.copy()
         if platform == "ios":
@@ -288,48 +319,56 @@ class GameSign:
             await device_login(self.account)
             await device_save(self.account)
             headers["DS"] = generateDS(platform="android")
-
-        record_list: List[GameRecord] = await get_game_record(self.account)
-        filter_record = list(filter(lambda record: record.uid ==
-                             gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game, record_list))
-        if not filter_record:
-            return -6
-
-        data = {
-            "act_id": ACT_ID[game],
-            "region": filter_record[0].region,
-            "uid": gameUID
-        }
         try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True, wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+            index = 0
+            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
+                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie, timeout=conf.TIME_OUT, json=data)
+                        res = await client.post(URLS[game]["sign"], headers=headers, cookies=self.cookie,
+                                                timeout=conf.TIME_OUT, json=data)
                     if not check_login(res.text):
                         logger.info(
-                            conf.LOG_HEAD + "签到 - 用户 {} 登录失效".format(self.account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
+                    if not check_DS(res.text):
+                        logger.info(
+                            f"{conf.LOG_HEAD}签到: DS无效，正在在线获取salt以重新生成...")
+                        sub = Subscribe()
+                        if platform == "ios":
+                            conf.SALT_IOS = await sub.get(
+                                ("Config", "SALT_IOS"), index)
+                            conf.device.USER_AGENT_MOBILE = await sub.get(
+                                ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                            headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
+                            headers["DS"] = generateDS()
+                        else:
+                            conf.SALT_ANDROID = await sub.get(
+                                ("Config", "SALT_ANDROID"), index)
+                            conf.device.USER_AGENT_ANDROID = await sub.get(
+                                ("DeviceConfig", "USER_AGENT_ANDROID"), index)
+                            headers["User-Agent"] = conf.device.USER_AGENT_ANDROID
+                            headers["DS"] = generateDS(platform="android")
+                        index += 1
                     self.signResult = res.json()
-                    if game == "ys" and self.signResult["message"] != "旅行者，你已经签到过了":
+                    if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1
                     if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
-                            conf.LOG_HEAD + "签到 - 用户 {} 可能被验证码阻拦".format(self.account.phone))
-                        logger.debug(conf.LOG_HEAD +
-                                     "网络请求返回: {}".format(res.text))
+                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 可能被验证码阻拦".format())
+                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -5
                     return 1
-        except KeyError:
-            logger.error(conf.LOG_HEAD + "签到 - 服务器没有正确返回")
-            logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        except KeyError and ValueError and TypeError:
+            logger.error(f"{conf.LOG_HEAD}签到 - 服务器没有正确返回")
+            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -2
-        except:
-            logger.error(conf.LOG_HEAD + "签到 - 请求失败")
+        except Exception:
+            logger.error(f"{conf.LOG_HEAD}签到 - 请求失败")
             if isinstance(res, httpx.Response):
-                logger.debug(conf.LOG_HEAD + "网络请求返回: {}".format(res.text))
-            logger.debug(conf.LOG_HEAD + traceback.format_exc())
+                logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
