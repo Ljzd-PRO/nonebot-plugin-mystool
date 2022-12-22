@@ -292,7 +292,7 @@ async def resin_check(bot: Bot, qq: int, isAuto: bool):
                         return
                     else:
                         HAS_CHECKED[account.phone]['resin'] = True
-                        msg += '您的树脂已经满啦\n！'
+                        msg += '❕您的树脂已经满啦\n'
                 else:
                     HAS_CHECKED[account.phone]['resin'] = False
                 # 洞天财瓮溢出提醒
@@ -302,7 +302,7 @@ async def resin_check(bot: Bot, qq: int, isAuto: bool):
                         return
                     else:
                         HAS_CHECKED[account.phone]['coin'] = True
-                        msg += '您的洞天财瓮已经满啦！\n'
+                        msg += '❕您的洞天财瓮已经满啦\n'
                 else:
                     HAS_CHECKED[account.phone]['coin'] = False
                 # 参量质变仪就绪提醒
@@ -312,7 +312,7 @@ async def resin_check(bot: Bot, qq: int, isAuto: bool):
                         return
                     else:
                         HAS_CHECKED[account.phone]['transformer'] = True
-                        msg += '您的参量质变仪已准备就绪！\n'
+                        msg += '❕您的参量质变仪已准备就绪\n\n'
                 else:
                     HAS_CHECKED[account.phone]['transformer'] = False
                     return
