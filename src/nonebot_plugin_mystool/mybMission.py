@@ -14,17 +14,16 @@ from .data import UserAccount
 from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
                     generateDS, logger)
 
-URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
-URL_GET_POST = "https://bbs-api.mihoyo.com/post/api/getForumPostList?forum_id={" \
-               "}&is_good=false&is_hot=false&page_size=20&sort_type=1 "
-URL_READ = "https://bbs-api.mihoyo.com/post/api/getPostFull?post_id={}"
-URL_LIKE = "https://bbs-api.mihoyo.com/apihub/sapi/upvotePost"
-URL_SHARE = "https://bbs-api.mihoyo.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
+URL_SIGN = "https://bbs-api.miyoushe.com/apihub/app/api/signIn"
+URL_GET_POST = "https://bbs-api.miyoushe.com/post/api/feeds/posts?fresh_action=1&gids={}&is_first_initialize=false" \
+               "&last_id= "
+URL_READ = "https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={}"
+URL_LIKE = "https://bbs-api.miyoushe.com/apihub/sapi/upvotePost"
+URL_SHARE = "https://bbs-api.miyoushe.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
 URL_MISSION = "https://api-takumi.mihoyo.com/apihub/wapi/getMissions?point_sn=myb"
 URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsState?point_sn=myb"
 HEADERS = {
-    "Host": "bbs-api.mihoyo.com",
-    "Referer": "https://app.mihoyo.com",
+    "Host": "bbs-api.miyoushe.com",
     'User-Agent': conf.device.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
     "x-rpc-channel": conf.device.X_RPC_CHANNEL_ANDROID,
@@ -47,28 +46,41 @@ HEADERS_MISSION = {
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
 }
-GAME_ID = {
-    "bh3": {
-        "gids": 1,
-        "fid": 1
-    },
-    "ys": {
-        "gids": 2,
-        "fid": 26
-    },
-    "bh2": {
-        "gids": 3,
-        "fid": 30
-    },
-    "wd": {
-        "gids": 4,
-        "fid": 37
-    },
-    "xq": {
-        "gids": 5,
-        "fid": 52
-    }
+HEADERS_GET_POSTS = {
+    "Host": "bbs-api.miyoushe.com",
+    "Accept": "*/*",
+    "x-rpc-client_type": "1",
+    "x-rpc-device_id": None,
+    "x-rpc-channel": conf.device.X_RPC_CHANNEL,
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
+    "Referer": "https://app.mihoyo.com",
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "User-Agent": conf.device.USER_AGENT_OTHER,
+    "Connection": "keep-alive"
 }
+
+
+class GameID:
+    """
+    米游社任务所需的gid和fid
+    """
+
+    def __init__(self, gids: int, fid: int):
+        self.gids: int = gids
+        self.fid: int = fid
+
+
+GAME_ID = {
+    "bh3": GameID(1, 1),
+    "ys": GameID(2, 26),
+    "bh2": GameID(3, 30),
+    "wd": GameID(4, 37),
+    "xq": GameID(5, 52),
+}
+'''所有的gid和fid'''
 
 Prograss_Now = NewType("Prograss_Now", int)
 Myb_Num = NewType("Myb_Num", int)
@@ -167,7 +179,7 @@ class Action:
         - 若返回 `-2` 说明服务器没有正确返回
         - 若返回 `-3` 说明请求失败
         """
-        data = {"gids": GAME_ID[game]["gids"]}
+        data = {"gids": GAME_ID[game].gids}
         try:
             index = 0
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
@@ -213,16 +225,10 @@ class Action:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
-                    self.headers["DS"] = generateDS(platform="android")
-                    res = await self.client.get(URL_GET_POST.format(GAME_ID[game]["fid"]), headers=self.headers,
+                    headers = HEADERS_GET_POSTS.copy()
+                    headers["x-rpc-device_id"] = self.account.deviceID
+                    res = await self.client.get(URL_GET_POST.format(GAME_ID[game].gids), headers=headers,
                                                 timeout=conf.TIME_OUT)
-                    if not check_DS(res.text):
-                        logger.info(
-                            f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: DS无效，正在在线获取salt以重新生成...")
-                        conf.SALT_ANDROID = await Subscribe().get(
-                            ("Config", "SALT_ANDROID"), index)
-                        self.headers["DS"] = generateDS(platform="android")
-                        index += 1
                     data = res.json()["data"]["list"]
                     for post in data:
                         if post["self_operation"]["attitude"] == 0:
@@ -231,6 +237,7 @@ class Action:
         except KeyError and ValueError and TypeError:
             logger.error(f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+            logger.debug(f"{conf.LOG_HEAD}发送数据：url={URL_GET_POST.format(GAME_ID[game].gids)}, headers={self.headers}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return None
         except Exception:
