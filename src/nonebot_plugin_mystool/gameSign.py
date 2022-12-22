@@ -186,7 +186,7 @@ class GameSign:
                     for award in res.json()["data"]["awards"]:
                         award_list.append(Award(award))
                     return award_list
-        except KeyError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}获取签到奖励信息 - 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -256,7 +256,7 @@ class GameSign:
                         index += 1
                         headers["DS"] = generateDS()
                     return Info(res.json()["data"])
-        except KeyError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}获取签到记录 - 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -361,7 +361,7 @@ class GameSign:
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -5
                     return 1
-        except KeyError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}签到 - 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")

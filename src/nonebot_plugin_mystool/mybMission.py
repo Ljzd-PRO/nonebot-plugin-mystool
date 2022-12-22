@@ -188,7 +188,7 @@ class Action:
                         self.headers["DS"] = generateDS(data)
                         index += 1
                     return res.json()["data"]["points"]
-        except KeyError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -228,7 +228,7 @@ class Action:
                         if post["self_operation"]["attitude"] == 0:
                             postID_list.append(post['post']['post_id'])
                     break
-        except KeyError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}米游币任务 - 获取文章列表: 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -288,7 +288,7 @@ class Action:
                             if "self_operation" not in res.json()["data"]["post"]:
                                 raise ValueError
                             count += 1
-                except KeyError or ValueError:
+                except KeyError or ValueError or TypeError:
                     logger.error(f"{conf.LOG_HEAD}米游币任务 - 阅读: 服务器没有正确返回")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -355,7 +355,7 @@ class Action:
                             elif res.json()["message"] != "OK":
                                 raise ValueError
                             count += 1
-                except KeyError or ValueError:
+                except KeyError or ValueError or TypeError:
                     logger.error(f"{conf.LOG_HEAD}米游币任务 - 点赞: 服务器没有正确返回")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -405,7 +405,7 @@ class Action:
                         continue
                     elif res.json()["message"] != "OK":
                         return -4
-        except KeyError or ValueError:
+        except KeyError or ValueError or TypeError:
             logger.error(f"{conf.LOG_HEAD}米游币任务 - 分享: 服务器没有正确返回")
             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -443,7 +443,7 @@ async def get_missions(account: UserAccount):
         for mission in res.json()["data"]["missions"]:
             mission_list.append(Mission(mission))
         return mission_list
-    except KeyError:
+    except KeyError or ValueError or TypeError:
         logger.error(f"{conf.LOG_HEAD}获取米游币任务列表 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -492,7 +492,7 @@ async def get_missions_state(account: UserAccount) -> Union[Tuple[List[Tuple[Mis
             except IndexError:
                 state_list.append((mission, 0))
         return state_list, data["total_points"]
-    except KeyError:
+    except KeyError or ValueError or TypeError:
         logger.error(f"{conf.LOG_HEAD}获取米游币任务完成情况 - 服务器没有正确返回")
         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
