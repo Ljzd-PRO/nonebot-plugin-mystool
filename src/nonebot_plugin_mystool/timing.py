@@ -320,7 +320,7 @@ async def resin_check(bot: Bot, qq: int, isAuto: bool):
             \n🎮{genshinstatus.name}·{genshinstatus.level}\
             \n⏳树脂数量：{genshinstatus.resin}/160\
             \n🕰️探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
-            \n📅每日委托：{genshinstatus.task}/4\
+            \n📅每日委托：{4 - genshinstatus.task} 个任务未完成\
             \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}\
             \n🎰参量质变仪：{genshinstatus.transformer}
             """.strip()
