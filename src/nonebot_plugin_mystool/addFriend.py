@@ -45,7 +45,7 @@ async def check_friend_list(bot: Bot):
     friend_list = await bot.get_friend_list()
     user_list = UserData.read_all().keys()
     for user in user_list:
-        if user not in friend_list:
+        if not list(filter(lambda friend: friend["user_id"] == user, friend_list)):
             logger.info(f'{conf.LOG_HEAD}用户{user}不在好友列表内，已删除其数据')
             UserData.del_user(user)
 
