@@ -264,7 +264,7 @@ class Subscribe:
                     self.conf_list.sort(
                         key=lambda conf: conf["time"], reverse=True)
                     return True
-        except json.JSONDecodeError or KeyError:
+        except (json.JSONDecodeError, KeyError):
             logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
             return False
 
