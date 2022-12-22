@@ -59,7 +59,8 @@ __plugin_meta__ = PluginMetadata(
     \n📖 {HEAD}帮助 ➢ 查看帮助信息\
     \n🔍 {HEAD}帮助 <功能名> ➢ 查看目标功能详细说明\
     \n⚠️你的数据将经过机器人服务器，请确定你信任服务器所有者再使用。\
-    \n\n🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mystool
+    \n\n🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mystool\
+    \n🔗详细使用说明：https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki
     """.strip(),
     extra={"version": VERSION}
 )
