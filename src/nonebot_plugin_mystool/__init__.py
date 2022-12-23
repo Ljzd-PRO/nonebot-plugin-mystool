@@ -7,9 +7,10 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.0**
+**版本 - v0.2.1**
 
-📣 更新：进行了修复与优化。新增原神树脂、洞天宝钱、质量参变仪状态查看和提醒等功能。
+📣 更新：紧急修复无法绑定新账户的Bug ([#47](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues/47))
+新增原神树脂、洞天宝钱、质量参变仪状态查看和提醒等功能。
 
 ## 功能和特性
 
@@ -40,6 +41,9 @@
 ```
 
 > ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#command_start)
+
+## 其他
+适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支：https://github.com/ayakasuki/nonebot-plugin-mystool
 """
 
 import pkgutil
@@ -47,7 +51,7 @@ from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-VERSION = "v0.2.0"
+VERSION = "v0.2.1"
 '''插件版本号'''
 
 __plugin_meta__ = PluginMetadata(
