@@ -313,7 +313,7 @@ class UserData:
                                       encoding=ENCODING), indent=4, ensure_ascii=False)
 
     @classmethod
-    def __create_user(cls, userdata: Dict[int, dict], qq: int) -> dict:
+    def __create_user(cls, userdata: Dict[int, dict], qq: int) -> Dict[int, dict]:
         """
         创建用户数据，返回创建后整体的userdata
         """
@@ -321,14 +321,14 @@ class UserData:
         return userdata
 
     @staticmethod
-    def __create_account(userdata: Dict[str, dict], qq: int, name: str = None, phone: int = None) -> dict:
+    def __create_account(userdata: Dict[int, dict], qq: int, name: str = None, phone: int = None) -> Dict[int, dict]:
         """
         创建米哈游账户数据，返回创建后整体的userdata
         """
         account = UserAccount().to_dict()
         account["name"] = name
         account["phone"] = phone
-        userdata[str(qq)]["accounts"].append(account)
+        userdata[qq]["accounts"].append(account)
         return userdata
 
     @classmethod

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "v0.2.0"
-description = "NoneBot2插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录"
+version = "v0.2.1"
+description = "NoneBot2插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录、原神树脂提醒"
 license = "MIT"
 authors = [
   "Ljzd-PRO <ljzd@office.ljzd-pro.ml>",
