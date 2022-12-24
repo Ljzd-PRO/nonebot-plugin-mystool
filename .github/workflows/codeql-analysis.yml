@@ -16,11 +16,13 @@ on:
     branches:
     - stable
     - dev
+    - v0.2.2-beta.1
   pull_request:
     # The branches below must be a subset of the branches above
     branches:
     - stable
     - dev
+    - v0.2.2-beta.1
   schedule:
     - cron: '31 10 * * 6'
 
