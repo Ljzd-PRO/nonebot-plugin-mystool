@@ -2,13 +2,13 @@
 ### 米游社登录获取Cookie相关
 """
 import traceback
-from typing import Literal
+from typing import Literal, Union
 
 import httpx
 import requests.utils
 import tenacity
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
@@ -195,7 +195,9 @@ get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式绑定�
 
 
 @get_cookie.handle()
-async def handle_first_receive(event: PrivateMessageEvent, state: T_State):
+async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+    if isinstance(event, GroupMessageEvent):
+        await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     account_num = len(UserData.read_all())
     if account_num < conf.MAX_USER:
         await get_cookie.send("""\
