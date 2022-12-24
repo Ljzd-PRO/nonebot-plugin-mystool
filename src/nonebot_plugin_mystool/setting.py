@@ -1,10 +1,10 @@
 """
 ### 用户设置相关
 """
-from typing import List
+from typing import List, Union
 
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
@@ -23,7 +23,7 @@ setting.__help_info__ = f'如需配置是否开启每日任务、设备平台、
 
 
 @setting.handle()
-async def _(event: PrivateMessageEvent):
+async def _(event: MessageEvent):
     msg = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
     await setting.send(msg)
 
@@ -37,10 +37,12 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 
 @account_setting.handle()
-async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
+async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
     """
     账号设置命令触发
     """
+    if isinstance(event, GroupMessageEvent):
+        await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
     qq = int(event.user_id)
     user_account = UserData.read_account_all(qq)
     state['qq'] = qq
@@ -179,7 +181,7 @@ global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()
-async def _(event: PrivateMessageEvent, matcher: Matcher):
+async def _(event: MessageEvent, matcher: Matcher):
     """
     通知设置命令触发
     """

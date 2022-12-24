@@ -236,6 +236,18 @@ def check_DS(response: str):
         return True
 
 
+def blur_phone(phone: Union[str, int]) -> str:
+    """
+    模糊手机号
+
+    :param phone: 手机号
+    :return: 模糊后的手机号
+    """
+    if isinstance(phone, int):
+        phone = str(phone)
+    return f"{phone[:3]}****{phone[-4:]}"
+
+
 class Subscribe:
     """
     在线配置相关(需实例化)
