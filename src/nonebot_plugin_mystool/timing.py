@@ -252,10 +252,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool,
         # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
         if (account.mybMission and isAuto) or not isAuto:
             if not isAuto:
-                if group_event:
-                    await bot.send(event=group_event, at_sender=True,
-                                   message=f'📱️账户 {blur(account.phone)} ⏳开始执行米游币任务...')
-                else:
+                if not group_event:
                     await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
 
             # 执行任务
