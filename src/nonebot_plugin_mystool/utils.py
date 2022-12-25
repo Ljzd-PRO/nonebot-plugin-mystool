@@ -99,7 +99,7 @@ def ntp_time_sync():
                     logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，正在重试")
                     raise
     except tenacity.RetryError:
-        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，改为使用本地时间")
+        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败")
 
 
 def generateDeviceID() -> str:

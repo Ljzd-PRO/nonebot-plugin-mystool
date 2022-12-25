@@ -399,6 +399,7 @@ async def resin_check(bot: Bot, qq: int, isAuto: bool,
                 await bot.send_private_msg(user_id=qq, message=msg)
 
 
+@driver.on_startup
 async def generate_image(isAuto=True):
     """
     生成米游币商品函数。
@@ -462,7 +463,3 @@ async def auto_resin_check():
     bot = get_bot()
     for qq in qq_accounts:
         await resin_check(bot=bot, qq=qq, isAuto=True)
-
-
-# 启动时，自动生成当日米游社商品图片
-driver.on_startup(generate_image)
