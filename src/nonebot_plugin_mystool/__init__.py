@@ -7,7 +7,7 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.2-rc.1**
+**版本 - v0.2.2-rc.2**
 
 ### 📣 更新内容
 支持群聊使用
@@ -54,7 +54,7 @@ from nonebot.plugin import PluginMetadata
 
 from .data import create_files
 
-VERSION = "v0.2.2-rc.1"
+VERSION = "v0.2.2-rc.2"
 '''插件版本号'''
 
 __plugin_meta__ = PluginMetadata(
