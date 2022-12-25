@@ -5,8 +5,8 @@ import traceback
 from typing import Dict, List, Literal, NewType, Tuple, Union
 
 import httpx
-import nonebot
 import tenacity
+from nonebot import get_driver
 
 from .config import mysTool_config as conf
 from .data import UserAccount
@@ -732,7 +732,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
         return -4
 
 
-@nonebot.get_driver().on_startup
+@get_driver().on_startup
 async def set_game_list():
     """
     设置游戏ID(gameID)与缩写和全称的对应关系

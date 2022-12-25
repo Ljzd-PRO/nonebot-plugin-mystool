@@ -8,7 +8,7 @@ from typing import List, Literal, Union
 import httpx
 import tenacity
 from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
@@ -83,7 +83,9 @@ get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游�
 
 
 @get_address.handle()
-async def handle_first_receive(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
+async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
+    if isinstance(event, GroupMessageEvent):
+        await get_address.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user_account = UserData.read_account_all(event.user_id)
     state['qq_account'] = event.user_id
     state['user_account'] = user_account

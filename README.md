@@ -6,7 +6,7 @@
   \/_/  \/_/   \/_____/   \/_____/     \/_/   \/_____/   \/_____/   \/_____/
 ```
 
-<div align="left">
+<div>
   <a href="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool" target="_blank">
     <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool/badge?style=for-the-badge">
   </a>
@@ -20,10 +20,12 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.1**
+**版本 - v0.2.2-rc.1**
 
-📣 更新：紧急修复无法绑定新账户的Bug ([#47](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues/47))  
-新增原神树脂、洞天宝钱、质量参变仪状态查看和提醒等功能。
+### 📣 更新内容
+2022.12.24 支持群聊使用
+
+2022.12.23 新增原神树脂、洞天宝钱、质量参变仪状态查看和提醒等功能。
 
 ## 功能和特性
 

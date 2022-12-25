@@ -99,7 +99,7 @@ def ntp_time_sync():
                     logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，正在重试")
                     raise
     except tenacity.RetryError:
-        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，改为使用本地时间")
+        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败")
 
 
 def generateDeviceID() -> str:
@@ -234,6 +234,18 @@ def check_DS(response: str):
             return True
     except (json.JSONDecodeError, KeyError):
         return True
+
+
+def blur_phone(phone: Union[str, int]) -> str:
+    """
+    模糊手机号
+
+    :param phone: 手机号
+    :return: 模糊后的手机号
+    """
+    if isinstance(phone, int):
+        phone = str(phone)
+    return f"{phone[:3]}****{phone[-4:]}"
 
 
 class Subscribe:

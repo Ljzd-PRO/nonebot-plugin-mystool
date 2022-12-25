@@ -7,11 +7,11 @@ import os
 import time
 from copy import deepcopy
 from datetime import datetime
-from typing import List, Set
+from typing import List, Set, Union
 
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
-                                         PrivateMessageEvent)
+                                         PrivateMessageEvent, GroupMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
@@ -98,10 +98,12 @@ myb_exchange_plan.__help_msg__ = """\
 
 
 @myb_exchange_plan.handle()
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, args=CommandArg()):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, args=CommandArg()):
     """
     主命令触发
     """
+    if isinstance(event, GroupMessageEvent):
+        await myb_exchange_plan.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     if not user_account:

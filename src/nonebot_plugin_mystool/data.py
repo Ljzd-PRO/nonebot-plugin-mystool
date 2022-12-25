@@ -476,11 +476,10 @@ class UserData:
             return False
 
 
-@driver.on_startup
 def create_files():
     if not USERDATA_PATH.exists():
-        USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
         logger.warning(f"{conf.LOG_HEAD}用户数据文件不存在，将重新生成...")
+        USERDATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     else:
         try:
             if not isinstance(json.load(open(USERDATA_PATH, encoding=ENCODING)), dict):
