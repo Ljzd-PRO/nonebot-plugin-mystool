@@ -188,7 +188,7 @@ async def perform_game_sign(bot: Bot, qq: int, isAuto: bool,
                         sign_award = month_sign_award[sign_info.totalDays - 1]
                         if sign_info.isSign:
                             msg = f"""\
-                                \n📱账户 {account.phone}\
+                                \n📱账户 {account.phone if not group_event else blur(account.phone)}\
                                 \n🎮『{game_name}』今日签到成功！\
                                 \n{record.nickname}·{record.regionName}·{record.level}\
                                 \n🎁今日签到奖励：\
