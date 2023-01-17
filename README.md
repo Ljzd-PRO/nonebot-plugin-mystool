@@ -64,4 +64,6 @@
 > ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#command_start)
 
 ## 其他
-适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支：https://github.com/ayakasuki/nonebot-plugin-mystool
+### 适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支
+- https://github.com/MWTJC/zhenxun-plugin-mystool
+- https://github.com/ayakasuki/nonebot-plugin-mystool
