@@ -25,15 +25,13 @@ async def _(bot: Bot, event: RequestEvent):
         if conf.ADD_FRIEND_ACCEPT:
             logger.info(f'{conf.LOG_HEAD}已添加好友{event.user_id}')
             await bot.set_friend_add_request(flag=event.flag, approve=True)
-            # 等待腾讯服务器响应
-            await asyncio.sleep(1.5)
-            await bot.send_private_msg(user_id=event.user_id, message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
+            if conf.ADD_FRIEND_WELCOME:
+                # 等待腾讯服务器响应
+                await asyncio.sleep(1.5)
+                await bot.send_private_msg(user_id=event.user_id, message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
     # 判断为邀请进群事件
     elif isinstance(event, GroupRequestEvent):
         logger.info(f'{conf.LOG_HEAD}已加入群聊 {event.group_id}')
-        # 等待腾讯服务器响应
-        await asyncio.sleep(1.5)
-        await bot.send_group_msg(group_id=event.group_id, message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』 查看更多用法哦~')
 
 
 @driver.on_bot_connect

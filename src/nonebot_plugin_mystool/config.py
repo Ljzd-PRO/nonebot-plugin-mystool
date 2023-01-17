@@ -104,7 +104,8 @@ class Config(BaseModel, extra=Extra.ignore):
     '''支持最多用户数'''
     ADD_FRIEND_ACCEPT: bool = True
     '''是否自动同意好友申请'''
-
+    ADD_FRIEND_WELCOME: bool = True
+    '''用户添加机器人为好友以后，是否发送使用指引信息'''
     COMMAND_START: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
     PLUGIN_NAME: str = "nonebot_plugin_mystool"
