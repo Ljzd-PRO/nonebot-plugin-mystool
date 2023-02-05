@@ -31,8 +31,19 @@ driver = nonebot.get_driver()
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 '''本插件数据'''
 
-COMMAND_BEGIN = list(nonebot.get_driver().config.command_start)[0] + conf.COMMAND_START
+COMMAND_BEGIN = ""
 '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
+
+@driver.on_startup
+def set_command_begin():
+    """
+    机器人启动时设置命令开头字段
+    """
+    global COMMAND_BEGIN
+    if nonebot.get_driver().config.command_start:
+        COMMAND_BEGIN = list(nonebot.get_driver().config.command_start)[0] + conf.COMMAND_START
+    else:
+        COMMAND_BEGIN = conf.COMMAND_START
 
 def set_logger(logger: "Logger"):
     """
