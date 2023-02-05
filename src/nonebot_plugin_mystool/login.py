@@ -1,6 +1,7 @@
 """
 ### 米游社登录获取Cookie相关
 """
+import json
 import traceback
 from typing import Literal, Union
 
@@ -13,7 +14,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import UserData
-from .utils import custom_attempt_times, generateDeviceID, logger
+from .utils import custom_attempt_times, generateDeviceID, logger, COMMAND_BEGIN
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
@@ -284,3 +285,22 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
                         int(event.user_id), state['phone'])
     logger.info(f"{conf.LOG_HEAD}米游社账户 {state['phone']} 绑定成功")
     await get_cookie.finish("🎉米游社账户 {} 绑定成功".format(state['phone']))
+
+output_cookies = on_command(
+    conf.COMMAND_START + '导出Cookies',
+    aliases={conf.COMMAND_START + '导出Cookie', conf.COMMAND_START + '导出账号',
+             conf.COMMAND_START + '导出cookie', conf.COMMAND_START + '导出cookies'}, priority=4, block=True)
+output_cookies.__help_name__ = '导出Cookies'
+output_cookies.__help_info__ = '导出绑定的米游社账号的Cookies数据'
+
+
+@output_cookies.handle()
+async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+    if isinstance(event, GroupMessageEvent):
+        await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
+    if not UserData.read_account_all(event.user_id):
+        await get_cookie.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+
+@get_cookie.got('phone', prompt='📱请发送要获取Cookies的米游社账号（手机号）：')
+async def _(event: PrivateMessageEvent, phone: str = ArgPlainText('phone')):
+    await get_cookie.finish(json.dumps(UserData.read_account(event.user_id, phone).cookie), indent=4)

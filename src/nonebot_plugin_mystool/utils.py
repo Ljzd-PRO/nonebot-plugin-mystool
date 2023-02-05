@@ -31,6 +31,8 @@ driver = nonebot.get_driver()
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 '''本插件数据'''
 
+COMMAND_BEGIN = list(nonebot.get_driver().config.command_start)[0] + conf.COMMAND_START
+'''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
 def set_logger(logger: "Logger"):
     """

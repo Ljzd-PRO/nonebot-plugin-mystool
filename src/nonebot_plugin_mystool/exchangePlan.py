@@ -24,12 +24,9 @@ from .exchange import (Exchange, Good, UserAccount, get_good_detail,
                        get_good_list)
 from .gameSign import GameInfo
 from .timing import generate_image
-from .utils import NtpTime
+from .utils import NtpTime, COMMAND_BEGIN
 
 driver = get_driver()
-
-COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
-
 
 class ExchangeStart:
     """
@@ -88,13 +85,13 @@ myb_exchange_plan = on_command(
     aliases={conf.COMMAND_START + 'myb_exchange', conf.COMMAND_START + '米游币兑换', conf.COMMAND_START + '米游币兑换计划',
              conf.COMMAND_START + '兑换计划', conf.COMMAND_START + '兑换'}, priority=4, block=True)
 myb_exchange_plan.__help_name__ = "兑换"
-myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
+myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.__help_msg__ = """\
 具体用法：
 {0}兑换 + <商品ID> ➢ 新增兑换计划
 {0}兑换 - <商品ID> ➢ 删除兑换计划
 {0}商品 ➢ 查看米游社商品\
-""".format(COMMAND)
+""".format(COMMAND_BEGIN)
 
 
 @myb_exchange_plan.handle()
@@ -107,7 +104,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     qq_account = int(event.user_id)
     user_account = UserData.read_account_all(qq_account)
     if not user_account:
-        await myb_exchange_plan.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND}{conf.COMMAND_START}登录』进行登录")
+        await myb_exchange_plan.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{conf.COMMAND_START}登录』进行登录")
     state['qq_account'] = qq_account
     state['user_account'] = user_account
 
