@@ -59,7 +59,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.42.1"
+    X_RPC_APP_VERSION: str = "2.28.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
@@ -140,7 +140,7 @@ class Config(BaseModel, extra=Extra.ignore):
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
-    SALT_IOS: str = "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk"
+    SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
     '''生成Headers iOS DS所需的salt'''
     SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
     '''生成Headers Android DS所需的salt'''
