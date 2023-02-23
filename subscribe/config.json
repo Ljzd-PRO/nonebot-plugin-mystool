@@ -12,6 +12,31 @@
         ],
         "config": {
             "Config": {
+                "SALT_IOS": "ulInCDohgEs557j0VsPDYnQaaz6KJcv5",
+                "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
+                "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
+                "SALT_PARAMS": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
+            },
+            "DeviceConfig": {
+                "USER_AGENT_MOBILE": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.28.1",
+                "USER_AGENT_ANDROID": "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.28.1"
+                "X_RPC_APP_VERSION": "2.28.1"
+            }
+        }
+    },
+    {
+        "time": 1671719967,
+        "version": [
+            "v0.2.0",
+            "v0.2.1",
+            "v0.2.2-beta.1",
+            "v0.2.2-rc.1",
+            "v0.2.2-rc.2",
+            "v0.2.2",
+            "v0.2.3"
+        ],
+        "config": {
+            "Config": {
                 "SALT_IOS": "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk",
                 "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
                 "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
