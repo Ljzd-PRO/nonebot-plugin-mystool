@@ -97,11 +97,13 @@ async def perform_game_sign(bot: Bot, qq: int, isAuto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     accounts = UserData.read_account_all(qq)
+    failed_accounts = []
     for account in accounts:
         gamesign = GameSign(account)
         record_list: List[GameRecord] = await get_game_record(account)
         if isinstance(record_list, int):
             if record_list == -1:
+                failed_accounts.append(account)
                 if group_event:
                     await bot.send(event=group_event, at_sender=True, message=f"⚠️账户 {blur(account.phone)} 登录失效，请重新登录")
                 else:
@@ -208,6 +210,10 @@ async def perform_game_sign(bot: Bot, qq: int, isAuto: bool,
                         )
                 await asyncio.sleep(conf.SLEEP_TIME)
 
+    # 如果全部登录失效，则关闭通知
+    if len(failed_accounts) == len(accounts):
+        UserData.set_notice(False, qq)
+
 
 async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool,
                            group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
@@ -220,6 +226,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     accounts = UserData.read_account_all(qq)
+    failed_accounts = []
     for account in accounts:
         missions_state = await get_missions_state(account)
         mybmission = await Action(account).async_init()
@@ -238,6 +245,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool,
             continue
         if isinstance(mybmission, int):
             if mybmission == -1:
+                failed_accounts.append(account)
                 if group_event:
                     await bot.send(event=group_event, at_sender=True, message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
                 else:
@@ -303,6 +311,10 @@ async def perform_bbs_sign(bot: Bot, qq: int, isAuto: bool,
                         user_id=qq,
                         message=msg
                     )
+
+    # 如果全部登录失效，则关闭通知
+    if len(failed_accounts) == len(accounts):
+        UserData.set_notice(False, qq)
 
 
 async def resin_check(bot: Bot, qq: int, isAuto: bool,
