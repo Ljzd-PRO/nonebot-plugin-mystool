@@ -210,10 +210,3 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.finish("没有做修改哦~")
     else:
         await matcher.reject("⚠️您的输入有误，请重新输入")
-
-delete_account = on_command(
-    conf.COMMAND_START + 'delete_account',
-    aliases={conf.COMMAND_START + '删除账号', conf.COMMAND_START + '销户', conf.COMMAND_START + '还原'}, priority=4,
-    block=True)
-global_setting.__help_name__ = "通知设置"
-global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
