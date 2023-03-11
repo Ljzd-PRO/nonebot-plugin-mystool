@@ -1,12 +1,16 @@
 """
 ### 插件配置相关
 """
+import os
+import traceback
 from datetime import time, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Tuple, Union
 
 from nonebot import get_driver
 from pydantic import BaseModel, Extra
+
+from .utils import logger
 
 if TYPE_CHECKING:
     from loguru import RotationFunction
@@ -15,6 +19,10 @@ ROOT_PATH = Path(__name__).parent.absolute()
 '''NoneBot2 机器人根目录'''
 PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 '''插件数据保存目录'''
+CONFIG_PATH = PATH / "config.json"
+'''插件配置文件路径'''
+
+driver = get_driver()
 
 
 class DeviceConfig(BaseModel, extra=Extra.ignore):
@@ -153,4 +161,22 @@ class Config(BaseModel, extra=Extra.ignore):
     goodListImage: GoodListImage = GoodListImage()
 
 
-mysTool_config = Config.parse_obj(get_driver().config)
+def create_config_file():
+    if not os.path.isdir(PATH):
+        os.makedirs(PATH)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        f.write(Config().json(indent=4))
+
+
+mysTool_config = Config()
+if os.path.isfile(CONFIG_PATH):
+    try:
+        mysTool_config = Config.parse_file(CONFIG_PATH)
+    except Exception:
+        logger.error(f"{Config().LOG_HEAD}读取插件配置失败，请检查配置文件 {CONFIG_PATH} 格式是否正确。将使用默认配置")
+        logger.debug(f"{Config().LOG_HEAD}{traceback.format_exc()}")
+        create_config_file()
+else:
+    create_config_file()
+
+mysTool_config = mysTool_config.parse_obj(get_driver().config)
