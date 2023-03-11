@@ -18,7 +18,7 @@ ROOT_PATH = Path(__name__).parent.absolute()
 '''NoneBot2 机器人根目录'''
 PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 '''插件数据保存目录'''
-CONFIG_PATH = PATH / "config.json"
+CONFIG_PATH = PATH / "pluginConfig.json"
 '''插件配置文件路径'''
 
 driver = get_driver()
