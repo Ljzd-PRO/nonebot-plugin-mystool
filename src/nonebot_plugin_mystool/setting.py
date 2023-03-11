@@ -3,7 +3,7 @@
 """
 from typing import List, Union
 
-from nonebot import get_driver, on_command
+from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
@@ -36,7 +36,8 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 
 @account_setting.handle()
-async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
+async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
+                               arg=ArgPlainText('arg')):
     """
     账号设置命令触发
     """

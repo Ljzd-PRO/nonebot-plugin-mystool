@@ -7,7 +7,7 @@ from typing import List, Literal, Union
 
 import httpx
 import tenacity
-from nonebot import get_driver, on_command
+from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
@@ -30,6 +30,7 @@ HEADERS = {
     "Accept-Encoding": "gzip, deflate, br"
 }
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
+
 
 async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
     """

@@ -28,6 +28,7 @@ from .utils import NtpTime, COMMAND_BEGIN
 
 driver = get_driver()
 
+
 class ExchangeStart:
     """
     异步多线程兑换

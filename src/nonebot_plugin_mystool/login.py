@@ -286,6 +286,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     logger.info(f"{conf.LOG_HEAD}米游社账户 {state['phone']} 绑定成功")
     await get_cookie.finish("🎉米游社账户 {} 绑定成功".format(state['phone']))
 
+
 output_cookies = on_command(
     conf.COMMAND_START + '导出Cookies',
     aliases={conf.COMMAND_START + '导出Cookie', conf.COMMAND_START + '导出账号',
@@ -300,6 +301,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     if not UserData.read_account_all(event.user_id):
         await get_cookie.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+
 
 @get_cookie.got('phone', prompt='📱请发送要获取Cookies的米游社账号（手机号）：')
 async def _(event: PrivateMessageEvent, phone: str = ArgPlainText('phone')):

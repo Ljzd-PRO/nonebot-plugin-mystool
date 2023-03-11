@@ -2,7 +2,7 @@
 ### 帮助相关
 #### 参考了`nonebot-plugin-help`
 """
-from nonebot import get_driver, on_command
+from nonebot import on_command
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
