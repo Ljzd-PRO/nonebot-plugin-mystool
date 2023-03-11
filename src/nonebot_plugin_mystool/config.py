@@ -8,9 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Tuple, Union
 
 from nonebot import get_driver
+from nonebot.log import logger
 from pydantic import BaseModel, Extra
-
-from .utils import logger
 
 if TYPE_CHECKING:
     from loguru import RotationFunction
