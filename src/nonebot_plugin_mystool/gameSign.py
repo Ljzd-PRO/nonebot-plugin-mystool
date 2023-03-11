@@ -230,7 +230,7 @@ class GameSign:
             return -4
 
         try:
-            index = 0
+            subscribe = Subscribe()
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
@@ -247,13 +247,8 @@ class GameSign:
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}获取签到记录: DS无效，正在在线获取salt以重新生成...")
-                        sub = Subscribe()
-                        conf.SALT_IOS = await sub.get(
-                            ("Config", "SALT_IOS"), index)
-                        conf.device.USER_AGENT_MOBILE = await sub.get(
-                            ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                        await subscribe.load()
                         headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                        index += 1
                         headers["DS"] = generateDS()
                     return Info(res.json()["data"])
         except KeyError and ValueError and TypeError:
@@ -320,7 +315,7 @@ class GameSign:
             await device_save(self.account)
             headers["DS"] = generateDS(platform="android")
         try:
-            index = 0
+            subscribe = Subscribe()
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
@@ -336,22 +331,13 @@ class GameSign:
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}签到: DS无效，正在在线获取salt以重新生成...")
-                        sub = Subscribe()
+                        await subscribe.load()
                         if platform == "ios":
-                            conf.SALT_IOS = await sub.get(
-                                ("Config", "SALT_IOS"), index)
-                            conf.device.USER_AGENT_MOBILE = await sub.get(
-                                ("DeviceConfig", "USER_AGENT_MOBILE"), index)
                             headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
                             headers["DS"] = generateDS()
                         else:
-                            conf.SALT_ANDROID = await sub.get(
-                                ("Config", "SALT_ANDROID"), index)
-                            conf.device.USER_AGENT_ANDROID = await sub.get(
-                                ("DeviceConfig", "USER_AGENT_ANDROID"), index)
                             headers["User-Agent"] = conf.device.USER_AGENT_ANDROID
                             headers["DS"] = generateDS(platform="android")
-                        index += 1
                     self.signResult = res.json()
                     if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1

@@ -199,7 +199,7 @@ class Action:
         """
         data = {"gids": GAME_ID[game].gids}
         try:
-            index = 0
+            subscribe = Subscribe()
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
@@ -215,10 +215,8 @@ class Action:
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: DS无效，正在在线获取salt以重新生成...")
-                        conf.SALT_DATA = await Subscribe().get(
-                            ("Config", "SALT_DATA"), index)
+                        await subscribe.load()
                         headers["DS"] = generateDS(data)
-                        index += 1
                     return res.json()["data"]["points"]
         except KeyError and ValueError and TypeError:
             logger.error(f"{conf.LOG_HEAD}米游币任务 - 讨论区签到: 服务器没有正确返回")
@@ -289,7 +287,7 @@ class Action:
                 if count == readTimes:
                     break
                 try:
-                    index = 0
+                    subscribe = Subscribe()
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                                 wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
@@ -305,11 +303,9 @@ class Action:
                             if not check_DS(res.text):
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 阅读: DS无效，正在在线获取salt以重新生成...")
-                                conf.SALT_ANDROID = await Subscribe().get(
-                                    ("Config", "SALT_ANDROID"), index)
+                                await subscribe.load()
                                 self.headers["DS"] = generateDS(
                                     platform="android")
-                                index += 1
                             if res.json()["message"] == "帖子不存在":
                                 continue
                             if "self_operation" not in res.json()["data"]["post"]:
@@ -355,7 +351,7 @@ class Action:
                 if count == likeTimes:
                     break
                 try:
-                    index = 0
+                    subscribe = Subscribe()
                     async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                                 wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                         with attempt:
@@ -374,11 +370,9 @@ class Action:
                             if not check_DS(res.text):
                                 logger.info(
                                     f"{conf.LOG_HEAD}米游币任务 - 点赞: DS无效，正在在线获取salt以重新生成...")
-                                conf.SALT_ANDROID = await Subscribe().get(
-                                    ("Config", "SALT_ANDROID"), index)
+                                await subscribe.load()
                                 headers["DS"] = generateDS(
                                     platform="android")
-                                index += 1
                             if res.json()["message"] == "帖子不存在":
                                 continue
                             elif res.json()["message"] != "OK":
@@ -419,7 +413,7 @@ class Action:
         if postID_list is None:
             return -5
         try:
-            index = 0
+            subscribe = Subscribe()
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
@@ -436,11 +430,9 @@ class Action:
                     if not check_DS(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 分享: DS无效，正在在线获取salt以重新生成...")
-                        conf.SALT_ANDROID = await Subscribe().get(
-                            ("Config", "SALT_ANDROID"), index)
+                        conf.SALT_ANDROID = await subscribe.load()
                         headers["DS"] = generateDS(
                             platform="android")
-                        index += 1
                     if res.json()["message"] == "帖子不存在":
                         continue
                     elif res.json()["message"] != "OK":

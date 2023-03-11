@@ -355,8 +355,8 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     - 若返回 `-3` 说明请求失败
     """
     headers = HEADERS_ACTION_TICKET.copy()
-    index = 0
     try:
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -370,17 +370,11 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                         f"{conf.LOG_HEAD}获取ActionTicket - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and (
-                        (index < len(Subscribe.conf_list) - 1 or not Subscribe.conf_list) or not Subscribe.conf_list):
+                if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
-                    sub = Subscribe()
-                    conf.SALT_IOS = await sub.get(
-                        ("Config", "SALT_IOS"), index)
-                    conf.device.USER_AGENT_MOBILE = await sub.get(
-                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    await subscribe.load()
                     headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                    index += 1
                     headers["DS"] = generateDS()
                 return res.json()["data"]["ticket"]
     except KeyError and TypeError and ValueError:
@@ -441,7 +435,7 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     headers = HEADERS_GAME_LIST.copy()
     info_list = []
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -451,13 +445,8 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取游戏信息: DS无效，正在在线获取salt以重新生成...")
-                    sub = Subscribe()
-                    conf.SALT_IOS = await sub.get(
-                        ("Config", "SALT_IOS"), index)
-                    conf.device.USER_AGENT_MOBILE = await sub.get(
-                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    await subscribe.load()
                     headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                    index += 1
                     headers["DS"] = generateDS()
                 for info in res.json()["data"]["list"]:
                     info_list.append(GameInfo(info))
@@ -529,7 +518,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -545,9 +534,7 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_DATA = await Subscribe().get(
-                        ("Config", "SALT_DATA"), index)
-                    index += 1
+                    await subscribe.load()
                     headers["DS"] = generateDS(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
@@ -587,7 +574,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -603,9 +590,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_DATA = await Subscribe().get(
-                        ("Config", "SALT_DATA"), index)
-                    index += 1
+                    await subscribe.load()
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -635,7 +620,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
     headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
@@ -651,9 +636,7 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                 if not check_DS(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_IOS = await Subscribe().get(
-                        ("Config", "SALT_IOS"), index)
-                    index += 1
+                    await subscribe.load()
                 status = GenshinStatus().fromWidget(res.json()["data"]["data"])
                 if not status:
                     raise KeyError
@@ -691,7 +674,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
         if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
             try:
                 flag = False
-                index = 0
+                subscribe = Subscribe()
                 url = URL_GENSHEN_STATUS_BBS.format(
                     game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
@@ -711,9 +694,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                         if not check_DS(res.text):
                             logger.info(
                                 f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                            conf.SALT_PARAMS = await Subscribe().get(
-                                ("Config", "SALT_PARAMS"), index)
-                            index += 1
+                            await subscribe.load()
                         status = GenshinStatus().fromBBS(
                             res.json()["data"], record)
                         if not status:
