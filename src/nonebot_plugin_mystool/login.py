@@ -14,7 +14,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import UserData
-from .utils import custom_attempt_times, generateDeviceID, logger, CommandBegin
+from .utils import custom_attempt_times, generateDeviceID, logger, COMMAND_BEGIN
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
@@ -300,7 +300,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
     if isinstance(event, GroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     if not UserData.read_account_all(event.user_id):
-        await get_cookie.finish(f"⚠️你尚未绑定米游社账户，请先使用『{CommandBegin}登录』进行登录")
+        await get_cookie.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
 
 
 @get_cookie.got('phone', prompt='📱请发送要获取Cookies的米游社账号（手机号）：')

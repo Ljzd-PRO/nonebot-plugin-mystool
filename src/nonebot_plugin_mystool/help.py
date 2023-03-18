@@ -9,7 +9,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
-from .utils import PLUGIN, CommandBegin
+from .utils import PLUGIN, COMMAND_BEGIN
 
 helper = on_command(conf.COMMAND_START + "help", priority=1,
                     aliases={conf.COMMAND_START + "帮助"})
@@ -17,8 +17,8 @@ helper = on_command(conf.COMMAND_START + "help", priority=1,
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
     🍺欢迎使用米游社小助手帮助系统！\
-    \n{CommandBegin}帮助 ➢ 查看米游社小助手使用说明\
-    \n{CommandBegin}帮助 <功能名> ➢ 查看目标功能详细说明\
+    \n{COMMAND_BEGIN}帮助 ➢ 查看米游社小助手使用说明\
+    \n{COMMAND_BEGIN}帮助 <功能名> ➢ 查看目标功能详细说明\
 '''.strip()
 
 
@@ -36,7 +36,7 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Mess
             PLUGIN.metadata.name +
             PLUGIN.metadata.description +
             "\n具体用法：\n" +
-            PLUGIN.metadata.usage.format(HEAD=CommandBegin))
+            PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN))
 
 
 @helper.got('content')
@@ -54,7 +54,7 @@ async def get_result(event: MessageEvent, content: Message = Arg()):
     for matcher in matchers:
         try:
             if arg.lower() == matcher.__help_name__:
-                await helper.finish(f"『{CommandBegin}{matcher.__help_name__}』- 使用说明\n{matcher.__help_info__}")
+                await helper.finish(f"『{COMMAND_BEGIN}{matcher.__help_name__}』- 使用说明\n{matcher.__help_info__}")
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")
