@@ -129,14 +129,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 good = await get_good_detail(plan[0])
                 if not good:
                     await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-                msg += """\
-                \n-- 商品 {0}\
-                \n- 🔢商品ID：{1}\
-                \n- 💰商品价格：{2} 米游币\
-                \n- 📅兑换时间：{3}\
-                \n- 📱账户：{4}""".strip().format(good.name, good.good_id,
-                                               good.price, time.strftime("%Y-%m-%d %H:%M:%S",
-                                                                         time.localtime(good.time)), account.phone)
+                msg += f"""\
+                \n-- 商品 {good.name}\
+                \n- 🔢商品ID：{good.good_id}\
+                \n- 💰商品价格：{good.price} 米游币\
+                \n- 📅兑换时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))}\
+                \n- 📱账户：{account.phone}""".strip()
                 msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
@@ -263,15 +261,15 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     if exchange_plan.result == -1:
         await matcher.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
     elif exchange_plan.result == -2:
-        await matcher.finish("⚠️商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.good_id))
+        await matcher.finish(f"⚠️商品 {good.good_id} 为游戏内物品，由于未配置stoken，放弃兑换")
     elif exchange_plan.result == -3:
-        await matcher.finish("⚠️商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.good_id))
+        await matcher.finish(f"⚠️商品 {good.good_id} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换")
     elif exchange_plan.result == -4:
-        await matcher.finish("⚠️暂不支持商品 {} 所属的游戏，放弃兑换".format(good.good_id))
+        await matcher.finish(f"⚠️暂不支持商品 {good.good_id} 所属的游戏，放弃兑换")
     elif exchange_plan.result == -5:
-        await matcher.finish("⚠️获取商品 {} 的信息时，网络连接失败或服务器返回不正确，放弃兑换".format(good.good_id))
+        await matcher.finish(f"⚠️获取商品 {good.good_id} 的信息时，网络连接失败或服务器返回不正确，放弃兑换")
     elif exchange_plan.result == -6:
-        await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.good_id))
+        await matcher.finish(f"⚠️获取商品 {good.good_id} 的信息时，获取用户游戏账户数据失败，放弃兑换")
     else:
         scheduler.add_job(id=str(account.phone) + '_' + good.good_id, replace_existing=True, trigger='date',
                           func=ExchangeStart(

@@ -149,6 +149,6 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText(
         account: UserAccount = state["account"]
         account.address = result_address[0]
         UserData.set_account(account, state['qq_account'], account.phone)
-        await get_address.finish("🎉已成功设置账户 {} 的地址".format(account.phone))
+        await get_address.finish(f"🎉已成功设置账户 {account.phone} 的地址")
     else:
         await get_address.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")

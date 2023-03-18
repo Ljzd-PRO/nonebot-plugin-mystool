@@ -344,7 +344,7 @@ class GameSign:
                         return 1
                     if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
-                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 可能被验证码阻拦".format())
+                            f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 可能被验证码阻拦")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -5
                     return 1

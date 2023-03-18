@@ -295,7 +295,7 @@ class Action:
                                                         timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
-                                    f"{conf.LOG_HEAD}米游币任务 - 阅读: 用户 {self.account.phone} 登录失效".format())
+                                    f"{conf.LOG_HEAD}米游币任务 - 阅读: 用户 {self.account.phone} 登录失效")
                                 logger.debug(
                                     f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                                 return -1
@@ -362,7 +362,7 @@ class Action:
                                                          timeout=conf.TIME_OUT)
                             if not check_login(res.text):
                                 logger.info(
-                                    f"{conf.LOG_HEAD}米游币任务 - 点赞: 用户 {self.account.phone} 登录失效".format())
+                                    f"{conf.LOG_HEAD}米游币任务 - 点赞: 用户 {self.account.phone} 登录失效")
                                 logger.debug(
                                     f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                                 return -1

@@ -94,8 +94,8 @@ class GetCookie:
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers,
-                                                 content="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(
-                                                     self.phone, captcha), timeout=conf.TIME_OUT)
+                                                 content=f"mobile={self.phone}&mobile_captcha={captcha}&source=user"
+                                                         f".mihoyo.com", timeout=conf.TIME_OUT)
                     try:
                         res_json = res.json()
                         if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
@@ -287,7 +287,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlain
     UserData.set_cookie(state['getCookie'].cookie,
                         int(event.user_id), state['phone'])
     logger.info(f"{conf.LOG_HEAD}米游社账户 {state['phone']} 绑定成功")
-    await get_cookie.finish("🎉米游社账户 {} 绑定成功".format(state['phone']))
+    await get_cookie.finish(f"🎉米游社账户 {state['phone']} 绑定成功")
 
 
 output_cookies = on_command(

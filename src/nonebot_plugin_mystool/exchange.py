@@ -362,20 +362,20 @@ class Exchange:
                             return self
                         if self.account.cookie["stoken"].find("v2__") == 0 and "mid" not in self.account.cookie:
                             logger.error(
-                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format())
+                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换")
                             self.result = -3
                             return self
                     # 若商品非游戏内物品，则直接返回，不进行下面的操作
                     else:
                         if self.content["address_id"] is None:
                             logger.error(
-                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为实体物品，由于未配置地址ID，放弃兑换".format())
+                                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 商品 {self.goodID} 为实体物品，由于未配置地址ID，放弃兑换")
                             self.result = -7
                         return self
 
                     if good_info["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                         logger.warning(
-                            f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {self.goodID} 所属的游戏".format())
+                            f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {self.goodID} 所属的游戏")
                         self.result = -4
                         return self
 
@@ -396,7 +396,7 @@ class Exchange:
                             break
         except tenacity.RetryError:
             logger.error(
-                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 获取商品 {self.goodID} 的信息失败".format())
+                f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 获取商品 {self.goodID} 的信息失败")
             if res is not None:
                 logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
@@ -426,7 +426,7 @@ class Exchange:
                         timeout=conf.TIME_OUT)
                 if not check_login(res.text):
                     logger.info(
-                        f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 登录失效".format())
+                        f"{conf.LOG_HEAD}米游币商品兑换 - 执行兑换: 用户 {self.account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
                 if res.json()["message"] == "OK":
@@ -541,7 +541,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 start_time = time.strftime("%Y-%m-%d %H:%M:%S",
                                            time.localtime(good.time))
             draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.good_id, start_time, good.price),
+                      f"{good.name}\n商品ID: {good.good_id}\n兑换时间: {start_time}\n价格: {good.price} 米游币",
                       (0, 0, 0), font)
             draw_y += (conf.goodListImage.ICON_SIZE[1] +
                        conf.goodListImage.PADDING_ICON)
