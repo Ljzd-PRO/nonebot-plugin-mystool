@@ -77,6 +77,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
+    state["prepare_to_delete"] = False
     user_setting = ""
     user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.mybMission else '关'}\n"
     user_setting += f"2️⃣ 游戏自动签到：{'开' if account.gameSign else '关'}\n"
@@ -88,10 +89,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
                     "、".join([game_tuple[1] for game_tuple in list(filter(
                         lambda game_tuple: game_tuple[0] in account.missionGame,
                         GameInfo.ABBR_TO_ID.values()))]) + "』\n"
-    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}"
+    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}\n"
     user_setting += f"⚠️6⃣️ 删除账户数据"
 
-    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5\n🚪发送“退出”即可退出')
+    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6\n🚪发送“退出”即可退出')
 
 
 @account_setting.got('arg')
@@ -138,7 +139,8 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         UserData.set_account(account, event.user_id, account.phone)
         await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.checkResin else '❌关闭'}")
     elif arg == '6':
-        await account_setting.reject(f"⚠️确认删除账号 {account.phone} ？发送 ”确认删除“ 以确定。")
+        state["prepare_to_delete"] = True
+        await account_setting.reject(f"⚠️确认删除账号 {account.phone} ？发送 \"确认删除\" 以确定。")
 
     elif arg == '确认删除' and state["prepare_to_delete"]:
         UserData.del_account(event.user_id, account.phone)
