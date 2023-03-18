@@ -12,7 +12,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .bbsAPI import GameInfo, GameRecord, genshin_status_bbs, get_game_record
 from .config import config as conf
 from .data import UserData
-from .exchangePlan import generate_goods_image
+from .exchangePlan import generate_image
 from .gameSign import GameSign, Info
 from .mybMission import Action, get_missions_state
 from .utils import blur_phone as blur
@@ -422,7 +422,7 @@ async def daily_update():
     每日图片生成函数
     """
     logger.info(f"{conf.LOG_HEAD}开始生成每日商品图片")
-    await generate_goods_image()
+    await generate_image()
 
 
 @scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
