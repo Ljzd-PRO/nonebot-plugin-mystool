@@ -53,7 +53,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
     if len(user_account) == 1:
         matcher.set_arg('phone', Message(str(user_account[0].phone)))
     else:
-        phones = [user_account[i].phone for i in range(len(user_account))]
+        phones = [str(user_account[i].phone) for i in range(len(user_account))]
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
         msg += "📱" + "\n📱".join(phones)
         msg += "\n🚪发送“退出”即可退出"
@@ -70,7 +70,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     user_account: List[UserAccount] = state['user_account']
-    phones = [user_account[i].phone for i in range(len(user_account))]
+    phones = [str(user_account[i].phone) for i in range(len(user_account))]
+    account = None
     if phone in phones:
         account = UserData.read_account(event.user_id, int(phone))
     else:

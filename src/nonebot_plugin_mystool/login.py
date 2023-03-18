@@ -219,6 +219,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
 async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('手机号')):
     if phone == '退出':
         await get_cookie.finish("🚪已成功退出")
+    phone_num = None
     try:
         phone_num = int(phone)
     except Exception:
@@ -308,7 +309,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     else:
         user_account = UserData.read_account_all(event.user_id)
-        phones = [str(user_account[i].phone) for i in range(len(user_account))]
+        phones = [str(str(user_account[i].phone)) for i in range(len(user_account))]
         state['user_account'] = user_account
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
         msg += "📱" + "\n📱".join(phones)
@@ -326,7 +327,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     user_account: List[UserAccount] = state['user_account']
-    phones = [user_account[i].phone for i in range(len(user_account))]
+    phones = [str(user_account[i].phone) for i in range(len(user_account))]
     if phone in phones:
         await output_cookies.finish(json.dumps(UserData.read_account(event.user_id, int(phone)).cookie, indent=4))
     else:
