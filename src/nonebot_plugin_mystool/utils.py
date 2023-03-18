@@ -9,7 +9,7 @@ import string
 import time
 import traceback
 import uuid
-from typing import (TYPE_CHECKING, Any, Dict, List, Literal, NewType, Tuple,
+from typing import (TYPE_CHECKING, Any, Dict, List, Literal,
                     Union)
 from urllib.parse import urlencode
 
@@ -21,7 +21,7 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
-from .config import mysTool_config as conf
+from .config import config as conf
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -30,6 +30,34 @@ driver = nonebot.get_driver()
 
 PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 '''本插件数据'''
+
+
+class CommandBegin:
+    """
+    命令开头字段
+    已重写__str__方法
+    """
+    string = ""
+    '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
+
+    @classmethod
+    def set_command_begin(cls):
+        """
+        机器人启动时设置命令开头字段
+        """
+        if nonebot.get_driver().config.command_start:
+            cls.string = list(nonebot.get_driver().config.command_start)[0] + conf.COMMAND_START
+        else:
+            cls.string = conf.COMMAND_START
+
+    @classmethod
+    def __str__(cls):
+        return cls.string
+
+
+driver.on_startup(CommandBegin.set_command_begin)
+COMMAND_BEGIN = CommandBegin()
+'''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
 
 def set_logger(logger: "Logger"):
@@ -102,7 +130,7 @@ def ntp_time_sync():
         logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败")
 
 
-def generateDeviceID() -> str:
+def generate_device_id() -> str:
     """
     生成随机的x-rpc-device_id
     """
@@ -138,8 +166,8 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
-               platform: Literal["ios", "android"] = "ios"):
+def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
+                platform: Literal["ios", "android"] = "ios"):
     """
     获取Headers中所需DS
 
@@ -215,7 +243,7 @@ def check_login(response: str):
         return True
 
 
-def check_DS(response: str):
+def check_ds(response: str):
     """
     通过网络请求返回的数据，检查Header中DS是否有效
 
@@ -252,14 +280,16 @@ class Subscribe:
     """
     在线配置相关(需实例化)
     """
-    ConfigClass = NewType("ConfigClass", str)
-    Attribute = NewType("Attribute", str)
     URL = os.path.join(
         conf.GITHUB_PROXY, "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json")
     conf_list: List[Dict[str, Any]] = []
     '''当前插件版本可用的配置资源'''
 
-    async def download(self) -> bool:
+    def __init__(self):
+        self.index = 0
+
+    @classmethod
+    async def download(cls) -> bool:
         """
         读取在线配置资源
         :return: 是否成功
@@ -267,46 +297,34 @@ class Subscribe:
         try:
             for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
                 with attempt:
-                    file = await get_file(self.URL)
+                    file = await get_file(cls.URL)
                     file = json.loads(file.decode())
                     if not file:
                         return False
-                    self.conf_list = list(
-                        filter(lambda conf: PLUGIN.metadata.extra["version"] in conf["version"], file))
-                    self.conf_list.sort(
-                        key=lambda conf: conf["time"], reverse=True)
+                    cls.conf_list = list(
+                        filter(lambda co: PLUGIN.metadata.extra["version"] in co["version"], file))
+                    cls.conf_list.sort(
+                        key=lambda co: conf["time"], reverse=True)
                     return True
         except (json.JSONDecodeError, KeyError):
             logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
             return False
 
-    async def get(self, key: Tuple[ConfigClass, Attribute], index: int = 0, force: bool = False) -> Union[Any, None]:
+    async def load(self, force: bool = False) -> bool:
         """
-        优先读取来自网络的配置，若获取失败，则返回本地默认配置。\n
-        若找不到属性或`index`超出范围，返回`None`
+        优先加载来自网络的配置，若获取失败，则返回本地默认配置。\n
+        若下载失败返回`False`
 
-        :param key: (配置类名, 属性名)
-        :param index: 配置在`Subscribe.conf_list`中的位置
         :param force: 是否强制在线读取配置，而不使用本地缓存的
-        :return: 属性值
         """
         success = True
-        if not self.conf_list or force:
+        if not Subscribe.conf_list or force or self.index >= len(Subscribe.conf_list):
             logger.info(f"{conf.LOG_HEAD}读取配置 - 开始下载配置...")
             success = await self.download()
-
-        if not success or index >= len(self.conf_list) or index < 0:
-            if not success:
-                logger.error(f"{conf.LOG_HEAD}读取配置 - 读取在线配置失败，转为使用默认配置")
-            if key[0] == "DeviceConfig":
-                try:
-                    return list(filter(lambda attr: attr == key[1], dir(conf.device)))[0]
-                except IndexError:
-                    return
-            else:
-                try:
-                    return list(filter(lambda attr: attr == key[1], dir(conf)))[0]
-                except IndexError:
-                    return
-
-        return self.conf_list[index]["config"][key[0]][key[1]]
+            self.index = 0
+        if not success:
+            return False
+        else:
+            conf.parse_obj(Subscribe.conf_list[self.index]["config"])
+            self.index += 1
+            return True

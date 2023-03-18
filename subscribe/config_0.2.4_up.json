@@ -1,0 +1,117 @@
+[
+  {
+    "time": 1677178168,
+    "version": [
+      "v0.2.0",
+      "v0.2.1",
+      "v0.2.2-beta.1",
+      "v0.2.2-rc.1",
+      "v0.2.2-rc.2",
+      "v0.2.2",
+      "v0.2.3"
+    ],
+    "config": {
+      "Config": {
+        "SALT_IOS": "ulInCDohgEs557j0VsPDYnQaaz6KJcv5",
+        "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
+        "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
+        "SALT_PARAMS": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
+      },
+      "DeviceConfig": {
+        "USER_AGENT_MOBILE": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.28.1",
+        "USER_AGENT_ANDROID": "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.28.1",
+        "X_RPC_APP_VERSION": "2.28.1"
+      }
+    }
+  },
+  {
+    "time": 1671719967,
+    "version": [
+      "v0.2.0",
+      "v0.2.1",
+      "v0.2.2-beta.1",
+      "v0.2.2-rc.1",
+      "v0.2.2-rc.2",
+      "v0.2.2",
+      "v0.2.3"
+    ],
+    "config": {
+      "Config": {
+        "SALT_IOS": "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk",
+        "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
+        "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
+        "SALT_PARAMS": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
+      },
+      "DeviceConfig": {
+        "USER_AGENT_MOBILE": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.36.1",
+        "USER_AGENT_ANDROID": "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.36.1"
+      }
+    }
+  },
+  {
+    "time": 1679153988,
+    "version": [
+      "v0.2.4"
+    ],
+    "config": {
+      "ENCODING": "utf-8",
+      "MAX_USER": 10,
+      "ADD_FRIEND_ACCEPT": true,
+      "ADD_FRIEND_WELCOME": true,
+      "COMMAND_START": "",
+      "PLUGIN_NAME": "nonebot_plugin_mystool",
+      "LOG_HEAD": "",
+      "LOG_SAVE": true,
+      "LOG_PATH": "/home/ljzd/Python_Programs/mystool/data/nonebot-plugin-mystool/mystool.log",
+      "LOG_ROTATION": "1 week",
+      "NTP_SERVER": "ntp.aliyun.com",
+      "MAX_RETRY_TIMES": 5,
+      "SLEEP_TIME": 5,
+      "SLEEP_TIME_RETRY": 3,
+      "TIME_OUT": null,
+      "GITHUB_PROXY": "https://ghproxy.com/",
+      "SIGN_TIME": "00:30",
+      "RESIN_CHECK_INTERVAL": 60,
+      "EXCHANGE_THREAD": 3,
+      "SALT_IOS": "ulInCDohgEs557j0VsPDYnQaaz6KJcv5",
+      "SALT_ANDROID": "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64",
+      "SALT_DATA": "t0qEgfub6cvueAPgR5m9aQWWVciEer7v",
+      "SALT_PARAMS": "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs",
+      "device": {
+        "USER_AGENT_MOBILE": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.42.1",
+        "USER_AGENT_PC": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15",
+        "USER_AGENT_OTHER": "Hyperion/275 CFNetwork/1402.0.8 Darwin/22.2.0",
+        "USER_AGENT_ANDROID": "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.36.1",
+        "USER_AGENT_ANDROID_OTHER": "okhttp/4.9.3",
+        "USER_AGENT_WIDGET": "WidgetExtension/231 CFNetwork/1390 Darwin/22.0.0",
+        "X_RPC_DEVICE_MODEL_MOBILE": "iPhone10,2",
+        "X_RPC_DEVICE_MODEL_PC": "OS X 10.15.7",
+        "X_RPC_DEVICE_MODEL_ANDROID": "MI 8 SE",
+        "X_RPC_DEVICE_NAME_MOBILE": "iPhone",
+        "X_RPC_DEVICE_NAME_PC": "Microsoft Edge 103.0.1264.62",
+        "X_RPC_DEVICE_NAME_ANDROID": "Xiaomi MI 8 SE",
+        "X_RPC_SYS_VERSION": "15.4",
+        "X_RPC_SYS_VERSION_ANDROID": "11",
+        "X_RPC_CHANNEL": "appstore",
+        "X_RPC_CHANNEL_ANDROID": "miyousheluodi",
+        "X_RPC_APP_VERSION": "2.28.1",
+        "X_RPC_PLATFORM": "ios",
+        "UA": "\".Not/A)Brand\";v=\"99\", \"Microsoft Edge\";v=\"103\", \"Chromium\";v=\"103\"",
+        "UA_PLATFORM": "\"macOS\""
+      },
+      "goodListImage": {
+        "ICON_SIZE": [
+          600,
+          600
+        ],
+        "WIDTH": 2000,
+        "PADDING_ICON": 0,
+        "PADDING_TEXT_AND_ICON_Y": 125,
+        "PADDING_TEXT_AND_ICON_X": 10,
+        "FONT_PATH": null,
+        "FONT_SIZE": 50,
+        "SAVE_PATH": "/home/ljzd/Python_Programs/mystool/data/nonebot-plugin-mystool"
+      }
+    }
+  }
+]

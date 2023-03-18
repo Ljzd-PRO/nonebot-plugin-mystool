@@ -1,11 +1,14 @@
 """
 ### 插件配置相关
 """
+import os
+import traceback
 from datetime import time, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union, Optional
 
 from nonebot import get_driver
+from nonebot.log import logger
 from pydantic import BaseModel, Extra
 
 if TYPE_CHECKING:
@@ -15,6 +18,10 @@ ROOT_PATH = Path(__name__).parent.absolute()
 '''NoneBot2 机器人根目录'''
 PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 '''插件数据保存目录'''
+CONFIG_PATH = PATH / "pluginConfig.json"
+'''插件配置文件路径'''
+
+driver = get_driver()
 
 
 class DeviceConfig(BaseModel, extra=Extra.ignore):
@@ -59,7 +66,7 @@ class DeviceConfig(BaseModel, extra=Extra.ignore):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.42.1"
+    X_RPC_APP_VERSION: str = "2.28.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
@@ -128,7 +135,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''任务操作冷却时间(如米游币任务)'''
     SLEEP_TIME_RETRY: float = 3
     '''网络请求出错的重试冷却时间'''
-    TIME_OUT: Union[float, None] = None
+    TIME_OUT: Optional[float] = None
     '''网络请求超时时间'''
     GITHUB_PROXY: str = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为""空字符串则不启用)'''
@@ -140,7 +147,7 @@ class Config(BaseModel, extra=Extra.ignore):
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
-    SALT_IOS: str = "YVEIkzDFNHLeKXLxzqCA9TzxCpWwbIbk"
+    SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
     '''生成Headers iOS DS所需的salt'''
     SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
     '''生成Headers Android DS所需的salt'''
@@ -153,4 +160,22 @@ class Config(BaseModel, extra=Extra.ignore):
     goodListImage: GoodListImage = GoodListImage()
 
 
-mysTool_config = Config.parse_obj(get_driver().config)
+def create_config_file():
+    if not os.path.isdir(PATH):
+        os.makedirs(PATH)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        f.write(Config().json(indent=4))
+
+
+config = Config()
+if os.path.isfile(CONFIG_PATH):
+    try:
+        config = Config.parse_file(CONFIG_PATH)
+    except Exception:
+        logger.error(f"{Config().LOG_HEAD}读取插件配置失败，请检查配置文件 {CONFIG_PATH} 格式是否正确。将使用默认配置")
+        logger.debug(f"{Config().LOG_HEAD}{traceback.format_exc()}")
+        create_config_file()
+else:
+    create_config_file()
+
+config = config.parse_obj(get_driver().config)

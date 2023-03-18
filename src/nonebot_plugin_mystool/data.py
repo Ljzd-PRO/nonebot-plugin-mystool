@@ -4,18 +4,14 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List, Literal, Tuple, Union
-
-import nonebot.log
+from typing import Dict, List, Literal, Tuple, Union, Optional
 
 from .config import PATH
-from .config import mysTool_config as conf
-from .utils import generateDeviceID, logger
+from .config import config as conf
+from .utils import generate_device_id, logger
 
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "userdata.json"
-
-driver = nonebot.get_driver()
 
 
 class Address:
@@ -103,7 +99,7 @@ class Address:
         return self.address_dict["connect_name"]
 
     @property
-    def addressID(self) -> str:
+    def address_id(self) -> str:
         """
         地址ID
         """
@@ -116,10 +112,10 @@ class AccountUID:
     """
 
     def __init__(self) -> None:
-        self.ys: str = None
-        self.bh3: str = None
-        self.bh2: str = None
-        self.wd: str = None
+        self.ys: str = ""
+        self.bh3: str = ""
+        self.bh2: str = ""
+        self.wd: str = ""
 
     def get(self, uid: Dict[str, str]):
         self.ys: str = uid["ys"]
@@ -142,21 +138,21 @@ class UserAccount:
     """
 
     def __init__(self) -> None:
-        self.name: str = None
+        self.name: str = ""
         '''备注名'''
-        self.phone: int = None
+        self.phone: int = 0
         '''绑定手机号'''
-        self.cookie: Dict[str, str] = None
+        self.cookie: Dict[str, str] = {}
         '''Cookie'''
         self.gameUID: AccountUID = AccountUID()
         '''游戏UID'''
-        self.deviceID: str = generateDeviceID()
+        self.deviceID: str = generate_device_id()
         '''设备 x-rpc-device_id'''
-        self.deviceID_2: str = generateDeviceID()
+        self.deviceID_2: str = generate_device_id()
         '''设备第二个 x-rpc-device_id(可用于安卓设备)'''
-        self.address: Address = None
+        self.address: Optional[Address] = None
         '''地址数据'''
-        self.bbsUID: str = None
+        self.bbsUID: str = ""
         '''米游社UID'''
         self.mybMission: bool = True
         '''是否开启米游币任务计划'''
@@ -229,7 +225,7 @@ class UserAccount:
             "checkResin": self.checkResin
         }
         if isinstance(self.address, Address):
-            data["address"] = self.address.addressID
+            data["address"] = self.address.address_id
         elif isinstance(self.address, int):
             data["address"] = self.address
         return data
@@ -273,9 +269,9 @@ class UserData:
         try:
             for account in cls.read_all()[qq]["accounts"]:
                 if account[by_type] == by:
-                    userAccount = UserAccount()
-                    userAccount.get(account)
-                    return userAccount
+                    user_account = UserAccount()
+                    user_account.get(account)
+                    return user_account
         except KeyError:
             pass
         return None
@@ -387,7 +383,6 @@ class UserData:
             by_type = "name"
         else:
             by_type = "phone"
-            by = str(by)
         userdata = cls.read_all()
         try:
             account_list: List[dict] = userdata[qq]["accounts"]
@@ -435,7 +430,7 @@ class UserData:
             userdata = cls.__create_account(userdata, qq, name, phone)
 
     @classmethod
-    def isNotice(cls, qq: int) -> Union[bool, None]:
+    def is_notice(cls, qq: int) -> Optional[bool]:
         """
         查看用户是否开启了通知，若不存在用户则返回None
 
@@ -452,11 +447,11 @@ class UserData:
             return userdata[qq][cls.OPTION_NOTICE]
 
     @classmethod
-    def set_notice(cls, isNotice: bool, qq: int):
+    def set_notice(cls, is_notice: bool, qq: int):
         """
         设置用户的通知开关
 
-        :param isNotice: 是否开启通知
+        :param is_notice: 是否开启通知
         :param qq: 用户QQ号
 
         返回:
@@ -467,9 +462,9 @@ class UserData:
         userdata = cls.read_all()
         try:
             if cls.OPTION_NOTICE not in userdata[qq]:
-                userdata[qq].setdefault(cls.OPTION_NOTICE, isNotice)
+                userdata[qq].setdefault(cls.OPTION_NOTICE, is_notice)
             else:
-                userdata[qq][cls.OPTION_NOTICE] = isNotice
+                userdata[qq][cls.OPTION_NOTICE] = is_notice
             cls.__set_all(userdata)
             return True
         except KeyError:
@@ -489,5 +484,5 @@ def create_files():
         except (json.JSONDecodeError, ValueError):
             logger.warning(f"{conf.LOG_HEAD}用户数据文件格式错误，将重新生成...")
 
-    with USERDATA_PATH.open("w", encoding=ENCODING) as fp:
-        json.dump({}, fp, indent=4, ensure_ascii=False)
+    with USERDATA_PATH.open("w", encoding=ENCODING) as f:
+        json.dump({}, f, indent=4, ensure_ascii=False)

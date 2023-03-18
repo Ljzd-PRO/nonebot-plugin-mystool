@@ -3,28 +3,27 @@
 """
 from typing import List, Union
 
-from nonebot import get_driver, on_command
+from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
 from .bbsAPI import GameInfo
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserAccount, UserData
 from .mybMission import GAME_ID
-
-COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+from .utils import COMMAND_BEGIN
 
 setting = on_command(
     conf.COMMAND_START + 'setting', aliases={conf.COMMAND_START + '设置'}, priority=4, block=True)
 setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令。'
+setting.__help_info__ = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
 
 @setting.handle()
 async def _(event: MessageEvent):
-    msg = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND}通知设置』命令'
+    msg = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令'
     await setting.send(msg)
 
 
@@ -37,15 +36,14 @@ account_setting.__help_info__ = "配置游戏自动签到、米游币任务是�
 
 
 @account_setting.handle()
-async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, arg=ArgPlainText('arg')):
+async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
+                               arg=ArgPlainText('arg')):
     """
     账号设置命令触发
     """
     if isinstance(event, GroupMessageEvent):
         await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
-    qq = int(event.user_id)
-    user_account = UserData.read_account_all(qq)
-    state['qq'] = qq
+    user_account = UserData.read_account_all(event.user_id)
     state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
@@ -72,13 +70,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     user_account: List[UserAccount] = state['user_account']
-    qq = state['qq']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
+    account = None
     if phone in phones:
-        account = UserData.read_account(qq, int(phone))
+        account = UserData.read_account(event.user_id, int(phone))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
+    state["prepare_to_delete"] = False
     user_setting = ""
     user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.mybMission else '关'}\n"
     user_setting += f"2️⃣ 游戏自动签到：{'开' if account.gameSign else '关'}\n"
@@ -90,9 +89,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
                     "、".join([game_tuple[1] for game_tuple in list(filter(
                         lambda game_tuple: game_tuple[0] in account.missionGame,
                         GameInfo.ABBR_TO_ID.values()))]) + "』\n"
-    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}"
+    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}\n"
+    user_setting += "⚠️6⃣️ 删除账户数据"
 
-    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5\n🚪发送“退出”即可退出')
+    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6\n🚪发送“退出”即可退出')
 
 
 @account_setting.got('arg')
@@ -138,7 +138,16 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         account.checkResin = not account.checkResin
         UserData.set_account(account, event.user_id, account.phone)
         await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.checkResin else '❌关闭'}")
+    elif arg == '6':
+        state["prepare_to_delete"] = True
+        await account_setting.reject(f"⚠️确认删除账号 {account.phone} ？发送 \"确认删除\" 以确定。")
 
+    elif arg == '确认删除' and state["prepare_to_delete"]:
+        del_result = UserData.del_account(event.user_id, account.phone)
+        if del_result:
+            await account_setting.finish(f"已删除账号 {account.phone} 的数据")
+        else:
+            await account_setting.finish(f"删除账号 {account.phone} 的数据失败")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
@@ -185,9 +194,8 @@ async def _(event: MessageEvent, matcher: Matcher):
     """
     通知设置命令触发
     """
-    qq = int(event.user_id)
     await matcher.send(
-        f"自动通知每日计划任务结果：{'🔔开' if UserData.isNotice(qq) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
+        f"自动通知每日计划任务结果：{'🔔开' if UserData.is_notice(event.user_id) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
@@ -195,12 +203,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
     """
     根据选择变更通知设置
     """
-    qq = int(event.user_id)
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
-        a = UserData.set_notice(not UserData.isNotice(qq), qq)
-        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.isNotice(qq) else '🔕关闭'}")
+        UserData.set_notice(not UserData.is_notice(event.user_id), event.user_id)
+        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.is_notice(event.user_id) else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:

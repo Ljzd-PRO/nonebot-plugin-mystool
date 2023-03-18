@@ -2,16 +2,16 @@
 ### 米游社其他API
 """
 import traceback
-from typing import Dict, List, Literal, NewType, Tuple, Union
+from typing import Dict, List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
 import tenacity
 from nonebot import get_driver
 
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserAccount
-from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
-                    generateDeviceID, generateDS, logger)
+from .utils import (Subscribe, check_ds, check_login, custom_attempt_times,
+                    generate_device_id, generate_ds, logger)
 
 URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
@@ -57,7 +57,7 @@ HEADERS_GAME_LIST = {
     "Host": "bbs-api.mihoyo.com",
     "DS": None,
     "Accept": "*/*",
-    "x-rpc-device_id": generateDeviceID(),
+    "x-rpc-device_id": generate_device_id(),
     "x-rpc-client_type": "1",
     "x-rpc-channel": conf.device.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
@@ -144,18 +144,18 @@ class GameRecord(BaseData):
     用户游戏数据
     """
 
-    def __init__(self, gameRecord_dict: dict) -> None:
-        BaseData.__init__(self, gameRecord_dict, "用户游戏数据 - 初始化对象: dict数据不正确")
+    def __init__(self, game_record_dict: dict) -> None:
+        BaseData.__init__(self, game_record_dict, "用户游戏数据 - 初始化对象: dict数据不正确")
 
     @property
-    def regionName(self) -> str:
+    def region_name(self) -> str:
         """
         服务器区名
         """
         return self.dict["region_name"]
 
     @property
-    def gameID(self) -> int:
+    def game_id(self) -> int:
         """
         游戏ID
         """
@@ -198,43 +198,43 @@ class GameInfo(BaseData):
     Full_Name = NewType("Full_Name", str)
     ABBR_TO_ID: Dict[int, Tuple[Abbr, Full_Name]] = {}
     '''
-    游戏ID(gameID)与缩写和全称的对应关系
+    游戏ID(game_id)与缩写和全称的对应关系
     >>> {游戏ID, (缩写, 全称)}
     '''
 
-    def __init__(self, gameInfo_dict: dict) -> None:
-        BaseData.__init__(self, gameInfo_dict, "游戏信息数据 - 初始化对象: dict数据不正确")
+    def __init__(self, game_info_dict: dict) -> None:
+        BaseData.__init__(self, game_info_dict, "游戏信息数据 - 初始化对象: dict数据不正确")
 
     @property
-    def gameID(self) -> int:
+    def game_id(self) -> int:
         """
         游戏ID
         """
         return self.dict["id"]
 
     @property
-    def appIcon(self) -> str:
+    def app_icon(self) -> str:
         """
         游戏App图标链接(大)
         """
         return self.dict["app_icon"]
 
     @property
-    def opName(self) -> str:
+    def op_name(self) -> str:
         """
         游戏代号(英文数字, 例如hk4e)
         """
         return self.dict["op_name"]
 
     @property
-    def enName(self) -> str:
+    def en_name(self) -> str:
         """
         游戏代号2(英文数字, 例如ys)
         """
         return self.dict["en_name"]
 
     @property
-    def miniIcon(self) -> str:
+    def mini_icon(self) -> str:
         """
         游戏图标链接(圆形, 小)
         """
@@ -272,8 +272,10 @@ class GenshinStatus:
         '''洞天财瓮 `(未收取, 最多可容纳宝钱数)`'''
         self.transformer: str = ""
         '''参量质变仪'''
+        self.dict: dict = {}
+        '''API返回的JSON数据'''
 
-    def fromWidget(self, widget_dict):
+    def from_widget(self, widget_dict):
         """
         从iOS小组件API的返回数据初始化
 
@@ -307,7 +309,7 @@ class GenshinStatus:
             logger.error(f"{conf.LOG_HEAD}原神实时便笺数据 - 从小组件请求初始化对象: dict数据不正确")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    def fromBBS(self, bbs_dict, record: GameRecord):
+    def from_bbs(self, bbs_dict, record: GameRecord):
         """
         从米游社内相关页面API的返回数据初始化
 
@@ -355,12 +357,12 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
     - 若返回 `-3` 说明请求失败
     """
     headers = HEADERS_ACTION_TICKET.copy()
-    index = 0
     try:
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS()
+                headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(
                         URL_ACTION_TICKET.format(stoken=account.cookie["stoken"], bbs_uid=account.bbsUID),
@@ -370,18 +372,12 @@ async def get_action_ticket(account: UserAccount, retry: bool = True) -> Union[s
                         f"{conf.LOG_HEAD}获取ActionTicket - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text) and (
-                        (index < len(Subscribe.conf_list) - 1 or not Subscribe.conf_list) or not Subscribe.conf_list):
+                if not check_ds(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取ActionTicket: DS无效，正在在线获取salt以重新生成...")
-                    sub = Subscribe()
-                    conf.SALT_IOS = await sub.get(
-                        ("Config", "SALT_IOS"), index)
-                    conf.device.USER_AGENT_MOBILE = await sub.get(
-                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    await subscribe.load()
                     headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                    index += 1
-                    headers["DS"] = generateDS()
+                    headers["DS"] = generate_ds()
                 return res.json()["data"]["ticket"]
     except KeyError and TypeError and ValueError:
         logger.error(f"{conf.LOG_HEAD}获取ActionTicket - 服务器没有正确返回")
@@ -432,7 +428,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
         return -3
 
 
-async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
+async def get_game_list(retry: bool = True) -> Optional[List[GameInfo]]:
     """
     获取米哈游游戏的详细信息，若返回`None`说明获取失败
 
@@ -441,24 +437,19 @@ async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
     headers = HEADERS_GAME_LIST.copy()
     info_list = []
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS()
+                headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.TIME_OUT)
-                if not check_DS(res.text):
+                if not check_ds(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}获取游戏信息: DS无效，正在在线获取salt以重新生成...")
-                    sub = Subscribe()
-                    conf.SALT_IOS = await sub.get(
-                        ("Config", "SALT_IOS"), index)
-                    conf.device.USER_AGENT_MOBILE = await sub.get(
-                        ("DeviceConfig", "USER_AGENT_MOBILE"), index)
+                    await subscribe.load()
                     headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                    index += 1
-                    headers["DS"] = generateDS()
+                    headers["DS"] = generate_ds()
                 for info in res.json()["data"]["list"]:
                     info_list.append(GameInfo(info))
                 return info_list
@@ -529,11 +520,11 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS(data)
+                headers["DS"] = generate_ds(data)
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data, cookies=account.cookie,
                                             timeout=conf.TIME_OUT)
@@ -542,13 +533,11 @@ async def device_login(account: UserAccount, retry: bool = True) -> Literal[1, -
                         f"{conf.LOG_HEAD}设备登录 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text):
+                if not check_ds(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_DATA = await Subscribe().get(
-                        ("Config", "SALT_DATA"), index)
-                    index += 1
-                    headers["DS"] = generateDS(data)
+                    await subscribe.load()
+                    headers["DS"] = generate_ds(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -587,11 +576,11 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.deviceID_2
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS(data)
+                headers["DS"] = generate_ds(data)
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookie,
                                             timeout=conf.TIME_OUT)
@@ -600,12 +589,10 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                         f"{conf.LOG_HEAD}设备保存 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text):
+                if not check_ds(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_DATA = await Subscribe().get(
-                        ("Config", "SALT_DATA"), index)
-                    index += 1
+                    await subscribe.load()
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -635,11 +622,11 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
     headers = HEADERS_GENSHIN_STATUS_WIDGET.copy()
     headers["x-rpc-device_id"] = account.deviceID
     try:
-        index = 0
+        subscribe = Subscribe()
         async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
-                headers["DS"] = generateDS()
+                headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GENSHIN_STATUS_WIDGET, headers=headers, cookies=account.cookie,
                                            timeout=conf.TIME_OUT)
@@ -648,13 +635,11 @@ async def genshin_status_widget(account: UserAccount, retry: bool = True) -> Uni
                         f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
                     logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                     return -1
-                if not check_DS(res.text):
+                if not check_ds(res.text):
                     logger.info(
                         f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                    conf.SALT_IOS = await Subscribe().get(
-                        ("Config", "SALT_IOS"), index)
-                    index += 1
-                status = GenshinStatus().fromWidget(res.json()["data"]["data"])
+                    await subscribe.load()
+                status = GenshinStatus().from_widget(res.json()["data"]["data"])
                 if not status:
                     raise KeyError
                 return status
@@ -682,16 +667,16 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
     - 若返回 `-4` 说明用户没有任何原神账户
     """
     records: list[GameRecord] = await get_game_record(account=account)
-    if records == []:
+    if not records:
         return -4
     if isinstance(records, int):
         return -3
     flag = True
     for record in records:
-        if GameInfo.ABBR_TO_ID[record.gameID][0] == 'ys':
+        if GameInfo.ABBR_TO_ID[record.game_id][0] == 'ys':
             try:
                 flag = False
-                index = 0
+                subscribe = Subscribe()
                 url = URL_GENSHEN_STATUS_BBS.format(
                     game_uid=record.uid, region=record.region)
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
@@ -699,7 +684,7 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                 async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
                                                             wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                     with attempt:
-                        headers["DS"] = generateDS(
+                        headers["DS"] = generate_ds(
                             params={"role_id": record.uid, "server": record.region})
                         async with httpx.AsyncClient() as client:
                             res = await client.get(url, headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
@@ -708,13 +693,11 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
                                 f"{conf.LOG_HEAD}原神实时便笺 - 用户 {account.phone} 登录失效")
                             logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                             return -1
-                        if not check_DS(res.text):
+                        if not check_ds(res.text):
                             logger.info(
                                 f"{conf.LOG_HEAD}原神实时便笺: DS无效，正在在线获取salt以重新生成...")
-                            conf.SALT_PARAMS = await Subscribe().get(
-                                ("Config", "SALT_PARAMS"), index)
-                            index += 1
-                        status = GenshinStatus().fromBBS(
+                            await subscribe.load()
+                        status = GenshinStatus().from_bbs(
                             res.json()["data"], record)
                         if not status:
                             raise KeyError
@@ -735,23 +718,23 @@ async def genshin_status_bbs(account: UserAccount, retry: bool = True) -> Union[
 @get_driver().on_startup
 async def set_game_list():
     """
-    设置游戏ID(gameID)与缩写和全称的对应关系
+    设置游戏ID(game_id)与缩写和全称的对应关系
     """
     game_list = await get_game_list()
     if game_list is None:
         return
     for game in game_list:
         if game.name == "原神":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("ys", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("ys", game.name))
         elif game.name == "崩坏3":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bh3", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("bh3", game.name))
         elif game.name == "崩坏学园2":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bh2", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("bh2", game.name))
         elif game.name == "未定事件簿":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("wd", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("wd", game.name))
         elif game.name == "大别野":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("bbs", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("bbs", game.name))
         elif game.name == "崩坏：星穹铁道":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("xq", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("xq", game.name))
         elif game.name == "绝区零":
-            GameInfo.ABBR_TO_ID.setdefault(game.gameID, ("jql", game.name))
+            GameInfo.ABBR_TO_ID.setdefault(game.game_id, ("jql", game.name))
