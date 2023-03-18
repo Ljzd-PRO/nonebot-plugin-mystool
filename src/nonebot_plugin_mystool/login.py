@@ -95,7 +95,7 @@ class GetCookie:
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers,
                                                  content=f"mobile={self.phone}&mobile_captcha={captcha}&source=user"
-                                                         f".mihoyo.com", timeout=conf.TIME_OUT)
+                                                         ".mihoyo.com", timeout=conf.TIME_OUT)
                     try:
                         res_json = res.json()
                         if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
