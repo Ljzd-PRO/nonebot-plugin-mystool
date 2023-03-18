@@ -6,16 +6,12 @@ import traceback
 from copy import deepcopy
 from typing import Dict, List, Literal, Tuple, Union, Optional
 
-import nonebot.log
-
 from .config import PATH
 from .config import config as conf
 from .utils import generate_device_id, logger
 
 ENCODING = "utf-8"
 USERDATA_PATH = PATH / "userdata.json"
-
-driver = nonebot.get_driver()
 
 
 class Address:

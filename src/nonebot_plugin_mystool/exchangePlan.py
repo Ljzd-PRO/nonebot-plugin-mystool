@@ -9,7 +9,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import List, Set, Union
 
-from nonebot import get_bot, get_driver, on_command
+from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
                                          PrivateMessageEvent, GroupMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
@@ -23,9 +23,7 @@ from .data import UserData
 from .exchange import (Exchange, Good, UserAccount, get_good_detail,
                        get_good_list, game_list_to_image)
 from .gameSign import GameInfo
-from .utils import NtpTime, COMMAND_BEGIN, logger
-
-driver = get_driver()
+from .utils import NtpTime, COMMAND_BEGIN, logger, driver
 
 
 class ExchangeStart:

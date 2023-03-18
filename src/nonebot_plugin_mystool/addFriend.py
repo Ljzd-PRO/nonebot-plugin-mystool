@@ -10,9 +10,7 @@ from nonebot_plugin_apscheduler import scheduler
 
 from .config import config as conf
 from .data import UserData
-from .utils import logger
-
-driver = get_driver()
+from .utils import logger, driver
 
 friendRequest = on_request(priority=1, block=True)
 

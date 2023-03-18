@@ -4,7 +4,7 @@
 import asyncio
 from typing import List, Union
 
-from nonebot import get_bot, get_driver, on_command
+from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent, GroupMessageEvent)
 from nonebot_plugin_apscheduler import scheduler
@@ -17,8 +17,6 @@ from .gameSign import GameSign, Info
 from .mybMission import Action, get_missions_state
 from .utils import blur_phone as blur
 from .utils import get_file, logger, COMMAND_BEGIN
-
-driver = get_driver()
 
 manually_game_sign = on_command(
     conf.COMMAND_START + '签到',
