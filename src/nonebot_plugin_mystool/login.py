@@ -3,17 +3,19 @@
 """
 import json
 import traceback
-from typing import Literal, Union
+from typing import Literal, Union, List
 
 import httpx
 import requests.utils
 import tenacity
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, Message
+from nonebot.internal.matcher import Matcher
+from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
 
 from .config import mysTool_config as conf
-from .data import UserData
+from .data import UserData, UserAccount
 from .utils import custom_attempt_times, generateDeviceID, logger, COMMAND_BEGIN
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
@@ -296,13 +298,36 @@ output_cookies.__help_info__ = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State):
+    """
+    Cookies导出命令触发
+    """
     if isinstance(event, GroupMessageEvent):
-        await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
+        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     if not UserData.read_account_all(event.user_id):
-        await get_cookie.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+        await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    else:
+        user_account = UserData.read_account_all(event.user_id)
+        phones = [str(user_account[i].phone) for i in range(len(user_account))]
+        state['user_account'] = user_account
+        msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
+        msg += "📱" + "\n📱".join(phones)
+        msg += "\n🚪发送“退出”即可退出"
+        await output_cookies.send(msg)
 
 
-@get_cookie.got('phone', prompt='📱请发送要获取Cookies的米游社账号（手机号）：')
-async def _(event: PrivateMessageEvent, phone: str = ArgPlainText('phone')):
-    await get_cookie.finish(json.dumps(UserData.read_account(event.user_id, phone).cookie), indent=4)
+@output_cookies.got('phone')
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+    """
+    根据手机号设置导出相应的账户的Cookies
+    """
+    if isinstance(phone, Message):
+        phone = phone.extract_plain_text().strip()
+    if phone == '退出':
+        await matcher.finish('🚪已成功退出')
+    user_account: List[UserAccount] = state['user_account']
+    phones = [user_account[i].phone for i in range(len(user_account))]
+    if phone in phones:
+        await output_cookies.finish(json.dumps(UserData.read_account(event.user_id, int(phone)).cookie, indent=4))
+    else:
+        await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
