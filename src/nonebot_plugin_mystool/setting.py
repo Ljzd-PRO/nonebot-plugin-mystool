@@ -90,7 +90,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
                         lambda game_tuple: game_tuple[0] in account.missionGame,
                         GameInfo.ABBR_TO_ID.values()))]) + "』\n"
     user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.checkResin else '关'}\n"
-    user_setting += f"⚠️6⃣️ 删除账户数据"
+    user_setting += "⚠️6⃣️ 删除账户数据"
 
     await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6\n🚪发送“退出”即可退出')
 
