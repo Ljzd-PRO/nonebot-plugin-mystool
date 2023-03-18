@@ -23,7 +23,7 @@ from .data import UserData
 from .exchange import (Exchange, Good, UserAccount, get_good_detail,
                        get_good_list)
 from .gameSign import GameInfo
-from .timing import generate_image
+from .plan import generate_image
 from .utils import NtpTime, COMMAND_BEGIN
 
 driver = get_driver()
