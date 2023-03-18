@@ -4,7 +4,7 @@
 import asyncio
 import os
 import time
-from typing import List, Union, Optional
+from typing import List, Union
 
 from nonebot import get_bot, get_driver, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
@@ -88,7 +88,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
 
 
 async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
-                            group_event: Optional[GroupMessageEvent, PrivateMessageEvent] = None):
+                            group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -219,7 +219,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
 
 
 async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
-                           group_event: Optional[GroupMessageEvent, PrivateMessageEvent] = None):
+                           group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
@@ -323,7 +323,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
 
 
 async def resin_check(bot: Bot, qq: int, is_auto: bool,
-                      group_event: Optional[GroupMessageEvent, PrivateMessageEvent] = None):
+                      group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
