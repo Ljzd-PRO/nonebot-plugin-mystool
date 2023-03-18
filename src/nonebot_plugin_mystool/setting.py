@@ -43,9 +43,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
     """
     if isinstance(event, GroupMessageEvent):
         await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
-    qq = int(event.user_id)
-    user_account = UserData.read_account_all(qq)
-    state['qq'] = qq
+    user_account = UserData.read_account_all(event.user_id)
     state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
@@ -55,7 +53,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
     if len(user_account) == 1:
         matcher.set_arg('phone', Message(str(user_account[0].phone)))
     else:
-        phones = [str(user_account[i].phone) for i in range(len(user_account))]
+        phones = [user_account[i].phone for i in range(len(user_account))]
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
         msg += "📱" + "\n📱".join(phones)
         msg += "\n🚪发送“退出”即可退出"
@@ -72,10 +70,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     user_account: List[UserAccount] = state['user_account']
-    qq = state['qq']
-    phones = [str(user_account[i].phone) for i in range(len(user_account))]
+    phones = [user_account[i].phone for i in range(len(user_account))]
     if phone in phones:
-        account = UserData.read_account(qq, int(phone))
+        account = UserData.read_account(event.user_id, int(phone))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
     state['account'] = account
@@ -191,9 +188,8 @@ async def _(event: MessageEvent, matcher: Matcher):
     """
     通知设置命令触发
     """
-    qq = int(event.user_id)
     await matcher.send(
-        f"自动通知每日计划任务结果：{'🔔开' if UserData.isNotice(qq) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
+        f"自动通知每日计划任务结果：{'🔔开' if UserData.isNotice(event.user_id) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
@@ -201,12 +197,11 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
     """
     根据选择变更通知设置
     """
-    qq = int(event.user_id)
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
-        a = UserData.set_notice(not UserData.isNotice(qq), qq)
-        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.isNotice(qq) else '🔕关闭'}")
+        a = UserData.set_notice(not UserData.isNotice(event.user_id), event.user_id)
+        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.isNotice(event.user_id) else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:
