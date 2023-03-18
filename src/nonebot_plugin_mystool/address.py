@@ -13,7 +13,7 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import Address, UserAccount, UserData
 from .utils import NtpTime, check_login, custom_attempt_times, logger, COMMAND_BEGIN
 
@@ -110,12 +110,12 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     user_account = state['user_account']
     qq_account = state['qq_account']
     phones = [str(user_account[i].phone) for i in range(len(user_account))]
+    account = None
     if phone in phones:
         account = UserData.read_account(qq_account, int(phone))
     else:
         await get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
-
     state['address_list']: List[Address] = await get(account)
     if isinstance(state['address_list'], int):
         if state['address_list'] == -1:
@@ -131,7 +131,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
             \n详细地址 ➢ {address.detail}\
             \n联系电话 ➢ {address.phone}\
             \n联系人 ➢ {address.name}\
-            \n地址ID ➢ {address.addressID}\
+            \n地址ID ➢ {address.address_id}\
             """.strip()
             await get_address.send(address_string)
             await asyncio.sleep(0.2)
@@ -144,7 +144,7 @@ async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText(
     if address_id == "退出":
         await get_address.finish("🚪已成功退出")
     result_address = list(
-        filter(lambda address: address.addressID == address_id, state['address_list']))
+        filter(lambda address: address.address_id == address_id, state['address_list']))
     if result_address:
         account: UserAccount = state["account"]
         account.address = result_address[0]

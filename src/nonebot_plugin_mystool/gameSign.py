@@ -9,10 +9,10 @@ import tenacity
 
 from .bbsAPI import (GameInfo, GameRecord, device_login, device_save,
                      get_game_record)
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserAccount
-from .utils import (Subscribe, check_DS, check_login, custom_attempt_times,
-                    generateDS, logger)
+from .utils import (Subscribe, check_ds, check_login, custom_attempt_times,
+                    generate_ds, logger)
 
 ACT_ID = {
     "ys": "e202009291139501",
@@ -134,21 +134,21 @@ class Info:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
     @property
-    def isSign(self) -> bool:
+    def is_sign(self) -> bool:
         """
         今日是否已经签到
         """
         return self.info_dict["is_sign"]
 
     @property
-    def totalDays(self) -> int:
+    def total_days(self) -> int:
         """
         已签多少天
         """
         return self.info_dict["total_sign_day"]
 
     @property
-    def missedDays(self) -> int:
+    def missed_days(self) -> int:
         """
         漏签多少天
         """
@@ -165,10 +165,11 @@ class GameSign:
     def __init__(self, account: UserAccount) -> None:
         self.cookie = account.cookie
         self.account = account
-        self.signResult: dict = None
+        self.signResult: dict = {}
         '''签到返回结果'''
 
-    async def reward(self, game: Literal["ys", "bh3"], retry: bool = True):
+    @staticmethod
+    async def reward(game: Literal["ys", "bh3"], retry: bool = True):
         """
         获取签到奖励信息，若返回`None`说明失败
 
@@ -196,13 +197,13 @@ class GameSign:
                 logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    async def info(self, game: Literal["ys", "bh3"], gameUID: str, region: str = None, retry: bool = True) -> Union[
+    async def info(self, game: Literal["ys", "bh3"], game_uid: str, region: str = None, retry: bool = True) -> Union[
         Info, Literal[-1, -2, -3, -4]]:
         """
         获取签到记录，返回Info对象
 
         :param game: 目标游戏缩写
-        :param gameUID: 用户游戏UID
+        :param game_uid: 用户游戏UID
         :param region: 用户游戏区服(若为`None`将会自动获取)
         :param retry: 是否允许重试
 
@@ -224,7 +225,7 @@ class GameSign:
 
         if not region:
             for record in game_record:
-                if record.uid == gameUID:
+                if record.uid == game_uid:
                     region = record.region
         if not region:
             return -4
@@ -235,21 +236,21 @@ class GameSign:
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = None
-                    headers["DS"] = generateDS()
+                    headers["DS"] = generate_ds()
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(URLS[game]["info"].format(region=region, uid=gameUID), headers=headers,
+                        res = await client.get(URLS[game]["info"].format(region=region, uid=game_uid), headers=headers,
                                                cookies=self.cookie, timeout=conf.TIME_OUT)
                     if not check_login(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}获取签到记录 - 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
-                    if not check_DS(res.text):
+                    if not check_ds(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}获取签到记录: DS无效，正在在线获取salt以重新生成...")
                         await subscribe.load()
                         headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                        headers["DS"] = generateDS()
+                        headers["DS"] = generate_ds()
                     return Info(res.json()["data"])
         except KeyError and ValueError and TypeError:
             logger.error(f"{conf.LOG_HEAD}获取签到记录 - 服务器没有正确返回")
@@ -263,14 +264,14 @@ class GameSign:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], gameUID: str,
+    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], game_uid: str,
                    platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[
         1, -1, -2, -3, -4, -5, -6]:
         """
         签到
 
         :param game: 目标游戏缩写
-        :param gameUID: 用户游戏UID
+        :param game_uid: 用户游戏UID
         :param platform: 设备平台
         :param retry: 是否允许重试
 
@@ -288,20 +289,20 @@ class GameSign:
 
         record_list: List[GameRecord] = await get_game_record(self.account)
         filter_record = list(filter(lambda record: record.uid ==
-                                                   gameUID and GameInfo.ABBR_TO_ID[record.gameID][0] == game,
+                                                   game_uid and GameInfo.ABBR_TO_ID[record.game_id][0] == game,
                                     record_list))
         if not filter_record:
             return -6
         data = {
             "act_id": ACT_ID[game],
             "region": filter_record[0].region,
-            "uid": gameUID
+            "uid": game_uid
         }
 
         headers = HEADERS_OTHER.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.deviceID
-            headers["DS"] = generateDS()
+            headers["DS"] = generate_ds()
         else:
             headers["x-rpc-device_id"] = self.account.deviceID_2
             headers["x-rpc-device_model"] = conf.device.X_RPC_DEVICE_MODEL_ANDROID
@@ -313,7 +314,7 @@ class GameSign:
             headers.pop("x-rpc-platform")
             await device_login(self.account)
             await device_save(self.account)
-            headers["DS"] = generateDS(platform="android")
+            headers["DS"] = generate_ds(platform="android")
         try:
             subscribe = Subscribe()
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
@@ -328,16 +329,16 @@ class GameSign:
                             f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 登录失效")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
                         return -1
-                    if not check_DS(res.text):
+                    if not check_ds(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}签到: DS无效，正在在线获取salt以重新生成...")
                         await subscribe.load()
                         if platform == "ios":
                             headers["User-Agent"] = conf.device.USER_AGENT_MOBILE
-                            headers["DS"] = generateDS()
+                            headers["DS"] = generate_ds()
                         else:
                             headers["User-Agent"] = conf.device.USER_AGENT_ANDROID
-                            headers["DS"] = generateDS(platform="android")
+                            headers["DS"] = generate_ds(platform="android")
                     self.signResult = res.json()
                     if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1

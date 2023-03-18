@@ -18,7 +18,7 @@ from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
 from nonebot_plugin_apscheduler import scheduler
 
 from .bbsAPI import get_game_record
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserData
 from .exchange import (Exchange, Good, UserAccount, get_good_detail,
                        get_good_list)
@@ -34,7 +34,7 @@ class ExchangeStart:
     异步多线程兑换
     """
 
-    def __init__(self, account: UserAccount, qq: int, exchangePlan: Exchange, thread: int) -> None:
+    def __init__(self, account: UserAccount, qq: int, exchange_plan: Exchange, thread: int) -> None:
         self.plans: List[Exchange] = []
         self.tasks: Set[asyncio.Task] = set()
         self.finishedCount = 0
@@ -42,7 +42,7 @@ class ExchangeStart:
         self.qq = qq
 
         for _ in range(thread):
-            self.plans.append(deepcopy(exchangePlan))
+            self.plans.append(deepcopy(exchange_plan))
 
     async def start(self):
         """
@@ -58,7 +58,7 @@ class ExchangeStart:
         bot = get_bot()
 
         success_tasks: List[asyncio.Task] = list(filter(lambda task: isinstance(
-            task.result(), tuple) and task.result()[0] == True, self.tasks))
+            task.result(), tuple) and task.result()[0], self.tasks))
         if success_tasks:
             await bot.send_private_msg(
                 user_id=self.qq, message=f"🎉用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换成功，可前往米游社查看")
@@ -134,7 +134,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 \n- 🔢商品ID：{1}\
                 \n- 💰商品价格：{2} 米游币\
                 \n- 📅兑换时间：{3}\
-                \n- 📱账户：{4}""".strip().format(good.name, good.goodID,
+                \n- 📱账户：{4}""".strip().format(good.name, good.good_id,
                                                good.price, time.strftime("%Y-%m-%d %H:%M:%S",
                                                                          time.localtime(good.time)), account.phone)
                 msg += "\n\n"
@@ -179,25 +179,25 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             'wd': await get_good_list('wd'),
             'bbs': await get_good_list('bbs')
         }
-        Flag = True
+        flag = True
         break_flag = False
-        good: Good = None
-        game: str = None
+        good = None
+        game = None
         for game, good_list in good_dict.items():
             for good in good_list:
-                if good.goodID == arg[1]:
-                    Flag = False
+                if good.good_id == arg[1]:
+                    flag = False
                     break_flag = True
                     break
             if break_flag:
                 break
-        if Flag:
+        if flag:
             await matcher.finish('⚠️您发送的商品ID不在可兑换的商品列表内，程序已退出')
         state['good'] = good
         uids = []
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
-            if good.isVisual:
+            if good.is_visual:
                 game_records = await get_game_record(account)
 
                 if isinstance(game_records, int):
@@ -206,8 +206,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                     game_name = list(filter(lambda abbr: abbr[0] == game, GameInfo.ABBR_TO_ID.values()))[0][1]
                     msg = f'您米游社账户下的『{game_name}』账号：'
                     for record in game_records:
-                        if GameInfo.ABBR_TO_ID[record.gameID][0] == game:
-                            msg += f'\n🎮 {record.regionName} - {record.nickname} - UID {record.uid}'
+                        if GameInfo.ABBR_TO_ID[record.game_id][0] == game:
+                            msg += f'\n🎮 {record.region_name} - {record.nickname} - UID {record.uid}'
                         uids.append(record.uid)
                     if uids:
                         await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
@@ -218,7 +218,6 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
-                matcher.set_arg('uid', None)
             state['uids'] = uids
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
@@ -254,27 +253,27 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         if uid not in uids:
             await matcher.reject('⚠️您输入的UID不在上述账号内，请重新输入')
 
-    if account.exchange and (good.goodID, uid) in account.exchange:
+    if account.exchange and (good.good_id, uid) in account.exchange:
         await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
     else:
-        account.exchange.append((good.goodID, uid))
+        account.exchange.append((good.good_id, uid))
 
     # 初始化兑换任务
-    exchange_plan = await Exchange(account, good.goodID, uid).async_init()
+    exchange_plan = await Exchange(account, good.good_id, uid).async_init()
     if exchange_plan.result == -1:
         await matcher.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
     elif exchange_plan.result == -2:
-        await matcher.finish("⚠️商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.goodID))
+        await matcher.finish("⚠️商品 {} 为游戏内物品，由于未配置stoken，放弃兑换".format(good.good_id))
     elif exchange_plan.result == -3:
-        await matcher.finish("⚠️商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.goodID))
+        await matcher.finish("⚠️商品 {} 为游戏内物品，由于stoken为\"v2\"类型，且未配置mid，放弃兑换".format(good.good_id))
     elif exchange_plan.result == -4:
-        await matcher.finish("⚠️暂不支持商品 {} 所属的游戏，放弃兑换".format(good.goodID))
+        await matcher.finish("⚠️暂不支持商品 {} 所属的游戏，放弃兑换".format(good.good_id))
     elif exchange_plan.result == -5:
-        await matcher.finish("⚠️获取商品 {} 的信息时，网络连接失败或服务器返回不正确，放弃兑换".format(good.goodID))
+        await matcher.finish("⚠️获取商品 {} 的信息时，网络连接失败或服务器返回不正确，放弃兑换".format(good.good_id))
     elif exchange_plan.result == -6:
-        await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.goodID))
+        await matcher.finish("⚠️获取商品 {} 的信息时，获取用户游戏账户数据失败，放弃兑换".format(good.good_id))
     else:
-        scheduler.add_job(id=str(account.phone) + '_' + good.goodID, replace_existing=True, trigger='date',
+        scheduler.add_job(id=str(account.phone) + '_' + good.good_id, replace_existing=True, trigger='date',
                           func=ExchangeStart(
                               account, event.user_id, exchange_plan, conf.EXCHANGE_THREAD).start,
                           next_run_time=datetime.fromtimestamp(good.time))
@@ -328,7 +327,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
         arg = ('bbs', '米游社')
     elif arg == '更新':
         await get_good_image.send('⏳正在生成商品信息图片...')
-        await generate_image(isAuto=False)
+        await generate_image(is_auto=False)
         await get_good_image.finish('商品信息图片刷新成功')
     else:
         await get_good_image.finish('⚠️您的输入有误，请重新输入')
@@ -342,7 +341,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
             await get_good_image.finish(MessageSegment.image(image_bytes))
         else:
             await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
-            await generate_image(isAuto=False)
+            await generate_image(is_auto=False)
             img_path = time.strftime(
                 f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
             await get_good_image.finish(MessageSegment.image('file:///' + img_path))

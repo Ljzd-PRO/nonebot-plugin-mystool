@@ -8,7 +8,7 @@ from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
                                          GroupRequestEvent, RequestEvent)
 from nonebot_plugin_apscheduler import scheduler
 
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserData
 from .utils import logger
 

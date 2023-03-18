@@ -10,7 +10,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
 from .bbsAPI import GameInfo
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserAccount, UserData
 from .mybMission import GAME_ID
 from .utils import COMMAND_BEGIN
@@ -190,7 +190,7 @@ async def _(event: MessageEvent, matcher: Matcher):
     通知设置命令触发
     """
     await matcher.send(
-        f"自动通知每日计划任务结果：{'🔔开' if UserData.isNotice(event.user_id) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
+        f"自动通知每日计划任务结果：{'🔔开' if UserData.is_notice(event.user_id) else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
@@ -201,8 +201,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
-        a = UserData.set_notice(not UserData.isNotice(event.user_id), event.user_id)
-        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.isNotice(event.user_id) else '🔕关闭'}")
+        UserData.set_notice(not UserData.is_notice(event.user_id), event.user_id)
+        await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if UserData.is_notice(event.user_id) else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
     else:

@@ -14,9 +14,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .bbsAPI import GameRecord, get_game_record
 from .config import PATH
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserAccount
-from .utils import (check_login, custom_attempt_times, generateDeviceID,
+from .utils import (check_login, custom_attempt_times, generate_device_id,
                     get_file, logger)
 
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={" \
@@ -32,7 +32,7 @@ HEADERS_GOOD_LIST = {
         "https://user.mihoyo.com",
     "Connection":
         "keep-alive",
-    "x-rpc-device_id": generateDeviceID(),
+    "x-rpc-device_id": generate_device_id(),
     "x-rpc-client_type":
         "5",
     "User-Agent":
@@ -97,7 +97,7 @@ class Good:
         :param good_dict: 网络请求返回的商品数据字典
         """
         self.good_dict = good_dict
-        self.time_by_detail: int = None
+        self.time_by_detail: int = -1
         try:
             for func in dir(Good):
                 if func.startswith("__") and func == "async_init":
@@ -114,7 +114,7 @@ class Good:
         :return: 自身对象
         """
         if "sale_start_time" not in self.good_dict and self.good_dict["status"] == "not_in_sell":
-            detail = await get_good_detail(self.goodID)
+            detail = await get_good_detail(self.good_id)
             if detail is not None:
                 self.time_by_detail = detail.time
             else:
@@ -129,7 +129,7 @@ class Good:
         return self.good_dict["goods_name"]
 
     @property
-    def goodID(self) -> str:
+    def good_id(self) -> str:
         """
         商品ID(Good_ID)
         """
@@ -184,7 +184,7 @@ class Good:
         return self.good_dict["icon"]
 
     @property
-    def isVisual(self) -> bool:
+    def is_visual(self) -> bool:
         """
         是否为虚拟商品
         """
@@ -194,12 +194,12 @@ class Good:
             return False
 
 
-async def get_good_detail(goodID: str, retry: bool = True):
+async def get_good_detail(good_id: str, retry: bool = True):
     """
     获取某商品的详细信息，若获取失败则返回`None`
     - 若返回 `-1` 说明商品不存在
 
-    :param goodID: 商品ID
+    :param good_id: 商品ID
     :param retry: 是否允许重试
     :return: 商品数据
     """
@@ -209,7 +209,7 @@ async def get_good_detail(goodID: str, retry: bool = True):
                                                     wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_CHECK_GOOD.format(goodID), timeout=conf.TIME_OUT)
+                    res = await client.get(URL_CHECK_GOOD.format(good_id), timeout=conf.TIME_OUT)
                 if res.json()['message'] == '商品不存在' or res.json()['message'] == '商品已下架':
                     return -1
                 return Good(res.json()["data"])
@@ -287,7 +287,7 @@ class Exchange:
     """
     米游币商品兑换相关(需两步初始化对象，先`__init__`，后异步`async_init`)\n
     示例:
-    >>> exchange = await Exchange(account, goodID, gameUID).async_init()
+    >>> exchange = await Exchange(account, good_id, game_uid).async_init()
 
     - `result`属性为 `-1`: 用户登录失效，放弃兑换
     - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
@@ -298,29 +298,29 @@ class Exchange:
     - `result`属性为 `-7`: 实体商品，用户未配置地址ID，放弃兑换
     """
 
-    def __init__(self, account: UserAccount, goodID: str, gameUID: str) -> None:
+    def __init__(self, account: UserAccount, good_id: str, game_uid: str) -> None:
         """
         初始化兑换任务(仅导入参数)
 
         :param account: 用户账户数据
-        :param goodID: 商品ID
-        :param gameUID: 游戏UID
+        :param good_id: 商品ID
+        :param game_uid: 游戏UID
         """
         self.result = None
-        self.goodID = goodID
+        self.goodID = good_id
         self.account = account
         if account.address is None:
             address = None
         else:
-            address = account.address.addressID
+            address = account.address.address_id
         self.content = {
             "app_id": 1,
             "point_sn": "myb",
-            "goods_id": goodID,
+            "goods_id": good_id,
             "exchange_num": 1,
             "address_id": address
         }
-        self.gameUID = gameUID
+        self.gameUID = game_uid
 
     async def async_init(self, retry: bool = True):
         """
@@ -340,7 +340,7 @@ class Exchange:
         }
         if self.account.address:
             self.content.setdefault(
-                "address_id", self.account.address.addressID)
+                "address_id", self.account.address.address_id)
         logger.info(
             f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 开始获取商品 {self.goodID} 的信息")
         res = None
@@ -351,8 +351,8 @@ class Exchange:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
                             URL_CHECK_GOOD.format(self.goodID), timeout=conf.TIME_OUT)
-                    goodInfo = res.json()["data"]
-                    if goodInfo["type"] == 2 and goodInfo["game_biz"] != "bbs_cn":
+                    good_info = res.json()["data"]
+                    if good_info["type"] == 2 and good_info["game_biz"] != "bbs_cn":
                         if self.content.get("address_id", False):
                             self.content.pop("address_id")
                         if "stoken" not in self.account.cookie:
@@ -373,7 +373,7 @@ class Exchange:
                             self.result = -7
                         return self
 
-                    if goodInfo["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
+                    if good_info["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
                         logger.warning(
                             f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {self.goodID} 所属的游戏".format())
                         self.result = -4
@@ -392,7 +392,7 @@ class Exchange:
                             self.content.setdefault("region", record.region)
                             # 例: hk4e_cn
                             self.content.setdefault(
-                                "game_biz", goodInfo["game_biz"])
+                                "game_biz", good_info["game_biz"])
                             break
         except tenacity.RetryError:
             logger.error(
@@ -472,16 +472,16 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                     os.makedirs(os.path.dirname(TEMP_FONT_PATH))
                 except FileExistsError:
                     pass
-                with open(TEMP_FONT_PATH, "wb") as fp:
+                with open(TEMP_FONT_PATH, "wb") as f:
                     content = await get_file(FONT_URL)
                     if content is None:
                         logger.error(
                             f"{conf.LOG_HEAD}商品列表图片生成 - 字体下载失败，无法继续生成图片")
                         return None
-                    fp.write(content)
-                with open(TEMP_FONT_PATH, "rb") as fp:
-                    with zipfile.ZipFile(fp) as zip:
-                        with zip.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
+                    f.write(content)
+                with open(TEMP_FONT_PATH, "rb") as f:
+                    with zipfile.ZipFile(f) as z:
+                        with z.open("OTF/SimplifiedChineseHW/SourceHanSansHWSC-Regular.otf") as zip_font:
                             with open(FONT_SAVE_PATH, "wb") as fp_font:
                                 fp_font.write(zip_font.read())
                 logger.info(
@@ -541,7 +541,7 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                 start_time = time.strftime("%Y-%m-%d %H:%M:%S",
                                            time.localtime(good.time))
             draw.text((conf.goodListImage.ICON_SIZE[0] + conf.goodListImage.PADDING_TEXT_AND_ICON_X, draw_y),
-                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.goodID, start_time, good.price),
+                      "{0}\n商品ID: {1}\n兑换时间: {2}\n价格: {3} 米游币".format(good.name, good.good_id, start_time, good.price),
                       (0, 0, 0), font)
             draw_y += (conf.goodListImage.ICON_SIZE[1] +
                        conf.goodListImage.PADDING_ICON)
