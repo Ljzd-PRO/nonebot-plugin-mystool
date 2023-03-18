@@ -21,10 +21,9 @@ from .bbsAPI import get_game_record
 from .config import config as conf
 from .data import UserData
 from .exchange import (Exchange, Good, UserAccount, get_good_detail,
-                       get_good_list)
+                       get_good_list, game_list_to_image)
 from .gameSign import GameInfo
-from .plan import generate_image
-from .utils import NtpTime, COMMAND_BEGIN
+from .utils import NtpTime, COMMAND_BEGIN, logger
 
 driver = get_driver()
 
@@ -325,7 +324,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
         arg = ('bbs', '米游社')
     elif arg == '更新':
         await get_good_image.send('⏳正在生成商品信息图片...')
-        await generate_image(is_auto=False)
+        await generate_goods_image(is_auto=False)
         await get_good_image.finish('商品信息图片刷新成功')
     else:
         await get_good_image.finish('⚠️您的输入有误，请重新输入')
@@ -339,7 +338,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
             await get_good_image.finish(MessageSegment.image(image_bytes))
         else:
             await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
-            await generate_image(is_auto=False)
+            await generate_goods_image(is_auto=False)
             img_path = time.strftime(
                 f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
             await get_good_image.finish(MessageSegment.image('file:///' + img_path))
@@ -380,3 +379,34 @@ async def load_exchange_data():
                                       trigger='date', func=ExchangeStart(
                             account, qq, exchange_plan, conf.EXCHANGE_THREAD).start,
                                       next_run_time=datetime.fromtimestamp(good_detail.time))
+
+
+@driver.on_startup
+async def generate_goods_image(is_auto=True):
+    """
+    生成米游币商品信息图片。
+
+    :param is_auto: True为每日自动生成，False为用户手动更新
+    """
+    for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
+        for name in files:
+            date = time.strftime('%m-%d', time.localtime())
+            # 若图片开头为当日日期，则退出函数不执行
+            if name.startswith(date):
+                if is_auto:
+                    return
+            # 删除旧图片，以方便生成当日图片
+            if name.endswith('.jpg'):
+                os.remove(os.path.join(root, name))
+    for game in "bh3", "ys", "bh2", "wd", "bbs":
+        good_list = await get_good_list(game)
+        if good_list:
+            img_path = time.strftime(
+                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
+            image_bytes = await game_list_to_image(good_list)
+            if not image_bytes:
+                return
+            with open(img_path, 'wb') as f:
+                f.write(image_bytes)
+        else:
+            logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")

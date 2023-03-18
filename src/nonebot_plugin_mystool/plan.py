@@ -2,8 +2,6 @@
 ### 计划任务相关
 """
 import asyncio
-import os
-import time
 from typing import List, Union
 
 from nonebot import get_bot, get_driver, on_command
@@ -14,7 +12,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .bbsAPI import GameInfo, GameRecord, genshin_status_bbs, get_game_record
 from .config import config as conf
 from .data import UserData
-from .exchange import game_list_to_image, get_good_list
+from .exchangePlan import generate_goods_image
 from .gameSign import GameSign, Info
 from .mybMission import Action, get_missions_state
 from .utils import blur_phone as blur
@@ -23,8 +21,8 @@ from .utils import get_file, logger, COMMAND_BEGIN
 driver = get_driver()
 
 manually_game_sign = on_command(
-    conf.COMMAND_START + 'yssign',
-    aliases={conf.COMMAND_START + '签到', conf.COMMAND_START + '手动签到', conf.COMMAND_START + '游戏签到',
+    conf.COMMAND_START + '签到',
+    aliases={conf.COMMAND_START + 'yssign', conf.COMMAND_START + '手动签到', conf.COMMAND_START + '游戏签到',
              conf.COMMAND_START + '原神签到', conf.COMMAND_START + 'gamesign'}, priority=4, block=True)
 manually_game_sign.__help_name__ = '签到'
 manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
@@ -418,44 +416,13 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 await bot.send_private_msg(user_id=qq, message=msg)
 
 
-@driver.on_startup
-async def generate_image(is_auto=True):
-    """
-    生成米游币商品函数。
-
-    :param is_auto: True为每日自动生成，False为用户手动更新
-    """
-    for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
-        for name in files:
-            date = time.strftime('%m-%d', time.localtime())
-            # 若图片开头为当日日期，则退出函数不执行
-            if name.startswith(date):
-                if is_auto:
-                    return
-            # 删除旧图片，以方便生成当日图片
-            if name.endswith('.jpg'):
-                os.remove(os.path.join(root, name))
-    for game in "bh3", "ys", "bh2", "wd", "bbs":
-        good_list = await get_good_list(game)
-        if good_list:
-            img_path = time.strftime(
-                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
-            image_bytes = await game_list_to_image(good_list)
-            if not image_bytes:
-                return
-            with open(img_path, 'wb') as f:
-                f.write(image_bytes)
-        else:
-            logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
-
-
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 async def daily_update():
     """
     每日图片生成函数
     """
     logger.info(f"{conf.LOG_HEAD}开始生成每日商品图片")
-    await generate_image()
+    await generate_goods_image()
 
 
 @scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
