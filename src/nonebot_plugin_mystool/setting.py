@@ -143,8 +143,11 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.reject(f"⚠️确认删除账号 {account.phone} ？发送 \"确认删除\" 以确定。")
 
     elif arg == '确认删除' and state["prepare_to_delete"]:
-        UserData.del_account(event.user_id, account.phone)
-        await account_setting.finish(f"已删除账号 {account.phone} 的数据")
+        del_result = UserData.del_account(event.user_id, account.phone)
+        if del_result:
+            await account_setting.finish(f"已删除账号 {account.phone} 的数据")
+        else:
+            await account_setting.finish(f"删除账号 {account.phone} 的数据失败")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 

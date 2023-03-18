@@ -387,7 +387,6 @@ class UserData:
             by_type = "name"
         else:
             by_type = "phone"
-            by = str(by)
         userdata = cls.read_all()
         try:
             account_list: List[dict] = userdata[qq]["accounts"]
