@@ -4,7 +4,7 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union, Optional
 
 import nonebot.log
 
@@ -154,7 +154,7 @@ class UserAccount:
         '''设备 x-rpc-device_id'''
         self.deviceID_2: str = generate_device_id()
         '''设备第二个 x-rpc-device_id(可用于安卓设备)'''
-        self.address: Union[Address, None] = None
+        self.address: Optional[Address] = None
         '''地址数据'''
         self.bbsUID: str = ""
         '''米游社UID'''
@@ -434,7 +434,7 @@ class UserData:
             userdata = cls.__create_account(userdata, qq, name, phone)
 
     @classmethod
-    def is_notice(cls, qq: int) -> Union[bool, None]:
+    def is_notice(cls, qq: int) -> Optional[bool]:
         """
         查看用户是否开启了通知，若不存在用户则返回None
 

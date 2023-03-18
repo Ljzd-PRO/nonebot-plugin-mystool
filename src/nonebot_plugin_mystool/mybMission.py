@@ -3,7 +3,7 @@
 """
 import asyncio
 import traceback
-from typing import Any, Dict, List, Literal, NewType, Tuple, Union
+from typing import Any, Dict, List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
 import tenacity
@@ -228,8 +228,8 @@ class Action:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Union[
-        List[str], None]:
+    async def get_posts(self, game: Literal["bh3", "ys", "bh2", "wd", "xq"], retry: bool = True) -> Optional[
+        List[str]]:
         """
         获取文章ID列表，若失败返回 `None`
 

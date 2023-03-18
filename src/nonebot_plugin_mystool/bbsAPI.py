@@ -2,7 +2,7 @@
 ### 米游社其他API
 """
 import traceback
-from typing import Dict, List, Literal, NewType, Tuple, Union
+from typing import Dict, List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
 import tenacity
@@ -428,7 +428,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Union[Lis
         return -3
 
 
-async def get_game_list(retry: bool = True) -> Union[List[GameInfo], None]:
+async def get_game_list(retry: bool = True) -> Optional[List[GameInfo]]:
     """
     获取米哈游游戏的详细信息，若返回`None`说明获取失败
 

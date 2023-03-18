@@ -5,7 +5,7 @@ import os
 import traceback
 from datetime import time, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union, Optional
 
 from nonebot import get_driver
 from nonebot.log import logger
@@ -90,7 +90,7 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''文字顶部与展示图顶部之间的距离 高'''
     PADDING_TEXT_AND_ICON_X: int = 10
     '''文字与展示图之间的横向距离 宽'''
-    FONT_PATH: Union[Path, str, None] = None
+    FONT_PATH: Optional[Path, str] = None
     '''
     字体文件路径(若使用计算机已经安装的字体，直接填入字体名称，若为None则自动下载字体)
 
@@ -135,7 +135,7 @@ class Config(BaseModel, extra=Extra.ignore):
     '''任务操作冷却时间(如米游币任务)'''
     SLEEP_TIME_RETRY: float = 3
     '''网络请求出错的重试冷却时间'''
-    TIME_OUT: Union[float, None] = None
+    TIME_OUT: Optional[float] = None
     '''网络请求超时时间'''
     GITHUB_PROXY: str = "https://ghproxy.com/"
     '''GitHub代理加速服务器(若为""空字符串则不启用)'''

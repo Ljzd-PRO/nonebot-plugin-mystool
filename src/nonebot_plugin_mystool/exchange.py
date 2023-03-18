@@ -6,7 +6,7 @@ import os
 import time
 import traceback
 import zipfile
-from typing import List, Literal, NewType, Tuple, Union
+from typing import List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
 import tenacity
@@ -143,7 +143,7 @@ class Good:
         return self.good_dict["price"]
 
     @property
-    def time(self) -> Union[int, None]:
+    def time(self) -> Optional[int]:
         """
         兑换时间
         """
@@ -222,7 +222,7 @@ async def get_good_detail(good_id: str, retry: bool = True):
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: bool = True) -> Union[List[Good], None]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: bool = True) -> Optional[List[Good]]:
     """
     获取商品信息列表，若获取失败则返回`None`
 
