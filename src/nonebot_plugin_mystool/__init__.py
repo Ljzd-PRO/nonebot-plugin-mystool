@@ -1,17 +1,7 @@
 """
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.4-dev**
-
-## 功能和特性
-
-- 短信验证登录，免抓包获取 Cookie
-- 自动完成每日米游币任务
-- 自动进行游戏签到
-- 可制定米游币商品兑换计划，到点兑换
-- 可支持多个 QQ 账号，每个 QQ 账号可绑定多个米哈游账户
-- QQ 推送执行结果通知
-- 原神树脂、洞天宝钱、质量参变仪已满时推送通知
+**版本 - v0.2.4**
 
 ## 使用说明
 
@@ -34,7 +24,12 @@
 > ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#command_start)
 
 ## 其他
-适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支：https://github.com/ayakasuki/nonebot-plugin-mystool
+
+### [📃源码说明](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
+### 适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支
+- https://github.com/MWTJC/zhenxun-plugin-mystool
+- https://github.com/ayakasuki/nonebot-plugin-mystool
+
 """
 
 import pkgutil
@@ -44,7 +39,7 @@ from nonebot.plugin import PluginMetadata
 
 from .data import create_files
 
-VERSION = "v0.2.4-dev"
+VERSION = "v0.2.4"
 '''插件版本号'''
 
 __plugin_meta__ = PluginMetadata(
