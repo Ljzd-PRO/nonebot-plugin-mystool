@@ -15,7 +15,7 @@ from nonebot.params import Arg, ArgPlainText, T_State
 
 from .config import mysTool_config as conf
 from .data import Address, UserAccount, UserData
-from .utils import NtpTime, check_login, custom_attempt_times, logger, COMMAND_BEGIN
+from .utils import NtpTime, check_login, custom_attempt_times, logger, CommandBegin
 
 HEADERS = {
     "Host": "api-takumi.mihoyo.com",
@@ -89,7 +89,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
     state['qq_account'] = event.user_id
     state['user_account'] = user_account
     if not user_account:
-        await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+        await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{CommandBegin}登录』进行登录")
     else:
         await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:

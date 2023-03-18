@@ -9,7 +9,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .config import mysTool_config as conf
-from .utils import PLUGIN, COMMAND_BEGIN
+from .utils import PLUGIN, CommandBegin
 
 helper = on_command(conf.COMMAND_START + "help", priority=1,
                     aliases={conf.COMMAND_START + "帮助"})
@@ -17,8 +17,8 @@ helper = on_command(conf.COMMAND_START + "help", priority=1,
 helper.__help_name__ = '帮助'
 helper.__help_info__ = f'''\
     🍺欢迎使用米游社小助手帮助系统！\
-    \n{COMMAND_BEGIN}帮助 ➢ 查看米游社小助手使用说明\
-    \n{COMMAND_BEGIN}帮助 <功能名> ➢ 查看目标功能详细说明\
+    \n{CommandBegin}帮助 ➢ 查看米游社小助手使用说明\
+    \n{CommandBegin}帮助 <功能名> ➢ 查看目标功能详细说明\
 '''.strip()
 
 
