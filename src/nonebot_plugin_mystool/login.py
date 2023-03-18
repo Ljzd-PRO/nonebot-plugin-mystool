@@ -14,9 +14,9 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
 
-from .config import mysTool_config as conf
+from .config import config as conf
 from .data import UserData, UserAccount
-from .utils import custom_attempt_times, generateDeviceID, logger, COMMAND_BEGIN
+from .utils import custom_attempt_times, generate_device_id, logger, COMMAND_BEGIN
 
 URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
@@ -63,13 +63,13 @@ class GetCookie:
 
     def __init__(self, qq: int, phone: int) -> None:
         self.phone = phone
-        self.bbsUID: str = None
-        self.cookie: dict = None
+        self.bbsUID: str = ""
+        self.cookie: dict = {}
         '''获取到的Cookie数据'''
         self.client = httpx.AsyncClient()
         account = UserData.read_account(qq, phone)
         if account is None:
-            self.deviceID = generateDeviceID()
+            self.deviceID = generate_device_id()
         else:
             self.deviceID = account.deviceID
 
@@ -94,7 +94,7 @@ class GetCookie:
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
                 with attempt:
                     res = await self.client.post(URL_1, headers=headers,
-                                                 data="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(
+                                                 content="mobile={0}&mobile_captcha={1}&source=user.mihoyo.com".format(
                                                      self.phone, captcha), timeout=conf.TIME_OUT)
                     try:
                         res_json = res.json()

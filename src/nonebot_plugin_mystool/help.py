@@ -8,7 +8,7 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
-from .config import mysTool_config as conf
+from .config import config as conf
 from .utils import PLUGIN, COMMAND_BEGIN
 
 helper = on_command(conf.COMMAND_START + "help", priority=1,

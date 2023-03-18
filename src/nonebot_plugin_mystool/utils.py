@@ -21,7 +21,7 @@ import ntplib
 import tenacity
 from nonebot.log import logger
 
-from .config import mysTool_config as conf
+from .config import config as conf
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -130,7 +130,7 @@ def ntp_time_sync():
         logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败")
 
 
-def generateDeviceID() -> str:
+def generate_device_id() -> str:
     """
     生成随机的x-rpc-device_id
     """
@@ -166,8 +166,8 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
-               platform: Literal["ios", "android"] = "ios"):
+def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
+                platform: Literal["ios", "android"] = "ios"):
     """
     获取Headers中所需DS
 
@@ -243,7 +243,7 @@ def check_login(response: str):
         return True
 
 
-def check_DS(response: str):
+def check_ds(response: str):
     """
     通过网络请求返回的数据，检查Header中DS是否有效
 

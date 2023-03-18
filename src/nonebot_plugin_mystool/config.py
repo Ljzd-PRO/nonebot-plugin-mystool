@@ -167,10 +167,10 @@ def create_config_file():
         f.write(Config().json(indent=4))
 
 
-mysTool_config = Config()
+config = Config()
 if os.path.isfile(CONFIG_PATH):
     try:
-        mysTool_config = Config.parse_file(CONFIG_PATH)
+        config = Config.parse_file(CONFIG_PATH)
     except Exception:
         logger.error(f"{Config().LOG_HEAD}读取插件配置失败，请检查配置文件 {CONFIG_PATH} 格式是否正确。将使用默认配置")
         logger.debug(f"{Config().LOG_HEAD}{traceback.format_exc()}")
@@ -178,4 +178,4 @@ if os.path.isfile(CONFIG_PATH):
 else:
     create_config_file()
 
-mysTool_config = mysTool_config.parse_obj(get_driver().config)
+config = config.parse_obj(get_driver().config)
