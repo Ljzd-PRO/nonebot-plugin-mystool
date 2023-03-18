@@ -56,6 +56,8 @@ class CommandBegin:
 
 
 driver.on_startup(CommandBegin.set_command_begin)
+COMMAND_BEGIN = CommandBegin()
+'''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
 
 def set_logger(logger: "Logger"):

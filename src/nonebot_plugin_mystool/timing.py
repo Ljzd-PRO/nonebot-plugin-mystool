@@ -18,7 +18,7 @@ from .exchange import game_list_to_image, get_good_list
 from .gameSign import GameSign, Info
 from .mybMission import Action, get_missions_state
 from .utils import blur_phone as blur
-from .utils import get_file, logger, CommandBegin
+from .utils import get_file, logger, COMMAND_BEGIN
 
 driver = get_driver()
 
@@ -37,7 +37,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     """
     bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
-        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{CommandBegin}登录』进行登录")
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, isAuto=False, group_event=event)
 
 
@@ -56,7 +56,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     """
     bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
-        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{CommandBegin}登录』进行登录")
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, isAuto=False, group_event=event)
 
 
@@ -83,7 +83,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
     """
     bot = get_bot(str(event.self_id))
     if not UserData.read_account_all(event.user_id):
-        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{CommandBegin}登录』进行登录")
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, isAuto=False, group_event=event)
 
 
