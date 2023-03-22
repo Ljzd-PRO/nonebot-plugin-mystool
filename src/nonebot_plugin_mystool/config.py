@@ -174,7 +174,6 @@ if os.path.isfile(CONFIG_PATH):
     except Exception:
         logger.error(f"{Config().LOG_HEAD}读取插件配置失败，请检查配置文件 {CONFIG_PATH} 格式是否正确。将使用默认配置")
         logger.debug(f"{Config().LOG_HEAD}{traceback.format_exc()}")
-        create_config_file()
 else:
     create_config_file()
 
