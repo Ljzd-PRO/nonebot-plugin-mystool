@@ -71,7 +71,7 @@ class Address:
         return self.address_dict["city_name"]
 
     @property
-    def county(self) -> int:
+    def county(self) -> str:
         """
         区/县
         """
@@ -92,7 +92,7 @@ class Address:
         return self.address_dict["connect_areacode"] + " " + self.address_dict["connect_mobile"]
 
     @property
-    def name(self) -> int:
+    def name(self) -> str:
         """
         收货人姓名
         """
