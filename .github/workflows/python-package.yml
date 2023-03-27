@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [ "stable", "dev" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
