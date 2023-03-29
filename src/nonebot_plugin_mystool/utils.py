@@ -35,6 +35,7 @@ PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 class CommandBegin:
     """
     命令开头字段
+    （包括例如'/'和插件命令起始字段例如'mystool'）
     已重写__str__方法
     """
     string = ""
@@ -79,7 +80,7 @@ logger = set_logger(logger)
 
 class NtpTime:
     """
-    >>> NtpTime.time() #获取校准后的时间（如果校准成功）
+    `NtpTime.time() #获取校准后的时间（如果校准成功）`
     """
     time_offset = 0
 
