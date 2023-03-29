@@ -76,6 +76,7 @@ def set_logger(logger: "Logger"):
 
 
 logger = set_logger(logger)
+"""本插件所用日志记录器对象（包含输出到文件）"""
 
 
 class NtpTime:
