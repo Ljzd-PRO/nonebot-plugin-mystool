@@ -103,6 +103,20 @@ class GoodListImage(BaseModel, extra=Extra.ignore):
     '''商品列表图片缓存目录'''
 
 
+class Salt(BaseModel, extra=Extra.ignore):
+    """
+    生成Headers - DS所用salt值
+    """
+    SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
+    '''生成Headers iOS DS所需的salt'''
+    SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
+    '''生成Headers Android DS所需的salt'''
+    SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
+    '''Android 设备传入content生成 DS 所需的 salt'''
+    SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
+    '''Android 设备传入url参数生成 DS 所需的 salt'''
+
+
 class Config(BaseModel, extra=Extra.ignore):
     ENCODING: str = "utf-8"
     '''文件读写编码'''
@@ -147,17 +161,12 @@ class Config(BaseModel, extra=Extra.ignore):
     EXCHANGE_THREAD: int = 3
     '''商品兑换线程数'''
 
-    SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
-    '''生成Headers iOS DS所需的salt'''
-    SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
-    '''生成Headers Android DS所需的salt'''
-    SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
-    '''Android 设备传入content生成 DS 所需的 salt'''
-    SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
-    '''Android 设备传入url参数生成 DS 所需的 salt'''
-
     device: DeviceConfig = DeviceConfig()
+    """设备信息"""
     goodListImage: GoodListImage = GoodListImage()
+    """商品列表输出图片设置"""
+    salt: Salt = Salt()
+    """生成Headers - DS所用salt值"""
 
 
 def create_config_file():
@@ -174,8 +183,5 @@ if os.path.isfile(CONFIG_PATH):
     except Exception:
         logger.error(f"{Config().LOG_HEAD}读取插件配置失败，请检查配置文件 {CONFIG_PATH} 格式是否正确。将使用默认配置")
         logger.debug(f"{Config().LOG_HEAD}{traceback.format_exc()}")
-        create_config_file()
 else:
     create_config_file()
-
-config = config.parse_obj(get_driver().config)

@@ -591,7 +591,7 @@ async def device_save(account: UserAccount, retry: bool = True) -> Literal[1, -1
                     return -1
                 if not check_ds(res.text):
                     logger.info(
-                        f"{conf.LOG_HEAD}设备登录: DS无效，正在在线获取salt以重新生成...")
+                        f"{conf.LOG_HEAD}设备保存: DS无效，正在在线获取salt以重新生成...")
                     await subscribe.load()
                 if res.json()["message"] != "OK":
                     raise ValueError

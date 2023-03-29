@@ -28,13 +28,11 @@ if TYPE_CHECKING:
 
 driver = nonebot.get_driver()
 
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
-'''本插件数据'''
-
 
 class CommandBegin:
     """
     命令开头字段
+    （包括例如'/'和插件命令起始字段例如'mystool'）
     已重写__str__方法
     """
     string = ""
@@ -53,6 +51,14 @@ class CommandBegin:
     @classmethod
     def __str__(cls):
         return cls.string
+
+
+def get_last_command_sep():
+    """
+    获取第最后一个命令分隔符
+    """
+    if driver.config.command_sep:
+        return list(driver.config.command_sep)[-1]
 
 
 driver.on_startup(CommandBegin.set_command_begin)
@@ -75,11 +81,18 @@ def set_logger(logger: "Logger"):
 
 
 logger = set_logger(logger)
+"""本插件所用日志记录器对象（包含输出到文件）"""
+
+PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
+'''本插件数据'''
+
+if not PLUGIN:
+    logger.warning("插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
 
 
 class NtpTime:
     """
-    >>> NtpTime.time() #获取校准后的时间（如果校准成功）
+    `NtpTime.time() #获取校准后的时间（如果校准成功）`
     """
     time_offset = 0
 
@@ -95,8 +108,8 @@ def custom_attempt_times(retry: bool):
     """
     自定义的重试机制停止条件\n
     根据是否要重试的bool值，给出相应的`tenacity.stop_after_attempt`对象
-    >>> retry == True #重试次数达到配置中 MAX_RETRY_TIMES 时停止
-    >>> retry == False #执行次数达到1时停止，即不进行重试
+
+    :param retry True - 重试次数达到配置中 MAX_RETRY_TIMES 时停止; False - 执行次数达到1时停止，即不进行重试
     """
     if retry:
         return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES + 1)
@@ -177,9 +190,9 @@ def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = ""
     """
     if data == "" and params == "":
         if platform == "ios":
-            salt = conf.SALT_IOS
+            salt = conf.salt.SALT_IOS
         else:
-            salt = conf.SALT_ANDROID
+            salt = conf.salt.SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -187,12 +200,12 @@ def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = ""
             f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
-        salt = conf.SALT_DATA
+        salt = conf.salt.SALT_DATA
         if not isinstance(data, str):
             data = json.dumps(data)
         if not isinstance(params, str):
             params = urlencode(params)
-            salt = conf.SALT_PARAMS
+            salt = conf.salt.SALT_PARAMS
         t = str(int(time.time()))
         r = str(random.randint(100000, 200000))
         c = hashlib.md5(

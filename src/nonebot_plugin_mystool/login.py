@@ -88,7 +88,6 @@ class GetCookie:
         """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res = None
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
@@ -189,12 +188,9 @@ class GetCookie:
             return -2
 
 
-get_cookie = on_command(
-    conf.COMMAND_START + 'cookie',
-    aliases={conf.COMMAND_START + 'cookie填写', conf.COMMAND_START + 'cookie', conf.COMMAND_START + 'login',
-             conf.COMMAND_START + '登录', conf.COMMAND_START + '登陆'}, priority=4, block=True)
-get_cookie.__help_name__ = '登录'
-get_cookie.__help_info__ = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
+get_cookie = on_command(conf.COMMAND_START + '登录')
+get_cookie.name = '登录'
+get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
 
 @get_cookie.handle()
@@ -232,12 +228,12 @@ async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainTex
 
 
 @get_cookie.handle()
-async def _(event: PrivateMessageEvent, state: T_State):
+async def _(_: PrivateMessageEvent):
     await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
 
 
 @get_cookie.got("验证码1", prompt='3.请发送验证码：')
-async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
+async def _(_: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
     if captcha1 == '退出':
         await get_cookie.finish("🚪已成功退出")
     try:
@@ -263,7 +259,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlain
 
 
 @get_cookie.handle()
-async def _(event: PrivateMessageEvent, state: T_State):
+async def _(_: PrivateMessageEvent):
     await get_cookie.send('4.请刷新网页，再次获取验证码（不要登录！）')
 
 
@@ -294,8 +290,8 @@ output_cookies = on_command(
     conf.COMMAND_START + '导出Cookies',
     aliases={conf.COMMAND_START + '导出Cookie', conf.COMMAND_START + '导出账号',
              conf.COMMAND_START + '导出cookie', conf.COMMAND_START + '导出cookies'}, priority=4, block=True)
-output_cookies.__help_name__ = '导出Cookies'
-output_cookies.__help_info__ = '导出绑定的米游社账号的Cookies数据'
+output_cookies.name = '导出Cookies'
+output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()

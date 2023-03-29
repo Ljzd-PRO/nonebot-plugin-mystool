@@ -18,12 +18,9 @@ from .mybMission import Action, get_missions_state
 from .utils import blur_phone as blur
 from .utils import get_file, logger, COMMAND_BEGIN
 
-manually_game_sign = on_command(
-    conf.COMMAND_START + '签到',
-    aliases={conf.COMMAND_START + 'yssign', conf.COMMAND_START + '手动签到', conf.COMMAND_START + '游戏签到',
-             conf.COMMAND_START + '原神签到', conf.COMMAND_START + 'gamesign'}, priority=4, block=True)
-manually_game_sign.__help_name__ = '签到'
-manually_game_sign.__help_info__ = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
+manually_game_sign = on_command(conf.COMMAND_START + '签到')
+manually_game_sign.name = '签到'
+manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
 
 @manually_game_sign.handle()
@@ -37,12 +34,9 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_bbs_sign = on_command(
-    conf.COMMAND_START + '任务',
-    aliases={conf.COMMAND_START + '米游社签到', conf.COMMAND_START + '米游币任务', conf.COMMAND_START + '米游币获取',
-             conf.COMMAND_START + 'bbssign', conf.COMMAND_START + '米游社任务'}, priority=4, block=True)
-manually_bbs_sign.__help_name__ = '任务'
-manually_bbs_sign.__help_info__ = '手动执行米游币每日任务，可以查看米游币任务完成情况'
+manually_bbs_sign = on_command(conf.COMMAND_START + '任务')
+manually_bbs_sign.name = '任务'
+manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米游币任务完成情况'
 
 
 @manually_bbs_sign.handle()
@@ -56,12 +50,9 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check = on_command(
-    conf.COMMAND_START + '树脂',
-    aliases={conf.COMMAND_START + '体力', conf.COMMAND_START + '树脂查看', conf.COMMAND_START + '实时便笺',
-             conf.COMMAND_START + '便笺', conf.COMMAND_START + '原神便笺'}, priority=4, block=True)
-manually_resin_check.__help_name__ = '便笺'
-manually_resin_check.__help_info__ = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
+manually_resin_check = on_command(conf.COMMAND_START + '便笺')
+manually_resin_check.name = '便笺'
+manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 HAS_CHECKED = {}
 qq_accounts = UserData.read_all().keys()
 for qq in qq_accounts:

@@ -72,17 +72,14 @@ async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], 
     return address_list
 
 
-get_address = on_command(
-    conf.COMMAND_START + '地址',
-    aliases={conf.COMMAND_START + '地址填写', conf.COMMAND_START + '地址', conf.COMMAND_START + '地址获取'}, priority=4,
-    block=True)
+get_address = on_command(conf.COMMAND_START + '地址')
 
-get_address.__help_name__ = '地址'
-get_address.__help_info__ = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
+get_address.name = '地址'
+get_address.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
 
 
 @get_address.handle()
-async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GroupMessageEvent):
         await get_address.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user_account = UserData.read_account_all(event.user_id)
@@ -102,7 +99,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
 
 
 @get_address.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+async def _(_: PrivateMessageEvent, state: T_State, phone=Arg()):
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
@@ -140,7 +137,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
 
 
 @get_address.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(event: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
+async def _(_: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await get_address.finish("🚪已成功退出")
     result_address = list(
