@@ -17,8 +17,8 @@ from .utils import COMMAND_BEGIN
 
 setting = on_command(
     conf.COMMAND_START + 'setting', aliases={conf.COMMAND_START + '设置'}, priority=4, block=True)
-setting.__help_name__ = "设置"
-setting.__help_info__ = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
+setting.name = "设置"
+setting.usage = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
 
 @setting.handle()
@@ -31,8 +31,8 @@ account_setting = on_command(
     conf.COMMAND_START + '账号设置',
     aliases={conf.COMMAND_START + '账户设置', conf.COMMAND_START + '签到设置', conf.COMMAND_START + '游戏设置'}, priority=4,
     block=True)
-account_setting.__help_name__ = "账号设置"
-account_setting.__help_info__ = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
+account_setting.name = "账号设置"
+account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
 
 
 @account_setting.handle()
@@ -185,8 +185,8 @@ global_setting = on_command(
     conf.COMMAND_START + 'global_setting',
     aliases={conf.COMMAND_START + '全局设置', conf.COMMAND_START + '播报设置', conf.COMMAND_START + '通知设置'}, priority=4,
     block=True)
-global_setting.__help_name__ = "通知设置"
-global_setting.__help_info__ = "设置每日签到后是否进行QQ通知"
+global_setting.name = "通知设置"
+global_setting.usage = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()

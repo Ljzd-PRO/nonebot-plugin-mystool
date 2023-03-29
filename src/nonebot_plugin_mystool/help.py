@@ -14,16 +14,16 @@ from .utils import PLUGIN, COMMAND_BEGIN
 helper = on_command(conf.COMMAND_START + "help", priority=1,
                     aliases={conf.COMMAND_START + "帮助"})
 
-helper.__help_name__ = '帮助'
-helper.__help_info__ = f'''\
+helper.name = '帮助'
+helper.usage = '''\
     🍺欢迎使用米游社小助手帮助系统！\
-    \n{COMMAND_BEGIN}帮助 ➢ 查看米游社小助手使用说明\
-    \n{COMMAND_BEGIN}帮助 <功能名> ➢ 查看目标功能详细说明\
+    \n{HEAD}帮助 ➢ 查看米游社小助手使用说明\
+    \n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明\
 '''.strip()
 
 
 @helper.handle()
-async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def _(_: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
     """
     主命令触发
     """
@@ -40,7 +40,7 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Mess
 
 
 @helper.got('content')
-async def get_result(event: MessageEvent, content: Message = Arg()):
+async def _(_: MessageEvent, content: Message = Arg()):
     """
     二级命令触发。功能详细说明查询
     """
@@ -53,8 +53,8 @@ async def get_result(event: MessageEvent, content: Message = Arg()):
     matchers = PLUGIN.matcher
     for matcher in matchers:
         try:
-            if arg.lower() == matcher.__help_name__:
-                await helper.finish(f"『{COMMAND_BEGIN}{matcher.__help_name__}』- 使用说明\n{matcher.__help_info__}")
+            if arg.lower() == matcher.name:
+                await helper.finish(f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n{matcher.usage.format(HEAD=COMMAND_BEGIN)}")
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")

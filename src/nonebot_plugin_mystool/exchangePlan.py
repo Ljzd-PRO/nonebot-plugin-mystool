@@ -15,6 +15,7 @@ from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
+from nonebot.rule import command
 from nonebot_plugin_apscheduler import scheduler
 
 from .bbsAPI import get_game_record
@@ -82,14 +83,14 @@ myb_exchange_plan = on_command(
     conf.COMMAND_START + '兑换',
     aliases={conf.COMMAND_START + 'myb_exchange', conf.COMMAND_START + '米游币兑换', conf.COMMAND_START + '米游币兑换计划',
              conf.COMMAND_START + '兑换计划', conf.COMMAND_START + '兑换'}, priority=4, block=True)
-myb_exchange_plan.__help_name__ = "兑换"
-myb_exchange_plan.__help_info__ = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
-myb_exchange_plan.__help_msg__ = """\
+myb_exchange_plan.name = "兑换"
+myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
+myb_exchange_plan.extra_usage = """\
 具体用法：
-{0}兑换 + <商品ID> ➢ 新增兑换计划
-{0}兑换 - <商品ID> ➢ 删除兑换计划
-{0}商品 ➢ 查看米游社商品\
-""".format(COMMAND_BEGIN)
+{HEAD}兑换 + <商品ID> ➢ 新增兑换计划
+{HEAD}兑换 - <商品ID> ➢ 删除兑换计划
+{HEAD}商品 ➢ 查看米游社商品\
+"""
 
 
 @myb_exchange_plan.handle()
@@ -135,7 +136,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg + myb_exchange_plan.__help_msg__)
+        await matcher.finish(msg + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN))
 
 
 @myb_exchange_plan.got('phone')
@@ -231,7 +232,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
             await matcher.finish("您还没有配置兑换计划哦~")
 
     else:
-        await matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.__help_msg__)
+        await matcher.reject('⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN))
 
 
 @myb_exchange_plan.got('uid')
@@ -283,8 +284,8 @@ get_good_image = on_command(
     conf.COMMAND_START + '商品列表',
     aliases={conf.COMMAND_START + '商品图片', conf.COMMAND_START + '米游社商品列表', conf.COMMAND_START + '米游币商品图片',
              conf.COMMAND_START + '商品'}, priority=4, block=True)
-get_good_image.__help_name__ = "商品"
-get_good_image.__help_info__ = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
+get_good_image.name = "商品"
+get_good_image.usage = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
 
 @get_good_image.handle()
@@ -345,7 +346,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
 
 
 @driver.on_startup
-async def load_exchange_data():
+async def _():
     """
     启动机器人时自动初始化兑换任务
     """
