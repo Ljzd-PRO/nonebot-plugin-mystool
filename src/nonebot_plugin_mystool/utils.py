@@ -177,9 +177,9 @@ def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = ""
     """
     if data == "" and params == "":
         if platform == "ios":
-            salt = conf.SALT_IOS
+            salt = conf.salt.SALT_IOS
         else:
-            salt = conf.SALT_ANDROID
+            salt = conf.salt.SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -187,12 +187,12 @@ def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = ""
             f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
-        salt = conf.SALT_DATA
+        salt = conf.salt.SALT_DATA
         if not isinstance(data, str):
             data = json.dumps(data)
         if not isinstance(params, str):
             params = urlencode(params)
-            salt = conf.SALT_PARAMS
+            salt = conf.salt.SALT_PARAMS
         t = str(int(time.time()))
         r = str(random.randint(100000, 200000))
         c = hashlib.md5(

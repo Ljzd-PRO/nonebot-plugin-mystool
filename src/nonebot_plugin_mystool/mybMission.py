@@ -428,7 +428,7 @@ class Action:
                     if not check_ds(res.text):
                         logger.info(
                             f"{conf.LOG_HEAD}米游币任务 - 分享: DS无效，正在在线获取salt以重新生成...")
-                        conf.SALT_ANDROID = await subscribe.load()
+                        conf.salt.SALT_ANDROID = await subscribe.load()
                         headers["DS"] = generate_ds(
                             platform="android")
                     if res.json()["message"] == "帖子不存在":
