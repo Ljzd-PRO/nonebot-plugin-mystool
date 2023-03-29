@@ -54,7 +54,8 @@ async def _(_: MessageEvent, content: Message = Arg()):
     for matcher in matchers:
         try:
             if arg.lower() == matcher.name:
-                await helper.finish(f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n{matcher.usage.format(HEAD=COMMAND_BEGIN)}")
+                await helper.finish(
+                    f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n{matcher.usage.format(HEAD=COMMAND_BEGIN)}")
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")

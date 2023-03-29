@@ -88,7 +88,6 @@ class GetCookie:
         """
         headers = HEADERS_1.copy()
         headers["x-rpc-device_id"] = self.deviceID
-        res = None
         try:
             async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
                                                         wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):

@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 driver = nonebot.get_driver()
 
+
 class CommandBegin:
     """
     命令开头字段
@@ -50,6 +51,7 @@ class CommandBegin:
     @classmethod
     def __str__(cls):
         return cls.string
+
 
 def get_last_command_sep():
     """
@@ -86,6 +88,7 @@ PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
 
 if not PLUGIN:
     logger.warning("插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
+
 
 class NtpTime:
     """
