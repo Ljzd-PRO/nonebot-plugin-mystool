@@ -28,10 +28,6 @@ if TYPE_CHECKING:
 
 driver = nonebot.get_driver()
 
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
-'''本插件数据'''
-
-
 class CommandBegin:
     """
     命令开头字段
@@ -78,6 +74,11 @@ def set_logger(logger: "Logger"):
 logger = set_logger(logger)
 """本插件所用日志记录器对象（包含输出到文件）"""
 
+PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
+'''本插件数据'''
+
+if not PLUGIN:
+    logger.warning("插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
 
 class NtpTime:
     """
