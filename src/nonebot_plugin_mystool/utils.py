@@ -51,6 +51,13 @@ class CommandBegin:
     def __str__(cls):
         return cls.string
 
+def get_last_command_sep():
+    """
+    获取第最后一个命令分隔符
+    """
+    if driver.config.command_sep:
+        return list(driver.config.command_sep)[-1]
+
 
 driver.on_startup(CommandBegin.set_command_begin)
 COMMAND_BEGIN = CommandBegin()
