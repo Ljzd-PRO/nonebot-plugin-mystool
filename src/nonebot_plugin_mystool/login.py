@@ -189,10 +189,7 @@ class GetCookie:
             return -2
 
 
-get_cookie = on_command(
-    conf.COMMAND_START + 'cookie',
-    aliases={conf.COMMAND_START + 'cookie填写', conf.COMMAND_START + 'cookie', conf.COMMAND_START + 'login',
-             conf.COMMAND_START + '登录', conf.COMMAND_START + '登陆'}, priority=4, block=True)
+get_cookie = on_command(conf.COMMAND_START + '登录')
 get_cookie.name = '登录'
 get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 

@@ -15,8 +15,7 @@ from .data import UserAccount, UserData
 from .mybMission import GAME_ID
 from .utils import COMMAND_BEGIN
 
-setting = on_command(
-    conf.COMMAND_START + 'setting', aliases={conf.COMMAND_START + '设置'}, priority=4, block=True)
+setting = on_command(conf.COMMAND_START + '设置')
 setting.name = "设置"
 setting.usage = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
@@ -27,17 +26,13 @@ async def _(event: MessageEvent):
     await setting.send(msg)
 
 
-account_setting = on_command(
-    conf.COMMAND_START + '账号设置',
-    aliases={conf.COMMAND_START + '账户设置', conf.COMMAND_START + '签到设置', conf.COMMAND_START + '游戏设置'}, priority=4,
-    block=True)
+account_setting = on_command(conf.COMMAND_START + '账号设置')
 account_setting.name = "账号设置"
 account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
 
 
 @account_setting.handle()
-async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
-                               arg=ArgPlainText('arg')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
     """
     账号设置命令触发
     """
@@ -47,9 +42,6 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
     state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(f"⚠️你尚未绑定米游社账户，请先使用『{conf.COMMAND_START}登录』进行登录")
-    if arg:
-        matcher.set_arg('phone', Message(arg))
-        return
     if len(user_account) == 1:
         matcher.set_arg('phone', Message(str(user_account[0].phone)))
     else:
@@ -61,7 +53,7 @@ async def handle_first_receive(event: Union[PrivateMessageEvent, GroupMessageEve
 
 
 @account_setting.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg('phone')):
     """
     根据手机号设置相应的账户
     """
@@ -181,10 +173,7 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missio
     await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
 
 
-global_setting = on_command(
-    conf.COMMAND_START + 'global_setting',
-    aliases={conf.COMMAND_START + '全局设置', conf.COMMAND_START + '播报设置', conf.COMMAND_START + '通知设置'}, priority=4,
-    block=True)
+global_setting = on_command(conf.COMMAND_START + '通知设置')
 global_setting.name = "通知设置"
 global_setting.usage = "设置每日签到后是否进行QQ通知"
 
