@@ -489,7 +489,7 @@ async def get_missions_state(account: UserAccount) -> Union[Tuple[List[Tuple[Mis
     获取米游币任务完成情况
 
     返回数据格式:
-    >>> tuple[ list[ tuple[任务信息对象, 当前进度] ], 用户当前米游币数量 ]
+    `tuple[ list[ tuple[任务信息对象, 当前进度] ], 用户当前米游币数量 ]`
 
     - 若返回 `-1` 说明用户登录失效
     - 若返回 `-2` 说明服务器没有正确返回
