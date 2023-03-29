@@ -14,8 +14,7 @@ from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
                                          PrivateMessageEvent, GroupMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
-from nonebot.params import Arg, ArgPlainText, CommandArg, T_State
-from nonebot.rule import command
+from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg
 from nonebot_plugin_apscheduler import scheduler
 
 from .bbsAPI import get_game_record
@@ -79,10 +78,7 @@ class ExchangeStart:
                              self.account.phone)
 
 
-myb_exchange_plan = on_command(
-    conf.COMMAND_START + '兑换',
-    aliases={conf.COMMAND_START + 'myb_exchange', conf.COMMAND_START + '米游币兑换', conf.COMMAND_START + '米游币兑换计划',
-             conf.COMMAND_START + '兑换计划', conf.COMMAND_START + '兑换'}, priority=4, block=True)
+myb_exchange_plan = on_command(f"{conf.COMMAND_START}兑换")
 myb_exchange_plan.name = "兑换"
 myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.extra_usage = """\
@@ -94,10 +90,12 @@ myb_exchange_plan.extra_usage = """\
 
 
 @myb_exchange_plan.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, args=CommandArg()):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, arg=CommandArg()):
     """
     主命令触发
     """
+    if arg and True not in map(str(arg).startswith, ["+", "-"]):
+        await myb_exchange_plan.finish()
     if isinstance(event, GroupMessageEvent):
         await myb_exchange_plan.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
     qq_account = int(event.user_id)
@@ -108,8 +106,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     state['user_account'] = user_account
 
     # 如果使用了二级命令 + - 则跳转进下一步，通过phone选择账户进行设置
-    if args:
-        matcher.set_arg("content", args)
+    if arg:
+        matcher.set_arg("command_arg", arg)
         if len(user_account) == 1:
             matcher.set_arg('phone', Message(str(user_account[0].phone)))
         else:
@@ -140,12 +138,10 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=ArgStr('phone')):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    if isinstance(phone, Message):
-        phone = phone.extract_plain_text().strip()
     user_account: List[UserAccount] = state['user_account']
 
     if phone == '退出':
@@ -159,15 +155,14 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         await myb_exchange_plan.reject('⚠️您发送的账号不是手机号，请重新发送')
 
 
-@myb_exchange_plan.got('content')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
+@myb_exchange_plan.got('command_arg')
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, command_arg=ArgPlainText('command_arg')):
     """
     处理三级命令，即商品ID
     """
-    content = matcher.get_arg('content').extract_plain_text().strip()
     account: UserAccount = state['account']
-    arg = [content[0], content[1:].strip()]
-    if arg[0] == '+':
+    args = command_arg.strip().split()
+    if args[0] == '+':
         good_dict = {
             'bh3': await get_good_list('bh3'),
             'ys': await get_good_list('ys'),
@@ -181,7 +176,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
         game = None
         for game, good_list in good_dict.items():
             for good in good_list:
-                if good.good_id == arg[1]:
+                if good.good_id == args[1]:
                     flag = False
                     break_flag = True
                     break
@@ -215,19 +210,20 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
             state['uids'] = uids
+            matcher.set_arg('uid', Message())
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
-    elif arg[0] == '-':
+    elif args[0] == '-':
         if account.exchange:
             for exchange_good in account.exchange:
-                if exchange_good[0] == arg[1]:
+                if exchange_good[0] == args[1]:
                     account.exchange.remove(exchange_good)
                     UserData.set_account(account, event.user_id, account.phone)
                     scheduler.remove_job(job_id=str(
-                        account.phone) + '_' + arg[1])
+                        account.phone) + '_' + args[1])
                     await matcher.finish('兑换计划删除成功')
-            await matcher.finish(f"您没有设置商品ID为 {arg[1]} 的兑换哦~")
+            await matcher.finish(f"您没有设置商品ID为 {args[1]} 的兑换哦~")
         else:
             await matcher.finish("您还没有配置兑换计划哦~")
 
@@ -236,21 +232,21 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State):
 
 
 @myb_exchange_plan.got('uid')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText('uid')):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """
     account: UserAccount = state['account']
     good: Good = state['good']
     uids: List[str] = state['uids']
-    if uid:
+    if good.is_visual:
         if uid == '退出':
             await matcher.finish('🚪已成功退出')
         if uid not in uids:
             await matcher.reject('⚠️您输入的UID不在上述账号内，请重新输入')
 
-    if account.exchange and (good.good_id, uid) in account.exchange:
-        await matcher.send('⚠️您已经配置过该商品的兑换哦！但兑换任务仍会再次初始化。')
+    if (good.good_id, uid) in account.exchange:
+        await matcher.finish('⚠️您已经配置过该商品的兑换哦！')
     else:
         account.exchange.append((good.good_id, uid))
 
@@ -280,16 +276,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
 
 
-get_good_image = on_command(
-    conf.COMMAND_START + '商品列表',
-    aliases={conf.COMMAND_START + '商品图片', conf.COMMAND_START + '米游社商品列表', conf.COMMAND_START + '米游币商品图片',
-             conf.COMMAND_START + '商品'}, priority=4, block=True)
+get_good_image = on_command(conf.COMMAND_START + '商品')
 get_good_image.name = "商品"
 get_good_image.usage = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
 
 @get_good_image.handle()
-async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
+async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
     # 若有使用二级命令，即传入了想要查看的商品类别，则跳过询问
     if arg:
         matcher.set_arg("content", arg)
@@ -304,11 +297,10 @@ async def _(event: MessageEvent, matcher: Matcher, arg: Message = CommandArg()):
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 🚪发送“退出”以结束""".strip())
-async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
+async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
-    arg = arg.strip()
     if arg == '退出':
         await matcher.finish('🚪已成功退出')
     elif arg in ['原神', 'ys']:
@@ -326,7 +318,7 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText('content')):
         await generate_image(is_auto=False)
         await get_good_image.finish('商品信息图片刷新成功')
     else:
-        await get_good_image.finish('⚠️您的输入有误，请重新输入')
+        await get_good_image.reject('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(
