@@ -222,7 +222,7 @@ async def get_good_detail(good_id: str, retry: bool = True):
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: bool = True) -> Optional[List[Good]]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs", "xq"], retry: bool = True) -> Optional[List[Good]]:
     """
     获取商品信息列表，若获取失败则返回`None`
 
@@ -236,6 +236,8 @@ async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs"], retry: b
         game = "hk4e"
     elif game == "bh2":
         game = "bh2"
+    elif game == "xq":
+        game = "hkrpg"
     elif game == "wd":
         game = "nxx"
     elif game == "bbs":
@@ -287,7 +289,7 @@ class Exchange:
     """
     米游币商品兑换相关(需两步初始化对象，先`__init__`，后异步`async_init`)\n
     示例:
-    `exchange = await Exchange(account, good_id, game_uid).async_init()`
+    >>> exchange = await Exchange(account, good_id, game_uid).async_init()
 
     - `result`属性为 `-1`: 用户登录失效，放弃兑换
     - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
@@ -373,7 +375,7 @@ class Exchange:
                             self.result = -7
                         return self
 
-                    if good_info["game"] not in ("bh3", "hk4e", "bh2", "nxx"):
+                    if good_info["game"] not in ("bh3", "hk4e", "bh2", "nxx", "hkrpg"):
                         logger.warning(
                             f"{conf.LOG_HEAD}米游币商品兑换 - 初始化兑换任务: 暂不支持商品 {self.goodID} 所属的游戏")
                         self.result = -4
