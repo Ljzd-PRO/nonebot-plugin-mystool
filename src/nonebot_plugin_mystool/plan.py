@@ -2,6 +2,7 @@
 ### 计划任务相关
 """
 import asyncio
+import random
 from typing import List, Union
 
 from nonebot import get_bot, on_command
@@ -414,8 +415,11 @@ async def daily_update():
     await generate_image()
 
 
-@scheduler.scheduled_job("cron", hour=conf.SIGN_TIME.split(':')[0],
-                         minute=conf.SIGN_TIME.split(':')[1], id="daily_schedule")
+@scheduler.scheduled_job("cron",
+                         hour=conf.SIGN_TIME.split(':')[0],
+                         minute=conf.SIGN_TIME.split(':')[1],
+                         second=str(random.randint(0,60)),
+                         id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
@@ -429,7 +433,10 @@ async def daily_schedule():
     logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
 
 
-@scheduler.scheduled_job("interval", minutes=conf.RESIN_CHECK_INTERVAL, id="resin_check")
+@scheduler.scheduled_job("interval",
+                         minutes=conf.RESIN_CHECK_INTERVAL,
+                         second=str(random.randint(0,60)),
+                         id="resin_check")
 async def auto_resin_check():
     """
     自动查看实时便笺
