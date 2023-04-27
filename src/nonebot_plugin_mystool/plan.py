@@ -418,7 +418,7 @@ async def daily_update():
 @scheduler.scheduled_job("cron",
                          hour=conf.SIGN_TIME.split(':')[0],
                          minute=conf.SIGN_TIME.split(':')[1],
-                         second=str(random.randint(0,60)),
+                         second=str(random.randint(0,59)),
                          id="daily_schedule")
 async def daily_schedule():
     """
@@ -435,7 +435,7 @@ async def daily_schedule():
 
 @scheduler.scheduled_job("interval",
                          minutes=conf.RESIN_CHECK_INTERVAL,
-                         second=str(random.randint(0,60)),
+                         second=str(random.randint(0,59)),
                          id="resin_check")
 async def auto_resin_check():
     """
