@@ -1,7 +1,7 @@
 """
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.5**
+**版本 - v0.2.6**
 
 ## 使用说明
 
@@ -39,7 +39,7 @@ from nonebot.plugin import PluginMetadata
 
 from .data import create_files
 
-VERSION = "v0.2.5"
+VERSION = "v0.2.6"
 '''插件版本号'''
 
 __plugin_meta__ = PluginMetadata(
