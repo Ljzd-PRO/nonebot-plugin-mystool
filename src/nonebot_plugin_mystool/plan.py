@@ -418,12 +418,13 @@ async def daily_update():
 @scheduler.scheduled_job("cron",
                          hour=conf.SIGN_TIME.split(':')[0],
                          minute=conf.SIGN_TIME.split(':')[1],
-                         second=str(random.randint(0,59)),
                          id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
+    # 随机延迟
+    await asyncio.sleep(random.randint(0, 59))
     logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
     qq_accounts = UserData.read_all().keys()
     bot = get_bot()
@@ -435,7 +436,6 @@ async def daily_schedule():
 
 @scheduler.scheduled_job("interval",
                          minutes=conf.RESIN_CHECK_INTERVAL,
-                         second=str(random.randint(0,59)),
                          id="resin_check")
 async def auto_resin_check():
     """
