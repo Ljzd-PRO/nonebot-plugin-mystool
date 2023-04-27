@@ -92,6 +92,8 @@ class GameID:
 
 
 GAME_ID = {
+    "bbs": GameID(5, 0),
+    # TODO: bbs fid暂时未知
     "bh3": GameID(1, 1),
     "ys": GameID(2, 26),
     "bh2": GameID(3, 30),
