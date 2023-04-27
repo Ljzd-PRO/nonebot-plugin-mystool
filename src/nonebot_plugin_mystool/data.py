@@ -113,12 +113,14 @@ class AccountUID:
 
     def __init__(self) -> None:
         self.ys: str = ""
+        self.xq: str = ""
         self.bh3: str = ""
         self.bh2: str = ""
         self.wd: str = ""
 
     def get(self, uid: Dict[str, str]):
         self.ys: str = uid["ys"]
+        self.xq: str = uid["xq"]
         self.bh3: str = uid["bh3"]
         self.bh2: str = uid["bh2"]
         self.wd: str = uid["wd"]
@@ -126,6 +128,7 @@ class AccountUID:
     def to_dict(self) -> Dict[str, str]:
         return {
             "ys": self.ys,
+            "xq": self.xq,
             "bh3": self.bh3,
             "bh2": self.bh2,
             "wd": self.wd,

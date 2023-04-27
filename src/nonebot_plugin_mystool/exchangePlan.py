@@ -79,7 +79,7 @@ class ExchangeStart:
 
 
 myb_exchange_plan = on_command(f"{conf.COMMAND_START}兑换",
-                               aliases={(f"{conf.COMMAND_START}兑换", "+"), (f"{conf.COMMAND_START}兑换", "-")})
+                               aliases={(f"{conf.COMMAND_START}兑换", "+"), (f"{conf.COMMAND_START}兑换", "-")}, priority=5, block=True)
 myb_exchange_plan.name = "兑换"
 myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.extra_usage = """\
@@ -184,6 +184,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
             'bh3': await get_good_list('bh3'),
             'ys': await get_good_list('ys'),
             'bh2': await get_good_list('bh2'),
+            'xq': await get_good_list('xq'),
             'wd': await get_good_list('wd'),
             'bbs': await get_good_list('bbs')
         }
@@ -294,7 +295,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         f'🎉设置兑换计划成功！将于 {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(good.time))} 开始兑换，到时将会私聊告知您兑换结果')
 
 
-get_good_image = on_command(conf.COMMAND_START + '商品')
+get_good_image = on_command(conf.COMMAND_START + '商品', priority=5, block=True)
 get_good_image.name = "商品"
 get_good_image.usage = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
@@ -311,6 +312,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
         \n- 崩坏3\
         \n- 原神\
         \n- 崩坏2\
+        \n- 崩坏：星穹铁道\
         \n- 未定事件簿\
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
@@ -327,6 +329,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
         arg = ('bh3', '崩坏3')
     elif arg in ['崩坏2', '崩坏二', '崩2', '崩二', '崩崩', '蹦蹦', 'bh2']:
         arg = ('bh2', '崩坏2')
+    elif arg in ['崩坏：星穹铁道', '星铁', '星穹铁道', '铁道', '轨子', '星穹', 'xq']:
+        arg = ('xq', '崩坏：星穹铁道')
     elif arg in ['未定', '未定事件簿', 'wd']:
         arg = ('wd', '未定事件簿')
     elif arg in ['大别野', '米游社']:
@@ -407,7 +411,7 @@ async def generate_image(is_auto=True):
             # 删除旧图片，以方便生成当日图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
-    for game in "bh3", "ys", "bh2", "wd", "bbs":
+    for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
         good_list = await get_good_list(game)
         if good_list:
             img_path = time.strftime(
