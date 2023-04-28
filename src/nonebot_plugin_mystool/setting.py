@@ -15,7 +15,7 @@ from .data import UserAccount, UserData
 from .mybMission import GAME_ID
 from .utils import COMMAND_BEGIN
 
-setting = on_command(conf.COMMAND_START + '设置')
+setting = on_command(conf.COMMAND_START + '设置', priority=4)
 setting.name = "设置"
 setting.usage = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
@@ -26,7 +26,7 @@ async def _(event: MessageEvent):
     await setting.send(msg)
 
 
-account_setting = on_command(conf.COMMAND_START + '账号设置')
+account_setting = on_command(conf.COMMAND_START + '账号设置', priority=4)
 account_setting.name = "账号设置"
 account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
 
@@ -173,7 +173,7 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missio
     await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
 
 
-global_setting = on_command(conf.COMMAND_START + '通知设置')
+global_setting = on_command(conf.COMMAND_START + '通知设置', priority=4)
 global_setting.name = "通知设置"
 global_setting.usage = "设置每日签到后是否进行QQ通知"
 
