@@ -151,12 +151,10 @@ class Good:
         # "type" 为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
-        elif self.good_dict["status"] != "not_in_sell":
-            return self.good_dict["next_time"]
         elif "sale_start_time" in self.good_dict:
             return int(self.good_dict["sale_start_time"])
         else:
-            return self.time_by_detail
+            return self.good_dict["next_time"]
 
     @property
     def num(self) -> Union[None, int]:
