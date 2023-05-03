@@ -18,6 +18,7 @@ ACT_ID = {
     "ys": "e202009291139501",
     "bh3": "e202207181446311",
     "bh2": "e202203291431091",
+    "xq": "e202304121516551",
     "wd": "e202202251749321"
 }
 URLS = {
@@ -36,6 +37,12 @@ URLS = {
     "bh2": {
         "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
         "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["bh2"]),
+                         "&region={region}&uid={uid}")),
+        "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
+    },
+    "xq": {
+        "reward": "https://api-takumi.mihoyo.com/event/luna/home?lang=zh-cn&act_id={}".format(ACT_ID["xq"]),
+        "info": "".join(("https://api-takumi.mihoyo.com/event/luna/info?lang=zh-cn&act_id={}".format(ACT_ID["xq"]),
                          "&region={region}&uid={uid}")),
         "sign": "https://api-takumi.mihoyo.com/event/luna/sign"
     },
@@ -159,7 +166,7 @@ class GameSign:
     """
     游戏签到相关(需先初始化对象)
     """
-    SUPPORTED_GAMES = ["ys", "bh3", "bh2", "wd"]
+    SUPPORTED_GAMES = ["ys", "bh3", "bh2", "xq", "wd"]
     '''目前支持签到的游戏'''
 
     def __init__(self, account: UserAccount) -> None:
@@ -169,7 +176,7 @@ class GameSign:
         '''签到返回结果'''
 
     @staticmethod
-    async def reward(game: Literal["ys", "bh3"], retry: bool = True):
+    async def reward(game: Literal["ys", "bh3", "xq"], retry: bool = True):
         """
         获取签到奖励信息，若返回`None`说明失败
 
@@ -197,7 +204,7 @@ class GameSign:
                 logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
-    async def info(self, game: Literal["ys", "bh3"], game_uid: str, region: str = None, retry: bool = True) -> Union[
+    async def info(self, game: Literal["ys", "bh3", "xq"], game_uid: str, region: str = None, retry: bool = True) -> Union[
         Info, Literal[-1, -2, -3, -4]]:
         """
         获取签到记录，返回Info对象
@@ -264,7 +271,7 @@ class GameSign:
             logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
             return -3
 
-    async def sign(self, game: Literal["ys", "bh3", "bh2", "wd"], game_uid: str,
+    async def sign(self, game: Literal["ys", "bh3", "xq", "bh2", "wd"], game_uid: str,
                    platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Literal[
         1, -1, -2, -3, -4, -5, -6]:
         """
@@ -342,7 +349,7 @@ class GameSign:
                     self.signResult = res.json()
                     if game == "ys" and self.signResult["message"] == "旅行者，你已经签到过了":
                         return 1
-                    if game not in ["bh3", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
+                    if game not in ["bh3", "xq", "wd", "bh2"] and self.signResult["data"]["risk_code"] != 0:
                         logger.warning(
                             f"{conf.LOG_HEAD}签到 - 用户 {self.account.phone} 可能被验证码阻拦")
                         logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
