@@ -15,6 +15,7 @@ on:
   pull_request:
     paths:
       - 'src/**'
+      - '.github/workflows/codeql-analysis.yml'
 
 permissions:
   contents: read

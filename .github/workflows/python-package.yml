@@ -8,9 +8,11 @@ on:
   push:
     paths:
       - 'src/nonebot_plugin_mystool/**'
+      - '.github/workflows/python-package.yml'
   pull_request:
     paths:
       - 'src/nonebot_plugin_mystool/**'
+      - '.github/workflows/python-package.yml'
 
 permissions:
   contents: read
