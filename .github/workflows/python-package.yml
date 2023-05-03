@@ -6,9 +6,11 @@ name: Multiple Python Versions Test
 on:
   workflow_dispatch:
   push:
-    branches: [ "stable", "dev" ]
+    paths:
+      - 'src/nonebot_plugin_mystool/**'
   pull_request:
-    branches: [ "stable", "dev" ]
+    paths:
+      - 'src/nonebot_plugin_mystool/**'
 
 permissions:
   contents: read
