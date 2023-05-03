@@ -25,7 +25,9 @@
 ### 📣 更新内容
 
 #### 2023.5.4
-- 增加对星穹铁道的签到功能的支持
+- 增加对星穹铁道的签到功能的支持 - [#89](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/89) by @ayakasuki
+- 修复插件命令优先度问题 - [#88](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/88) by @ayakasuki
+- 部分文本错误修正 - [#90](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/90) by @black-zero358
 
 #### 2023.4.28
 - 修复插件命令被其他 nonebot 插件捕获的问题
