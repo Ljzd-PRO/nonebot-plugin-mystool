@@ -16,20 +16,6 @@ from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-HEADERS = {
-    "Host": "api-takumi.mihoyo.com",
-    "Accept": "application/json, text/plain, */*",
-    "Origin": "https://user.mihoyo.com",
-    "Connection": "keep-alive",
-    "x-rpc-device_id": None,
-    "x-rpc-client_type": "5",
-    "User-Agent": conf.device.USER_AGENT_MOBILE,
-    "Referer": "https://user.mihoyo.com/",
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br"
-}
-URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
-
 address_matcher = on_command(conf.COMMAND_START + '地址', priority=4, block=True)
 
 address_matcher.name = '地址'
