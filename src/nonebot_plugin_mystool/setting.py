@@ -15,7 +15,7 @@ from .data import UserAccount, UserData
 from .mybMission import GAME_ID
 from .utils import COMMAND_BEGIN
 
-setting = on_command(conf.COMMAND_START + '设置', priority=4)
+setting = on_command(conf.COMMAND_START + '设置', priority=4, block=True)
 setting.name = "设置"
 setting.usage = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
