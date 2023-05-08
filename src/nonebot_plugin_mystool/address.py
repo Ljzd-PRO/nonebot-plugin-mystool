@@ -35,9 +35,9 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await address_matcher.send(
             "请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', Message(str(user_account[0].phone_number)))
+        matcher.set_arg('phone', Message(str(next(user_account.values()).phone_number)))
     else:
-        phones = [str(user_account[i].phone_number) for i in range(len(user_account))]
+        phones = map(lambda x: str(x.phone_number), user_account.values())
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
         msg += "📱" + "\n📱".join(phones)
         await matcher.send(msg)
