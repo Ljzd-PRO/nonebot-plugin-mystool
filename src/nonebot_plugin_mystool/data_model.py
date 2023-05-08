@@ -1,8 +1,30 @@
 import inspect
 import time
-from typing import Optional, Literal, NamedTuple, no_type_check
+from typing import Optional, Literal, NamedTuple, no_type_check, TypeVar, TYPE_CHECKING, Union, Dict, Any, \
+    AbstractSet, Mapping, Callable
 
 from pydantic import BaseModel
+
+GameName = TypeVar("GameName", bound=str)
+
+GENSHIN_IMPACT: GameName = "ys"
+"""原神"""
+HONKAI_IMPACT_3RD: GameName = "bh3"
+"""崩坏3"""
+HOUKAI_GAKUEN_2: GameName = "bh2"
+"""崩坏2"""
+TEARS_OF_THEMIS: GameName = "wd"
+"""未定事件簿"""
+BBS: GameName = "bbs"
+"""大别野"""
+STAR_RAIL: GameName = "xq"
+"""崩坏：星穹铁道"""
+
+if TYPE_CHECKING:
+    IntStr = Union[int, str]
+    DictStrAny = Dict[str, Any]
+    AbstractSetIntStr = AbstractSet[IntStr]
+    MappingIntStrAny = Mapping[IntStr, Any]
 
 
 class BaseModelWithSetter(BaseModel):
@@ -28,6 +50,51 @@ class BaseModelWithSetter(BaseModel):
                     break
             else:
                 raise e
+
+
+class BaseModelWithSet(BaseModel):
+    """
+    可以使用set作为属性类型的BaseModel
+    """
+
+    def json(
+            self,
+            *,
+            include: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
+            exclude: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
+            by_alias: bool = False,
+            skip_defaults: Optional[bool] = None,
+            exclude_unset: bool = False,
+            exclude_defaults: bool = False,
+            exclude_none: bool = False,
+            encoder: Optional[Callable[[Any], Any]] = None,
+            models_as_dict: bool = True,
+            **dumps_kwargs: Any,
+    ) -> str:
+        """
+        重写 BaseModel.json() 方法，使其支持对 Set 类型的数据进行序列化
+        """
+        set_attr_map = filter(lambda _, y: isinstance(y, set), self.dict().items())
+        for name, obj in set_attr_map:
+            self.__setattr__(name, list(obj))
+
+        json_data = super().json(
+            include=include,
+            exclude=exclude,
+            by_alias=by_alias,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+            encoder=encoder,
+            models_as_dict=models_as_dict,
+            **dumps_kwargs,
+        )
+
+        for name, obj in set_attr_map:
+            self.__setattr__(name, set(obj))
+
+        return json_data
 
 
 class Good(BaseModel):
