@@ -2,20 +2,19 @@
 ### 米游社收货地址相关
 """
 import asyncio
-import traceback
-from typing import List, Literal, Union
+from typing import Union, Dict
 
-import httpx
-import tenacity
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
+from .api import get_address
 from .config import config as conf
-from .data import Address, UserAccount, UserData
-from .utils import NtpTime, check_login, custom_attempt_times, logger, COMMAND_BEGIN
+from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
+from .user_data import UserAccount
+from .utils import COMMAND_BEGIN
 
 HEADERS = {
     "Host": "api-takumi.mihoyo.com",
@@ -31,121 +30,84 @@ HEADERS = {
 }
 URL = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 
+address_matcher = on_command(conf.COMMAND_START + '地址', priority=4, block=True)
 
-async def get(account: UserAccount, retry: bool = True) -> Union[List[Address], Literal[-1, -2, -3]]:
-    """
-    获取用户的地址数据
-
-    - 若返回 `-1` 说明用户登录失效
-    - 若返回 `-2` 说明服务器没有正确返回
-    - 若返回 `-3` 说明请求失败
-
-    :param account: 用户账户数据
-    :param retry: 是否允许重试
-    """
-    address_list = []
-    headers = HEADERS.copy()
-    headers["x-rpc-device_id"] = account.deviceID
-    try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
-            with attempt:
-                async with httpx.AsyncClient() as client:
-                    res = await client.get(URL.format(
-                        round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookie, timeout=conf.TIME_OUT)
-                    if not check_login(res.text):
-                        logger.info(
-                            f"{conf.LOG_HEAD}获取地址数据 - 用户 {account.phone} 登录失效")
-                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
-                        return -1
-                for address in res.json()["data"]["list"]:
-                    address_list.append(Address(address))
-    except KeyError:
-        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 服务器没有正确返回")
-        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
-        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-        return -2
-    except Exception:
-        logger.error(f"{conf.LOG_HEAD}获取地址数据 - 请求失败")
-        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-        return -3
-    return address_list
+address_matcher.name = '地址'
+address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
 
 
-get_address = on_command(conf.COMMAND_START + '地址', priority=4, block=True)
-
-get_address.name = '地址'
-get_address.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
-
-
-@get_address.handle()
+@address_matcher.handle()
 async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GroupMessageEvent):
-        await get_address.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
-    user_account = UserData.read_account_all(event.user_id)
-    state['qq_account'] = event.user_id
+        await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
+    user_data = plugin_data.users.get(event.user_id)
+    user_account = user_data.accounts
+    state['user_data'] = user_data
     state['user_account'] = user_account
     if not user_account:
-        await get_address.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+        await address_matcher.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     else:
-        await get_address.send("请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
+        await address_matcher.send(
+            "请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', Message(str(user_account[0].phone)))
+        matcher.set_arg('phone', Message(str(user_account[0].phone_number)))
     else:
-        phones = [str(user_account[i].phone) for i in range(len(user_account))]
+        phones = [str(user_account[i].phone_number) for i in range(len(user_account))]
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
         msg += "📱" + "\n📱".join(phones)
         await matcher.send(msg)
 
 
-@get_address.got('phone')
+@address_matcher.got('phone')
 async def _(_: PrivateMessageEvent, state: T_State, phone=Arg()):
     if isinstance(phone, Message):
         phone = phone.extract_plain_text().strip()
     if phone == '退出':
-        await get_address.finish('🚪已成功退出')
-    user_account = state['user_account']
-    qq_account = state['qq_account']
-    phones = [str(user_account[i].phone) for i in range(len(user_account))]
-    account = None
-    if phone in phones:
-        account = UserData.read_account(qq_account, int(phone))
-    else:
-        await get_address.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+        await address_matcher.finish('🚪已成功退出')
+
+    user_account: Dict[str, UserAccount] = state['user_account']
+    account_filter = filter(lambda x: str(x.phone_number) == phone, user_account.values())
+    account = next(account_filter, None)
+    if account is None:
+        await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
-    state['address_list']: List[Address] = await get(account)
-    if isinstance(state['address_list'], int):
-        if state['address_list'] == -1:
-            await get_address.finish(f"⚠️账户 {account.phone} 登录失效，请重新登录")
-        await get_address.finish("⚠️获取失败，请稍后重新尝试")
-    if state['address_list']:
-        await get_address.send("以下为查询结果：")
-        for address in state['address_list']:
+
+    address_status, address_list = await get_address(account)
+    state['address_list'] = address_list
+    if not address_status:
+        if address_status.login_expired:
+            await address_matcher.finish(f"⚠️账户 {account.bbs_uid} 登录失效，请重新登录")
+        await address_matcher.finish("⚠️获取失败，请稍后重新尝试")
+
+    if address_list:
+        await address_matcher.send("以下为查询结果：")
+        for address in address_list:
             address_string = f"""\
-            \n省 ➢ {address.province}\
-            \n市 ➢ {address.city}\
-            \n区/县 ➢ {address.county}\
-            \n详细地址 ➢ {address.detail}\
+            \n省 ➢ {address.province_name}\
+            \n市 ➢ {address.city_name}\
+            \n区/县 ➢ {address.county_name}\
+            \n详细地址 ➢ {address.addr_ext}\
             \n联系电话 ➢ {address.phone}\
-            \n联系人 ➢ {address.name}\
-            \n地址ID ➢ {address.address_id}\
+            \n联系人 ➢ {address.connect_name}\
+            \n地址ID ➢ {address.id}\
             """.strip()
-            await get_address.send(address_string)
+            await address_matcher.send(address_string)
             await asyncio.sleep(0.2)
     else:
-        await get_address.finish("⚠️您还没有配置地址，请先前往米游社配置地址！")
+        await address_matcher.finish("⚠️您还没有配置地址，请先前往米游社配置地址！")
 
 
-@get_address.got('address_id', prompt='请发送你要选择的地址ID')
+@address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
 async def _(_: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
-        await get_address.finish("🚪已成功退出")
-    result_address = list(
-        filter(lambda address: address.address_id == address_id, state['address_list']))
-    if result_address:
+        await address_matcher.finish("🚪已成功退出")
+
+    address_filter = filter(lambda x: x.address_id == address_id, state['address_list'])
+    address = next(address_filter, None)
+    if address is not None:
         account: UserAccount = state["account"]
-        account.address = result_address[0]
-        UserData.set_account(account, state['qq_account'], account.phone)
-        await get_address.finish(f"🎉已成功设置账户 {account.phone} 的地址")
+        account.address = address
+        write_plugin_data()
+        await address_matcher.finish(f"🎉已成功设置账户 {account.bbs_uid} 的地址")
     else:
-        await get_address.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")
+        await address_matcher.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")
