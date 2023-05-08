@@ -192,7 +192,7 @@ class PluginData(BaseModel):
     '''所有用户数据'''
 
 
-def write_config_file(conf: PluginData = PluginData()):
+def write_plugin_data(conf: PluginData = PluginData()):
     """
     写入插件数据文件
 
@@ -208,7 +208,7 @@ def write_config_file(conf: PluginData = PluginData()):
     return True
 
 
-def load_config():
+def load_plugin_data():
     """
     加载插件数据文件
     """
@@ -224,7 +224,7 @@ def load_config():
     else:
         plugin_data = PluginData()
         try:
-            write_config_file(plugin_data)
+            write_plugin_data(plugin_data)
         except PermissionError:
             logger.exception(f"创建插件数据文件失败，请检查是否有权限读取和写入 {PLUGIN_DATA_PATH}")
             raise
@@ -233,5 +233,5 @@ def load_config():
         return plugin_data
 
 
-plugin_data_obj = load_config()
+plugin_data_obj = load_plugin_data()
 """插件数据对象"""

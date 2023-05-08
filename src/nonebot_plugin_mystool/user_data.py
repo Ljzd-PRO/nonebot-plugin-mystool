@@ -189,6 +189,8 @@ class UserAccount(BaseModelWithSetter, BaseModelWithSet):
     """手机号"""
     cookies: BBSCookies
     """Cookies"""
+    address: Optional[Address]
+    """收货地址"""
 
     device_id_ios: str
     """iOS设备用 deviceID"""
