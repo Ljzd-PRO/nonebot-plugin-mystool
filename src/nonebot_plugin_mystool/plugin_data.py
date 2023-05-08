@@ -192,20 +192,7 @@ class PluginData(BaseModel):
     '''所有用户数据'''
 
 
-def write_plugin_data(conf: PluginData = PluginData()):
-    """
-    写入插件数据文件
 
-    :param conf: 配置对象
-    """
-    try:
-        str_data = conf.json(indent=4)
-    except (AttributeError, TypeError, ValueError):
-        logger.exception("数据对象序列化失败，可能是数据类型错误")
-        return False
-    with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
-        f.write(str_data)
-    return True
 
 
 def load_plugin_data():
@@ -232,6 +219,20 @@ def load_plugin_data():
 
         return plugin_data
 
-
 plugin_data_obj = load_plugin_data()
 """插件数据对象"""
+
+def write_plugin_data(data: PluginData = plugin_data_obj):
+    """
+    写入插件数据文件
+
+    :param data: 配置对象
+    """
+    try:
+        str_data = data.json(indent=4)
+    except (AttributeError, TypeError, ValueError):
+        logger.exception("数据对象序列化失败，可能是数据类型错误")
+        return False
+    with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
+        f.write(str_data)
+    return True
