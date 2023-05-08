@@ -199,14 +199,14 @@ class UserAccount(BaseModelWithSetter, BaseModelWithSet):
 
     enable_mission: bool = True
     '''是否开启米游币任务计划'''
-    gameSign: bool = True
+    enable_game_sign: bool = True
     '''是否开启米游社游戏签到计划'''
+    enable_resin: bool = True
+    '''是否开启原神树脂提醒'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
     mission_games: Set[GameName] = set(BBS)
     '''在哪些板块执行米游币任务计划'''
-    enable_resin: bool = True
-    '''是否开启原神树脂提醒'''
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
