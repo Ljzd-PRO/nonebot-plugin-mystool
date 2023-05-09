@@ -4,13 +4,14 @@
 import asyncio
 import io
 import os
+import threading
 import time
 from copy import deepcopy
 from datetime import datetime
 from multiprocessing import Manager
 from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
-from typing import List, Set, Union
+from typing import List, Set, Union, Callable, Any
 
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
@@ -326,7 +327,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 🚪发送“退出”以结束""".strip())
-async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
+async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -345,9 +346,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
     elif arg == '更新':
-        await get_good_image.send('⏳正在生成商品信息图片...')
-        await generate_image(is_auto=False)
-        await get_good_image.finish('商品信息图片刷新成功')
+        threading.Thread(generate_image(is_auto=False)).start()
+        await get_good_image.finish('✔后台已开始生成商品信息图片')
     else:
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
@@ -359,11 +359,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
                 image_bytes = io.BytesIO(f.read())
             await get_good_image.finish(MessageSegment.image(image_bytes))
         else:
-            await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
-            await generate_image(is_auto=False)
-            img_path = time.strftime(
-                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
-            await get_good_image.finish(MessageSegment.image('file:///' + img_path))
+            threading.Thread(generate_image(is_auto=False)).start()
+            await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
     else:
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
@@ -428,11 +425,12 @@ def image_process(game: str, lock: Lock):
     return True
 
 
-def generate_image(is_auto=True):
+def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
     """
     生成米游币商品信息图片。该函数会阻塞当前线程
 
     :param is_auto: True为每日自动生成，False为用户手动更新
+    :param callback: 回调函数，参数为生成成功与否
     >>> generate_image(is_auto=False)
     """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
@@ -450,6 +448,7 @@ def generate_image(is_auto=True):
     with Pool() as pool:
         for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
             pool.apply_async(image_process,
-                             args=(game, lock))
+                             args=(game, lock),
+                             callback=callback)
         pool.close()
         pool.join()
