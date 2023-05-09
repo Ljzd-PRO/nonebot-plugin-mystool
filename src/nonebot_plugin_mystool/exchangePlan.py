@@ -425,7 +425,6 @@ def image_process(game: str, lock: Lock):
     return True
 
 
-@driver.on_startup
 async def generate_image(is_auto=True):
     """
     生成米游币商品信息图片。
@@ -446,7 +445,7 @@ async def generate_image(is_auto=True):
     lock = asyncio.Lock()
     with Pool() as pool:
         pool.map_async(image_process,
-                       ["bh3", "ys", "bh2", "xq", "wd", "bbs"],
-                       callback=lock.release,
-                       error_callback=lock.release)
+                       iterable=["bh3", "ys", "bh2", "xq", "wd", "bbs"],
+                       callback=lambda _: lock.release(),
+                       error_callback=lambda _: lock.release())
     await lock.acquire()
