@@ -7,8 +7,9 @@ import os
 import time
 from copy import deepcopy
 from datetime import datetime
-from multiprocessing import Lock
+from multiprocessing import Manager
 from multiprocessing.pool import Pool
+from multiprocessing.synchronize import Lock
 from typing import List, Set, Union
 
 from nonebot import get_bot, on_command
@@ -413,6 +414,7 @@ def image_process(game: str, lock: Lock):
     loop = asyncio.new_event_loop()
     good_list = loop.run_until_complete(get_good_list(game))
     if good_list:
+        logger.info(f"{conf.LOG_HEAD}正在生成 {game} 分区的商品列表图片")
         image_bytes = loop.run_until_complete(game_list_to_image(good_list, lock))
         if not image_bytes:
             return False
@@ -420,16 +422,18 @@ def image_process(game: str, lock: Lock):
         path = conf.goodListImage.SAVE_PATH / f"{date}-{game}.jpg"
         with open(path, 'wb') as f:
             f.write(image_bytes)
+        logger.info(f"{conf.LOG_HEAD}已完成 {game} 分区的商品列表图片生成")
     else:
-        logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
+        logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成商品列表图片")
     return True
 
 
-async def generate_image(is_auto=True):
+def generate_image(is_auto=True):
     """
-    生成米游币商品信息图片。
+    生成米游币商品信息图片。该函数会阻塞当前线程
 
     :param is_auto: True为每日自动生成，False为用户手动更新
+    >>> generate_image(is_auto=False)
     """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
@@ -438,14 +442,14 @@ async def generate_image(is_auto=True):
             if name.startswith(date):
                 if is_auto:
                     return
-            # 删除旧图片，以方便生成当日图片
+            # 删除旧图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
 
-    lock = asyncio.Lock()
+    lock: Lock = Manager().Lock()
     with Pool() as pool:
-        pool.map_async(image_process,
-                       iterable=["bh3", "ys", "bh2", "xq", "wd", "bbs"],
-                       callback=lambda _: lock.release(),
-                       error_callback=lambda _: lock.release())
-    await lock.acquire()
+        for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
+            pool.apply_async(image_process,
+                             args=(game, lock))
+        pool.close()
+        pool.join()
