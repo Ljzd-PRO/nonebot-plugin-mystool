@@ -1,7 +1,7 @@
 """
 ### 用户设置相关
 """
-from typing import List, Union, Dict, Iterable
+from typing import List, Union, Dict
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
@@ -9,12 +9,11 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .bbsAPI import GameInfo
+from .api import GameInfo, get_game_list
 from .config import config as conf
-from .user_data import UserAccount, UserData
-from .mybMission import GAME_ID
-from .utils import COMMAND_BEGIN
 from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
+from .user_data import UserAccount
+from .utils import COMMAND_BEGIN
 
 setting = on_command(conf.COMMAND_START + '设置', priority=4, block=True)
 setting.name = "设置"
@@ -69,8 +68,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if account is None:
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
-
     state["prepare_to_delete"] = False
+
+    game_status, game_list = await get_game_list()
+    state['game_list'] = game_list
+    if not game_status:
+        await account_setting.finish("⚠️获取游戏列表失败，请稍后再试")
+
     user_setting = ""
     user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.enable_mission else '关'}\n"
     user_setting += f"2️⃣ 游戏自动签到：{'开' if account.enable_mission else '关'}\n"
@@ -79,9 +83,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "4️⃣ 执行米游币任务的频道：『" + \
-                    "、".join([game_tuple[1] for game_tuple in list(filter(
-                        lambda game_tuple: game_tuple[0] in account.mission_games,
-                        GameInfo.ABBR_TO_ID.values()))]) + "』\n"
+                    "、".join(map(lambda x: x.name, game_list)) + "』\n"
     user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
     user_setting += "⚠️6⃣️ 删除账户数据"
 
@@ -89,7 +91,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
 
 
 @account_setting.got('arg')
-async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
     """
     根据所选更改相应账户的相应设置
     """
@@ -116,12 +118,8 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif arg == '4':
-        games_show = "、".join([name_tuple[1]
-                               for name_tuple in list(
-                filter(lambda name_tuple: name_tuple[0] in GAME_ID,
-                       GameInfo.ABBR_TO_ID.values())
-            )
-                               ])
+        game_list: List[GameInfo] = state['game_list']
+        games_show = "、".join(map(lambda x: x.name, game_list))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道：\n"
             "❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”\n"
@@ -143,28 +141,23 @@ async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg'))
 
 
 @account_setting.got('missionGame')
-async def _(event: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missionGame')):
+async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missionGame')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
+    game_list: List[GameInfo] = state['game_list']
     games_input = arg.split()
-    for game in arg.split():
-        if game not in [name_tuple[1]
-                        for name_tuple in GameInfo.ABBR_TO_ID.values()]:
+    mission_games = set()
+    for game in games_input:
+        game_filter = filter(lambda x: x.name == game, game_list)
+        game_obj = next(game_filter, None)
+        if game_obj is None:
             await account_setting.reject("⚠️您的输入有误，请重新输入")
+        else:
+            mission_games.add(game_obj)
 
-    # 查找输入的内容是否有不在游戏(频道)列表里的
-    incorrect = list(filter(lambda game: game not in [name_tuple[1]
-                                                      for name_tuple in GameInfo.ABBR_TO_ID.values()], games_input))
-    if incorrect:
-        await account_setting.reject("⚠️您的输入有误，请重新输入")
-    else:
-        # 查找输入的每个游戏全名的对应缩写
-        # TODO: account.mission_games.add 部分未适配新代码
-        for game_input in games_input:
-            account.mission_games.add(list(filter(
-                lambda game_tuple: game_tuple[1] == game_input, GameInfo.ABBR_TO_ID.values()))[0][0])
+    account.mission_games = mission_games
     write_plugin_data()
     arg = arg.replace(" ", "、")
     await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
