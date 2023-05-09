@@ -1,10 +1,11 @@
 import os
+from datetime import time, timedelta
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
     Mapping
 
-from loguru import logger
+from loguru import logger, RotationFunction
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
 from .config import PATH
@@ -57,8 +58,30 @@ class Preference(BaseSettings):
     """兑换时间延迟随机范围（单位：秒）（防止因为发出请求的时间过于精准而被服务器认定为非人工操作）"""
     enable_log_output: bool = True
     """是否保存日志"""
-    log_path: Optional[Path] = DATA_PATH / "logs" / "mys_goods_tool.log"
+    log_head: str = ""
+    '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
+    log_path: Optional[Path] = DATA_PATH / "mystool.log"
     """日志保存路径"""
+    log_rotation: Union[str, int, time, timedelta, "RotationFunction"] = "1 week"
+    '''日志保留时长(需要按照格式设置)'''
+    plugin_name: str = "nonebot_plugin_mystool"
+    '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
+    encoding: str = "utf-8"
+    '''文件读写编码'''
+    max_user: int = 10
+    '''支持最多用户数'''
+    add_friend_accept: bool = True
+    '''是否自动同意好友申请'''
+    add_friend_welcome: bool = True
+    '''用户添加机器人为好友以后，是否发送使用指引信息'''
+    command_start: str = ""
+    '''插件内部命令头(若为""空字符串则不启用)'''
+    sleep_time: float = 5
+    '''任务操作冷却时间(如米游币任务)'''
+    plan_time: str = "00:30"
+    '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
+    resin_interval: int = 60
+    '''每次检查原神便笺间隔，单位为分钟'''
 
     @validator("log_path")
     def _(cls, v: Optional[Path]):
@@ -192,9 +215,6 @@ class PluginData(BaseModel):
     '''所有用户数据'''
 
 
-
-
-
 def load_plugin_data():
     """
     加载插件数据文件
@@ -219,8 +239,10 @@ def load_plugin_data():
 
         return plugin_data
 
+
 plugin_data_obj = load_plugin_data()
 """插件数据对象"""
+
 
 def write_plugin_data(data: PluginData = plugin_data_obj):
     """
