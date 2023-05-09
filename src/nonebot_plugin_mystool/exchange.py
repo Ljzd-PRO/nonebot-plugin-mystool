@@ -6,6 +6,7 @@ import os
 import time
 import traceback
 import zipfile
+from multiprocessing import Lock
 from typing import List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
@@ -220,7 +221,8 @@ async def get_good_detail(good_id: str, retry: bool = True):
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs", "xq"], retry: bool = True) -> Optional[List[Good]]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs", "xq"], retry: bool = True) -> Optional[
+    List[Good]]:
     """
     获取商品信息列表，若获取失败则返回`None`
 
@@ -452,14 +454,18 @@ class Exchange:
                 return -3
 
 
-async def game_list_to_image(good_list: List[Good], retry: bool = True):
+async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bool = True):
     """
     将商品信息列表转换为图片数据，若返回`None`说明生成失败
 
     :param good_list: 商品列表数据
+    :param lock: 进程同步锁，防止多进程同时在下载字体
     :param retry: 是否允许重试
     """
     try:
+        if lock is not None:
+            lock.acquire()
+
         font_path = conf.goodListImage.FONT_PATH
         if font_path is None or not os.path.isfile(font_path):
             if os.path.isfile(FONT_SAVE_PATH):
@@ -493,6 +499,9 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                         f"{conf.LOG_HEAD}商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
                     logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 font_path = FONT_SAVE_PATH
+
+        if lock is not None:
+            lock.release()
 
         logger.info(f"{conf.LOG_HEAD}商品列表图片生成 - 正在生成图片...")
 
