@@ -442,5 +442,11 @@ async def generate_image(is_auto=True):
             # 删除旧图片，以方便生成当日图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
+
+    lock = asyncio.Lock()
     with Pool() as pool:
-        pool.map(image_process, ["bh3", "ys", "bh2", "xq", "wd", "bbs"])
+        pool.map_async(image_process,
+                       ["bh3", "ys", "bh2", "xq", "wd", "bbs"],
+                       callback=lock.release,
+                       error_callback=lock.release)
+    await lock.acquire()
