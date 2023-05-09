@@ -462,6 +462,9 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
     :param lock: 进程同步锁，防止多进程同时在下载字体
     :param retry: 是否允许重试
     """
+    # TODO: 暂时会阻塞，目前还找不到更好的解决方案
+    #   回调函数是否适用于 NoneBot Matcher 暂不清楚，
+    #   若适用则可以传入回调函数而不阻塞主进程
     try:
         if lock is not None:
             lock.acquire()
