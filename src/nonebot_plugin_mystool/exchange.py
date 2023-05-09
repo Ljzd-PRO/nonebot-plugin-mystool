@@ -503,8 +503,6 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         if lock is not None:
             lock.release()
 
-        logger.info(f"{conf.LOG_HEAD}商品列表图片生成 - 正在生成图片...")
-
         font = ImageFont.truetype(
             str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
 
