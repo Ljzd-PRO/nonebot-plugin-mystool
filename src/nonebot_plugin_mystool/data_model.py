@@ -1,7 +1,7 @@
 import inspect
 import time
-from typing import Optional, Literal, NamedTuple, no_type_check, TypeVar, TYPE_CHECKING, Union, Dict, Any, \
-    AbstractSet, Mapping, Callable
+from abc import abstractmethod
+from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar
 
 from pydantic import BaseModel
 
@@ -19,13 +19,6 @@ BBS: GameName = "bbs"
 """大别野"""
 STAR_RAIL: GameName = "xq"
 """崩坏：星穹铁道"""
-
-if TYPE_CHECKING:
-    IntStr = Union[int, str]
-    DictStrAny = Dict[str, Any]
-    AbstractSetIntStr = AbstractSet[IntStr]
-    MappingIntStrAny = Mapping[IntStr, Any]
-
 
 class BaseModelWithSetter(BaseModel):
     """
@@ -52,52 +45,29 @@ class BaseModelWithSetter(BaseModel):
                 raise e
 
 
-class BaseModelWithSet(BaseModel):
+class BaseModelWithUpdate(BaseModel):
     """
-    可以使用set作为属性类型的BaseModel
+    可以使用update方法的BaseModel
     """
+    _T = TypeVar("_T", bound=BaseModel)
 
-    def json(
-            self,
-            *,
-            include: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
-            exclude: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
-            by_alias: bool = False,
-            skip_defaults: Optional[bool] = None,
-            exclude_unset: bool = False,
-            exclude_defaults: bool = False,
-            exclude_none: bool = False,
-            encoder: Optional[Callable[[Any], Any]] = None,
-            models_as_dict: bool = True,
-            **dumps_kwargs: Any,
-    ) -> str:
+    @abstractmethod
+    def update(self, obj: Union[_T, Dict[str, Any]]) -> _T:
         """
-        重写 BaseModel.json() 方法，使其支持对 Set 类型的数据进行序列化
+        更新数据对象
+
+        :param obj: 新的数据对象或属性字典
+        :raise TypeError
         """
-        set_attr_map = filter(lambda _, y: isinstance(y, set), self.dict().items())
-        for name, obj in set_attr_map:
-            self.__setattr__(name, list(obj))
-
-        json_data = super().json(
-            include=include,
-            exclude=exclude,
-            by_alias=by_alias,
-            skip_defaults=skip_defaults,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
-            encoder=encoder,
-            models_as_dict=models_as_dict,
-            **dumps_kwargs,
-        )
-
-        for name, obj in set_attr_map:
-            self.__setattr__(name, set(obj))
-
-        return json_data
+        if isinstance(obj, type(self)):
+            obj = obj.dict()
+        items = filter(lambda x: x[0] in self.__fields__, obj.items())
+        for k, v in items:
+            setattr(self, k, v)
+        return self
 
 
-class Good(BaseModel):
+class Good(BaseModelWithUpdate):
     """
     商品数据
     """
@@ -105,7 +75,7 @@ class Good(BaseModel):
     """为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换"""
     next_time: Optional[int]
     """为 0 表示任何时间均可兑换或兑换已结束"""
-    status: Optional[str]
+    status: Optional[Literal["online", "not_in_sell"]]
     sale_start_time: Optional[str]
     time_by_detail: Optional[int]
     next_num: Optional[int]
@@ -138,27 +108,46 @@ class Good(BaseModel):
     icon: str
     """商品图片链接"""
 
+    def update(self, obj: Union["Good", Dict[str, Any]]) -> "Good":
+        """
+        更新商品信息
+
+        :param obj: 新的商品数据
+        :raise TypeError
+        """
+        return super().update(obj)
+
     @property
     def time(self):
         """
         兑换时间
-        如果返回`None`，说明任何时间均可兑换或兑换已结束
+
+        :return:
+        如果返回`None`，说明任何时间均可兑换或兑换已结束。
+        如果返回`0`，说明该商品需要调用获取详细信息的API才能获取兑换时间
         """
         # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
         if self.next_time == 0:
             return None
-        # elif self.sale_start_time is not None:
-        #     return int(self.sale_start_time)
-        else:
+        elif self.status == "not_in_sell" and self.sale_start_time is not None:
+            return int(self.sale_start_time)
+        elif self.status == "online":
             return self.next_time
+        else:
+            return 0
 
     @property
     def time_text(self):
         """
         商品的兑换时间文本
+
+        :return:
+        如果返回`None`，说明需要进一步查询商品详细信息才能获取兑换时间
         """
         if self.is_time_end():
             return "已结束"
+        elif self.time == 0:
+            return None
         elif self.is_time_limited():
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.time))
         else:

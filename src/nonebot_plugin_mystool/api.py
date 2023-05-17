@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Optional, Tuple, Dict, Any, Union
 from urllib.parse import urlencode
 
 import httpx
@@ -10,9 +10,10 @@ from requests.utils import dict_from_cookiejar
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus
-from .user_data import config as conf, UserAccount, BBSCookies, ExchangePlan, ExchangeResult
-from .utils import generate_device_id, logger, custom_attempt_times, generate_ds, Subscribe, \
-    NtpTime
+from .plugin_data import plugin_data_obj as conf
+from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
+from .utils import generate_device_id, logger, generate_ds, Subscribe, \
+    NtpTime, get_async_retry
 
 URL_LOGIN_TICKET_BY_CAPTCHA = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_LOGIN_TICKET_BY_PASSWORD = "https://webapi.account.mihoyo.com/Api/login_by_password"
@@ -293,7 +294,7 @@ class ApiResultHandler(BaseModel):
         """
         是否返回登录失效
         """
-        return self.retcode == -100 or self.message in ["登录失效，请重新登录"]
+        return self.retcode in [-100, 10001] or self.message in ["登录失效，请重新登录"]
 
     @property
     def invalid_ds(self):
@@ -313,8 +314,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Tuple[Bas
     :param retry: 是否允许重试
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbs_uid), headers=HEADERS_GAME_RECORD,
@@ -346,8 +346,7 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
     headers = HEADERS_GAME_LIST.copy()
     try:
         subscribe = Subscribe()
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
@@ -379,8 +378,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
     :param retry: 是否允许重试
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookies.dict(),
@@ -421,8 +419,7 @@ async def device_login(account: UserAccount, retry: bool = True):
     headers["x-rpc-device_id"] = account.device_id_android
     try:
         subscribe = Subscribe()
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds(data)
                 async with httpx.AsyncClient() as client:
@@ -473,8 +470,7 @@ async def device_save(account: UserAccount, retry: bool = True):
     headers["x-rpc-device_id"] = account.device_id_android
     try:
         subscribe = Subscribe()
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds(data)
                 async with httpx.AsyncClient() as client:
@@ -504,17 +500,17 @@ async def device_save(account: UserAccount, retry: bool = True):
             return BaseApiStatus(network_error=True)
 
 
-async def get_good_detail(good_id: str, retry: bool = True) -> Tuple[GetGoodDetailStatus, Optional[Good]]:
+async def get_good_detail(good: Union[Good, str], retry: bool = True) -> Tuple[GetGoodDetailStatus, Optional[Good]]:
     """
     获取某商品的详细信息
 
-    :param good_id: 商品ID
+    :param good: 商品对象 / 商品ID，如果指定为商品对象，则会更新商品对象的数据并返回其引用
     :param retry: 是否允许重试
     :return: 商品数据
     """
+    good_id = good.goods_id if isinstance(good, Good) else good
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(good_id), timeout=conf.preference.timeout)
@@ -522,23 +518,53 @@ async def get_good_detail(good_id: str, retry: bool = True) -> Tuple[GetGoodDeta
                 # TODO 2023/4/13: 待改成对象方法判断
                 if api_result.message == '商品不存在' or api_result.message == '商品已下架':
                     return GetGoodDetailStatus(good_not_existed=True), None
-                return GetGoodDetailStatus(success=True), Good.parse_obj(api_result.data)
+                if isinstance(good, Good):
+                    return GetGoodDetailStatus(success=True), good.update(api_result.data)
+                else:
+                    return GetGoodDetailStatus(success=True), Good.parse_obj(api_result.data)
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
             logger.exception(f"米游币商品兑换 - 获取商品详细信息: 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
-            GetGoodDetailStatus(incorrect_return=True), None
+            return GetGoodDetailStatus(incorrect_return=True), None
         else:
             logger.exception(f"米游币商品兑换 - 获取商品详细信息: 网络请求失败")
-            GetGoodDetailStatus(network_error=True), None
+            return GetGoodDetailStatus(network_error=True), None
 
 
-async def get_good_list(game: str, retry: bool = True) -> Tuple[
+async def get_good_games(retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[Tuple[str, str]]]]:
+    """
+    获取商品分区列表
+
+    :param retry: 是否允许重试
+    :return: (商品分区全名, 字母简称) 的列表
+    """
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(URL_GOOD_LIST.format(page=1,
+                                                                game=""),
+                                           headers=HEADERS_GOOD_LIST,
+                                           timeout=conf.preference.timeout)
+                api_result = ApiResultHandler(res.json())
+                return BaseApiStatus(success=True), list(map(lambda x: (x["name"], x["key"]), api_result.data["games"]))
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception(f"米游币商品兑换 - 获取商品列表: 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True), None
+        else:
+            logger.exception(f"米游币商品兑换 - 获取商品列表: 网络请求失败")
+            return BaseApiStatus(network_error=True), None
+
+
+async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
     BaseApiStatus, Optional[List[Good]]]:
     """
     获取商品信息列表
 
-    :param game: 游戏简称
+    :param game: 游戏简称（默认为空，即获取所有游戏的商品）
     :param retry: 是否允许重试
     :return: 商品信息列表
     """
@@ -546,8 +572,7 @@ async def get_good_list(game: str, retry: bool = True) -> Tuple[
     page = 1
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GOOD_LIST.format(page=page,
@@ -583,8 +608,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
     headers = HEADERS_ADDRESS.copy()
     headers["x-rpc-device_id"] = account.device_id_ios
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ADDRESS.format(
@@ -618,8 +642,7 @@ async def check_registrable(phone_number: int, retry: bool = True) -> Tuple[Base
     headers = HEADERS_WEBAPI.copy()
     headers["x-rpc-device_id"] = generate_device_id()
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_REGISTRABLE.format(mobile=phone_number, t=round(NtpTime.time() * 1000)),
@@ -658,8 +681,7 @@ async def create_mmt(keep_client: bool = False, retry: bool = True) -> Tuple[
                                 headers=headers, timeout=conf.preference.timeout)
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 if keep_client:
                     client = httpx.AsyncClient()
@@ -724,8 +746,7 @@ async def create_mobile_captcha(phone_number: int,
                                  timeout=conf.preference.timeout)
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 # FIXME 2023/4/13: 似乎会导致卡在连接状态，暂时弃用
                 #   res = await client.options(URL_CREATE_MOBILE_CAPTCHA,
@@ -801,8 +822,7 @@ async def get_login_ticket_by_captcha(phone_number: str,
                                  )
 
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 if client is not None:
                     res = await request()
@@ -848,8 +868,7 @@ async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = Tru
     elif not cookies.bbs_uid:
         return GetCookieStatus(missing_bbs_uid=True), None
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(
@@ -890,8 +909,7 @@ async def get_cookie_token_by_captcha(phone_number: str, captcha: int, retry: bo
     >>> assert asyncio.new_event_loop().run_until_complete(coroutine)[0].incorrect_captcha is True
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_COOKIE_TOKEN_BY_CAPTCHA,
@@ -953,8 +971,7 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
     }
     encoded_params = urlencode(params)
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(
@@ -998,8 +1015,7 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: Optional[st
     if not cookies.stoken_v2:
         return GetCookieStatus(missing_stoken_v2=True), None
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(
@@ -1051,8 +1067,7 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: Optional[str] = No
     if not cookies.stoken_v1:
         return GetCookieStatus(missing_stoken_v1=True), None
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     headers.setdefault("DS", generate_ds(salt=conf.salt_config.SALT_PROD))
@@ -1105,8 +1120,7 @@ async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: Optional[str] = N
     if not cookies.mid:
         return GetCookieStatus(missing_mid=True), None
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                    wait=tenacity.wait_fixed(conf.preference.retry_interval)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(
@@ -1178,7 +1192,62 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
                 f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换失败，可以自行确认。")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(success=True), ExchangeResult(result=False, return_data=res.json(), plan=plan)
-    except tenacity.RetryError as e:
+    except Exception as e:
+        if is_incorrect_return(e):
+            logger.error(
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return ExchangeStatus(incorrect_return=True), None
+        else:
+            logger.exception(
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 请求失败")
+            return ExchangeStatus(network_error=True), None
+
+
+def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[ExchangeResult]]:
+    """
+    执行米游币商品兑换
+
+    :param plan: 兑换计划
+    """
+    headers = HEADERS_EXCHANGE
+    headers["x-rpc-device_id"] = plan.account.device_id_ios
+    content = {
+        "app_id": 1,
+        "point_sn": "myb",
+        "goods_id": plan.good.goods_id,
+        "exchange_num": 1,
+    }
+    if plan.address is not None:
+        content.setdefault("address_id", plan.address.id)
+    if plan.game_record is not None:
+        content.setdefault("uid", plan.game_record.game_role_id)
+        # 例: cn_gf01
+        content.setdefault("region", plan.game_record.region)
+        # 例: hk4e_cn
+        content.setdefault("game_biz", plan.good.game_biz)
+    try:
+        with httpx.Client() as client:
+            res = client.post(
+                URL_EXCHANGE, headers=headers, json=content, cookies=plan.account.cookies.dict(),
+                timeout=conf.preference.timeout)
+        api_result = ApiResultHandler(res.json())
+        if api_result.login_expired:
+            logger.info(
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 登录失效")
+            logger.debug(f"网络请求返回: {res.text}")
+            return ExchangeStatus(login_expired=True), None
+        if api_result.success:
+            logger.info(
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换成功！可以自行确认。")
+            logger.debug(f"网络请求返回: {res.text}")
+            return ExchangeStatus(success=True), ExchangeResult(result=True, return_data=res.json(), plan=plan)
+        else:
+            logger.info(
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换失败，可以自行确认。")
+            logger.debug(f"网络请求返回: {res.text}")
+            return ExchangeStatus(success=True), ExchangeResult(result=False, return_data=res.json(), plan=plan)
+    except Exception as e:
         if is_incorrect_return(e):
             logger.error(
                 f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 服务器没有正确返回")

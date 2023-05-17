@@ -118,6 +118,18 @@ def custom_attempt_times(retry: bool):
         return tenacity.stop_after_attempt(1)
 
 
+def get_async_retry(retry: bool):
+    """
+    获取异步重试装饰器
+
+    :param retry: True - 重试次数达到偏好设置中 max_retry_times 时停止; False - 执行次数达到1时停止，即不进行重试
+    """
+    return tenacity.AsyncRetrying(
+        stop=custom_attempt_times(retry),
+        retry=tenacity.retry_if_exception_type(BaseException),
+        wait=tenacity.wait_fixed(conf.preference.retry_interval),
+    )
+
 @driver.on_startup
 def ntp_time_sync():
     """
