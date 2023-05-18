@@ -287,7 +287,9 @@ class Exchange:
     """
     米游币商品兑换相关(需两步初始化对象，先`__init__`，后异步`async_init`)\n
     示例:
-    >>> exchange = await Exchange(account, good_id, game_uid).async_init()
+    ```python
+    exchange = await Exchange(account, good_id, game_uid).async_init()
+    ```
 
     - `result`属性为 `-1`: 用户登录失效，放弃兑换
     - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
