@@ -4,10 +4,14 @@
 import asyncio
 import io
 import os
+import threading
 import time
 from copy import deepcopy
 from datetime import datetime
-from typing import List, Set, Union
+from multiprocessing import Manager
+from multiprocessing.pool import Pool
+from multiprocessing.synchronize import Lock
+from typing import List, Set, Union, Callable, Any
 
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
@@ -58,7 +62,8 @@ class ExchangeStart:
             task.result(), tuple) and task.result()[0], self.tasks))
         if success_tasks:
             await bot.send_private_msg(
-                user_id=self.qq, message=f"🎉用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换成功，可前往米游社查看")
+                user_id=self.qq,
+                message=f"🎉用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换成功，可前往米游社查看")
         else:
             msg = f"⚠️用户 📱{self.account.phone}\n🛒商品 {self.plans[0].goodID} 兑换失败\n返回结果：\n"
             num = 0
@@ -79,7 +84,8 @@ class ExchangeStart:
 
 
 myb_exchange_plan = on_command(f"{conf.COMMAND_START}兑换",
-                               aliases={(f"{conf.COMMAND_START}兑换", "+"), (f"{conf.COMMAND_START}兑换", "-")}, priority=5, block=True)
+                               aliases={(f"{conf.COMMAND_START}兑换", "+"), (f"{conf.COMMAND_START}兑换", "-")},
+                               priority=5, block=True)
 myb_exchange_plan.name = "兑换"
 myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.extra_usage = """\
@@ -106,11 +112,13 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await matcher.finish()
     elif len(command) > 1 and command[1] in ["+", "-"]:
         if not command_arg:
-            await matcher.reject('⚠️您的输入有误，缺少商品ID，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
-                                                                                          SEP=get_last_command_sep()))
+            await matcher.reject(
+                '⚠️您的输入有误，缺少商品ID，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
+                                                                                        SEP=get_last_command_sep()))
         elif not str(command_arg).isdigit():
             await matcher.reject(
-                '⚠️商品ID必须为数字，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
+                '⚠️商品ID必须为数字，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
+                                                                                 SEP=get_last_command_sep()))
 
     if isinstance(event, GroupMessageEvent):
         await matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
@@ -223,7 +231,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
                         await asyncio.sleep(0.5)
                         await matcher.send(msg)
                     else:
-                        await matcher.finish(f"您还没有绑定『{game_name}』账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
+                        await matcher.finish(
+                            f"您还没有绑定『{game_name}』账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
@@ -247,7 +256,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
 
     else:
         await matcher.reject(
-            '⚠️您的输入有误，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
+            '⚠️您的输入有误，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
+                                                                         SEP=get_last_command_sep()))
 
 
 @myb_exchange_plan.got('uid')
@@ -317,7 +327,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
         \n- 米游社\
         \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
         \n—— 🚪发送“退出”以结束""".strip())
-async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
+async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -336,9 +346,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
     elif arg == '更新':
-        await get_good_image.send('⏳正在生成商品信息图片...')
-        await generate_image(is_auto=False)
-        await get_good_image.finish('商品信息图片刷新成功')
+        threading.Thread(generate_image(is_auto=False)).start()
+        await get_good_image.finish('✔后台已生成商品信息图片')
     else:
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
@@ -350,11 +359,8 @@ async def _(event: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
                 image_bytes = io.BytesIO(f.read())
             await get_good_image.finish(MessageSegment.image(image_bytes))
         else:
-            await get_good_image.send('⏳请稍等，商品图片正在生成哦~')
-            await generate_image(is_auto=False)
-            img_path = time.strftime(
-                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
-            await get_good_image.finish(MessageSegment.image('file:///' + img_path))
+            threading.Thread(generate_image(is_auto=False)).start()
+            await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
     else:
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
@@ -394,12 +400,38 @@ async def _():
                                       next_run_time=datetime.fromtimestamp(good_detail.time))
 
 
-@driver.on_startup
-async def generate_image(is_auto=True):
+def image_process(game: str, lock: Lock):
     """
-    生成米游币商品信息图片。
+    生成并保存图片的进程函数
+
+    :param game: 游戏名
+    :param lock: 进程锁
+    :return: 生成成功或无商品返回True，否则返回False
+    """
+    loop = asyncio.new_event_loop()
+    good_list = loop.run_until_complete(get_good_list(game))
+    if good_list:
+        logger.info(f"{conf.LOG_HEAD}正在生成 {game} 分区的商品列表图片")
+        image_bytes = loop.run_until_complete(game_list_to_image(good_list, lock))
+        if not image_bytes:
+            return False
+        date = time.strftime('%m-%d', time.localtime())
+        path = conf.goodListImage.SAVE_PATH / f"{date}-{game}.jpg"
+        with open(path, 'wb') as f:
+            f.write(image_bytes)
+        logger.info(f"{conf.LOG_HEAD}已完成 {game} 分区的商品列表图片生成")
+    else:
+        logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成商品列表图片")
+    return True
+
+
+def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
+    """
+    生成米游币商品信息图片。该函数会阻塞当前线程
 
     :param is_auto: True为每日自动生成，False为用户手动更新
+    :param callback: 回调函数，参数为生成成功与否
+    >>> generate_image(is_auto=False)
     """
     for root, _, files in os.walk(conf.goodListImage.SAVE_PATH, topdown=False):
         for name in files:
@@ -408,18 +440,15 @@ async def generate_image(is_auto=True):
             if name.startswith(date):
                 if is_auto:
                     return
-            # 删除旧图片，以方便生成当日图片
+            # 删除旧图片
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
-    for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
-        good_list = await get_good_list(game)
-        if good_list:
-            img_path = time.strftime(
-                f'{conf.goodListImage.SAVE_PATH}/%m-%d-{game}.jpg', time.localtime())
-            image_bytes = await game_list_to_image(good_list)
-            if not image_bytes:
-                return
-            with open(img_path, 'wb') as f:
-                f.write(image_bytes)
-        else:
-            logger.info(f"{conf.LOG_HEAD}{game}分区暂时没有商品，跳过生成...")
+
+    lock: Lock = Manager().Lock()
+    with Pool() as pool:
+        for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
+            pool.apply_async(image_process,
+                             args=(game, lock),
+                             callback=callback)
+        pool.close()
+        pool.join()

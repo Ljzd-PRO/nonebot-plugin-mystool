@@ -6,6 +6,7 @@ import os
 import time
 import traceback
 import zipfile
+from multiprocessing import Lock
 from typing import List, Literal, NewType, Tuple, Union, Optional
 
 import httpx
@@ -147,11 +148,9 @@ class Good:
         """
         兑换时间
         """
-        # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
-        # "type" 为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
-        elif "sale_start_time" in self.good_dict:
+        elif self.good_dict["status"] == "not_in_sell" and "sale_start_time" in self.good_dict:
             return int(self.good_dict["sale_start_time"])
         else:
             return self.good_dict["next_time"]
@@ -220,7 +219,8 @@ async def get_good_detail(good_id: str, retry: bool = True):
         logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
 
 
-async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs", "xq"], retry: bool = True) -> Optional[List[Good]]:
+async def get_good_list(game: Literal["bh3", "ys", "bh2", "wd", "bbs", "xq"], retry: bool = True) -> Optional[
+    List[Good]]:
     """
     获取商品信息列表，若获取失败则返回`None`
 
@@ -287,7 +287,9 @@ class Exchange:
     """
     米游币商品兑换相关(需两步初始化对象，先`__init__`，后异步`async_init`)\n
     示例:
-    >>> exchange = await Exchange(account, good_id, game_uid).async_init()
+    ```python
+    exchange = await Exchange(account, good_id, game_uid).async_init()
+    ```
 
     - `result`属性为 `-1`: 用户登录失效，放弃兑换
     - `result`属性为 `-2`: 商品为游戏内物品，由于未配置stoken，放弃兑换
@@ -452,14 +454,21 @@ class Exchange:
                 return -3
 
 
-async def game_list_to_image(good_list: List[Good], retry: bool = True):
+async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bool = True):
     """
     将商品信息列表转换为图片数据，若返回`None`说明生成失败
 
     :param good_list: 商品列表数据
+    :param lock: 进程同步锁，防止多进程同时在下载字体
     :param retry: 是否允许重试
     """
+    # TODO: 暂时会阻塞，目前还找不到更好的解决方案
+    #   回调函数是否适用于 NoneBot Matcher 暂不清楚，
+    #   若适用则可以传入回调函数而不阻塞主进程
     try:
+        if lock is not None:
+            lock.acquire()
+
         font_path = conf.goodListImage.FONT_PATH
         if font_path is None or not os.path.isfile(font_path):
             if os.path.isfile(FONT_SAVE_PATH):
@@ -494,7 +503,8 @@ async def game_list_to_image(good_list: List[Good], retry: bool = True):
                     logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
                 font_path = FONT_SAVE_PATH
 
-        logger.info(f"{conf.LOG_HEAD}商品列表图片生成 - 正在生成图片...")
+        if lock is not None:
+            lock.release()
 
         font = ImageFont.truetype(
             str(font_path), conf.goodListImage.FONT_SIZE, encoding=conf.ENCODING)
