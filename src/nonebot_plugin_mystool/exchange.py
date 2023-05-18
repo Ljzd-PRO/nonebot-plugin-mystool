@@ -148,11 +148,9 @@ class Good:
         """
         兑换时间
         """
-        # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
-        # "type" 为 1 时商品只有在指定时间开放兑换；为 0 时商品任何时间均可兑换
         if self.good_dict["type"] != 1 and self.good_dict["next_time"] == 0:
             return None
-        elif "sale_start_time" in self.good_dict:
+        elif self.good_dict["status"] == "not_in_sell" and "sale_start_time" in self.good_dict:
             return int(self.good_dict["sale_start_time"])
         else:
             return self.good_dict["next_time"]
