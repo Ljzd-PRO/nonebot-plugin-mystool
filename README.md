@@ -14,27 +14,24 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v0.2.8**
+**版本 - v0.2.9**
 
 ### 📣 更新内容
+
+#### 2023.5.18
+- 多进程生成商品图片（多核），加快图片生成速度
+- 修复部分商品兑换时间错误的问题（如米游社商品晚了一周）
 
 #### 2023.5.4
 - 增加对星穹铁道的签到功能的支持 - [#89](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/89) by @ayakasuki
 - 修复插件命令优先度问题 - [#88](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/88) by @ayakasuki
 - 部分文本错误修正 - [#90](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/90) by @black-zero358
 
-#### 2023.4.28
-- 修复插件命令被其他 nonebot 插件捕获的问题
-- 增加支持星穹铁道的商品兑换
-- 每日签到、米游币任务执行时间在用户配置的基础上增加随机延迟
-- 修复大别野频道每日任务、签到执行失败的问题
+...
 
 #### 2023.3.30
-- 修复重写配置文件 `pluginConfig.json` 不生效的问题
-- 修复单账户情况下无法增删兑换计划的问题
 - 修复 `/兑换` 命令可能与其他插件命令冲突的问题，同时 [🔗用法变更](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Information-Exchange#增加删除兑换计划)
-- 精简接收的命令
-- 更正 `device_save` "设备保存" 日志文本的错误
+- ...
 
 ## 功能和特性
 
