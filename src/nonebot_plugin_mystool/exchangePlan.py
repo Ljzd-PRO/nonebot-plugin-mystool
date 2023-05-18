@@ -347,7 +347,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
         arg = ('bbs', '米游社')
     elif arg == '更新':
         threading.Thread(generate_image(is_auto=False)).start()
-        await get_good_image.finish('✔后台已开始生成商品信息图片')
+        await get_good_image.finish('✔后台已生成商品信息图片')
     else:
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
