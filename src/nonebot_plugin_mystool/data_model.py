@@ -312,6 +312,27 @@ class MmtData(BaseModel):
     """是否使用极验第四代 GT4"""
 
 
+class Award(BaseModel):
+    """
+    签到奖励数据
+    """
+    name: str
+    """签到获得的物品名称"""
+    icon: str
+    """物品图片链接"""
+    cnt: int
+    """物品数量"""
+
+
+class SignInfo(BaseModel):
+    is_sign: bool
+    """今日是否已经签到"""
+    total_sign_day: int
+    """已签多少天"""
+    sign_cnt_missed: int
+    """漏签多少天"""
+
+
 class BaseApiStatus(BaseModel):
     """
     API返回结果基类
