@@ -31,12 +31,13 @@ class BaseGameSign:
         "Referer": "https://webstatic.mihoyo.com/",
         "Accept-Encoding": "gzip, deflate, br"
     }
+    GAME_ID = 0
 
     AVAILABLE_GAME_SIGNS: Set[Type["BaseGameSign"]] = set()
 
-    def __init__(self, account: UserAccount, record: GameRecord):
+    def __init__(self, account: UserAccount, records: List[GameRecord]):
         self.account = account
-        self.record = record
+        self.record = next(filter(lambda x: x.game_id == self.GAME_ID, records), None)
         reward_params = {
             "lang": "zh-cn",
             "act_id": self.ACT_ID
@@ -45,8 +46,8 @@ class BaseGameSign:
         info_params = {
             "lang": "zh-cn",
             "act_id": self.ACT_ID,
-            "region": record.region,
-            "uid": record.game_role_id
+            "region": self.record.region,
+            "uid": self.record.game_role_id
         }
         self.URL_INFO = f"{self.URL_INFO}?{urlencode(info_params)}"
 
@@ -181,6 +182,7 @@ class GenshinImpactSign(BaseGameSign):
     原神 游戏签到
     """
     ACT_ID = "e202009291139501"
+    GAME_ID = "2"
     URL_REWARD = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home"
     URL_INFO = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
     URL_SIGN = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
@@ -191,6 +193,7 @@ class HonkaiImpact3Sign(BaseGameSign):
     崩坏3 游戏签到
     """
     ACT_ID = "e202207181446311"
+    GAME_ID = "1"
 
 
 class HoukaiGakuen2Sign(BaseGameSign):
@@ -198,6 +201,7 @@ class HoukaiGakuen2Sign(BaseGameSign):
     崩坏学园2 游戏签到
     """
     ACT_ID = "e202203291431091"
+    GAME_ID = "3"
 
 
 class TearsOfThemisSign(BaseGameSign):
@@ -205,6 +209,7 @@ class TearsOfThemisSign(BaseGameSign):
     未定事件簿 游戏签到
     """
     ACT_ID = "e202202251749321"
+    GAME_ID = "4"
 
 
 class StarRailSign(BaseGameSign):
@@ -212,6 +217,7 @@ class StarRailSign(BaseGameSign):
     崩坏：星穹铁道 游戏签到
     """
     ACT_ID = "e202304121516551"
+    GAME_ID = "6"
 
 
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(GenshinImpactSign)
