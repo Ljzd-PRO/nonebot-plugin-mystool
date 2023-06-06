@@ -1,7 +1,7 @@
 import inspect
 import time
 from abc import abstractmethod
-from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar
+from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple, List
 
 from pydantic import BaseModel
 
@@ -333,6 +333,24 @@ class GameSignInfo(BaseModel):
     """漏签多少天"""
 
 
+class MissionData(BaseModel):
+    points: int
+    """任务米游币奖励"""
+    name: str
+    """任务名字，如 讨论区签到"""
+    mission_key: str
+    """任务代号，如 continuous_sign"""
+    threshold: int
+    """任务完成的最多次数"""
+
+
+class MissionState(BaseModel):
+    current_myb: int
+    """用户当前米游币数量"""
+    state_dict: Dict[MissionData, int]
+    """所有任务对应的完成进度"""
+
+
 class BaseApiStatus(BaseModel):
     """
     API返回结果基类
@@ -414,6 +432,14 @@ class ExchangeStatus(BaseApiStatus):
     """未进行兑换任务初始化"""
     account_not_found = False
     """账号不存在"""
+
+
+class MissionStatus(BaseApiStatus):
+    """
+    米游币任务 返回结果
+    """
+    failed_getting_post = False
+    """获取文章失败"""
 
 
 GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)
