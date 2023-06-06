@@ -52,7 +52,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @account_setting.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg('phone')):
+async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg('phone')):
     """
     根据手机号设置相应的账户
     """
