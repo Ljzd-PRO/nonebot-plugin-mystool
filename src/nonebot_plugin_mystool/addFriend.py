@@ -8,7 +8,7 @@ from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
                                          GroupRequestEvent, RequestEvent)
 from nonebot_plugin_apscheduler import scheduler
 
-from .plugin_data import plugin_data_obj as conf
+from .plugin_data import plugin_data_obj as conf, write_plugin_data
 from .utils import logger, driver
 
 friendRequest = on_request(priority=1, block=True)
@@ -44,6 +44,7 @@ async def check_friend_list(bot: Bot):
         if not friend:
             logger.info(f'{conf.preference.log_head}用户 {user} 不在好友列表内，已删除其数据')
             conf.users.pop(user)
+            write_plugin_data()
 
 
 @driver.on_bot_connect
