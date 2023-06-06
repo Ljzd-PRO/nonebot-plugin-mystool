@@ -8,12 +8,12 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
-from .config import config as conf
+from .plugin_data import plugin_data_obj as conf
 from .utils import PLUGIN, COMMAND_BEGIN
 
-helper = on_command(conf.COMMAND_START + "help",
+helper = on_command(conf.preference.command_start + "help",
                     priority=1,
-                    aliases={conf.COMMAND_START + "帮助"},
+                    aliases={conf.preference.command_start + "帮助"},
                     block=True)
 
 helper.name = '帮助'
