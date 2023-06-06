@@ -164,50 +164,6 @@ def generate_device_id() -> str:
     return str(uuid.uuid4()).upper()
 
 
-def check_login(response: str):
-    """
-    通过网络请求返回的数据，检查是否登录失效
-
-    如果返回数据为`None`，返回`True`
-
-    :param response: 网络请求返回的数据
-    :return: 是否登录失效
-    """
-    try:
-        if response is None:
-            return True
-        res_dict = json.loads(response)
-        if "message" in res_dict:
-            response: str = res_dict["message"]
-            for message in ("Please login", "登录失效", "尚未登录"):
-                if response.find(message) != -1:
-                    return False
-            return True
-    except (json.JSONDecodeError, KeyError):
-        return True
-
-
-def check_ds(response: str):
-    """
-    通过网络请求返回的数据，检查Header中DS是否有效
-
-    如果返回数据为`None`，返回`True`
-
-    :param response: 网络请求返回的数据
-    :return: DS是否有效
-    """
-    try:
-        if response is None:
-            return True
-        res_dict = json.loads(response)
-        if res_dict["message"] == "invalid request":
-            return False
-        else:
-            return True
-    except (json.JSONDecodeError, KeyError):
-        return True
-
-
 def cookie_str_to_dict(cookie_str: str) -> Dict[str, str]:
     """
     将字符串Cookie转换为字典Cookie
