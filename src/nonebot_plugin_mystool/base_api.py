@@ -8,7 +8,7 @@ from requests.utils import dict_from_cookiejar
 
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
-    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4
+    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus
 from .plugin_data import plugin_data_obj as conf
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
@@ -36,6 +36,8 @@ URL_REGISTRABLE = "https://webapi.account.mihoyo.com/Api/is_mobile_registrable?m
 URL_CREATE_MMT = "https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}"
 URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile_captcha"
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
+URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
+URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -225,6 +227,34 @@ HEADERS_ADDRESS = {
     "Referer": "https://user.mihoyo.com/",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br"
+}
+HEADERS_GENSHIN_STATUS_WIDGET = {
+    "Host": "api-takumi-record.mihoyo.com",
+    "DS": None,
+    "Accept": "*/*",
+    "x-rpc-device_id": None,
+    "x-rpc-client_type": "1",
+    "x-rpc-channel": "appstore",
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+    "Referer": "https://app.mihoyo.com",
+    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "User-Agent": conf.device.USER_AGENT_WIDGET,
+    "Connection": "keep-alive",
+    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
+}
+HEADERS_GENSHIN_STATUS_BBS = {
+    "DS": None,
+    "x-rpc-device_id": None,
+    "Accept": "application/json,text/plain,*/*",
+    "Origin": "https://webstatic.mihoyo.com",
+    "User-agent": conf.device.USER_AGENT_ANDROID,
+    "Referer": "https://webstatic.mihoyo.com/",
+    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "X-Requested-With": "com.mihoyo.hyperion",
+    "x-rpc-client_type": "5"
 }
 
 IncorrectReturn = (KeyError, TypeError, AttributeError, IndexError, ValidationError)
@@ -1271,3 +1301,61 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             logger.exception(
                 f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 请求失败")
             return ExchangeStatus(network_error=True), None
+
+
+async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
+    """
+    使用米游社内页面API获取原神实时便笺
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
+    """
+    game_record_status, records = await get_game_record(account)
+    if not game_record_status:
+        return game_record_status, None
+    game_list_status, game_list = await get_game_list()
+    if not game_list_status:
+        return game_list_status, None
+    game_filter = filter(lambda x: x.en_name == 'ys', game_list)
+    game_info = next(game_filter, None)
+    if not game_info:
+        return GenshinBoardStatus(no_genshin_account=True), None
+    else:
+        game_id = game_info.id
+    flag = True
+    for record in records:
+        if record.game_id == game_id:
+            try:
+                flag = False
+                params = {"role_id": record.uid, "server": record.region}
+                url = f"{URL_GENSHEN_STATUS_BBS}?{urlencode(params)}"
+                headers = HEADERS_GENSHIN_STATUS_BBS.copy()
+                headers["x-rpc-device_id"] = account.device_id_android
+                async for attempt in get_async_retry(retry):
+                    with attempt:
+                        headers["DS"] = generate_ds(
+                            params={"role_id": record.uid, "server": record.region})
+                        async with httpx.AsyncClient() as client:
+                            res = await client.get(url, headers=headers, cookies=account.cookies, timeout=conf.preference.timeout)
+                        api_result = ApiResultHandler(res.json())
+                        if api_result.login_expired:
+                            logger.info(
+                                f"原神实时便笺: 用户 {account.bbs_uid} 登录失效")
+                            logger.debug(f"网络请求返回: {res.text}")
+                            return GenshinBoardStatus(login_expired=True), None
+                        if api_result.invalid_ds:
+                            logger.info(
+                                f"原神实时便笺: 用户 {account.bbs_uid} DS 校验失败")
+                            logger.debug(f"网络请求返回: {res.text}")
+                            return GenshinBoardStatus(invalid_ds=True), None
+                        return GenshinBoardStatus(success=True), GenshinBoard.parse_obj(api_result.data)
+            except tenacity.RetryError as e:
+                if is_incorrect_return(e):
+                    logger.exception(f"原神实时便笺: 服务器没有正确返回")
+                    logger.debug(f"网络请求返回: {res.text}")
+                    return GenshinBoardStatus(incorrect_return=True), None
+                else:
+                    logger.exception(f"原神实时便笺: 请求失败")
+                    return GenshinBoardStatus(network_error=True), None
+    if flag:
+        return GenshinBoardStatus(no_genshin_account=True), None
