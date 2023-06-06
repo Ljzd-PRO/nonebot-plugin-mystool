@@ -11,7 +11,7 @@ from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtD
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .plugin_data import plugin_data_obj as conf
-from .utils import generate_device_id, logger, generate_ds, Subscribe, \
+from .utils import generate_device_id, logger, generate_ds, \
     NtpTime, get_async_retry
 
 URL_LOGIN_TICKET_BY_CAPTCHA = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
@@ -344,19 +344,12 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
     """
     headers = HEADERS_GAME_LIST.copy()
     try:
-        subscribe = Subscribe()
         async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_LIST, headers=headers, timeout=conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
-                if api_result.invalid_ds:
-                    logger.info(
-                        f"获取游戏信息(GameInfo): DS无效，正在在线获取salt以重新生成...")
-                    await subscribe.load()
-                    headers["User-Agent"] = conf.device_config.USER_AGENT_MOBILE
-                    headers["DS"] = generate_ds()
                 return BaseApiStatus(success=True), list(
                     map(GameInfo.parse_obj, api_result.data["list"]))
     except tenacity.RetryError as e:
@@ -417,7 +410,6 @@ async def device_login(account: UserAccount, retry: bool = True):
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.device_id_android
     try:
-        subscribe = Subscribe()
         async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds(data)
@@ -431,11 +423,6 @@ async def device_login(account: UserAccount, retry: bool = True):
                         f"设备登录(device_login) - 用户 {account.bbs_uid} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True)
-                if api_result.invalid_ds:
-                    logger.info(
-                        f"设备登录(device_login): DS无效，正在在线获取salt以重新生成...")
-                    await subscribe.load()
-                    headers["DS"] = generate_ds(data)
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
@@ -468,7 +455,6 @@ async def device_save(account: UserAccount, retry: bool = True):
     headers = HEADERS_DEVICE.copy()
     headers["x-rpc-device_id"] = account.device_id_android
     try:
-        subscribe = Subscribe()
         async for attempt in get_async_retry(retry):
             with attempt:
                 headers["DS"] = generate_ds(data)
@@ -481,10 +467,6 @@ async def device_save(account: UserAccount, retry: bool = True):
                         f"设备保存(device_save) - 用户 {account.bbs_uid} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True)
-                if api_result.invalid_ds:
-                    logger.info(
-                        f"设备保存(device_save): DS无效，正在在线获取salt以重新生成...")
-                    await subscribe.load()
                 if res.json()["message"] != "OK":
                     raise ValueError
                 else:
