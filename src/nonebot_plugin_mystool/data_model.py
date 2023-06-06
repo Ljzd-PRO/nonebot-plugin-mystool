@@ -324,7 +324,7 @@ class Award(BaseModel):
     """物品数量"""
 
 
-class SignInfo(BaseModel):
+class GameSignInfo(BaseModel):
     is_sign: bool
     """今日是否已经签到"""
     total_sign_day: int
@@ -345,6 +345,10 @@ class BaseApiStatus(BaseModel):
     """服务器返回数据不正确"""
     login_expired = False
     """登录失效"""
+    need_verify = False
+    """需要进行人机验证"""
+    invalid_ds = False
+    """Headers DS无效"""
 
     def __bool__(self):
         if self.success:
