@@ -4,7 +4,7 @@ from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, Abstrac
 from httpx import Cookies
 from pydantic import BaseModel
 
-from .data_model import BaseModelWithSetter, Good, Address, GameRecord, GameName, BBS, BaseModelWithSet
+from .data_model import BaseModelWithSetter, Good, Address, GameRecord, GameName, BBS
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     MappingIntStrAny = Mapping[IntStr, Any]
 
 
-class BBSCookies(BaseModelWithSetter):
+class BBSCookies(BaseModelWithSetter, BaseModelWithUpdate):
     """
     米游社Cookies数据
 
@@ -49,6 +49,7 @@ class BBSCookies(BaseModelWithSetter):
     >>> assert bbs_cookies.stoken_v1 == "abcd1234"
 
     # 检查 .dict 方法能否生成包含 stoken_2 类型的 stoken 的字典
+
     >>> bbs_cookies = BBSCookies()
     >>> bbs_cookies.stoken_v1 = "abcd1234"
     >>> bbs_cookies.stoken_v2 = "v2_abcd1234=="
@@ -59,6 +60,19 @@ class BBSCookies(BaseModelWithSetter):
     >>> bbs_cookies = BBSCookies(stuid="123")
     >>> assert all(bbs_cookies.dict())
     >>> assert all(map(lambda x: x not in bbs_cookies, ["stoken_v1", "stoken_v2"]))
+
+    # 测试 update 方法
+
+    >>> bbs_cookies = BBSCookies(stuid="123")
+    >>> assert bbs_cookies.update({"stuid": "456", "stoken": "abc"}) is bbs_cookies
+    >>> assert bbs_cookies.stuid == "456"
+    >>> assert bbs_cookies.stoken == "abc"
+
+    >>> bbs_cookies = BBSCookies(stuid="123")
+    >>> new_cookies = BBSCookies(stuid="456", stoken="abc")
+    >>> assert bbs_cookies.update(new_cookies) is bbs_cookies
+    >>> assert bbs_cookies.stuid == "456"
+    >>> assert bbs_cookies.stoken == "abc"
     """
     stuid: Optional[str]
     """米游社UID"""
@@ -115,6 +129,7 @@ class BBSCookies(BaseModelWithSetter):
     def stoken(self):
         """
         获取stoken
+        :return: 优先返回 self.stoken_v1
         """
         if self.stoken_v1:
             return self.stoken_v1
@@ -134,12 +149,12 @@ class BBSCookies(BaseModelWithSetter):
         """
         更新Cookies
         """
-        if isinstance(cookies, BBSCookies):
-            [setattr(self, key, value) for key, value in cookies.dict().items() if value]
-        else:
-            self_dict: Dict[str, str] = self.dict()
-            self_dict.update(cookies)
-            self.parse_obj(self_dict)
+        if not isinstance(cookies, BBSCookies):
+            self.stoken = cookies.get("stoken") or self.stoken
+            self.bbs_uid = cookies.get("bbs_uid") or self.bbs_uid
+            cookies.pop("stoken", None)
+            cookies.pop("bbs_uid", None)
+        return super().update(cookies)
 
     def dict(self, *,
              include: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
@@ -176,7 +191,8 @@ class BBSCookies(BaseModelWithSetter):
 
         return cookies_dict
 
-class UserAccount(BaseModelWithSetter, BaseModelWithSet):
+
+class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
     """
     米游社账户数据
 
@@ -266,7 +282,7 @@ class ExchangeResult(BaseModel):
     """兑换计划"""
 
 
-class UserData(BaseModelWithSet):
+class UserData(BaseModelWithSetter):
     """
     用户数据类
     """

@@ -83,8 +83,8 @@ class Good(BaseModelWithUpdate):
     """已经兑换次数"""
     account_cycle_limit: int
     """最多可兑换次数"""
-    account_cycle_type: Literal["forever", "month"]
-    """限购类型"""
+    account_cycle_type: str
+    """限购类型 Literal["forever", "month", "not_limit"]"""
     game_biz: Optional[str]
     """商品对应的游戏区服（如 hk4e_cn）（单独查询一个商品时）"""
     game: Optional[str]
@@ -301,10 +301,15 @@ class MmtData(BaseModel):
     """
     短信验证码-人机验证任务申请-返回数据
     """
-    challenge: str
+    challenge: Optional[str]
     gt: str
     mmt_key: str
     new_captcha: bool
+    risk_type: Optional[str]
+    """任务类型，如滑动拼图 slide"""
+    success: Optional[int]
+    use_v4: Optional[bool]
+    """是否使用极验第四代 GT4"""
 
 
 class BaseApiStatus(BaseModel):
@@ -388,3 +393,14 @@ class ExchangeStatus(BaseApiStatus):
 
 GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)
 """人机验证结果数据"""
+
+
+class GeetestResultV4(BaseModel):
+    """
+    GEETEST GT4 人机验证结果数据
+    """
+    captcha_id: str
+    lot_number: str
+    pass_token: str
+    gen_time: int
+    captcha_output: str

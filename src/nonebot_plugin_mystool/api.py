@@ -3,15 +3,14 @@ from urllib.parse import urlencode
 
 import httpx
 import tenacity
-from httpx import ConnectError
 from pydantic import ValidationError, BaseModel
 from requests.utils import dict_from_cookiejar
 
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
-    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus
-from .plugin_data import plugin_data_obj as conf
+    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
+from .plugin_data import plugin_data_obj as conf
 from .utils import generate_device_id, logger, generate_ds, Subscribe, \
     NtpTime, get_async_retry
 
@@ -287,7 +286,7 @@ class ApiResultHandler(BaseModel):
         """
         是否返回验证码错误
         """
-        return self.retcode == -201 or self.message in ["验证码错误", "Captcha not match Err"]
+        return self.retcode in [-201, -302] or self.message in ["验证码错误", "Captcha not match Err"]
 
     @property
     def login_expired(self):
@@ -632,52 +631,28 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
     return BaseApiStatus(success=True), address_list
 
 
-async def check_registrable(phone_number: int, retry: bool = True) -> Tuple[BaseApiStatus, Optional[bool]]:
+async def check_registrable(phone_number: int, keep_client: bool = False, retry: bool = True) -> Tuple[
+    BaseApiStatus, Optional[bool], str, Optional[httpx.AsyncClient]]:
     """
     检查用户是否可以注册
 
+    :param keep_client: httpx.AsyncClient 连接是否需要关闭
     :param phone_number: 手机号
     :param retry: 是否允许重试
+    :return: (API返回状态, 用户是否可以注册, 设备ID, httpx.AsyncClient连接对象)
     """
     headers = HEADERS_WEBAPI.copy()
-    headers["x-rpc-device_id"] = generate_device_id()
-    try:
-        async for attempt in get_async_retry(retry):
-            with attempt:
-                async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_REGISTRABLE.format(mobile=phone_number, t=round(NtpTime.time() * 1000)),
-                                           headers=headers, timeout=conf.preference.timeout)
-                    api_result = ApiResultHandler(res.json())
-                return BaseApiStatus(success=True), bool(api_result.data["is_registable"])
-    except tenacity.RetryError as e:
-        if is_incorrect_return(e):
-            logger.exception(f"检查用户 {phone_number} 是否可以注册 - 服务器没有正确返回")
-            logger.debug(f"网络请求返回: {res.text}")
-            return BaseApiStatus(incorrect_return=True), None
-        else:
-            logger.exception(f"检查用户 {phone_number} 是否可以注册 - 请求失败")
-            return BaseApiStatus(network_error=True), None
-
-
-async def create_mmt(keep_client: bool = False, retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[MmtData], Optional[httpx.AsyncClient]]:
-    """
-    发送短信验证前所需的人机验证任务申请
-
-    :param keep_client: httpx.AsyncClient 连接是否需要关闭
-    :param retry: 是否允许重试
-    """
-    headers = HEADERS_WEBAPI.copy()
-    headers["x-rpc-device_id"] = generate_device_id()
+    device_id = generate_device_id()
+    headers["x-rpc-device_id"] = device_id
 
     async def request():
         """
         发送请求的闭包函数
         """
         time_now = round(NtpTime.time() * 1000)
-        await client.options(URL_CREATE_MMT.format(now=time_now, t=time_now),
-                             headers=headers, timeout=conf.preference.timeout)
-        return await client.get(URL_CREATE_MMT.format(now=time_now, t=time_now),
+        # await client.options(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
+        #                      headers=headers, timeout=conf.preference.timeout)
+        return await client.get(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
                                 headers=headers, timeout=conf.preference.timeout)
 
     try:
@@ -685,33 +660,80 @@ async def create_mmt(keep_client: bool = False, retry: bool = True) -> Tuple[
             with attempt:
                 if keep_client:
                     client = httpx.AsyncClient()
+                else:
+                    async with httpx.AsyncClient() as client:
+                        res = await request()
+                res = await request()
+                api_result = ApiResultHandler(res.json())
+                return BaseApiStatus(success=True), bool(api_result.data["is_registable"]), device_id, client
+    except tenacity.RetryError as e:
+        if keep_client:
+            await client.aclose()
+        if is_incorrect_return(e):
+            logger.exception(f"检查用户 {phone_number} 是否可以注册 - 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True), None, device_id, client
+        else:
+            logger.exception(f"检查用户 {phone_number} 是否可以注册 - 请求失败")
+            return BaseApiStatus(network_error=True), None, device_id, None
+
+
+async def create_mmt(client: Optional[httpx.AsyncClient] = None,
+                     use_v4: bool = True,
+                     device_id: str = generate_device_id(),
+                     retry: bool = True) -> Tuple[
+    BaseApiStatus, Optional[MmtData], str, Optional[httpx.AsyncClient]]:
+    """
+    发送短信验证前所需的人机验证任务申请
+
+    :param client: httpx.AsyncClient 连接
+    :param use_v4: 是否使用极验第四代人机验证
+    :param device_id: 设备 ID
+    :param retry: 是否允许重试
+    :return: (API返回状态, 人机验证任务数据, 设备ID, httpx.AsyncClient连接对象)
+    """
+    headers = HEADERS_WEBAPI.copy()
+    headers["x-rpc-device_id"] = device_id
+    if use_v4:
+        headers.setdefault("x-rpc-source", "accountWebsite")
+    async def request():
+        """
+        发送请求的闭包函数
+        """
+        time_now = round(NtpTime.time() * 1000)
+        # await client.options(URL_CREATE_MMT.format(now=time_now, t=time_now),
+        #                      headers=headers, timeout=conf.preference.timeout)
+        return await client.get(URL_CREATE_MMT.format(now=time_now, t=time_now),
+                                headers=headers, timeout=conf.preference.timeout)
+
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                if client:
                     res = await request()
                 else:
                     async with httpx.AsyncClient() as client:
                         res = await request()
                 api_result = ApiResultHandler(res.json())
-                return BaseApiStatus(success=True), MmtData.parse_obj(api_result.data["mmt_data"]), client
+                return BaseApiStatus(success=True), MmtData.parse_obj(api_result.data["mmt_data"]), device_id, client
     except tenacity.RetryError as e:
-        if keep_client:
+        if client:
             await client.aclose()
         if is_incorrect_return(e):
             logger.exception(f"获取短信验证-人机验证任务(create_mmt) - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
-            return BaseApiStatus(incorrect_return=True), None, client
+            return BaseApiStatus(incorrect_return=True), None, device_id, client
         else:
             logger.exception(f"获取短信验证-人机验证任务(create_mmt) - 请求失败")
-            return BaseApiStatus(network_error=True), None, None
-    except ConnectError:
-        if keep_client:
-            await client.aclose()
-        logger.exception(f"获取短信验证-人机验证任务(create_mmt) - 网络连接失败")
-        return BaseApiStatus(network_error=True), None, None
+            return BaseApiStatus(network_error=True), None, device_id, None
 
 
 async def create_mobile_captcha(phone_number: int,
                                 mmt_data: MmtData,
-                                geetest_result: GeetestResult,
+                                geetest_result: Union[GeetestResult, GeetestResultV4],
                                 client: Optional[httpx.AsyncClient] = None,
+                                use_v4: bool = True,
+                                device_id: str = generate_device_id(),
                                 retry: bool = True
                                 ) -> Tuple[CreateMobileCaptchaStatus, Optional[httpx.AsyncClient]]:
     """
@@ -721,19 +743,30 @@ async def create_mobile_captcha(phone_number: int,
     :param mmt_data: 人机验证任务数据
     :param geetest_result: 人机验证结果数据
     :param client: httpx.AsyncClient 连接
+    :param use_v4: 是否使用极验第四代人机验证
+    :param device_id: 设备 ID
     :param retry: 是否允许重试
     """
     headers = HEADERS_WEBAPI.copy()
-    headers["x-rpc-device_id"] = generate_device_id()
-    params = {
-        "action_type": "login",
-        "mmt_key": mmt_data.mmt_key,
-        "geetest_challenge": mmt_data.challenge,
-        "geetest_validate": geetest_result.validate,
-        "geetest_seccode": geetest_result.seccode,
-        "mobile": phone_number,
-        "t": round(NtpTime.time() * 1000)
-    }
+    headers["x-rpc-device_id"] = device_id
+    if use_v4 and isinstance(geetest_result, GeetestResultV4):
+        params = {
+            "action_type": "login",
+            "mmt_key": mmt_data.mmt_key,
+            "geetest_v4_data": geetest_result.dict(skip_defaults=True),
+            "mobile": phone_number,
+            "t": round(NtpTime.time() * 1000)
+        }
+    else:
+        params = {
+            "action_type": "login",
+            "mmt_key": mmt_data.mmt_key,
+            "geetest_challenge": mmt_data.challenge,
+            "geetest_validate": geetest_result.validate,
+            "geetest_seccode": geetest_result.seccode,
+            "mobile": phone_number,
+            "t": round(NtpTime.time() * 1000)
+        }
     encoded_params = urlencode(params)
 
     async def request():
@@ -753,7 +786,7 @@ async def create_mobile_captcha(phone_number: int,
                 #                            headers=headers,
                 #                            timeout=conf.preference.timeout)
                 #   cookies.update(res.cookies)
-                if client is not None:
+                if client and not client.is_closed:
                     res = await request()
                 else:
                     async with httpx.AsyncClient() as client:
@@ -808,16 +841,10 @@ async def get_login_ticket_by_captcha(phone_number: str,
         """
         发送请求的闭包函数
         """
-        _cookies = {}
-        _res = await client.options(URL_LOGIN_TICKET_BY_CAPTCHA,
-                                    headers=headers,
-                                    timeout=conf.preference.timeout
-                                    )
-        _cookies.update(_res.cookies)
+        # TODO 还需要进一步简化代码
         return await client.post(URL_LOGIN_TICKET_BY_CAPTCHA,
                                  headers=headers,
                                  content=encoded_params,
-                                 cookies=_cookies,
                                  timeout=conf.preference.timeout
                                  )
 
