@@ -203,6 +203,8 @@ class DeviceConfig(BaseSettings):
 
 
 class PluginData(BaseModel):
+    version: str = VERSION
+    """创建插件数据文件时的版本号"""
     preference: Preference = Preference()
     """偏好设置"""
     salt_config: SaltConfig = SaltConfig()
