@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 import httpx
 import tenacity
 
-from .api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
+from .base_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
 from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo
 from .plugin_data import plugin_data_obj as conf
 from .user_data import UserAccount

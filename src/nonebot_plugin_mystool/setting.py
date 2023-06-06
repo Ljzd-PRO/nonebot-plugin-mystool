@@ -9,7 +9,7 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .api import GameInfo, get_game_list
+from .base_api import GameInfo, get_game_list
 from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
