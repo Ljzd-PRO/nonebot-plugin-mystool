@@ -351,6 +351,42 @@ class MissionState(BaseModel):
     """所有任务对应的完成进度"""
 
 
+class GenshinBoard(BaseModel):
+    """
+    原神实时便笺数据 (从米游社内相关页面API的返回数据初始化)
+    """
+    current_resin: int
+    """当前树脂数量"""
+    finished_task_num: int
+    """每日委托完成数"""
+    current_expedition_num: int
+    """探索派遣 进行中的数量"""
+    max_expedition_num: int
+    """探索派遣 最多派遣数"""
+    current_home_coin: int
+    """洞天财瓮 未收取的宝钱数"""
+    max_home_coin: int
+    """洞天财瓮 最多可容纳宝钱数"""
+    transformer: Dict[str, Any]
+    """参量质变仪相关数据"""
+
+    @property
+    def transformer_text(self):
+        """
+        参量质变仪状态文本
+        """
+        try:
+            if not self.transformer['obtained']:
+                return '未获得'
+            elif self.transformer['recovery_time']['reached']:
+                return '已准备就绪'
+            else:
+                return f"{self.transformer['recovery_time']['Day']} 天" \
+                                   f"{self.transformer['recovery_time']['Hour']} 小时 {self.transformer['recovery_time']['Minute']} 分钟"
+        except KeyError:
+            return None
+
+
 class BaseApiStatus(BaseModel):
     """
     API返回结果基类
@@ -440,6 +476,13 @@ class MissionStatus(BaseApiStatus):
     """
     failed_getting_post = False
     """获取文章失败"""
+
+class GenshinBoardStatus(BaseApiStatus):
+    """
+    原神实时便笺 返回结果
+    """
+    no_genshin_account = False
+    """用户没有任何原神账户"""
 
 
 GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)
