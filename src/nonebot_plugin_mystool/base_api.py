@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Dict, Any, Union
+from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
 
 import httpx
@@ -231,15 +231,20 @@ IncorrectReturn = (KeyError, TypeError, AttributeError, IndexError, ValidationEr
 """米游社API返回数据无效会触发的异常组合"""
 
 
-def is_incorrect_return(exception: Exception) -> bool:
-    """判断是否是米游社API返回数据无效的异常"""
+def is_incorrect_return(exception: Exception, *addition_exceptions: Type[Exception]) -> bool:
+    """
+    判断是否是米游社API返回数据无效的异常
+    :param exception: 异常对象
+    :param addition_exceptions: 额外的异常类型，用于触发判断
+    """
     """
         return exception in IncorrectReturn or
             exception.__cause__ in IncorrectReturn or
             isinstance(exception, IncorrectReturn) or
             isinstance(exception.__cause__, IncorrectReturn)
     """
-    return isinstance(exception, IncorrectReturn) or isinstance(exception.__cause__, IncorrectReturn)
+    exceptions = IncorrectReturn + addition_exceptions
+    return isinstance(exception, exceptions) or isinstance(exception.__cause__, exceptions)
 
 
 class ApiResultHandler(BaseModel):
