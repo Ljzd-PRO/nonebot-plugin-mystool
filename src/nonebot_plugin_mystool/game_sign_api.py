@@ -51,7 +51,7 @@ class BaseGameSign:
         }
         self.URL_INFO = f"{self.URL_INFO}?{urlencode(info_params)}"
 
-    async def get_reward(self, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[Award]]]:
+    async def get_rewards(self, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[Award]]]:
         """
         获取签到奖励信息
 
