@@ -11,11 +11,11 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
 from .api import get_address
-from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
+from .plugin_data import plugin_data_obj as conf, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-address_matcher = on_command(plugin_data.preference.command_start + '地址', priority=4, block=True)
+address_matcher = on_command(conf.preference.command_start + '地址', priority=4, block=True)
 
 address_matcher.name = '地址'
 address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
@@ -25,7 +25,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
-    user_data = plugin_data.users[event.user_id]
+    user_data = conf.users[event.user_id]
     user_account = user_data.accounts
     state['user_account'] = user_account
     if not user_account:
