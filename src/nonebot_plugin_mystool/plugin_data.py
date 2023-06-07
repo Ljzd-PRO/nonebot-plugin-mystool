@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
     Mapping
 
-from loguru import logger, RotationFunction
+from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
 from .user_data import UserData
@@ -61,7 +61,7 @@ class Preference(BaseSettings):
     '''日志开头字符串(只有把插件放进plugins目录手动加载时才需要设置)'''
     log_path: Optional[Path] = DATA_PATH / "mystool.log"
     """日志保存路径"""
-    log_rotation: Union[str, int, time, timedelta, "RotationFunction"] = "1 week"
+    log_rotation: Union[str, int, time, timedelta] = "1 week"
     '''日志保留时长(需要按照格式设置)'''
     plugin_name: str = "nonebot_plugin_mystool"
     '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
