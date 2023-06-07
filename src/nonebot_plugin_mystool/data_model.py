@@ -1,7 +1,7 @@
 import inspect
 import time
 from abc import abstractmethod
-from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar
+from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple
 
 from pydantic import BaseModel
 
@@ -348,8 +348,8 @@ class MissionData(BaseModel):
 class MissionState(BaseModel):
     current_myb: int
     """用户当前米游币数量"""
-    state_dict: Dict[MissionData, int]
-    """所有任务对应的完成进度"""
+    state_dict: Dict[str, Tuple[MissionData, int]]
+    """所有任务对应的完成进度 {mission_key, (MissionData, 当前进度)}"""
 
 
 class GenshinBoard(BaseModel):

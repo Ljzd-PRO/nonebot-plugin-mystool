@@ -215,15 +215,15 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                                                    message=f'📱账户 {account.bbs_uid} ⏳开始执行米游币任务...')
 
                 # 执行任务
-                for mission, current in missions_state.state_dict.items():
+                for key_name, (mission, current) in missions_state.state_dict.items():
                     if current < mission.threshold:
-                        if mission.mission_key == BaseMission.SIGN:
+                        if key_name == BaseMission.SIGN:
                             await mission_obj.sign()
-                        elif mission.mission_key == BaseMission.VIEW:
+                        elif key_name == BaseMission.VIEW:
                             await mission_obj.read()
-                        elif mission.mission_key == BaseMission.LIKE:
+                        elif key_name == BaseMission.LIKE:
                             await mission_obj.like()
-                        elif mission.mission_key == BaseMission.SHARE:
+                        elif key_name == BaseMission.SHARE:
                             await mission_obj.share()
 
                 # 用户打开通知或手动任务时，进行通知
@@ -245,7 +245,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             await bot.send_private_msg(user_id=qq,
                                                        message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                         continue
-                    if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.items())):
+                    if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.values())):
                         notice_string = "🎉已完成今日米游币任务"
                     else:
                         notice_string = "⚠️今日米游币任务未全部完成"
@@ -254,14 +254,14 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                         \n{notice_string}\
                         \n📱账户 {account.bbs_uid if not group_event else blur(account.bbs_uid)}\
                         """
-                    for mission, current in missions_state.state_dict.items():
-                        if mission.mission_key == BaseMission.SIGN:
+                    for key_name, (mission, current) in missions_state.state_dict.items():
+                        if key_name == BaseMission.SIGN:
                             mission_name = "签到"
-                        elif mission.mission_key == BaseMission.VIEW:
+                        elif key_name == BaseMission.VIEW:
                             mission_name = "阅读"
-                        elif mission.mission_key == BaseMission.LIKE:
+                        elif key_name == BaseMission.LIKE:
                             mission_name = "点赞"
-                        elif mission.mission_key == BaseMission.SHARE:
+                        elif key_name == BaseMission.SHARE:
                             mission_name = "转发"
                         else:
                             mission_name = mission.mission_key
