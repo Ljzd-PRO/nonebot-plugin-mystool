@@ -46,8 +46,8 @@ class BaseGameSign:
         info_params = {
             "lang": "zh-cn",
             "act_id": self.ACT_ID,
-            "region": self.record.region,
-            "uid": self.record.game_role_id
+            "region": self.record.region if self.record else None,
+            "uid": self.record.game_role_id if self.record else None
         }
         self.URL_INFO = f"{self.URL_INFO}?{urlencode(info_params)}"
 
@@ -122,6 +122,8 @@ class BaseGameSign:
         :param platform: 设备平台
         :param retry: 是否允许重试
         """
+        if not self.record:
+            return BaseApiStatus(success=True)
         content = {
             "act_id": self.ACT_ID,
             "region": self.record.region,
