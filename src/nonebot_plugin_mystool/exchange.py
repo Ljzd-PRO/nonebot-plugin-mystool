@@ -7,6 +7,7 @@ from typing import List
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 
+from .base_api import get_good_detail
 from .data_model import Good
 from .plugin_data import plugin_data_obj as conf, DATA_PATH
 from .utils import (get_file, logger, get_async_retry)
@@ -80,6 +81,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         '''商品预览图'''
 
         for good in good_list:
+            await get_good_detail(good)
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
