@@ -232,8 +232,10 @@ def load_plugin_data():
     else:
         plugin_data = PluginData()
         try:
-            write_plugin_data(plugin_data)
-        except PermissionError:
+            str_data = plugin_data.json(indent=4)
+            with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
+                f.write(str_data)
+        except (AttributeError, TypeError, ValueError, PermissionError):
             logger.exception(f"创建插件数据文件失败，请检查是否有权限读取和写入 {PLUGIN_DATA_PATH}")
             raise
         logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
