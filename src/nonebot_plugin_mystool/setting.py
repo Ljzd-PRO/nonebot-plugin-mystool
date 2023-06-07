@@ -37,7 +37,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     """
     if isinstance(event, GroupMessageEvent):
         await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
-    user_account = plugin_data.users[event.user_id].accounts
+    user = plugin_data.users.get(event.user_id)
+    user_account = user.accounts if user else None
     state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(

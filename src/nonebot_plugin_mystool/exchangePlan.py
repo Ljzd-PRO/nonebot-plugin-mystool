@@ -67,12 +67,11 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
     if isinstance(event, GroupMessageEvent):
         await matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
-    qq_account = int(event.user_id)
-    user_account = conf.users[qq_account].accounts
+    user = conf.users.get(event.user_id)
+    user_account = user.accounts if user else None
     if not user_account:
         await matcher.finish(
             f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{conf.preference.command_start}登录』进行登录")
-    state['qq_account'] = qq_account
     state['user_account'] = user_account
 
     # 如果使用了二级命令 + - 则跳转进下一步，通过phone选择账户进行设置
