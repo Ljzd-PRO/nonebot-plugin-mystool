@@ -37,8 +37,6 @@ from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-from .data import create_files
-
 VERSION = "v1.0.0-dev"
 '''插件版本号'''
 
@@ -65,9 +63,6 @@ __plugin_meta__ = PluginMetadata(
     """.strip(),
     extra={"version": VERSION}
 )
-
-# 需要最先执行的函数
-create_files()
 
 # 加载其它代码
 

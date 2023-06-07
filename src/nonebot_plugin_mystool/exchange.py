@@ -8,13 +8,13 @@ import httpx
 from PIL import Image, ImageDraw, ImageFont
 
 from .data_model import Good
-from .plugin_data import plugin_data_obj as conf, PATH
+from .plugin_data import plugin_data_obj as conf, DATA_PATH
 from .utils import (get_file, logger, get_async_retry)
 
 FONT_URL = os.path.join(
     conf.preference.github_proxy, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
-TEMP_FONT_PATH = PATH / "temp" / "font.zip"
-FONT_SAVE_PATH = PATH / "SourceHanSansHWSC-Regular.otf"
+TEMP_FONT_PATH = DATA_PATH / "temp" / "font.zip"
+FONT_SAVE_PATH = DATA_PATH / "SourceHanSansHWSC-Regular.otf"
 
 async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bool = True):
     """

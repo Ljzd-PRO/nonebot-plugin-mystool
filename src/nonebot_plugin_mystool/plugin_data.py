@@ -8,7 +8,6 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger, RotationFunction
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
-from .config import PATH
 from .user_data import UserData
 
 VERSION = "v1.0.0-dev"
@@ -125,7 +124,7 @@ class GoodListImageConfig(BaseModel):
     '''
     FONT_SIZE: int = 50
     '''字体大小'''
-    SAVE_PATH: Path = PATH
+    SAVE_PATH: Path = DATA_PATH
     '''商品列表图片缓存目录'''
 
 

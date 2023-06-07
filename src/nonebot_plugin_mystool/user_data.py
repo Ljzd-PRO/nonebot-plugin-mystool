@@ -2,9 +2,9 @@ from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, Abstrac
     Mapping, Literal
 
 from httpx import Cookies
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 
-from .data_model import BaseModelWithSetter, Good, Address, GameRecord, GameName, BBS
+from .data_model import BaseModelWithSetter, Good, Address, GameRecord, GameName, BBS, BaseModelWithUpdate
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
