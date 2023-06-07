@@ -1303,7 +1303,8 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             return ExchangeStatus(network_error=True), None
 
 
-async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
+async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
+    Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
     """
     使用米游社内页面API获取原神实时便笺
 
@@ -1336,7 +1337,8 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[U
                         headers["DS"] = generate_ds(
                             params={"role_id": record.uid, "server": record.region})
                         async with httpx.AsyncClient() as client:
-                            res = await client.get(url, headers=headers, cookies=account.cookies, timeout=conf.preference.timeout)
+                            res = await client.get(url, headers=headers, cookies=account.cookies,
+                                                   timeout=conf.preference.timeout)
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(

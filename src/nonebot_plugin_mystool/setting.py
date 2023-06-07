@@ -40,7 +40,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user_account = plugin_data.users[event.user_id].accounts
     state['user_account'] = user_account
     if not user_account:
-        await account_setting.finish(f"⚠️你尚未绑定米游社账户，请先使用『{plugin_data.preference.command_start}登录』进行登录")
+        await account_setting.finish(
+            f"⚠️你尚未绑定米游社账户，请先使用『{plugin_data.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
         matcher.set_arg('phone', Message(str(next(user_account.values()).phone_number)))
     else:

@@ -208,7 +208,8 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
             if (account.enable_mission and is_auto) or not is_auto:
                 if not is_auto:
                     if not group_event:
-                        await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.bbs_uid} ⏳开始执行米游币任务...')
+                        await bot.send_private_msg(user_id=qq,
+                                                   message=f'📱账户 {account.bbs_uid} ⏳开始执行米游币任务...')
 
                 # 执行任务
                 for mission, current in missions_state.state_dict.items():
@@ -221,7 +222,6 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             await mission_obj.like()
                         elif mission.mission_key == BaseMission.SHARE:
                             await mission_obj.share()
-
 
                 # 用户打开通知或手动任务时，进行通知
                 if conf.users[qq].enable_notice or not is_auto:
@@ -296,7 +296,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
     for account in conf.users[qq].accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                         {"resin": False, "coin": False, "transformer": False})
+                                                           {"resin": False, "coin": False, "transformer": False})
         if (account.enable_resin and is_auto) or not is_auto:
             genshin_board_status, board = await genshin_board_bbs(account)
             if not genshin_board_status:

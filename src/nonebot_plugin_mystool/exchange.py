@@ -12,9 +12,11 @@ from .plugin_data import plugin_data_obj as conf, DATA_PATH
 from .utils import (get_file, logger, get_async_retry)
 
 FONT_URL = os.path.join(
-    conf.preference.github_proxy, "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
+    conf.preference.github_proxy,
+    "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
 TEMP_FONT_PATH = DATA_PATH / "temp" / "font.zip"
 FONT_SAVE_PATH = DATA_PATH / "SourceHanSansHWSC-Regular.otf"
+
 
 async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bool = True):
     """
@@ -105,7 +107,8 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         for good in good_list:
             draw = ImageDraw.Draw(preview)
             # 根据预览图高度来确定写入文字的位置，并调整空间
-            draw.text((conf.good_list_image_config.ICON_SIZE[0] + conf.good_list_image_config.PADDING_TEXT_AND_ICON_X, draw_y),
+            draw.text((conf.good_list_image_config.ICON_SIZE[0] + conf.good_list_image_config.PADDING_TEXT_AND_ICON_X,
+                       draw_y),
                       f"{good.general_name}\n商品ID: {good.goods_id}\n兑换时间: {good.time_text}\n价格: {good.price} 米游币",
                       (0, 0, 0), font)
             draw_y += (conf.good_list_image_config.ICON_SIZE[1] +

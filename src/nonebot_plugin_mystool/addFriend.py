@@ -25,7 +25,8 @@ async def _(bot: Bot, event: RequestEvent):
             if conf.preference.add_friend_welcome:
                 # 等待腾讯服务器响应
                 await asyncio.sleep(1.5)
-                await bot.send_private_msg(user_id=event.user_id, message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
+                await bot.send_private_msg(user_id=event.user_id,
+                                           message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
     # 判断为邀请进群事件
     elif isinstance(event, GroupRequestEvent):
         logger.info(f'{conf.preference.log_head}已加入群聊 {event.group_id}')
