@@ -267,6 +267,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             mission_name = mission.mission_key
                         msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
                     msg += f"\n💰米游币: {missions_state.current_myb}"
+                    msg.strip()
 
                     if group_event:
                         await bot.send(event=group_event, at_sender=True, message=msg)
