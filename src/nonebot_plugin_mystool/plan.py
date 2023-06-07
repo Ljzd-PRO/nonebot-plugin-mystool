@@ -129,9 +129,9 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                                 user_id=qq,
                                 message=message
                             )
-                    await asyncio.sleep(conf.SLEEP_TIME)
+                    await asyncio.sleep(conf.preference.sleep_time)
                     continue
-                await asyncio.sleep(conf.SLEEP_TIME)
+                await asyncio.sleep(conf.preference.sleep_time)
             # 若用户未开启自动签到且手动签到过了，不再提醒
             elif not account.gameSign and is_auto:
                 continue
@@ -166,7 +166,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         user_id=qq,
                         message=msg + img
                     )
-            await asyncio.sleep(conf.SLEEP_TIME)
+            await asyncio.sleep(conf.preference.sleep_time)
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
