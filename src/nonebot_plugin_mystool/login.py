@@ -10,7 +10,9 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
 
-from .plugin_data import plugin_data_obj as conf
+from .base_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
+    get_ltoken_by_stoken, get_cookie_token_by_stoken
+from .plugin_data import plugin_data_obj as conf, write_plugin_data
 from .user_data import UserAccount
 from .utils import logger, COMMAND_BEGIN
 
@@ -55,32 +57,98 @@ async def _(_: PrivateMessageEvent):
 
 
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
-async def _(_: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainText('captcha')):
+async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainText('captcha')):
+    phone_number: str = state['phone']
     if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not captcha.isdigit():
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
         # TODO login
-        if status == -1:
-            await get_cookie.finish("⚠️由于Cookie缺少login_ticket，无法继续，请稍后再试")
-        elif status == -2:
-            await get_cookie.finish("⚠️由于Cookie缺少uid，无法继续，请稍后再试")
-        elif status == -3:
-            await get_cookie.finish("⚠️网络请求失败，无法继续，请稍后再试")
-        elif status == -4:
-            await get_cookie.reject("⚠️验证码错误，注意不要在网页上使用掉验证码，请重新发送")
+        # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
+        login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
+        if login_status:
+            # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
+            account = conf.users[event.user_id].accounts.get(cookies.bbs_uid)
+            """当前的账户数据对象"""
+            if not account or not account.cookies:
+                conf.accounts.update({
+                    cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies)
+                })
+                account = conf.accounts[cookies.bbs_uid]
+            else:
+                account.cookies.update(cookies)
+            write_plugin_data()
 
-    # TODO save
+            # 2. 通过 login_ticket 获取 stoken 和 ltoken
+            if login_status or account:
+                login_status, cookies = await get_multi_token_by_login_ticket(account.cookies)
+                if login_status:
+                    logger.info(f"用户 {phone_number} 成功获取 stoken: {cookies.stoken}")
+                    account.cookies.update(cookies)
+                    write_plugin_data()
 
-    logger.info(f"{conf.preference.log_head}米游社账户 {state['phone']} 绑定成功")
-    await get_cookie.finish(f"🎉米游社账户 {state['phone']} 绑定成功")
+                    # 3. 通过 stoken_v1 获取 stoken_v2 和 mid
+                    login_status, cookies = await get_stoken_v2_by_v1(account.cookies, account.device_id_ios)
+                    if login_status:
+                        logger.info(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
+                        account.cookies.update(cookies)
+                        write_plugin_data()
+
+                        # 4. 通过 stoken_v2 获取 ltoken
+                        login_status, cookies = await get_ltoken_by_stoken(account.cookies, account.device_id_ios)
+                        if login_status:
+                            logger.info(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
+                            account.cookies.update(cookies)
+                            write_plugin_data()
+
+                            # 5. 通过 stoken_v2 获取 cookie_token
+                            login_status, cookies = await get_cookie_token_by_stoken(account.cookies,
+                                                                                     account.device_id_ios)
+                            if login_status:
+                                logger.info(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
+                                account.cookies.update(cookies)
+                                write_plugin_data()
+
+                                # TODO 2023/04/12 此处如果可以模拟App的登录操作，再标记为登录完成，更安全
+                                logger.info(f"{conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
+                                await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
+
+        if not login_status:
+            notice_text = "⚠️登录失败："
+            if login_status.incorrect_captcha:
+                notice_text += "验证码错误！"
+            elif login_status.login_expired:
+                notice_text += "登录失效！"
+            elif login_status.incorrect_return:
+                notice_text += "服务器返回错误！"
+            elif login_status.network_error:
+                notice_text += "网络连接失败！"
+            elif login_status.missing_bbs_uid:
+                notice_text += "Cookies缺少 bbs_uid（例如 ltuid, stuid）"
+            elif login_status.missing_login_ticket:
+                notice_text += "Cookies缺少 login_ticket！"
+            elif login_status.missing_cookie_token:
+                notice_text += "Cookies缺少 cookie_token！"
+            elif login_status.missing_stoken:
+                notice_text += "Cookies缺少 stoken！"
+            elif login_status.missing_stoken_v1:
+                notice_text += "Cookies缺少 stoken_v1"
+            elif login_status.missing_stoken_v2:
+                notice_text += "Cookies缺少 stoken_v2"
+            elif login_status.missing_mid:
+                notice_text += "Cookies缺少 mid"
+            else:
+                notice_text += "未知错误！"
+            notice_text += " 如果部分步骤成功，你仍然可以尝试获取收货地址、兑换等功能"
+            await get_cookie.finish(notice_text)
 
 
 output_cookies = on_command(
     conf.preference.command_start + '导出Cookies',
     aliases={conf.preference.command_start + '导出Cookie', conf.preference.command_start + '导出账号',
-             conf.preference.command_start + '导出cookie', conf.preference.command_start + '导出cookies'}, priority=4, block=True)
+             conf.preference.command_start + '导出cookie', conf.preference.command_start + '导出cookies'}, priority=4,
+    block=True)
 output_cookies.name = '导出Cookies'
 output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
