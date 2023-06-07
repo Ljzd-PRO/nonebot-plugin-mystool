@@ -375,13 +375,13 @@ def daily_update():
     """
     每日图片生成函数
     """
-    logger.info(f"{conf.LOG_HEAD}开始生成每日商品图片")
+    logger.info(f"{conf.preference.log_head}开始生成每日商品图片")
     generate_image()
 
 
 @scheduler.scheduled_job("cron",
-                         hour=conf.SIGN_TIME.split(':')[0],
-                         minute=conf.SIGN_TIME.split(':')[1],
+                         hour=conf.preference.plan_time.split(':')[0],
+                         minute=conf.preference.plan_time.split(':')[1],
                          id="daily_schedule")
 async def daily_schedule():
     """
@@ -389,23 +389,21 @@ async def daily_schedule():
     """
     # 随机延迟
     await asyncio.sleep(random.randint(0, 59))
-    logger.info(f"{conf.LOG_HEAD}开始执行每日自动任务")
-    qq_accounts = UserData.read_all().keys()
+    logger.info(f"{conf.preference.log_head}开始执行每日自动任务")
     bot = get_bot()
-    for qq in qq_accounts:
+    for qq in conf.users:
         await perform_bbs_sign(bot=bot, qq=qq, is_auto=True)
         await perform_game_sign(bot=bot, qq=qq, is_auto=True)
-    logger.info(f"{conf.LOG_HEAD}每日自动任务执行完成")
+    logger.info(f"{conf.preference.log_head}每日自动任务执行完成")
 
 
 @scheduler.scheduled_job("interval",
-                         minutes=conf.RESIN_CHECK_INTERVAL,
+                         minutes=conf.preference.resin_interval,
                          id="resin_check")
 async def auto_resin_check():
     """
     自动查看实时便笺
     """
-    qq_accounts = UserData.read_all().keys()
     bot = get_bot()
-    for qq in qq_accounts:
+    for qq in conf.users:
         await resin_check(bot=bot, qq=qq, is_auto=True)
