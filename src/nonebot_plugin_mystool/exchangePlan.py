@@ -367,7 +367,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
 
     lock: Lock = Manager().Lock()
     with Pool() as pool:
-        for game in "bh3", "ys", "bh2", "xq", "wd", "bbs":
+        for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
             pool.apply_async(image_process,
                              args=(game, lock),
                              callback=callback)
