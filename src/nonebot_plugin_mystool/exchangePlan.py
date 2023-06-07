@@ -144,7 +144,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
         flag = True
         break_flag = False
         good = None
-        for game, good_list in good_dict.items():
+        for good_list in good_dict.values():
             for good in good_list:
                 if good.goods_id == good_id:
                     flag = False
