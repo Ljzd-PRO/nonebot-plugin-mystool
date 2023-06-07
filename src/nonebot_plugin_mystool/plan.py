@@ -18,7 +18,7 @@ from .plugin_data import plugin_data_obj as conf, write_plugin_data
 from .utils import blur_phone as blur
 from .utils import get_file, logger, COMMAND_BEGIN
 
-manually_game_sign = on_command(conf.COMMAND_START + '签到', priority=5, block=True)
+manually_game_sign = on_command(conf.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
 manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 

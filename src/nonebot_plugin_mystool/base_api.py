@@ -95,22 +95,22 @@ HEADERS_API_TAKUMI_PC = {
 }
 HEADERS_API_TAKUMI_MOBILE = {
     "Host": "api-takumi.mihoyo.com",
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": conf.device.USER_AGENT_MOBILE,
+    "x-rpc-device_model": conf.device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "User-Agent": conf.device_config.USER_AGENT_MOBILE,
     "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-device_name": conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
-    "x-rpc-channel": conf.device.X_RPC_CHANNEL,
-    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "x-rpc-channel": conf.device_config.X_RPC_CHANNEL,
+    "x-rpc-app_version": conf.device_config.X_RPC_APP_VERSION,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "x-rpc-device_id": None,
     "x-rpc-client_type": "5",
     "Accept": "application/json, text/plain, */*",
     "Content-Type": "application/json;charset=utf-8",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION,
-    "x-rpc-platform": conf.device.X_RPC_PLATFORM,
+    "x-rpc-sys_version": conf.device_config.X_RPC_SYS_VERSION,
+    "x-rpc-platform": conf.device_config.X_RPC_PLATFORM,
     "DS": None
 }
 HEADERS_GAME_RECORD = {
@@ -237,22 +237,22 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
     "x-rpc-channel": "appstore",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_MOBILE,
+    "x-rpc-device_model": conf.device_config.X_RPC_DEVICE_MODEL_MOBILE,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
-    "User-Agent": conf.device.USER_AGENT_WIDGET,
+    "x-rpc-device_name": conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": conf.device_config.X_RPC_APP_VERSION,
+    "User-Agent": conf.device_config.USER_AGENT_WIDGET,
     "Connection": "keep-alive",
-    "x-rpc-sys_version": conf.device.X_RPC_SYS_VERSION
+    "x-rpc-sys_version": conf.device_config.X_RPC_SYS_VERSION
 }
 HEADERS_GENSHIN_STATUS_BBS = {
     "DS": None,
     "x-rpc-device_id": None,
     "Accept": "application/json,text/plain,*/*",
     "Origin": "https://webstatic.mihoyo.com",
-    "User-agent": conf.device.USER_AGENT_ANDROID,
+    "User-agent": conf.device_config.USER_AGENT_ANDROID,
     "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-app_version": conf.device.X_RPC_APP_VERSION,
+    "x-rpc-app_version": conf.device_config.X_RPC_APP_VERSION,
     "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-client_type": "5"
 }

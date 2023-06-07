@@ -26,7 +26,7 @@ class BaseGameSign:
         "Origin": "https://webstatic.mihoyo.com",
         "Connection": "keep-alive",
         "Accept": "application/json, text/plain, */*",
-        "User-Agent": conf.device.USER_AGENT_MOBILE,
+        "User-Agent": conf.device_config.USER_AGENT_MOBILE,
         "Accept-Language": "zh-CN,zh-Hans;q=0.9",
         "Referer": "https://webstatic.mihoyo.com/",
         "Accept-Encoding": "gzip, deflate, br"
