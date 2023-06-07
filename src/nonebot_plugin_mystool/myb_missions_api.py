@@ -82,6 +82,16 @@ HEADERS_OLD = {
 class BaseMission:
     GIDS = 0
     FID = 0
+
+    SIGN = "continuous_sign"
+    '''签到任务的 mission_key'''
+    VIEW = "view_post_0"
+    '''阅读任务的 mission_key'''
+    LIKE = "post_up_0"
+    '''点赞任务的 mission_key'''
+    SHARE = "share_post_0"
+    '''分享任务的 mission_key'''
+
     AVAILABLE_GAMES: Set[Type["BaseMission"]] = set()
 
     def __init__(self, account: UserAccount) -> None:
