@@ -53,12 +53,12 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
 manually_resin_check = on_command(conf.preference.command_start + '便笺', priority=5, block=True)
 manually_resin_check.name = '便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
-HAS_CHECKED = {}
+has_checked = {}
 for user in conf.users.values():
     for account in user.accounts.values():
         if account.enable_resin:
-            HAS_CHECKED[account.bbs_uid] = HAS_CHECKED.get(account.bbs_uid,
-                                                         {"resin": False, "coin": False, "transformer": False})
+            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
+                                                           {"resin": False, "coin": False, "transformer": False})
 
 
 @manually_resin_check.handle()
@@ -292,11 +292,11 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
     """
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
-    global HAS_CHECKED
+    global has_checked
     accounts = UserData.read_account_all(qq)
     for account in accounts:
         if account.checkResin:
-            HAS_CHECKED[account.phone] = HAS_CHECKED.get(account.phone,
+            has_checked[account.phone] = has_checked.get(account.phone,
                                                          {"resin": False, "coin": False, "transformer": False})
         if (account.checkResin and is_auto) or not is_auto:
             genshinstatus = await genshin_status_bbs(account)
@@ -336,33 +336,33 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 # 体力溢出提醒
                 if genshinstatus.resin == 160:
                     # 防止重复提醒
-                    if HAS_CHECKED[account.phone]['resin']:
+                    if has_checked[account.phone]['resin']:
                         return
                     else:
-                        HAS_CHECKED[account.phone]['resin'] = True
+                        has_checked[account.phone]['resin'] = True
                         msg += '❕您的树脂已经满啦\n'
                 else:
-                    HAS_CHECKED[account.phone]['resin'] = False
+                    has_checked[account.phone]['resin'] = False
                 # 洞天财瓮溢出提醒
                 if genshinstatus.coin[0] == genshinstatus.coin[1]:
                     # 防止重复提醒
-                    if HAS_CHECKED[account.phone]['coin']:
+                    if has_checked[account.phone]['coin']:
                         return
                     else:
-                        HAS_CHECKED[account.phone]['coin'] = True
+                        has_checked[account.phone]['coin'] = True
                         msg += '❕您的洞天财瓮已经满啦\n'
                 else:
-                    HAS_CHECKED[account.phone]['coin'] = False
+                    has_checked[account.phone]['coin'] = False
                 # 参量质变仪就绪提醒
                 if genshinstatus.transformer == '已准备就绪':
                     # 防止重复提醒
-                    if HAS_CHECKED[account.phone]['transformer']:
+                    if has_checked[account.phone]['transformer']:
                         return
                     else:
-                        HAS_CHECKED[account.phone]['transformer'] = True
+                        has_checked[account.phone]['transformer'] = True
                         msg += '❕您的参量质变仪已准备就绪\n\n'
                 else:
-                    HAS_CHECKED[account.phone]['transformer'] = False
+                    has_checked[account.phone]['transformer'] = False
                     return
             msg += f"""\
             ❖实时便笺❖\
