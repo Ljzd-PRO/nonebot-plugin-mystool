@@ -29,7 +29,8 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     手动游戏签到函数
     """
     bot = get_bot(str(event.self_id))
-    if not conf.users[event.user_id].accounts:
+    user = conf.users.get(event.user_id)
+    if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
@@ -45,7 +46,8 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     手动米游币任务函数
     """
     bot = get_bot(str(event.self_id))
-    if not conf.users[event.user_id].accounts:
+    user = conf.users.get(event.user_id)
+    if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
@@ -67,7 +69,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
     手动查看原神便笺
     """
     bot = get_bot(str(event.self_id))
-    if not conf.users[event.user_id].accounts:
+    user = conf.users.get(event.user_id)
+    if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 

@@ -13,7 +13,7 @@ from nonebot.params import ArgPlainText, T_State
 from .base_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken
 from .plugin_data import plugin_data_obj as conf, write_plugin_data
-from .user_data import UserAccount
+from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN
 
 get_cookie = on_command(conf.preference.command_start + '登录', priority=4, block=True)
@@ -64,7 +64,8 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
     if not captcha.isdigit():
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
-        # TODO login
+        conf.users.setdefault(event.user_id, UserData())
+        user = conf.users[event.user_id]
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
         if login_status:
@@ -72,10 +73,10 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
             account = conf.users[event.user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
-                conf.accounts.update({
+                user.accounts.update({
                     cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies)
                 })
-                account = conf.accounts[cookies.bbs_uid]
+                account = user.accounts[cookies.bbs_uid]
             else:
                 account.cookies.update(cookies)
             write_plugin_data()
