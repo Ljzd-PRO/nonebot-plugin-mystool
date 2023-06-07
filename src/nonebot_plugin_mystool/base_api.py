@@ -1337,7 +1337,7 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
                         headers["DS"] = generate_ds(
                             params={"role_id": record.uid, "server": record.region})
                         async with httpx.AsyncClient() as client:
-                            res = await client.get(url, headers=headers, cookies=account.cookies,
+                            res = await client.get(url, headers=headers, cookies=account.cookies.dict(),
                                                    timeout=conf.preference.timeout)
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:

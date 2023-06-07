@@ -93,7 +93,7 @@ class BaseGameSign:
                     headers["DS"] = generate_ds() if platform == "ios" else generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
                         res = await client.get(self.URL_INFO, headers=headers,
-                                               cookies=self.account.cookies, timeout=conf.preference.timeout)
+                                               cookies=self.account.cookies.dict(), timeout=conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -147,7 +147,7 @@ class BaseGameSign:
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(self.URL_SIGN, headers=headers, cookies=self.account.cookies,
+                        res = await client.post(self.URL_SIGN, headers=headers, cookies=self.account.cookies.dict(),
                                                 timeout=conf.TIME_OUT, json=content)
 
                     api_result = ApiResultHandler(res.json())

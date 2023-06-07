@@ -402,7 +402,7 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies,
+                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
                                            timeout=conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
@@ -438,7 +438,7 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies,
+                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
                                            timeout=conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
