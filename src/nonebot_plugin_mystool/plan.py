@@ -12,6 +12,7 @@ from nonebot_plugin_apscheduler import scheduler
 
 from .base_api import GameInfo, GameRecord, genshin_board_bbs, get_game_record
 from .game_sign_api import BaseGameSign
+from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import plugin_data_obj as conf, write_plugin_data
 from .user_data import UserData
 from .exchangePlan import generate_image
@@ -183,97 +184,87 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
     """
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
-    accounts = UserData.read_account_all(qq)
     failed_accounts = []
-    for account in accounts:
-        missions_state = await get_missions_state(account)
-        mybmission = await Action(account).async_init()
-        if isinstance(missions_state, int):
-            if mybmission == -1:
-                if group_event:
-                    await bot.send(event=group_event, at_sender=True,
-                                   message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
-                else:
-                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                continue
-            if group_event:
-                await bot.send(event=group_event, at_sender=True,
-                               message=f'⚠️账户 {blur(account.phone)} 获取任务完成情况请求失败，你可以手动前往App查看')
-            else:
-                await bot.send_private_msg(user_id=qq,
-                                           message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
-            continue
-        if isinstance(mybmission, int):
-            if mybmission == -1:
-                failed_accounts.append(account)
-                if group_event:
-                    await bot.send(event=group_event, at_sender=True,
-                                   message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
-                else:
-                    await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                continue
-            if group_event:
-                await bot.send(event=group_event, at_sender=True,
-                               message=f'⚠️账户 {blur(account.phone)} 请求失败，请重新尝试')
-            else:
-                await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 请求失败，请重新尝试')
-            continue
-        # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
-        if (account.mybMission and is_auto) or not is_auto:
-            if not is_auto:
-                if not group_event:
-                    await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
-
-            # 执行任务
-            for mission_state in missions_state[0]:
-                if mission_state[1] < mission_state[0].total_times:
-                    for gameID in account.missionGame:
-                        await mybmission.NAME_TO_FUNC[mission_state[0].key_name](mybmission, gameID)
-                        await asyncio.sleep(conf.SLEEP_TIME)
-
-            # 用户打开通知或手动任务时，进行通知
-            if conf.users[qq].enable_notice or not is_auto:
-                missions_state = await get_missions_state(account)
-                if isinstance(missions_state, int):
-                    if mybmission == -1:
-                        if group_event:
-                            await bot.send(event=group_event, at_sender=True,
-                                           message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
-                        else:
-                            await bot.send_private_msg(user_id=qq,
-                                                       message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                        continue
+    for account in conf.users[qq].accounts.values():
+        for class_name in BaseMission.AVAILABLE_GAMES:
+            mission_obj = class_name(account)
+            missions_state_status, missions_state = await get_missions_state(account)
+            if not missions_state_status:
+                if missions_state_status.login_expired:
                     if group_event:
                         await bot.send(event=group_event, at_sender=True,
-                                       message=f'⚠️账户 {blur(account.phone)} 获取任务完成情况请求失败，你可以手动前往App查看')
+                                       message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
                     else:
-                        await bot.send_private_msg(user_id=qq,
-                                                   message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
+                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
                     continue
-                if missions_state[0][0][1] >= missions_state[0][0][0].total_times and \
-                        missions_state[0][1][1] >= missions_state[0][1][0].total_times and \
-                        missions_state[0][2][1] >= missions_state[0][2][0].total_times and \
-                        missions_state[0][3][1] >= missions_state[0][3][0].total_times:
-                    notice_string = "🎉已完成今日米游币任务"
-                else:
-                    notice_string = "⚠️今日米游币任务未全部完成"
-                msg = f"""\
-                    \n{notice_string}\
-                    \n📱账户 {account.phone if not group_event else blur(account.phone)}\
-                    \n- 签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].total_times else '✕'}\
-                    \n- 阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].total_times else '✕'}\
-                    \n- 点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].total_times else '✕'}\
-                    \n- 转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].total_times else '✕'}\
-                \n💰米游币: {missions_state[1]}
-                """.strip()
                 if group_event:
-                    await bot.send(event=group_event, at_sender=True, message=msg)
+                    await bot.send(event=group_event, at_sender=True,
+                                   message=f'⚠️账户 {blur(account.phone)} 获取任务完成情况请求失败，你可以手动前往App查看')
                 else:
-                    await bot.send_msg(
-                        message_type="private",
-                        user_id=qq,
-                        message=msg
-                    )
+                    await bot.send_private_msg(user_id=qq,
+                                               message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
+                continue
+            await mission_obj.async_init()
+            # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
+            if (account.enable_mission and is_auto) or not is_auto:
+                if not is_auto:
+                    if not group_event:
+                        await bot.send_private_msg(user_id=qq, message=f'📱账户 {account.phone} ⏳开始执行米游币任务...')
+
+                # 执行任务
+                for mission, current in missions_state.state_dict.items():
+                    if current < mission.threshold:
+                        # TODO: 完成的跳过
+                        pass
+                await mission_obj.sign()
+                await mission_obj.read()
+                await mission_obj.like()
+                await mission_obj.share()
+
+
+                # 用户打开通知或手动任务时，进行通知
+                if conf.users[qq].enable_notice or not is_auto:
+                    missions_state = await get_missions_state(account)
+                    if isinstance(missions_state, int):
+                        if mybmission == -1:
+                            if group_event:
+                                await bot.send(event=group_event, at_sender=True,
+                                               message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
+                            else:
+                                await bot.send_private_msg(user_id=qq,
+                                                           message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
+                            continue
+                        if group_event:
+                            await bot.send(event=group_event, at_sender=True,
+                                           message=f'⚠️账户 {blur(account.phone)} 获取任务完成情况请求失败，你可以手动前往App查看')
+                        else:
+                            await bot.send_private_msg(user_id=qq,
+                                                       message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
+                        continue
+                    if missions_state[0][0][1] >= missions_state[0][0][0].total_times and \
+                            missions_state[0][1][1] >= missions_state[0][1][0].total_times and \
+                            missions_state[0][2][1] >= missions_state[0][2][0].total_times and \
+                            missions_state[0][3][1] >= missions_state[0][3][0].total_times:
+                        notice_string = "🎉已完成今日米游币任务"
+                    else:
+                        notice_string = "⚠️今日米游币任务未全部完成"
+                    msg = f"""\
+                        \n{notice_string}\
+                        \n📱账户 {account.phone if not group_event else blur(account.phone)}\
+                        \n- 签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].total_times else '✕'}\
+                        \n- 阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].total_times else '✕'}\
+                        \n- 点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].total_times else '✕'}\
+                        \n- 转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].total_times else '✕'}\
+                    \n💰米游币: {missions_state[1]}
+                    """.strip()
+                    if group_event:
+                        await bot.send(event=group_event, at_sender=True, message=msg)
+                    else:
+                        await bot.send_msg(
+                            message_type="private",
+                            user_id=qq,
+                            message=msg
+                        )
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(accounts):
