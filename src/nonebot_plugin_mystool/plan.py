@@ -214,19 +214,21 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                 # 执行任务
                 for mission, current in missions_state.state_dict.items():
                     if current < mission.threshold:
-                        # TODO: 完成的跳过
-                        pass
-                await mission_obj.sign()
-                await mission_obj.read()
-                await mission_obj.like()
-                await mission_obj.share()
+                        if mission.mission_key == BaseMission.SIGN:
+                            await mission_obj.sign()
+                        elif mission.mission_key == BaseMission.VIEW:
+                            await mission_obj.read()
+                        elif mission.mission_key == BaseMission.LIKE:
+                            await mission_obj.like()
+                        elif mission.mission_key == BaseMission.SHARE:
+                            await mission_obj.share()
 
 
                 # 用户打开通知或手动任务时，进行通知
                 if conf.users[qq].enable_notice or not is_auto:
-                    missions_state = await get_missions_state(account)
-                    if isinstance(missions_state, int):
-                        if mybmission == -1:
+                    missions_state_status, missions_state = await get_missions_state(account)
+                    if not missions_state_status:
+                        if missions_state_status.login_expired:
                             if group_event:
                                 await bot.send(event=group_event, at_sender=True,
                                                message=f'⚠️账户 {blur(account.phone)} 登录失效，请重新登录')
@@ -241,22 +243,29 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             await bot.send_private_msg(user_id=qq,
                                                        message=f'⚠️账户 {account.phone} 获取任务完成情况请求失败，你可以手动前往App查看')
                         continue
-                    if missions_state[0][0][1] >= missions_state[0][0][0].total_times and \
-                            missions_state[0][1][1] >= missions_state[0][1][0].total_times and \
-                            missions_state[0][2][1] >= missions_state[0][2][0].total_times and \
-                            missions_state[0][3][1] >= missions_state[0][3][0].total_times:
+                    if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.items())):
                         notice_string = "🎉已完成今日米游币任务"
                     else:
                         notice_string = "⚠️今日米游币任务未全部完成"
+
                     msg = f"""\
                         \n{notice_string}\
                         \n📱账户 {account.phone if not group_event else blur(account.phone)}\
-                        \n- 签到 {'✓' if missions_state[0][0][1] >= missions_state[0][0][0].total_times else '✕'}\
-                        \n- 阅读 {'✓' if missions_state[0][1][1] >= missions_state[0][1][0].total_times else '✕'}\
-                        \n- 点赞 {'✓' if missions_state[0][2][1] >= missions_state[0][2][0].total_times else '✕'}\
-                        \n- 转发 {'✓' if missions_state[0][3][1] >= missions_state[0][3][0].total_times else '✕'}\
-                    \n💰米游币: {missions_state[1]}
-                    """.strip()
+                        """
+                    for mission, current in missions_state.state_dict.items():
+                        if mission.mission_key == BaseMission.SIGN:
+                            mission_name = "签到"
+                        elif mission.mission_key == BaseMission.VIEW:
+                            mission_name = "阅读"
+                        elif mission.mission_key == BaseMission.LIKE:
+                            mission_name = "点赞"
+                        elif mission.mission_key == BaseMission.SHARE:
+                            mission_name = "转发"
+                        else:
+                            mission_name = mission.mission_key
+                        msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
+                    msg += f"\n💰米游币: {missions_state.current_myb}"
+
                     if group_event:
                         await bot.send(event=group_event, at_sender=True, message=msg)
                     else:
@@ -267,8 +276,9 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                         )
 
     # 如果全部登录失效，则关闭通知
-    if len(failed_accounts) == len(accounts):
-        UserData.set_notice(False, qq)
+    if len(failed_accounts) == len(user.accounts):
+        user.enable_notice = False
+        write_plugin_data()
 
 
 async def resin_check(bot: Bot, qq: int, is_auto: bool,
