@@ -450,7 +450,7 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
                 for mission in missions:
                     try:
                         state_dict.setdefault(mission, list(filter(lambda state: state["mission_key"] ==
-                                                                                 mission.key_name,
+                                                                                 mission.mission_key,
                                                                    api_result.data["states"]))[0][
                             "happened_times"])
                     except IndexError:
