@@ -294,15 +294,14 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     global has_checked
-    accounts = UserData.read_account_all(qq)
-    for account in accounts:
-        if account.checkResin:
+    for account in conf.users[qq].accounts.values():
+        if account.enable_resin:
             has_checked[account.phone] = has_checked.get(account.phone,
                                                          {"resin": False, "coin": False, "transformer": False})
-        if (account.checkResin and is_auto) or not is_auto:
-            genshinstatus = await genshin_status_bbs(account)
-            if isinstance(genshinstatus, int):
-                if genshinstatus == -1:
+        if (account.enable_resin and is_auto) or not is_auto:
+            genshin_board_status, board = await genshin_board_bbs(account)
+            if not genshin_board_status:
+                if genshin_board_status.login_expired:
                     if not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True,
@@ -310,7 +309,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         else:
                             await bot.send_private_msg(user_id=qq,
                                                        message=f'⚠️账户 {account.phone} 登录失效，请重新登录')
-                if genshinstatus == -4:
+                if genshin_board_status.no_genshin_account:
                     if not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True,
@@ -318,8 +317,8 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         else:
                             await bot.send_private_msg(user_id=qq,
                                                        message=f'⚠️账户 {account.phone} 没有绑定任何原神账户，请绑定后再重试')
-                        account.checkResin = False
-                        UserData.set_account(account, qq, account.phone)
+                        account.enable_resin = False
+                        write_plugin_data()
                         continue
                 if not is_auto:
                     if group_event:
@@ -335,7 +334,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 pass
             else:
                 # 体力溢出提醒
-                if genshinstatus.resin == 160:
+                if board.current_resin == 160:
                     # 防止重复提醒
                     if has_checked[account.phone]['resin']:
                         return
@@ -345,7 +344,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.phone]['resin'] = False
                 # 洞天财瓮溢出提醒
-                if genshinstatus.coin[0] == genshinstatus.coin[1]:
+                if board.current_home_coin == board.max_home_coin:
                     # 防止重复提醒
                     if has_checked[account.phone]['coin']:
                         return
@@ -355,7 +354,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.phone]['coin'] = False
                 # 参量质变仪就绪提醒
-                if genshinstatus.transformer == '已准备就绪':
+                if board.transformer_text == '已准备就绪':
                     # 防止重复提醒
                     if has_checked[account.phone]['transformer']:
                         return
@@ -367,12 +366,11 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                     return
             msg += f"""\
             ❖实时便笺❖\
-            \n🎮{genshinstatus.name}·{genshinstatus.level}\
-            \n⏳树脂数量：{genshinstatus.resin}/160\
-            \n🕰️探索派遣：{genshinstatus.expedition[0]}/{genshinstatus.expedition[1]}\
-            \n📅每日委托：{4 - genshinstatus.task} 个任务未完成\
-            \n💰洞天财瓮：{genshinstatus.coin[0]}/{genshinstatus.coin[1]}\
-            \n🎰参量质变仪：{genshinstatus.transformer}
+            \n⏳树脂数量：{board.current_resin}/160\
+            \n🕰️探索派遣：{board.current_expedition_num}/{board.max_expedition_num}\
+            \n📅每日委托：{4 - board.finished_task_num} 个任务未完成\
+            \n💰洞天财瓮：{board.current_home_coin}/{board.max_home_coin}\
+            \n🎰参量质变仪：{board.transformer_text}
             """.strip()
             if group_event:
                 await bot.send(event=group_event, at_sender=True, message=msg)
