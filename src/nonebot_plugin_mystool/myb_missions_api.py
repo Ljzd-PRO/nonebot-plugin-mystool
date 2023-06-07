@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional, Tuple, NewType
+from typing import List, Optional, Tuple, Set, Type
 
 import httpx
 import tenacity
@@ -79,34 +79,10 @@ HEADERS_OLD = {
 }
 
 
-class GameID:
-    """
-    米游社任务所需的gid和fid
-    """
-
-    def __init__(self, gids: int, fid: int):
-        self.gids: int = gids
-        self.fid: int = fid
-
-
-GAME_ID = {
-    "bbs": GameID(5, 0),
-    # TODO: bbs fid暂时未知
-    "bh3": GameID(1, 1),
-    "ys": GameID(2, 26),
-    "bh2": GameID(3, 30),
-    "wd": GameID(4, 37),
-    "xq": GameID(5, 52),
-}
-'''所有的gid和fid'''
-
-Progress_Now = NewType("Progress_Now", int)
-Myb_Num = NewType("Myb_Num", int)
-
-
 class BaseMission:
     GIDS = 0
     FID = 0
+    AVAILABLE_GAMES: Set[Type["BaseMission"]] = set()
 
     def __init__(self, account: UserAccount) -> None:
         """
@@ -347,6 +323,62 @@ class BaseMission:
                 logger.exception(f"米游币任务 - 分享: 请求失败")
                 return MissionStatus(network_error=True)
         return MissionStatus(success=True)
+
+
+class GenshinImpactMission(BaseMission):
+    """
+    原神 米游币任务
+    """
+    GIDS = 2
+    FID = 26
+
+
+class HonkaiImpact3Mission(BaseMission):
+    """
+    崩坏3 米游币任务
+    """
+    GIDS = 1
+    FID = 1
+
+
+class HoukaiGakuen2Mission(BaseMission):
+    """
+    崩坏学园2 米游币任务
+    """
+    GIDS = 3
+    FID = 30
+
+
+class TearsOfThemisMission(BaseMission):
+    """
+    未定事件簿 米游币任务
+    """
+    GIDS = 4
+    FID = 37
+
+
+class StarRailMission(BaseMission):
+    """
+    崩坏：星穹铁道 米游币任务
+    """
+    GIDS = 5
+    FID = 52
+
+
+class BBSMission(BaseMission):
+    """
+    大别野 米游币任务
+    """
+    GIDS = 5
+    # TODO: bbs fid暂时未知
+
+
+BaseMission.AVAILABLE_GAMES.add(GenshinImpactMission)
+BaseMission.AVAILABLE_GAMES.add(HonkaiImpact3Mission)
+BaseMission.AVAILABLE_GAMES.add(HoukaiGakuen2Mission)
+BaseMission.AVAILABLE_GAMES.add(TearsOfThemisMission)
+BaseMission.AVAILABLE_GAMES.add(StarRailMission)
+BaseMission.AVAILABLE_GAMES.add(BBSMission)
 
 
 async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[MissionData]]]:
