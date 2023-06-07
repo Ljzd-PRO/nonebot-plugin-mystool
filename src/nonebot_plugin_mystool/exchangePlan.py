@@ -135,10 +135,10 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
     if command_2 == '+':
         good_dict = {
             'bh3': (await get_good_list('bh3'))[1],
-            'ys': (await get_good_list('ys'))[1],
+            'ys': (await get_good_list('hk4e'))[1],
             'bh2': (await get_good_list('bh2'))[1],
-            'xq': (await get_good_list('xq'))[1],
-            'wd': (await get_good_list('wd'))[1],
+            'xq': (await get_good_list('hkrpg'))[1],
+            'wd': (await get_good_list('nxx'))[1],
             'bbs': (await get_good_list('bbs'))[1]
         }
         flag = True
