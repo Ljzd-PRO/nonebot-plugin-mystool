@@ -269,7 +269,6 @@ class ExchangePlan(BaseModel):
     """
     兑换计划数据类
     """
-    # TODO TypeError: unhashable type: 'dict' 问题
 
     good: Good
     """商品"""
