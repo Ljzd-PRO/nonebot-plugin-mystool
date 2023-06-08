@@ -74,7 +74,6 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     if not user_account:
         await matcher.finish(
             f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{_conf.preference.command_start}登录』进行登录")
-    state['user_account'] = user_account
 
     # 如果使用了二级命令 + - 则跳转进下一步，通过phone选择账户进行设置
     if len(command) > 1:
@@ -110,17 +109,16 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('phone')
-async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=ArgStr('phone')):
+async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=ArgStr('phone')):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    user_account: List[UserAccount] = state['user_account']
-
+    user_account = _conf.users[event.user_id].accounts
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     try:
         state["account"] = list(
-            filter(lambda account: account.bbs_uid == int(phone), user_account))[0]
+            filter(lambda account: account.bbs_uid == int(phone), user_account.values()))[0]
     except IndexError:
         await matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     except ValueError:
