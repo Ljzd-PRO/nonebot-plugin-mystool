@@ -92,18 +92,17 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     # 如果未使用二级命令，则进行查询操作，并结束交互
     else:
         msg = ""
-        for account in user_account:
-            for plan in account.exchange:
-                good_detail_status, good = await get_good_detail(plan[0])
-                if not good_detail_status:
-                    await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-                msg += f"""\
-                \n-- 商品 {good.general_name}\
-                \n- 🔢商品ID：{good.goods_id}\
-                \n- 💰商品价格：{good.price} 米游币\
-                \n- 📅兑换时间：{good.time_text}\
-                \n- 📱账户：{account.bbs_uid}""".strip()
-                msg += "\n\n"
+        for plan in user.exchange_plans:
+            good_detail_status, good = await get_good_detail(plan[0])
+            if not good_detail_status:
+                await matcher.finish("⚠️获取商品详情失败，请稍后再试")
+            msg += f"""\
+            \n-- 商品 {good.general_name}\
+            \n- 🔢商品ID：{good.goods_id}\
+            \n- 💰商品价格：{good.price} 米游币\
+            \n- 📅兑换时间：{good.time_text}\
+            \n- 📱账户：{plan.account.bbs_uid}""".strip()
+            msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
