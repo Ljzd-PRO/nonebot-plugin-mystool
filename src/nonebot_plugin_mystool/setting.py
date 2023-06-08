@@ -47,7 +47,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await account_setting.finish(
             f"⚠️你尚未绑定米游社账户，请先使用『{_conf.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
-        matcher.set_arg('phone', Message(str(next(user_account.values()).phone_number)))
+        phone_number = next(iter(user_account.values())).phone_number
+        matcher.set_arg('phone', Message(str(phone_number)))
     else:
         phones = map(lambda x: str(x.phone_number), user_account.values())
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
