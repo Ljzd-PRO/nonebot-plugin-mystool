@@ -168,7 +168,8 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
                             msg += f'\n🎮 {record.region_name} - {record.nickname} - UID {record.game_role_id}'
                         if records:
                             state['records'] = records
-                            await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+                            await matcher.send(
+                                "您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
                             await asyncio.sleep(0.5)
                             await matcher.send(msg)
                         else:

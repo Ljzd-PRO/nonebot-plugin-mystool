@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Set, Type
 import httpx
 import tenacity
 
-from .base_api import device_login, device_save, ApiResultHandler, is_incorrect_return
+from .base_api import ApiResultHandler, is_incorrect_return
 from .data_model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState
 from .plugin_data import PluginDataManager
@@ -109,7 +109,6 @@ class BaseMission:
         self.account = account
         self.headers = HEADERS_BASE.copy()
         self.headers["x-rpc-device_id"] = account.device_id_android
-
 
     async def sign(self, retry: bool = True) -> Tuple[MissionStatus, Optional[int]]:
         """
@@ -428,7 +427,8 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION,
+                                           cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                            timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
@@ -464,7 +464,8 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION,
+                                           cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                            timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:

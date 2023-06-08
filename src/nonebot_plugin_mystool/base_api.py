@@ -353,7 +353,8 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Tuple[Bas
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbs_uid), headers=HEADERS_GAME_RECORD,
-                                           cookies=account.cookies.dict(v2_stoken=True, cookie_type=True), timeout=_conf.preference.timeout)
+                                           cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                                           timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -409,7 +410,8 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MYB, headers=HEADERS_MYB, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                    res = await client.get(URL_MYB, headers=HEADERS_MYB,
+                                           cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                            timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
@@ -495,7 +497,8 @@ async def device_save(account: UserAccount, retry: bool = True):
             with attempt:
                 headers["DS"] = generate_ds(data)
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                    res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data,
+                                            cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                             timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
@@ -629,7 +632,8 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ADDRESS.format(
-                        round(NtpTime.time() * 1000)), headers=headers, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                        round(NtpTime.time() * 1000)), headers=headers,
+                        cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                         timeout=_conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
@@ -1220,7 +1224,8 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
     try:
         async with httpx.AsyncClient() as client:
             res = await client.post(
-                URL_EXCHANGE, headers=headers, json=content, cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                URL_EXCHANGE, headers=headers, json=content,
+                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
@@ -1275,7 +1280,8 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
     try:
         with httpx.Client() as client:
             res = client.post(
-                URL_EXCHANGE, headers=headers, json=content, cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                URL_EXCHANGE, headers=headers, json=content,
+                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
@@ -1339,7 +1345,8 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
                         headers["DS"] = generate_ds(
                             params={"role_id": record.game_role_id, "server": record.region})
                         async with httpx.AsyncClient() as client:
-                            res = await client.get(url, headers=headers, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                            res = await client.get(url, headers=headers,
+                                                   cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                                    timeout=_conf.preference.timeout)
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
