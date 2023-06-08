@@ -7,10 +7,12 @@ import tenacity
 from .base_api import device_login, device_save, ApiResultHandler, is_incorrect_return
 from .data_model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState
-from .plugin_data import plugin_data_obj as conf
+from .plugin_data import PluginDataManager
 from .user_data import UserAccount
 from .utils import logger, generate_ds, \
     get_async_retry
+
+_conf = PluginDataManager.plugin_data_obj
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.miyoushe.com/post/api/feeds/posts?fresh_action=1&gids={}&is_first_initialize=false" \
@@ -23,14 +25,14 @@ URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsSt
 HEADERS_BASE = {
     "Host": "bbs-api.miyoushe.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': conf.device_config.USER_AGENT_ANDROID_OTHER,
-    "x-rpc-app_version": conf.device_config.X_RPC_APP_VERSION,
-    "x-rpc-channel": conf.device_config.X_RPC_CHANNEL_ANDROID,
+    'User-Agent': _conf.device_config.USER_AGENT_ANDROID_OTHER,
+    "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
+    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
-    "x-rpc-device_model": conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
-    "x-rpc-device_name": conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
-    "x-rpc-sys_version": conf.device_config.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-device_model": _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION_ANDROID,
     "Accept-Encoding": "gzip",
     "Connection": "Keep-Alive",
     "DS": None
@@ -40,7 +42,7 @@ HEADERS_MISSION = {
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
-    "User-Agent": conf.device_config.USER_AGENT_MOBILE,
+    "User-Agent": _conf.device_config.USER_AGENT_MOBILE,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
@@ -50,14 +52,14 @@ HEADERS_GET_POSTS = {
     "Accept": "*/*",
     "x-rpc-client_type": "1",
     "x-rpc-device_id": None,
-    "x-rpc-channel": conf.device_config.X_RPC_CHANNEL,
+    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": conf.device_config.X_RPC_SYS_VERSION,
+    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-device_name": conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": conf.device_config.X_RPC_APP_VERSION,
-    "User-Agent": conf.device_config.USER_AGENT_OTHER,
+    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
+    "User-Agent": _conf.device_config.USER_AGENT_OTHER,
     "Connection": "keep-alive"
 }
 
@@ -65,14 +67,14 @@ HEADERS_GET_POSTS = {
 HEADERS_OLD = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': conf.device_config.USER_AGENT_ANDROID_OTHER,
+    'User-Agent': _conf.device_config.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": "2.36.1",
-    "x-rpc-channel": conf.device_config.X_RPC_CHANNEL_ANDROID,
+    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
-    "x-rpc-device_model": conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
-    "x-rpc-device_name": conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
-    "x-rpc-sys_version": conf.device_config.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-device_model": _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION_ANDROID,
     "Accept-Encoding": "gzip",
     "Connection": "Keep-Alive",
     "DS": None
@@ -130,7 +132,7 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_android
                     headers["DS"] = generate_ds(data=content)
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(URL_SIGN, headers=headers, json=content, timeout=conf.TIME_OUT)
+                        res = await client.post(URL_SIGN, headers=headers, json=content, timeout=_conf.TIME_OUT)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -167,7 +169,7 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_ios
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URL_GET_POST.format(self.GIDS), headers=headers,
-                                               timeout=conf.TIME_OUT)
+                                               timeout=_conf.TIME_OUT)
                     api_result = ApiResultHandler(res.json())
                     for post in api_result.data["list"]:
                         if post["self_operation"]["attitude"] == 0:
@@ -204,7 +206,7 @@ class BaseMission:
                             self.headers["DS"] = generate_ds(platform="android")
                             async with httpx.AsyncClient() as client:
                                 res = await client.get(URL_READ.format(post_id), headers=self.headers,
-                                                       timeout=conf.TIME_OUT)
+                                                       timeout=_conf.TIME_OUT)
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
@@ -231,7 +233,7 @@ class BaseMission:
                         logger.exception(f"米游币任务 - 阅读: 请求失败")
                         return MissionStatus(network_error=True)
                 if count != read_times:
-                    await asyncio.sleep(conf.preference.sleep_time)
+                    await asyncio.sleep(_conf.preference.sleep_time)
             get_post_status, posts = await self.get_posts(retry)
             if not get_post_status:
                 return MissionStatus(failed_getting_post=True)
@@ -262,7 +264,7 @@ class BaseMission:
                             async with httpx.AsyncClient() as client:
                                 res = await client.post(URL_LIKE, headers=headers,
                                                         json={'is_cancel': False, 'post_id': post_id},
-                                                        timeout=conf.TIME_OUT)
+                                                        timeout=_conf.TIME_OUT)
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
@@ -288,7 +290,7 @@ class BaseMission:
                         logger.exception(f"米游币任务 - 点赞: 请求失败")
                         return MissionStatus(network_error=True)
                 if count != like_times:
-                    await asyncio.sleep(conf.preference.sleep_time)
+                    await asyncio.sleep(_conf.preference.sleep_time)
             get_post_status, posts = await self.get_posts(retry)
             if not get_post_status:
                 return MissionStatus(failed_getting_post=True)
@@ -312,7 +314,7 @@ class BaseMission:
                     headers["DS"] = generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
                         res = await client.get(URL_SHARE.format(posts[0]), headers=headers,
-                                               timeout=conf.TIME_OUT)
+                                               timeout=_conf.TIME_OUT)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -413,7 +415,7 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
-                                           timeout=conf.preference.timeout)
+                                           timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -449,7 +451,7 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
-                                           timeout=conf.preference.timeout)
+                                           timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(

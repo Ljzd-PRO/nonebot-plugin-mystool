@@ -11,11 +11,13 @@ from nonebot.params import Arg, ArgPlainText, T_State
 
 from .base_api import GameInfo
 from .myb_missions_api import BaseMission
-from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
+from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-setting = on_command(plugin_data.preference.command_start + '设置', priority=4, block=True)
+_conf = PluginDataManager.plugin_data_obj
+
+setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)
 setting.name = "设置"
 setting.usage = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令。\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令。'
 
@@ -26,7 +28,7 @@ async def _(_: MessageEvent):
     await setting.send(msg)
 
 
-account_setting = on_command(plugin_data.preference.command_start + '账号设置', priority=5, block=True)
+account_setting = on_command(_conf.preference.command_start + '账号设置', priority=5, block=True)
 account_setting.name = "账号设置"
 account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
 
@@ -38,12 +40,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     """
     if isinstance(event, GroupMessageEvent):
         await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
-    user = plugin_data.users.get(event.user_id)
+    user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
     state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(
-            f"⚠️你尚未绑定米游社账户，请先使用『{plugin_data.preference.command_start}登录』进行登录")
+            f"⚠️你尚未绑定米游社账户，请先使用『{_conf.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
         matcher.set_arg('phone', Message(str(next(user_account.values()).phone_number)))
     else:
@@ -159,7 +161,7 @@ async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missionGam
     await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
 
 
-global_setting = on_command(plugin_data.preference.command_start + '通知设置', priority=5, block=True)
+global_setting = on_command(_conf.preference.command_start + '通知设置', priority=5, block=True)
 global_setting.name = "通知设置"
 global_setting.usage = "设置每日签到后是否进行QQ通知"
 
@@ -169,7 +171,7 @@ async def _(event: MessageEvent, matcher: Matcher):
     """
     通知设置命令触发
     """
-    user = plugin_data.users[event.user_id]
+    user = _conf.users[event.user_id]
     await matcher.send(
         f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
@@ -179,7 +181,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
     """
     根据选择变更通知设置
     """
-    user = plugin_data.users[event.user_id]
+    user = _conf.users[event.user_id]
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':

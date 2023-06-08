@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
     Mapping
 
+import nonebot
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
@@ -82,7 +83,7 @@ class Preference(BaseSettings):
     resin_interval: int = 60
     '''每次检查原神便笺间隔，单位为分钟'''
 
-    @validator("log_path")
+    @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):
         absolute_path = v.absolute()
         if not os.path.exists(absolute_path) or not os.path.isfile(absolute_path):
@@ -215,44 +216,47 @@ class PluginData(BaseModel):
     users: Dict[int, UserData] = {}
     '''所有用户数据'''
 
+class PluginDataManager:
+    plugin_data_obj = PluginData()
+    """加载出的插件数据对象"""
 
-def load_plugin_data():
-    """
-    加载插件数据文件
-    """
-    if os.path.exists(PLUGIN_DATA_PATH) and os.path.isfile(PLUGIN_DATA_PATH):
-        try:
-            return PluginData.parse_file(PLUGIN_DATA_PATH)
-        except (ValidationError, JSONDecodeError):
-            logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 格式是否正确")
-            raise
-        except:
-            logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
-            raise
-    else:
-        plugin_data = PluginData()
-        try:
-            str_data = plugin_data.json(indent=4)
-            with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
-                f.write(str_data)
-        except (AttributeError, TypeError, ValueError, PermissionError):
-            logger.exception(f"创建插件数据文件失败，请检查是否有权限读取和写入 {PLUGIN_DATA_PATH}")
-            raise
-        logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
+    @classmethod
+    def load_plugin_data(cls):
+        """
+        加载插件数据文件
+        """
+        if os.path.exists(PLUGIN_DATA_PATH) and os.path.isfile(PLUGIN_DATA_PATH):
+            try:
+                new_model = PluginData.parse_file(PLUGIN_DATA_PATH)
+                for attr in new_model.__fields__:
+                    PluginDataManager.plugin_data_obj.__setattr__(attr, new_model.__getattribute__(attr))
+            except (ValidationError, JSONDecodeError):
+                logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 格式是否正确")
+                raise
+            except:
+                logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
+                raise
+        else:
+            plugin_data = PluginData()
+            try:
+                str_data = plugin_data.json(indent=4)
+                with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
+                    f.write(str_data)
+            except (AttributeError, TypeError, ValueError, PermissionError):
+                logger.exception(f"创建插件数据文件失败，请检查是否有权限读取和写入 {PLUGIN_DATA_PATH}")
+                raise
+            logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
 
-        return plugin_data
+nonebot.get_driver().on_startup(PluginDataManager.load_plugin_data)
 
-
-plugin_data_obj = load_plugin_data()
-"""插件数据对象"""
-
-
-def write_plugin_data(data: PluginData = plugin_data_obj):
+def write_plugin_data(data: PluginData = None):
     """
     写入插件数据文件
 
     :param data: 配置对象
     """
+    if data is None:
+        data = PluginDataManager.plugin_data_obj
     try:
         str_data = data.json(indent=4)
     except (AttributeError, TypeError, ValueError):

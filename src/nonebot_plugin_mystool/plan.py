@@ -14,11 +14,13 @@ from .base_api import genshin_board_bbs, get_game_record
 from .exchangePlan import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
-from .plugin_data import plugin_data_obj as conf, write_plugin_data
+from .plugin_data import PluginDataManager, write_plugin_data
 from .utils import blur_phone as blur
 from .utils import get_file, logger, COMMAND_BEGIN
 
-manually_game_sign = on_command(conf.preference.command_start + '签到', priority=5, block=True)
+_conf = PluginDataManager.plugin_data_obj
+
+manually_game_sign = on_command(_conf.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
 manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
@@ -29,13 +31,13 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     手动游戏签到函数
     """
     bot = get_bot(str(event.self_id))
-    user = conf.users.get(event.user_id)
+    user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_bbs_sign = on_command(conf.preference.command_start + '任务', priority=5, block=True)
+manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
 manually_bbs_sign.name = '任务'
 manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米游币任务完成情况'
 
@@ -46,17 +48,17 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     手动米游币任务函数
     """
     bot = get_bot(str(event.self_id))
-    user = conf.users.get(event.user_id)
+    user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check = on_command(conf.preference.command_start + '便笺', priority=5, block=True)
+manually_resin_check = on_command(_conf.preference.command_start + '便笺', priority=5, block=True)
 manually_resin_check.name = '便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 has_checked = {}
-for user in conf.users.values():
+for user in _conf.users.values():
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
@@ -69,7 +71,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
     手动查看原神便笺
     """
     bot = get_bot(str(event.self_id))
-    user = conf.users.get(event.user_id)
+    user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
@@ -88,7 +90,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     failed_accounts = []
-    for account in conf.users.get(qq).accounts.values():
+    for account in _conf.users.get(qq).accounts.values():
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
             if group_event:
@@ -122,7 +124,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         message = f"⚠️账户 {account.bbs_uid if not group_event else blur(account.bbs_uid)} 🎮『{signer.record.region_name}』签到时可能遇到验证码拦截，请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到"
                     else:
                         message = f"⚠️账户 {account.bbs_uid if not group_event else blur(account.bbs_uid)} 🎮『{signer.record.region_name}』签到失败，请稍后再试"
-                    if conf.users[qq].enable_notice or not is_auto:
+                    if _conf.users[qq].enable_notice or not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True, message=message)
                         else:
@@ -131,15 +133,15 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                                 user_id=qq,
                                 message=message
                             )
-                    await asyncio.sleep(conf.preference.sleep_time)
+                    await asyncio.sleep(_conf.preference.sleep_time)
                     continue
-                await asyncio.sleep(conf.preference.sleep_time)
+                await asyncio.sleep(_conf.preference.sleep_time)
             # 若用户未开启自动签到且手动签到过了，不再提醒
             elif not account.gameSign and is_auto:
                 continue
 
             # 用户打开通知或手动签到时，进行通知
-            if conf.users[qq].enable_notice or not is_auto:
+            if _conf.users[qq].enable_notice or not is_auto:
                 img = ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
@@ -168,7 +170,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         user_id=qq,
                         message=msg + img
                     )
-            await asyncio.sleep(conf.preference.sleep_time)
+            await asyncio.sleep(_conf.preference.sleep_time)
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
@@ -189,7 +191,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     failed_accounts = []
-    for account in conf.users[qq].accounts.values():
+    for account in _conf.users[qq].accounts.values():
         for class_name in account.mission_games:
             mission_obj = class_name(account)
             missions_state_status, missions_state = await get_missions_state(account)
@@ -229,7 +231,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             await mission_obj.share()
 
                 # 用户打开通知或手动任务时，进行通知
-                if conf.users[qq].enable_notice or not is_auto:
+                if _conf.users[qq].enable_notice or not is_auto:
                     missions_state_status, missions_state = await get_missions_state(account)
                     if not missions_state_status:
                         if missions_state_status.login_expired:
@@ -299,7 +301,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     global has_checked
-    for account in conf.users[qq].accounts.values():
+    for account in _conf.users[qq].accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
                                                            {"resin": False, "coin": False, "transformer": False})
@@ -388,13 +390,13 @@ def daily_update():
     """
     每日图片生成函数
     """
-    logger.info(f"{conf.preference.log_head}开始生成每日商品图片")
+    logger.info(f"{_conf.preference.log_head}开始生成每日商品图片")
     generate_image()
 
 
 @scheduler.scheduled_job("cron",
-                         hour=conf.preference.plan_time.split(':')[0],
-                         minute=conf.preference.plan_time.split(':')[1],
+                         hour=_conf.preference.plan_time.split(':')[0],
+                         minute=_conf.preference.plan_time.split(':')[1],
                          id="daily_schedule")
 async def daily_schedule():
     """
@@ -402,21 +404,21 @@ async def daily_schedule():
     """
     # 随机延迟
     await asyncio.sleep(random.randint(0, 59))
-    logger.info(f"{conf.preference.log_head}开始执行每日自动任务")
+    logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
     bot = get_bot()
-    for qq in conf.users:
+    for qq in _conf.users:
         await perform_bbs_sign(bot=bot, qq=qq, is_auto=True)
         await perform_game_sign(bot=bot, qq=qq, is_auto=True)
-    logger.info(f"{conf.preference.log_head}每日自动任务执行完成")
+    logger.info(f"{_conf.preference.log_head}每日自动任务执行完成")
 
 
 @scheduler.scheduled_job("interval",
-                         minutes=conf.preference.resin_interval,
+                         minutes=_conf.preference.resin_interval,
                          id="resin_check")
 async def auto_resin_check():
     """
     自动查看实时便笺
     """
     bot = get_bot()
-    for qq in conf.users:
+    for qq in _conf.users:
         await resin_check(bot=bot, qq=qq, is_auto=True)

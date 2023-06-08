@@ -6,11 +6,12 @@ import tenacity
 
 from .base_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
 from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo
-from .plugin_data import plugin_data_obj as conf
+from .plugin_data import PluginDataManager
 from .user_data import UserAccount
 from .utils import logger, generate_ds, \
     get_async_retry
 
+_conf = PluginDataManager.plugin_data_obj
 
 class BaseGameSign:
     """
@@ -26,7 +27,7 @@ class BaseGameSign:
         "Origin": "https://webstatic.mihoyo.com",
         "Connection": "keep-alive",
         "Accept": "application/json, text/plain, */*",
-        "User-Agent": conf.device_config.USER_AGENT_MOBILE,
+        "User-Agent": _conf.device_config.USER_AGENT_MOBILE,
         "Accept-Language": "zh-CN,zh-Hans;q=0.9",
         "Referer": "https://webstatic.mihoyo.com/",
         "Accept-Encoding": "gzip, deflate, br"
@@ -62,7 +63,7 @@ class BaseGameSign:
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(self.URL_REWARD, headers=self.HEADERS_REWARD,
-                                               timeout=conf.preference.timeout)
+                                               timeout=_conf.preference.timeout)
                     award_list = []
                     for award in res.json()["data"]["awards"]:
                         award_list.append(Award.parse_obj(award))
@@ -93,7 +94,7 @@ class BaseGameSign:
                     headers["DS"] = generate_ds() if platform == "ios" else generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
                         res = await client.get(self.URL_INFO, headers=headers,
-                                               cookies=self.account.cookies.dict(), timeout=conf.preference.timeout)
+                                               cookies=self.account.cookies.dict(), timeout=_conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -135,11 +136,11 @@ class BaseGameSign:
             headers["DS"] = generate_ds()
         else:
             headers["x-rpc-device_id"] = self.account.device_id_android
-            headers["x-rpc-device_model"] = conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
-            headers["User-Agent"] = conf.device_config.USER_AGENT_ANDROID
-            headers["x-rpc-device_name"] = conf.device_config.X_RPC_DEVICE_NAME_ANDROID
-            headers["x-rpc-channel"] = conf.device_config.X_RPC_CHANNEL_ANDROID
-            headers["x-rpc-sys_version"] = conf.device_config.X_RPC_SYS_VERSION_ANDROID
+            headers["x-rpc-device_model"] = _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
+            headers["User-Agent"] = _conf.device_config.USER_AGENT_ANDROID
+            headers["x-rpc-device_name"] = _conf.device_config.X_RPC_DEVICE_NAME_ANDROID
+            headers["x-rpc-channel"] = _conf.device_config.X_RPC_CHANNEL_ANDROID
+            headers["x-rpc-sys_version"] = _conf.device_config.X_RPC_SYS_VERSION_ANDROID
             headers["x-rpc-client_type"] = "2"
             headers.pop("x-rpc-platform")
             await device_login(self.account)
@@ -150,7 +151,7 @@ class BaseGameSign:
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(self.URL_SIGN, headers=headers, cookies=self.account.cookies.dict(),
-                                                timeout=conf.TIME_OUT, json=content)
+                                                timeout=_conf.TIME_OUT, json=content)
 
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
@@ -165,8 +166,8 @@ class BaseGameSign:
                         return BaseApiStatus(invalid_ds=True)
                     if api_result.data.get("risk_code") != 0:
                         logger.warning(
-                            f"{conf.LOG_HEAD}游戏签到 - 用户 {self.account.bbs_uid} 可能被验证码阻拦")
-                        logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
+                            f"{_conf.LOG_HEAD}游戏签到 - 用户 {self.account.bbs_uid} 可能被验证码阻拦")
+                        logger.debug(f"{_conf.LOG_HEAD}网络请求返回: {res.text}")
                         return BaseApiStatus(need_verify=True)
                     return BaseApiStatus(success=True)
         except tenacity.RetryError as e:

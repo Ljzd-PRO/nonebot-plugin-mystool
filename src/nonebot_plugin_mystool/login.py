@@ -12,11 +12,13 @@ from nonebot.params import ArgPlainText, T_State
 
 from .base_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken
-from .plugin_data import plugin_data_obj as conf, write_plugin_data
+from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN
 
-get_cookie = on_command(conf.preference.command_start + '登录', priority=4, block=True)
+_conf = PluginDataManager.plugin_data_obj
+
+get_cookie = on_command(_conf.preference.command_start + '登录', priority=4, block=True)
 get_cookie.name = '登录'
 get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
@@ -25,8 +27,8 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     if isinstance(event, GroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
-    user_num = len(conf.users)
-    if user_num < conf.preference.max_user or conf.preference.max_user in [-1, 0]:
+    user_num = len(_conf.users)
+    if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         await get_cookie.send("""\
         登录过程概览：\
         \n1.发送手机号\
@@ -63,13 +65,13 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
     if not captcha.isdigit():
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
-        conf.users.setdefault(event.user_id, UserData())
-        user = conf.users[event.user_id]
+        _conf.users.setdefault(event.user_id, UserData())
+        user = _conf.users[event.user_id]
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
         if login_status:
             # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
-            account = conf.users[event.user_id].accounts.get(cookies.bbs_uid)
+            account = _conf.users[event.user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
@@ -111,7 +113,7 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
                                 write_plugin_data()
 
                                 # TODO 2023/04/12 此处如果可以模拟App的登录操作，再标记为登录完成，更安全
-                                logger.info(f"{conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
+                                logger.info(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
                                 await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
 
         if not login_status:
@@ -145,9 +147,9 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
 
 
 output_cookies = on_command(
-    conf.preference.command_start + '导出Cookies',
-    aliases={conf.preference.command_start + '导出Cookie', conf.preference.command_start + '导出账号',
-             conf.preference.command_start + '导出cookie', conf.preference.command_start + '导出cookies'}, priority=4,
+    _conf.preference.command_start + '导出Cookies',
+    aliases={_conf.preference.command_start + '导出Cookie', _conf.preference.command_start + '导出账号',
+             _conf.preference.command_start + '导出cookie', _conf.preference.command_start + '导出cookies'}, priority=4,
     block=True)
 output_cookies.name = '导出Cookies'
 output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
@@ -160,7 +162,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
     """
     if isinstance(event, GroupMessageEvent):
         await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
-    user_account = conf.users[event.user_id].accounts
+    user_account = _conf.users[event.user_id].accounts
     if user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     else:

@@ -21,12 +21,13 @@ import tenacity
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
-from .plugin_data import plugin_data_obj as conf
+from .plugin_data import PluginDataManager
 
 if TYPE_CHECKING:
     from loguru import Logger
 
-driver = nonebot.get_driver()
+_conf = PluginDataManager.plugin_data_obj
+_driver = nonebot.get_driver()
 
 
 class CommandBegin:
@@ -44,9 +45,9 @@ class CommandBegin:
         机器人启动时设置命令开头字段
         """
         if nonebot.get_driver().config.command_start:
-            cls.string = list(nonebot.get_driver().config.command_start)[0] + conf.preference.command_start
+            cls.string = list(nonebot.get_driver().config.command_start)[0] + _conf.preference.command_start
         else:
-            cls.string = conf.preference.command_start
+            cls.string = _conf.preference.command_start
 
     @classmethod
     def __str__(cls):
@@ -57,11 +58,11 @@ def get_last_command_sep():
     """
     获取第最后一个命令分隔符
     """
-    if driver.config.command_sep:
-        return list(driver.config.command_sep)[-1]
+    if _driver.config.command_sep:
+        return list(_driver.config.command_sep)[-1]
 
 
-driver.on_startup(CommandBegin.set_command_begin)
+_driver.on_startup(CommandBegin.set_command_begin)
 COMMAND_BEGIN = CommandBegin()
 '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
@@ -72,19 +73,19 @@ def set_logger(logger: "Logger"):
     """
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
-    logger.add(conf.preference.log_path, diagnose=False, format=nonebot.log.default_format,
-               filter=lambda record: record["name"] == conf.preference.plugin_name or
-                                     (conf.preference.log_head != "" and record["message"].find(
-                                         conf.preference.log_head) == 0) or
-                                     record["message"].find(f"plugins.{conf.preference.plugin_name}") != -1,
-               rotation=conf.preference.log_rotation)
+    logger.add(_conf.preference.log_path, diagnose=False, format=nonebot.log.default_format,
+               filter=lambda record: record["name"] == _conf.preference.plugin_name or
+                                     (_conf.preference.log_head != "" and record["message"].find(
+                                         _conf.preference.log_head) == 0) or
+                                     record["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1,
+               rotation=_conf.preference.log_rotation)
     return logger
 
 
 logger = set_logger(logger)
 """本插件所用日志记录器对象（包含输出到文件）"""
 
-PLUGIN = nonebot.plugin.get_plugin(conf.preference.plugin_name)
+PLUGIN = nonebot.plugin.get_plugin(_conf.preference.plugin_name)
 '''本插件数据'''
 
 if not PLUGIN:
@@ -100,7 +101,7 @@ def custom_attempt_times(retry: bool):
     :param retry True - 重试次数达到配置中 MAX_RETRY_TIMES 时停止; False - 执行次数达到1时停止，即不进行重试
     """
     if retry:
-        return tenacity.stop_after_attempt(conf.preference.max_retry_times + 1)
+        return tenacity.stop_after_attempt(_conf.preference.max_retry_times + 1)
     else:
         return tenacity.stop_after_attempt(1)
 
@@ -114,7 +115,7 @@ def get_async_retry(retry: bool):
     return tenacity.AsyncRetrying(
         stop=custom_attempt_times(retry),
         retry=tenacity.retry_if_exception_type(BaseException),
-        wait=tenacity.wait_fixed(conf.preference.retry_interval),
+        wait=tenacity.wait_fixed(_conf.preference.retry_interval),
     )
 
 
@@ -130,15 +131,15 @@ class NtpTime:
         """
         校准时间
         """
-        if conf.preference.enable_ntp_sync:
-            if not conf.preference.ntp_server:
+        if _conf.preference.enable_ntp_sync:
+            if not _conf.preference.ntp_server:
                 logger.error("开启了互联网时间校对，但未配置NTP服务器 preference.ntp_server，放弃时间同步")
                 return False
             try:
                 for attempt in get_async_retry(True):
                     with attempt:
                         cls.time_offset = ntplib.NTPClient().request(
-                            conf.preference.ntp_server).tx_time - time.time()
+                            _conf.preference.ntp_server).tx_time - time.time()
             except tenacity.RetryError:
                 logger.error("校对互联网时间失败，改为使用本地时间")
                 logger.debug(traceback.format_exc())
@@ -203,11 +204,11 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
     :param platform: 可选，平台，ios或android
     :param salt: 可选，自定义salt
     """
-    if data is None and params is None or salt != conf.salt_config.SALT_PROD:
+    if data is None and params is None or salt != _conf.salt_config.SALT_PROD:
         if platform == "ios":
-            salt = salt or conf.salt_config.SALT_IOS
+            salt = salt or _conf.salt_config.SALT_IOS
         else:
-            salt = salt or conf.salt_config.SALT_ANDROID
+            salt = salt or _conf.salt_config.SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -216,12 +217,12 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{a},{re}"
     else:
         if params:
-            salt = conf.salt_config.SALT_PARAMS if not salt else salt
+            salt = _conf.salt_config.SALT_PARAMS if not salt else salt
         else:
-            salt = conf.salt_config.SALT_DATA if not salt else salt
+            salt = _conf.salt_config.SALT_DATA if not salt else salt
 
         if not data:
-            if salt == conf.salt_config.SALT_PROD:
+            if salt == _conf.salt_config.SALT_PROD:
                 data = {}
             else:
                 data = ""
@@ -252,11 +253,11 @@ async def get_file(url: str, retry: bool = True):
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(url, timeout=conf.preference.timeout, follow_redirects=True)
+                    res = await client.get(url, timeout=_conf.preference.timeout, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.error(f"{conf.preference.log_head}下载文件 - {url} 失败")
-        logger.debug(f"{conf.preference.log_head}{traceback.format_exc()}")
+        logger.error(f"{_conf.preference.log_head}下载文件 - {url} 失败")
+        logger.debug(f"{_conf.preference.log_head}{traceback.format_exc()}")
 
 
 def blur_phone(phone: Union[str, int]) -> str:

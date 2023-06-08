@@ -23,13 +23,15 @@ from nonebot_plugin_apscheduler import scheduler
 from .base_api import get_game_record, get_good_detail, get_good_list, good_exchange
 from .data_model import Good, GameRecord
 from .exchange import game_list_to_image
-from .plugin_data import plugin_data_obj as conf, write_plugin_data
+from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount, ExchangePlan
-from .utils import NtpTime, COMMAND_BEGIN, logger, driver, get_last_command_sep
+from .utils import NtpTime, COMMAND_BEGIN, logger, _driver, get_last_command_sep
 
-myb_exchange_plan = on_command(f"{conf.preference.command_start}兑换",
-                               aliases={(f"{conf.preference.command_start}兑换", "+"),
-                                        (f"{conf.preference.command_start}兑换", "-")},
+_conf = PluginDataManager.plugin_data_obj
+
+myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
+                               aliases={(f"{_conf.preference.command_start}兑换", "+"),
+                                        (f"{_conf.preference.command_start}兑换", "-")},
                                priority=5, block=True)
 myb_exchange_plan.name = "兑换"
 myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
@@ -67,11 +69,11 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
     if isinstance(event, GroupMessageEvent):
         await matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
-    user = conf.users.get(event.user_id)
+    user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
     if not user_account:
         await matcher.finish(
-            f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{conf.preference.command_start}登录』进行登录")
+            f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{_conf.preference.command_start}登录』进行登录")
     state['user_account'] = user_account
 
     # 如果使用了二级命令 + - 则跳转进下一步，通过phone选择账户进行设置
@@ -180,7 +182,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
     elif command_2 == '-':
-        plans = conf.users[event.user_id].exchange_plans
+        plans = _conf.users[event.user_id].exchange_plans
         if plans:
             for plan in plans:
                 if plan.good.goods_id == good_id:
@@ -204,7 +206,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """
-    user = conf.users[event.user_id]
+    user = _conf.users[event.user_id]
     account: UserAccount = state['account']
     good: Good = state['good']
     records: List[GameRecord] = state['records']
@@ -235,7 +237,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
         f'🎉设置兑换计划成功！将于 {plan.good.time_text} 开始兑换，到时将会私聊告知您兑换结果')
 
 
-get_good_image = on_command(conf.preference.command_start + '商品', priority=5, block=True)
+get_good_image = on_command(_conf.preference.command_start + '商品', priority=5, block=True)
 get_good_image.name = "商品"
 get_good_image.usage = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
 
@@ -283,7 +285,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     good_list = await get_good_list(arg[0])
     if good_list:
         img_path = time.strftime(
-            f'{conf.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+            f'{_conf.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
         if os.path.exists(img_path):
             with open(img_path, 'rb') as f:
                 image_bytes = io.BytesIO(f.read())
@@ -295,12 +297,12 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
 
 
-@driver.on_startup
+@_driver.on_startup
 async def _():
     """
     启动机器人时自动初始化兑换任务
     """
-    for user in conf.users.values():
+    for user in _conf.users.values():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
@@ -332,17 +334,17 @@ def image_process(game: str, lock: Lock):
     loop = asyncio.new_event_loop()
     _, good_list = loop.run_until_complete(get_good_list(game))
     if good_list:
-        logger.info(f"{conf.preference.log_head}正在生成 {game} 分区的商品列表图片")
+        logger.info(f"{_conf.preference.log_head}正在生成 {game} 分区的商品列表图片")
         image_bytes = loop.run_until_complete(game_list_to_image(good_list, lock))
         if not image_bytes:
             return False
         date = time.strftime('%m-%d', time.localtime())
-        path = conf.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
+        path = _conf.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
         with open(path, 'wb') as f:
             f.write(image_bytes)
-        logger.info(f"{conf.preference.log_head}已完成 {game} 分区的商品列表图片生成")
+        logger.info(f"{_conf.preference.log_head}已完成 {game} 分区的商品列表图片生成")
     else:
-        logger.info(f"{conf.preference.log_head}{game}分区暂时没有商品，跳过生成商品列表图片")
+        logger.info(f"{_conf.preference.log_head}{game}分区暂时没有商品，跳过生成商品列表图片")
     return True
 
 
@@ -354,7 +356,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
     :param callback: 回调函数，参数为生成成功与否
     >>> generate_image(is_auto=False)
     """
-    for root, _, files in os.walk(conf.good_list_image_config.SAVE_PATH, topdown=False):
+    for root, _, files in os.walk(_conf.good_list_image_config.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
             # 若图片开头为当日日期，则退出函数不执行

@@ -2,10 +2,9 @@ from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, Abstrac
     Mapping, Literal, Type
 
 from httpx import Cookies
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, validator
 
 from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
-from .myb_missions_api import BaseMission, BBSMission
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -222,7 +221,7 @@ class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
     '''是否开启原神树脂提醒'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
-    mission_games: Set[Type[BaseMission]] = {BBSMission}
+    mission_games: Set[type] = {}
     '''在哪些板块执行米游币任务计划'''
 
     def __init__(self, **data: Any):
@@ -233,6 +232,15 @@ class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
             if not data.get("device_id_android"):
                 data.setdefault("device_id_android", generate_device_id())
         super().__init__(**data)
+
+        from .myb_missions_api import BBSMission
+        self.mission_games = {BBSMission}
+
+    @validator("mission_games")
+    def mission_games_validator(cls, v):
+        from .myb_missions_api import BaseMission
+        if not all(issubclass(game, BaseMission) for game in v):
+            raise ValueError("UserAccount.mission_games 必须是 BaseMission 的子类")
 
     @property
     def bbs_uid(self):
