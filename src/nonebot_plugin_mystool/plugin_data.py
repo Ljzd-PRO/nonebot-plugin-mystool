@@ -219,6 +219,7 @@ class PluginData(BaseModel):
     class Config:
         json_encoders = UserAccount.Config.json_encoders
 
+
 class PluginDataManager:
     plugin_data_obj = PluginData()
     """加载出的插件数据对象"""
@@ -237,7 +238,8 @@ class PluginDataManager:
                 logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 格式是否正确")
                 raise
             except:
-                logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
+                logger.exception(
+                    f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
                 raise
         else:
             plugin_data = PluginData()
@@ -250,7 +252,9 @@ class PluginDataManager:
                 raise
             logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
 
+
 nonebot.get_driver().on_startup(PluginDataManager.load_plugin_data)
+
 
 def write_plugin_data(data: PluginData = None):
     """

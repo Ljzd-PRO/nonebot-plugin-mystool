@@ -13,6 +13,7 @@ from .utils import logger, generate_ds, \
 
 _conf = PluginDataManager.plugin_data_obj
 
+
 class BaseGameSign:
     """
     游戏签到基类

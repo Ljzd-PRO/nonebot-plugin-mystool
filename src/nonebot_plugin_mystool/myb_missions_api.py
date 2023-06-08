@@ -132,7 +132,8 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_android
                     headers["DS"] = generate_ds(data=content)
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(URL_SIGN, headers=headers, json=content, timeout=_conf.preference.timeout)
+                        res = await client.post(URL_SIGN, headers=headers, json=content,
+                                                timeout=_conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -461,7 +462,8 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
                 state_dict = {}
                 for mission in missions:
                     try:
-                        current = list(filter(lambda state: state["mission_key"] == mission.mission_key, api_result.data["states"]))[0]["happened_times"]
+                        current = list(filter(lambda state: state["mission_key"] == mission.mission_key,
+                                              api_result.data["states"]))[0]["happened_times"]
                         state_dict.setdefault(mission.mission_key, (mission, current))
                     except IndexError:
                         state_dict.setdefault(mission.mission_key, (mission, 0))
