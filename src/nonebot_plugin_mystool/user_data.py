@@ -269,6 +269,8 @@ class ExchangePlan(BaseModel):
     """
     兑换计划数据类
     """
+    # TODO TypeError: unhashable type: 'dict' 问题
+
     good: Good
     """商品"""
     address: Optional[Address]
@@ -288,6 +290,32 @@ class ExchangePlan(BaseModel):
                 self.game_record.game_role_id if self.game_record else None
             )
         )
+
+    class CustomDict(dict):
+        _hash: int
+        def __hash__(self):
+            return self._hash
+
+    def dict(
+        self,
+        *,
+        include: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
+        exclude: Optional[Union['AbstractSetIntStr', 'MappingIntStrAny']] = None,
+        by_alias: bool = False,
+        skip_defaults: Optional[bool] = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -> 'DictStrAny':
+        """
+        重写 dict 方法，使其返回的 dict 可以被 hash
+        """
+        normal_dict = super().dict(include=include, exclude=exclude, by_alias=by_alias, skip_defaults=skip_defaults,
+                                    exclude_unset=exclude_unset, exclude_defaults=exclude_defaults,
+                                    exclude_none=exclude_none)
+        hashable_dict = ExchangePlan.CustomDict(normal_dict)
+        hashable_dict._hash = hash(self)
+        return hashable_dict
 
 
 class ExchangeResult(BaseModel):
