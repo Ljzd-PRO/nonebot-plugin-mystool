@@ -102,7 +102,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
             continue
         for class_type in BaseGameSign.AVAILABLE_GAME_SIGNS:
             signer = class_type(account, records)
-            if not signer.record:
+            if not signer.has_record:
                 continue
             get_info_status, info = await signer.get_info(account.platform)
             if not get_info_status:

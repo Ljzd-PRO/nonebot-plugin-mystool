@@ -53,6 +53,13 @@ class BaseGameSign:
         }
         self.URL_INFO = f"{self.URL_INFO}?{urlencode(info_params)}"
 
+    @property
+    def has_record(self) -> bool:
+        """
+        是否有游戏账号
+        """
+        return self.record is not None
+
     async def get_rewards(self, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[Award]]]:
         """
         获取签到奖励信息
