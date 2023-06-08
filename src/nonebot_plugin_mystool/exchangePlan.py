@@ -160,21 +160,24 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
                 game_records_status, records = await get_game_record(account)
 
                 if game_records_status:
-                    msg = f'您米游社账户下的游戏账号：'
-                    for record in records:
-                        msg += f'\n🎮 {record.region_name} - {record.nickname} - UID {record.game_role_id}'
-                    if records:
-                        state['records'] = records
-                        await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
-                        await asyncio.sleep(0.5)
-                        await matcher.send(msg)
+                    if len(records) == 0:
+                        matcher.set_arg('uid', Message(records[0].game_role_id))
                     else:
-                        await matcher.finish(
-                            f"您的米游社账户下还没有绑定游戏账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
+                        msg = f'您米游社账户下的游戏账号：'
+                        for record in records:
+                            msg += f'\n🎮 {record.region_name} - {record.nickname} - UID {record.game_role_id}'
+                        if records:
+                            state['records'] = records
+                            await matcher.send("您兑换的是虚拟物品，请发送想要接收奖励的游戏账号UID：\n🚪发送“退出”即可退出")
+                            await asyncio.sleep(0.5)
+                            await matcher.send(msg)
+                        else:
+                            await matcher.finish(
+                                f"您的米游社账户下还没有绑定游戏账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
-            matcher.set_arg('uid', Message())
+                matcher.set_arg('uid', Message())
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
@@ -210,10 +213,13 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=Ar
     if good.is_virtual:
         if uid == '退出':
             await matcher.finish('🚪已成功退出')
-        if uid not in records:
+        record_filter = filter(lambda x: x.game_role_id == uid, records)
+        record = next(record_filter, None)
+        if not record:
             await matcher.reject('⚠️您输入的UID不在上述账号内，请重新输入')
-
-    plan = ExchangePlan(good=good, address=account.address, game_record=records[int(uid)], account=account)
+        plan = ExchangePlan(good=good, address=account.address, game_record=record, account=account)
+    else:
+        plan = ExchangePlan(good=good, address=account.address, account=account)
     if plan in user.exchange_plans:
         await matcher.finish('⚠️您已经配置过该商品的兑换哦！')
     else:
