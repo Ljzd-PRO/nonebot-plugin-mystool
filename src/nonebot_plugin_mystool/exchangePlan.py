@@ -118,7 +118,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
         await matcher.finish('🚪已成功退出')
     try:
         state["account"] = list(
-            filter(lambda account: account.bbs_uid == int(phone), user_account.values()))[0]
+            filter(lambda account: account.phone_number == int(phone), user_account.values()))[0]
     except IndexError:
         await matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     except ValueError:
