@@ -81,7 +81,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         matcher.set_arg("good_id", command_arg)
         if len(user_account) == 1:
             phone_number = next(iter(user_account.values())).phone_number
-            matcher.set_arg('phone', Message(str(phone_number)))
+            matcher.set_arg('phone', Message(phone_number))
         else:
             phones = map(lambda x: x.phone_number, user_account.values())
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
@@ -116,9 +116,9 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=
     if phone == '退出':
         await matcher.finish('🚪已成功退出')
     try:
-        state["account"] = list(
-            filter(lambda account: account.phone_number == int(phone), user_account.values()))[0]
-    except IndexError:
+        state["account"] = next(
+            filter(lambda account: account.phone_number == phone, user_account.values()))
+    except StopIteration:
         await matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     except ValueError:
         await matcher.reject('⚠️您发送的账号不是手机号，请重新发送')
@@ -156,7 +156,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
         state['good'] = good
         if good.time:
             # 若为实物商品，也进入下一步骤，但是传入uid为None
-            if good.is_visual:
+            if good.is_virtual:
                 game_records_status, records = await get_game_record(account)
 
                 if game_records_status:
