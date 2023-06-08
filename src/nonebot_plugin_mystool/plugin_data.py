@@ -9,7 +9,7 @@ import nonebot
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
-from .user_data import UserData
+from .user_data import UserData, UserAccount
 
 VERSION = "v1.0.0-dev"
 """程序当前版本"""
@@ -215,6 +215,9 @@ class PluginData(BaseModel):
     """商品列表输出图片设置"""
     users: Dict[int, UserData] = {}
     '''所有用户数据'''
+
+    class Config:
+        json_encoders = UserAccount.Config.json_encoders
 
 class PluginDataManager:
     plugin_data_obj = PluginData()

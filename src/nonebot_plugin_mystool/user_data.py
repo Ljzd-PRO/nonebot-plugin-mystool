@@ -1,8 +1,8 @@
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
-    Mapping, Literal, Type
+    Mapping, Literal
 
 from httpx import Cookies
-from pydantic import BaseModel, Extra, validator
+from pydantic import BaseModel, validator
 
 from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
 
@@ -192,7 +192,7 @@ class BBSCookies(BaseModelWithSetter, BaseModelWithUpdate):
         return cookies_dict
 
 
-class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
+class UserAccount(BaseModelWithSetter):
     """
     米游社账户数据
 
@@ -231,10 +231,21 @@ class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
                 data.setdefault("device_id_ios", generate_device_id())
             if not data.get("device_id_android"):
                 data.setdefault("device_id_android", generate_device_id())
+
+        from . import myb_missions_api
+
+        mission_games_param: Union[List[str], Set[type]] = data.pop("mission_games")
         super().__init__(**data)
 
-        from .myb_missions_api import BBSMission
-        self.mission_games = {BBSMission}
+        if isinstance(mission_games_param, list):
+            self.mission_games = set(map(lambda x: getattr(myb_missions_api, x), mission_games_param))
+        elif isinstance(mission_games_param, set):
+            self.mission_games = mission_games_param
+        elif mission_games_param is None:
+            self.mission_games = {myb_missions_api.BBSMission}
+
+    class Config:
+        json_encoders = {type: lambda v: v.__name__}
 
     @validator("mission_games")
     def mission_games_validator(cls, v):
