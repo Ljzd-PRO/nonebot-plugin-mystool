@@ -221,7 +221,7 @@ class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
     '''是否开启原神树脂提醒'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
-    mission_games: Set[GameName] = set(BBS)
+    mission_games: Set[GameName] = {BBS}
     '''在哪些板块执行米游币任务计划'''
 
     def __init__(self, **data: Any):
