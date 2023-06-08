@@ -212,6 +212,8 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                                                message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 continue
 
+            myb_before_mission = missions_state.current_myb
+
             # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
             if (account.enable_mission and is_auto) or not is_auto:
                 if not is_auto:
@@ -269,7 +271,8 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                         else:
                             mission_name = mission.mission_key
                         msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
-                    msg += f"\n💰米游币: {missions_state.current_myb}"
+                    msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}"
+                    msg += f"\n💰当前米游币: {missions_state.current_myb}"
                     msg.strip()
 
                     if group_event:
