@@ -90,6 +90,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     failed_accounts = []
+    user = _conf.users[qq]
     for account in _conf.users.get(qq).accounts.values():
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
@@ -124,7 +125,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         message = f"⚠️账户 {account.bbs_uid if not group_event else blur(account.bbs_uid)} 🎮『{signer.record.region_name}』签到时可能遇到验证码拦截，请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到"
                     else:
                         message = f"⚠️账户 {account.bbs_uid if not group_event else blur(account.bbs_uid)} 🎮『{signer.record.region_name}』签到失败，请稍后再试"
-                    if _conf.users[qq].enable_notice or not is_auto:
+                    if user.enable_notice or not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True, message=message)
                         else:
@@ -141,7 +142,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 continue
 
             # 用户打开通知或手动签到时，进行通知
-            if _conf.users[qq].enable_notice or not is_auto:
+            if user.enable_notice or not is_auto:
                 img = ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
@@ -191,7 +192,8 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     failed_accounts = []
-    for account in _conf.users[qq].accounts.values():
+    user = _conf.users[qq]
+    for account in user.accounts.values():
         for class_name in account.mission_games:
             mission_obj = class_name(account)
             missions_state_status, missions_state = await get_missions_state(account)
@@ -231,7 +233,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                             await mission_obj.share()
 
                 # 用户打开通知或手动任务时，进行通知
-                if _conf.users[qq].enable_notice or not is_auto:
+                if user.enable_notice or not is_auto:
                     missions_state_status, missions_state = await get_missions_state(account)
                     if not missions_state_status:
                         if missions_state_status.login_expired:
@@ -301,7 +303,8 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
     if isinstance(group_event, PrivateMessageEvent):
         group_event = None
     global has_checked
-    for account in _conf.users[qq].accounts.values():
+    user = _conf.users[qq]
+    for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
                                                            {"resin": False, "coin": False, "transformer": False})
