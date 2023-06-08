@@ -110,12 +110,6 @@ class BaseMission:
         self.headers = HEADERS_BASE.copy()
         self.headers["x-rpc-device_id"] = account.device_id_android
 
-    async def async_init(self):
-        """
-        初始化米游币任务(异步，返回`self`对象)(执行deviceLogin和saveDevice)
-        """
-        await device_login(self.account)
-        await device_save(self.account)
 
     async def sign(self, retry: bool = True) -> Tuple[MissionStatus, Optional[int]]:
         """
@@ -132,8 +126,13 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_android
                     headers["DS"] = generate_ds(data=content)
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(URL_SIGN, headers=headers, json=content,
-                                                timeout=_conf.preference.timeout)
+                        res = await client.post(
+                            URL_SIGN,
+                            headers=headers,
+                            json=content,
+                            timeout=_conf.preference.timeout,
+                            cookies=self.account.cookies.dict(v2_stoken=True, cookie_type=True)
+                        )
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -169,8 +168,11 @@ class BaseMission:
                     headers = HEADERS_GET_POSTS.copy()
                     headers["x-rpc-device_id"] = self.account.device_id_ios
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(URL_GET_POST.format(self.GIDS), headers=headers,
-                                               timeout=_conf.preference.timeout)
+                        res = await client.get(
+                            URL_GET_POST.format(self.GIDS),
+                            headers=headers,
+                            timeout=_conf.preference.timeout
+                        )
                     api_result = ApiResultHandler(res.json())
                     for post in api_result.data["list"]:
                         if post["self_operation"]["attitude"] == 0:
@@ -206,8 +208,12 @@ class BaseMission:
                         with attempt:
                             self.headers["DS"] = generate_ds(platform="android")
                             async with httpx.AsyncClient() as client:
-                                res = await client.get(URL_READ.format(post_id), headers=self.headers,
-                                                       timeout=_conf.preference.timeout)
+                                res = await client.get(
+                                    URL_READ.format(post_id),
+                                    headers=self.headers,
+                                    timeout=_conf.preference.timeout,
+                                    cookies=self.account.cookies.dict(v2_stoken=True, cookie_type=True)
+                                )
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
@@ -263,9 +269,12 @@ class BaseMission:
                             headers["x-rpc-device_id"] = self.account.device_id_android
                             headers["DS"] = generate_ds(platform="android")
                             async with httpx.AsyncClient() as client:
-                                res = await client.post(URL_LIKE, headers=headers,
-                                                        json={'is_cancel': False, 'post_id': post_id},
-                                                        timeout=_conf.preference.timeout)
+                                res = await client.post(
+                                    URL_LIKE, headers=headers,
+                                    json={'is_cancel': False, 'post_id': post_id},
+                                    timeout=_conf.preference.timeout,
+                                    cookies=self.account.cookies.dict(v2_stoken=True, cookie_type=True)
+                                )
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
@@ -314,8 +323,12 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_android
                     headers["DS"] = generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(URL_SHARE.format(posts[0]), headers=headers,
-                                               timeout=_conf.preference.timeout)
+                        res = await client.get(
+                            URL_SHARE.format(posts[0]),
+                            headers=headers,
+                            timeout=_conf.preference.timeout,
+                            cookies=self.account.cookies.dict(v2_stoken=True, cookie_type=True)
+                        )
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -415,7 +428,7 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
+                    res = await client.get(URL_MISSION, headers=HEADERS_MISSION, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                            timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
@@ -451,7 +464,7 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies.dict(),
+                    res = await client.get(URL_MISSION_STATE, headers=HEADERS_MISSION, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                            timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:

@@ -211,7 +211,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                     await bot.send_private_msg(user_id=qq,
                                                message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 continue
-            await mission_obj.async_init()
+
             # 自动执行米游币任务时，要求用户打开了任务功能；手动执行时都可以调用执行。
             if (account.enable_mission and is_auto) or not is_auto:
                 if not is_auto:
