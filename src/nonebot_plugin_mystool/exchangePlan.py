@@ -83,8 +83,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             phone_number = next(iter(user_account.values())).phone_number
             matcher.set_arg('phone', Message(str(phone_number)))
         else:
-            phones = [str(user_account[i].phone)
-                      for i in range(len(user_account))]
+            phones = map(lambda x: x.phone_number, user_account.values())
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
             msg += "📱" + "\n📱".join(phones)
             msg += "\n🚪发送“退出”即可退出"
