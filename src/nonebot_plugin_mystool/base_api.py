@@ -1330,14 +1330,14 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
         if record.game_id == game_id:
             try:
                 flag = False
-                params = {"role_id": record.uid, "server": record.region}
+                params = {"role_id": record.game_role_id, "server": record.region}
                 url = f"{URL_GENSHEN_STATUS_BBS}?{urlencode(params)}"
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
                 async for attempt in get_async_retry(retry):
                     with attempt:
                         headers["DS"] = generate_ds(
-                            params={"role_id": record.uid, "server": record.region})
+                            params={"role_id": record.game_role_id, "server": record.region})
                         async with httpx.AsyncClient() as client:
                             res = await client.get(url, headers=headers, cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                                    timeout=_conf.preference.timeout)
