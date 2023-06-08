@@ -190,7 +190,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
         group_event = None
     failed_accounts = []
     for account in conf.users[qq].accounts.values():
-        for class_name in BaseMission.AVAILABLE_GAMES:
+        for class_name in account.mission_games:
             mission_obj = class_name(account)
             missions_state_status, missions_state = await get_missions_state(account)
             if not missions_state_status:
