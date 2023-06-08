@@ -1,7 +1,7 @@
 """
 ### 用户设置相关
 """
-from typing import List, Union, Dict
+from typing import Union, Dict
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
@@ -9,7 +9,6 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .base_api import GameInfo
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
@@ -83,7 +82,7 @@ async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg(
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "4️⃣ 执行米游币任务的频道：『" + \
-                    "、".join(map(lambda x: x.NAME, BaseMission.AVAILABLE_GAMES)) + "』\n"
+                    "、".join(map(lambda x: x.NAME, account.mission_games)) + "』\n"
     user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
     user_setting += "⚠️6⃣️ 删除账户数据"
 
@@ -118,8 +117,7 @@ async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
         write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif arg == '4':
-        game_list: List[GameInfo] = state['game_list']
-        games_show = "、".join(map(lambda x: x.name, game_list))
+        games_show = "、".join(map(lambda x: x.NAME, BaseMission.AVAILABLE_GAMES))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道：\n"
             "❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”\n"
