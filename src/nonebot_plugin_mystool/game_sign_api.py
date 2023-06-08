@@ -151,7 +151,7 @@ class BaseGameSign:
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(self.URL_SIGN, headers=headers, cookies=self.account.cookies.dict(),
-                                                timeout=_conf.TIME_OUT, json=content)
+                                                timeout=_conf.preference.timeout, json=content)
 
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
