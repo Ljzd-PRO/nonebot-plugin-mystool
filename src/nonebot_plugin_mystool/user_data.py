@@ -1,10 +1,11 @@
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
-    Mapping, Literal
+    Mapping, Literal, Type
 
 from httpx import Cookies
 from pydantic import BaseModel, Extra
 
-from .data_model import BaseModelWithSetter, Good, Address, GameRecord, GameName, BBS, BaseModelWithUpdate
+from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
+from .myb_missions_api import BaseMission, BBSMission
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -221,7 +222,7 @@ class UserAccount(BaseModelWithSetter, extra=Extra.ignore):
     '''是否开启原神树脂提醒'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
-    mission_games: Set[GameName] = {BBS}
+    mission_games: Set[Type[BaseMission]] = {BBSMission}
     '''在哪些板块执行米游币任务计划'''
 
     def __init__(self, **data: Any):

@@ -9,7 +9,8 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .base_api import GameInfo, get_game_list
+from .base_api import GameInfo
+from .myb_missions_api import BaseMission
 from .plugin_data import plugin_data_obj as plugin_data, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
@@ -71,11 +72,6 @@ async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg(
     state['account'] = account
     state["prepare_to_delete"] = False
 
-    game_status, game_list = await get_game_list()
-    state['game_list'] = game_list
-    if not game_status:
-        await account_setting.finish("⚠️获取游戏列表失败，请稍后再试")
-
     user_setting = ""
     user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.enable_mission else '关'}\n"
     user_setting += f"2️⃣ 游戏自动签到：{'开' if account.enable_mission else '关'}\n"
@@ -84,7 +80,7 @@ async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg(
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "4️⃣ 执行米游币任务的频道：『" + \
-                    "、".join(map(lambda x: x.name, game_list)) + "』\n"
+                    "、".join(map(lambda x: x.NAME, BaseMission.AVAILABLE_GAMES)) + "』\n"
     user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
     user_setting += "⚠️6⃣️ 删除账户数据"
 
@@ -147,11 +143,10 @@ async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missionGam
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
-    game_list: List[GameInfo] = state['game_list']
     games_input = arg.split()
     mission_games = set()
     for game in games_input:
-        game_filter = filter(lambda x: x.name == game, game_list)
+        game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
         game_obj = next(game_filter, None)
         if game_obj is None:
             await account_setting.reject("⚠️您的输入有误，请重新输入")
