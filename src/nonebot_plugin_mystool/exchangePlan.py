@@ -81,7 +81,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         state['command_2'] = command[1]
         matcher.set_arg("good_id", command_arg)
         if len(user_account) == 1:
-            matcher.set_arg('phone', Message(str(user_account[0].phone)))
+            phone_number = next(iter(user_account.values())).phone_number
+            matcher.set_arg('phone', Message(str(phone_number)))
         else:
             phones = [str(user_account[i].phone)
                       for i in range(len(user_account))]
