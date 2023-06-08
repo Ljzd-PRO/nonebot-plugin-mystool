@@ -253,7 +253,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                     if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.values())):
                         notice_string = f"🎉已完成今日米游币任务 - 分区『{class_type.NAME}』"
                     else:
-                        notice_string = "⚠️今日米游币任务未全部完成"
+                        notice_string = f"⚠️今日米游币任务未全部完成 - 分区『{class_type.NAME}』"
 
                     msg = f"{notice_string}" \
                           f"\n📱账户 {account.bbs_uid}"
