@@ -18,6 +18,8 @@ class BaseGameSign:
     """
     游戏签到基类
     """
+    NAME = ""
+    """游戏名字"""
 
     ACT_ID = ""
     URL_REWARD = "https://api-takumi.mihoyo.com/event/luna/home"
@@ -36,6 +38,7 @@ class BaseGameSign:
     GAME_ID = 0
 
     AVAILABLE_GAME_SIGNS: Set[Type["BaseGameSign"]] = set()
+    """可用的子类"""
 
     def __init__(self, account: UserAccount, records: List[GameRecord]):
         self.account = account
@@ -192,6 +195,7 @@ class GenshinImpactSign(BaseGameSign):
     """
     原神 游戏签到
     """
+    NAME = "原神"
     ACT_ID = "e202009291139501"
     GAME_ID = "2"
     URL_REWARD = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home"
@@ -203,6 +207,7 @@ class HonkaiImpact3Sign(BaseGameSign):
     """
     崩坏3 游戏签到
     """
+    NAME = "崩坏3"
     ACT_ID = "e202207181446311"
     GAME_ID = "1"
 
@@ -211,6 +216,7 @@ class HoukaiGakuen2Sign(BaseGameSign):
     """
     崩坏学园2 游戏签到
     """
+    NAME = "崩坏学园2"
     ACT_ID = "e202203291431091"
     GAME_ID = "3"
 
@@ -219,6 +225,7 @@ class TearsOfThemisSign(BaseGameSign):
     """
     未定事件簿 游戏签到
     """
+    NAME = "未定事件簿"
     ACT_ID = "e202202251749321"
     GAME_ID = "4"
 
@@ -227,6 +234,7 @@ class StarRailSign(BaseGameSign):
     """
     崩坏：星穹铁道 游戏签到
     """
+    NAME = "崩坏：星穹铁道"
     ACT_ID = "e202304121516551"
     GAME_ID = "6"
 
