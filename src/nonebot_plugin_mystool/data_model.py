@@ -5,21 +5,6 @@ from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, An
 
 from pydantic import BaseModel
 
-GameName = TypeVar("GameName", bound=str)
-
-GENSHIN_IMPACT: GameName = "ys"
-"""原神"""
-HONKAI_IMPACT_3RD: GameName = "bh3"
-"""崩坏3"""
-HOUKAI_GAKUEN_2: GameName = "bh2"
-"""崩坏2"""
-TEARS_OF_THEMIS: GameName = "wd"
-"""未定事件簿"""
-BBS: GameName = "bbs"
-"""大别野"""
-STAR_RAIL: GameName = "xq"
-"""崩坏：星穹铁道"""
-
 
 class BaseModelWithSetter(BaseModel):
     """
