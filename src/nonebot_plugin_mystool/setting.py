@@ -119,10 +119,11 @@ async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
     elif arg == '4':
         games_show = "、".join(map(lambda x: x.NAME, BaseMission.AVAILABLE_GAMES))
         await account_setting.send(
-            "请发送你想要执行米游币任务的频道：\n"
-            "❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”\n"
-            f"可选的频道『{games_show}』\n"
-            "🚪发送“退出”即可退出"
+            "请发送你想要执行米游币任务的频道："
+            "\n❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”"
+            f"\n\n可选的频道："
+            f"\n{games_show}"
+            "\n\n🚪发送“退出”即可退出"
         )
     elif arg == '5':
         account.enable_resin = not account.enable_resin

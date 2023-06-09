@@ -150,14 +150,12 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
-                        msg = f"""\
-                            \n📱账户 {account.bbs_uid}\
-                            \n🎮『{signer.NAME}』今日签到成功！\
-                            \n{signer.record.nickname}·{signer.record.level}\
-                            \n🎁今日签到奖励：\
-                            \n{award.name} * {award.cnt}\
-                            \n\n📅本月签到次数：{info.total_sign_day}\
-                        """.strip()
+                        msg = f"🪪账户 {account.bbs_uid}" \
+                              f"\n🎮『{signer.NAME}』今日签到成功！" \
+                              f"\n{signer.record.nickname}·{signer.record.level}" \
+                              f"\n\n🎁今日签到奖励：" \
+                              f"\n{award.name} * {award.cnt}" \
+                              f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
                         img = MessageSegment.image(img_file)
                     else:
@@ -384,14 +382,12 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.bbs_uid]['transformer'] = False
                     return
-            msg += f"""\
-            ❖实时便笺❖\
-            \n⏳树脂数量：{board.current_resin}/160\
-            \n🕰️探索派遣：{board.current_expedition_num}/{board.max_expedition_num}\
-            \n📅每日委托：{4 - board.finished_task_num} 个任务未完成\
-            \n💰洞天财瓮：{board.current_home_coin}/{board.max_home_coin}\
-            \n🎰参量质变仪：{board.transformer_text}
-            """.strip()
+            msg += f"❖实时便笺❖" \
+                   f"\n⏳树脂数量：{board.current_resin} / 160" \
+                   f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
+                   f"\n📅每日委托：{4 - board.finished_task_num} 个任务未完成" \
+                   f"\n💰洞天财瓮：{board.current_home_coin} / {board.max_home_coin}" \
+                   f"\n🎰参量质变仪：{board.transformer_text}"
             if group_event:
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:

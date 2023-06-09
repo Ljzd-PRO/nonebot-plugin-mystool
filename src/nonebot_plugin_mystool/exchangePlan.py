@@ -95,12 +95,11 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             good_detail_status, good = await get_good_detail(plan[0])
             if not good_detail_status:
                 await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-            msg += f"""\
-            \n-- 商品 {good.general_name}\
-            \n- 🔢商品ID：{good.goods_id}\
-            \n- 💰商品价格：{good.price} 米游币\
-            \n- 📅兑换时间：{good.time_text}\
-            \n- 📱账户：{plan.account.bbs_uid}""".strip()
+            msg += f"-- 商品 {good.general_name}" \
+                   f"\n- 🔢商品ID：{good.goods_id}" \
+                   f"\n- 💰商品价格：{good.price} 米游币" \
+                   f"\n- 📅兑换时间：{good.time_text}" \
+                   f"\n- 📱账户：{plan.account.bbs_uid}"
             msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
@@ -253,16 +252,15 @@ async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
         matcher.set_arg("content", arg)
 
 
-@get_good_image.got("content", prompt="""\
-        \n请发送您要查看的商品类别:\
-        \n- 崩坏3\
-        \n- 原神\
-        \n- 崩坏2\
-        \n- 崩坏：星穹铁道\
-        \n- 未定事件簿\
-        \n- 米游社\
-        \n若是商品图片与米游社商品不符或报错 请发送“更新”哦~\
-        \n—— 🚪发送“退出”以结束""".strip())
+@get_good_image.got("content", prompt="请发送您要查看的商品类别:"
+                                      "\n- 崩坏3"
+                                      "\n- 原神"
+                                      "\n- 崩坏2"
+                                      "\n- 崩坏：星穹铁道"
+                                      "\n- 未定事件簿"
+                                      "\n- 米游社"
+                                      "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
+                                      "\n—— 🚪发送“退出”以结束")
 async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
