@@ -197,7 +197,7 @@ class GenshinImpactSign(BaseGameSign):
     """
     NAME = "原神"
     ACT_ID = "e202009291139501"
-    GAME_ID = "2"
+    GAME_ID = 2
     URL_REWARD = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home"
     URL_INFO = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
     URL_SIGN = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
@@ -209,7 +209,7 @@ class HonkaiImpact3Sign(BaseGameSign):
     """
     NAME = "崩坏3"
     ACT_ID = "e202207181446311"
-    GAME_ID = "1"
+    GAME_ID = 1
 
 
 class HoukaiGakuen2Sign(BaseGameSign):
@@ -218,7 +218,7 @@ class HoukaiGakuen2Sign(BaseGameSign):
     """
     NAME = "崩坏学园2"
     ACT_ID = "e202203291431091"
-    GAME_ID = "3"
+    GAME_ID = 3
 
 
 class TearsOfThemisSign(BaseGameSign):
@@ -227,7 +227,7 @@ class TearsOfThemisSign(BaseGameSign):
     """
     NAME = "未定事件簿"
     ACT_ID = "e202202251749321"
-    GAME_ID = "4"
+    GAME_ID = 4
 
 
 class StarRailSign(BaseGameSign):
@@ -236,7 +236,7 @@ class StarRailSign(BaseGameSign):
     """
     NAME = "崩坏：星穹铁道"
     ACT_ID = "e202304121516551"
-    GAME_ID = "6"
+    GAME_ID = 6
 
 
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(GenshinImpactSign)
