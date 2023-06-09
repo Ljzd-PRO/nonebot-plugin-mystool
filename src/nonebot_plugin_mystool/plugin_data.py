@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
     Mapping
 
-import nonebot
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
@@ -251,9 +250,6 @@ class PluginDataManager:
                 logger.exception(f"创建插件数据文件失败，请检查是否有权限读取和写入 {PLUGIN_DATA_PATH}")
                 raise
             logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
-
-
-nonebot.get_driver().on_startup(PluginDataManager.load_plugin_data)
 
 
 def write_plugin_data(data: PluginData = None):
