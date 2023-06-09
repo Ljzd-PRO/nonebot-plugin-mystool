@@ -86,6 +86,7 @@ class BaseMission:
     米游币任务基类
     """
     NAME = ""
+    """米游社分区名字"""
     GIDS = 0
     FID = 0
 
@@ -99,6 +100,7 @@ class BaseMission:
     '''分享任务的 mission_key'''
 
     AVAILABLE_GAMES: Set[Type["BaseMission"]] = set()
+    """可用的子类"""
 
     def __init__(self, account: UserAccount) -> None:
         """
