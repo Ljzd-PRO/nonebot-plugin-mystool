@@ -137,7 +137,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                     continue
                 await asyncio.sleep(_conf.preference.sleep_time)
             # 若用户未开启自动签到且手动签到过了，不再提醒
-            elif not account.gameSign and is_auto:
+            elif not account.enable_game_sign and is_auto:
                 continue
 
             # 用户打开通知或手动签到时，进行通知
