@@ -101,10 +101,13 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 await bot.send_private_msg(user_id=qq,
                                            message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
             continue
+        games_has_record = []
         for class_type in BaseGameSign.AVAILABLE_GAME_SIGNS:
             signer = class_type(account, records)
             if not signer.has_record:
                 continue
+            else:
+                games_has_record.append(signer)
             get_info_status, info = await signer.get_info(account.platform)
             if not get_info_status:
                 if group_event:
@@ -120,20 +123,16 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 sign_status = await signer.sign(account.platform)
                 if not sign_status:
                     if sign_status.login_expired:
-                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.record.region_name}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
+                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
                     elif sign_status.need_verify:
-                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.record.region_name}』签到时可能遇到验证码拦截，请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到"
+                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时可能遇到验证码拦截，请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到"
                     else:
-                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.record.region_name}』签到失败，请稍后再试"
+                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败，请稍后再试"
                     if user.enable_notice or not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True, message=message)
                         else:
-                            await bot.send_msg(
-                                message_type="private",
-                                user_id=qq,
-                                message=message
-                            )
+                            await bot.send_msg(message_type="private", user_id=qq, message=message)
                     await asyncio.sleep(_conf.preference.sleep_time)
                     continue
                 await asyncio.sleep(_conf.preference.sleep_time)
@@ -147,13 +146,13 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
                 if not get_info_status or not get_award_status:
-                    msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.record.region_name}』获取签到结果失败！请手动前往米游社查看"
+                    msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』获取签到结果失败！请手动前往米游社查看"
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
                         msg = f"""\
                             \n📱账户 {account.bbs_uid}\
-                            \n🎮『{signer.record.region_name}』今日签到成功！\
+                            \n🎮『{signer.NAME}』今日签到成功！\
                             \n{signer.record.nickname}·{signer.record.level}\
                             \n🎁今日签到奖励：\
                             \n{award.name} * {award.cnt}\
@@ -162,16 +161,26 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         img_file = await get_file(award.icon)
                         img = MessageSegment.image(img_file)
                     else:
-                        msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.record.region_name}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
+                        msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if group_event:
                     await bot.send(event=group_event, at_sender=True, message=msg + img)
                 else:
-                    await bot.send_msg(
-                        message_type="private",
-                        user_id=qq,
-                        message=msg + img
-                    )
+                    await bot.send_msg(message_type="private", user_id=qq, message=msg + img)
             await asyncio.sleep(_conf.preference.sleep_time)
+
+        if not games_has_record:
+            if group_event:
+                await bot.send(
+                    event=group_event,
+                    at_sender=True,
+                    message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到"
+                )
+            else:
+                await bot.send_msg(
+                    message_type="private",
+                    user_id=qq,
+                    message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到"
+                )
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
