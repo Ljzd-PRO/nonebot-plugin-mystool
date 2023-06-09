@@ -282,8 +282,8 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     elif arg in ['大别野', '米游社']:
         arg = ('bbs', '米游社')
     elif arg == '更新':
-        threading.Thread(generate_image(is_auto=False)).start()
-        await get_good_image.finish('✔后台已生成商品信息图片')
+        threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()
+        await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
     else:
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
     good_list = await get_good_list(arg[0])
@@ -295,7 +295,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
                 image_bytes = io.BytesIO(f.read())
             await get_good_image.finish(MessageSegment.image(image_bytes))
         else:
-            threading.Thread(generate_image(is_auto=False)).start()
+            threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()
             await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
     else:
         await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
