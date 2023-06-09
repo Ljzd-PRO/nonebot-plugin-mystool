@@ -3,6 +3,7 @@
 """
 import asyncio
 import random
+import threading
 from typing import Union
 
 from nonebot import get_bot, on_command
@@ -393,8 +394,8 @@ def daily_update():
     """
     每日图片生成函数
     """
-    logger.info(f"{_conf.preference.log_head}开始生成每日商品图片")
-    generate_image()
+    logger.info(f"{_conf.preference.log_head}后台开始生成每日商品图片")
+    threading.Thread(target=generate_image).start()
 
 
 @scheduler.scheduled_job("cron",
