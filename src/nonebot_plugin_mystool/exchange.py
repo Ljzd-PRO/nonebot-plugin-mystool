@@ -121,7 +121,6 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         # 导出
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
-        logger.info(f"{_conf.preference.log_head}商品列表图片生成 - 已生成图片...")
         return image_bytes.getvalue()
     except:
         logger.exception(f"{_conf.preference.log_head}商品列表图片生成 - 无法完成图片生成")
