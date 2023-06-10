@@ -10,9 +10,10 @@ from datetime import datetime
 from multiprocessing import Manager
 from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
-from typing import List, Union, Callable, Any
+from typing import List, Union, Callable, Any, Tuple, Optional, Dict
 
-from nonebot import on_command
+from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
+from nonebot import on_command, get_bot
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
                                          PrivateMessageEvent, GroupMessageEvent)
 from nonebot.adapters.onebot.v11.message import Message
@@ -20,11 +21,11 @@ from nonebot.matcher import Matcher
 from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
 
-from .data_model import Good, GameRecord
+from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange
-from .user_data import UserAccount, ExchangePlan
+from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import NtpTime, COMMAND_BEGIN, logger, _driver, get_last_command_sep
 
 _conf = PluginDataManager.plugin_data_obj
@@ -296,13 +297,87 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     else:
         await get_good_image.finish(f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
 
+lock = asyncio.Lock()
+finished: Dict[ExchangePlan, List[bool]] = {}
+
+@lambda func: scheduler.add_listener(func, EVENT_JOB_EXECUTED)
+def exchange_notice(event: JobExecutionEvent):
+    """
+    接收兑换结果
+    """
+    if event.job_id.startswith("exchange-plan"):
+        bot = get_bot()
+        loop = asyncio.get_event_loop()
+
+        thread_id = int(event.job_id.split('-')[-1])
+        result: Tuple[ExchangeStatus, Optional[ExchangeResult]] = event.retval
+        exchange_status, exchange_result = result
+
+        if not exchange_status:
+            hash_value = int(event.job_id.split('-')[-2])
+            plans = map(lambda x: x.exchange_plans, _conf.users.values())
+            plan_filter = filter(lambda x: hash(x[0]) == hash_value, zip(plans, _conf.users.keys()))
+            plan_tuple = next(plan_filter)
+            plan, user_id = plan_tuple
+            with lock:
+                finished[plan].append(False)
+                loop.run_until_complete(
+                    bot.send_private_msg(
+                    user_id=user_id,
+                    message=f"⚠️账户 {plan.account.bbs_uid}"
+                            f"\n- {plan.good.general_name}"
+                            f"\n- 线程 {thread_id}"
+                            f"\n- 兑换请求发送失败"
+                    )
+                )
+                if len(finished[plan]) == _conf.preference.exchange_thread_count:
+                    del plan
+                    write_plugin_data()
+
+        else:
+            plan = exchange_result.plan
+            user_filter = filter(lambda x: plan in x[1].exchange_plans, _conf.users.items())
+            user_id, user = next(user_filter)
+            with lock:
+                # 如果已经有一个线程兑换成功，就不再接收结果
+                if True not in finished[plan]:
+                    if exchange_result.result:
+                        finished[plan].append(True)
+                        loop.run_until_complete(
+                            bot.send_private_msg(
+                                user_id=user_id,
+                                message=f"🎉账户 {plan.account.bbs_uid}"
+                                        f"\n- {plan.good.general_name}"
+                                        f"\n- 线程 {thread_id}"
+                                        f"\n- 兑换成功"
+                            )
+                        )
+                    else:
+                        finished[plan].append(False)
+                        loop.run_until_complete(
+                            bot.send_private_msg(
+                                user_id=user_id,
+                                message=f"💦账户 {plan.account.bbs_uid}"
+                                        f"\n- {plan.good.general_name}"
+                                        f"\n- 线程 {thread_id}"
+                                        f"\n- 兑换失败"
+                            )
+                        )
+
+                if len(finished[plan]) == _conf.preference.exchange_thread_count:
+                    try:
+                        user.exchange_plans.remove(plan)
+                    except KeyError:
+                        pass
+                    else:
+                        write_plugin_data()
 
 @_driver.on_startup
 async def _():
     """
     启动机器人时自动初始化兑换任务
     """
-    for user in _conf.users.values():
+    for user_id, user in _conf.users.items():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
@@ -313,9 +388,10 @@ async def _():
                 write_plugin_data()
                 continue
             else:
+                finished.setdefault(plan, [])
                 for i in range(_conf.preference.exchange_thread_count):
                     scheduler.add_job(
-                        id=f"exchange_{hash(plan)}_{i}",
+                        id=f"exchange-plan-{hash(plan)}-{i}",
                         replace_existing=True,
                         trigger='date',
                         func=good_exchange,
