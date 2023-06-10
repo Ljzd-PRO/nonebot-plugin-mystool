@@ -24,7 +24,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
     if isinstance(event, GroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
@@ -45,7 +45,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: PrivateMessageEvent, state: T_State, uid=Arg()):
+async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
     if isinstance(uid, Message):
         uid = uid.extract_plain_text().strip()
     if uid == '退出':

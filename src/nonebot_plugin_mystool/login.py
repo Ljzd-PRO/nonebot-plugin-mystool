@@ -177,7 +177,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg()):
+async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
     """
     根据手机号设置导出相应的账户的Cookies
     """
