@@ -87,13 +87,13 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @account_setting.got('arg')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('arg')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('arg')):
     """
     根据所选更改相应账户的相应设置
     """
     arg = arg.strip()
     account: UserAccount = state['account']
-    user_account: Dict[str, UserAccount] = state['user_account']
+    user_account = _conf.users[event.user_id].accounts
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     elif arg == '1':
@@ -131,6 +131,7 @@ async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, ar
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
     elif arg == '确认删除' and state["prepare_to_delete"]:
         user_account.pop(account.bbs_uid)
+        write_plugin_data()
         await account_setting.finish(f"已删除账号 {account.phone_number} 的数据")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
