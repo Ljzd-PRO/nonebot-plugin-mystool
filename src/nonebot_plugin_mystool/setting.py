@@ -78,11 +78,11 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
-                    "\n" + "、".join(map(lambda x: x.NAME, account.mission_games))
-    user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
-    user_setting += "\n⚠️6⃣️ 删除账户数据"
+                    "\n- " + "、".join(map(lambda x: f"『{x.NAME}』", account.mission_games))
+    user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}"
+    user_setting += "\n6️⃣⚠️删除账户数据"
 
-    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6'
+    await account_setting.send(user_setting + '\n\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6'
                                               '\n🚪发送“退出”即可退出')
 
 
@@ -114,12 +114,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
         write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif arg == '4':
-        games_show = "、".join(map(lambda x: x.NAME, BaseMission.AVAILABLE_GAMES))
+        games_show = "、".join(map(lambda x: f"『{x.NAME}』", BaseMission.AVAILABLE_GAMES))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道："
             "\n❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”"
             f"\n\n可选的频道："
-            f"\n{games_show}"
+            f"\n- {games_show}"
             "\n\n🚪发送“退出”即可退出"
         )
     elif arg == '5':
@@ -171,7 +171,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     """
     user = _conf.users[event.user_id]
     await matcher.send(
-        f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
+        f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}"
+        f"\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
