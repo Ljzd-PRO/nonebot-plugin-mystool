@@ -237,7 +237,8 @@ class UserAccount(BaseModelWithSetter):
 
         from . import myb_missions_api
 
-        mission_games_param: Union[List[str], Set[type]] = data.pop("mission_games")
+        mission_games_param: Union[List[str], Set[type], None] = data.pop(
+            "mission_games") if "mission_games" in data else None
         super().__init__(**data)
 
         if isinstance(mission_games_param, list):
