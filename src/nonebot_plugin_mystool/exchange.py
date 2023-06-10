@@ -24,7 +24,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange
+from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange, good_exchange_sync
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import NtpTime, COMMAND_BEGIN, logger, _driver, get_last_command_sep
 
@@ -190,8 +190,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 if plan.good.goods_id == good_id:
                     plans.remove(plan)
                     write_plugin_data()
-                    scheduler.remove_job(job_id=str(
-                        account.bbs_uid) + '_' + good_id)
+                    for i in range(_conf.preference.exchange_thread_count):
+                        scheduler.remove_job(job_id=f"exchange-plan-{hash(plan)}-{i}")
                     await matcher.finish('兑换计划删除成功')
             await matcher.finish(f"您没有设置商品ID为 {good_id} 的兑换哦~")
         else:
@@ -230,14 +230,17 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         write_plugin_data()
 
     # 初始化兑换任务
-    scheduler.add_job(
-        id=f"{account.bbs_uid}_{good.goods_id}",
-        replace_existing=True,
-        trigger='date',
-        func=good_exchange,
-        args=(plan,),
-        next_run_time=datetime.fromtimestamp(good.time)
-    )
+    finished.setdefault(plan, [])
+    for i in range(_conf.preference.exchange_thread_count):
+        scheduler.add_job(
+            id=f"exchange-plan-{hash(plan)}-{i}",
+            replace_existing=True,
+            trigger='date',
+            func=good_exchange_sync,
+            args=(plan,),
+            next_run_time=datetime.fromtimestamp(good.time),
+            max_instances=_conf.preference.exchange_thread_count
+        )
 
     await matcher.finish(
         f'🎉设置兑换计划成功！将于 {plan.good.time_text} 开始兑换，到时将会私聊告知您兑换结果')
@@ -394,7 +397,7 @@ async def _():
                         id=f"exchange-plan-{hash(plan)}-{i}",
                         replace_existing=True,
                         trigger='date',
-                        func=good_exchange,
+                        func=good_exchange_sync,
                         args=(plan,),
                         next_run_time=datetime.fromtimestamp(good.time),
                         max_instances=_conf.preference.exchange_thread_count
