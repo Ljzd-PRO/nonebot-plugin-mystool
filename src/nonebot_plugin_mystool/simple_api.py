@@ -372,7 +372,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Tuple[Bas
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取用户游戏数据(GameRecord) - 请求失败")
+            logger.exception("获取用户游戏数据(GameRecord) - 请求失败")
             return BaseApiStatus(network_error=True), None
 
 
