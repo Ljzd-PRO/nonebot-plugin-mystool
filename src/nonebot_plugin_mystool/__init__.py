@@ -29,6 +29,13 @@ __plugin_meta__ = PluginMetadata(
     extra={"version": VERSION}
 )
 
+# 在此处使用 get_driver() 防止多进程生成图片时反复调用
+
+from .utils import CommandBegin
+from nonebot import get_driver
+
+get_driver().on_startup(CommandBegin.set_command_begin)
+
 # 加载其它代码
 
 FILE_PATH = Path(__file__).parent.absolute()

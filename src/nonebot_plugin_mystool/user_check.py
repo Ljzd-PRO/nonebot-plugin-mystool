@@ -9,9 +9,10 @@ from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
 from nonebot_plugin_apscheduler import scheduler
 
 from .plugin_data import PluginDataManager, write_plugin_data
-from .utils import logger, _driver
+from .utils import logger
 
 _conf = PluginDataManager.plugin_data_obj
+_driver = get_driver()
 friendRequest = on_request(priority=1, block=True)
 
 

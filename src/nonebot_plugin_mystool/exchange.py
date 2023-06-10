@@ -12,6 +12,7 @@ from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
 from typing import List, Union, Callable, Any, Tuple, Optional, Dict
 
+import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_bot
 from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
@@ -26,9 +27,10 @@ from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import NtpTime, COMMAND_BEGIN, logger, _driver, get_last_command_sep
+from .utils import NtpTime, COMMAND_BEGIN, logger, get_last_command_sep
 
 _conf = PluginDataManager.plugin_data_obj
+_driver = nonebot.get_driver()
 
 myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
                                aliases={(f"{_conf.preference.command_start}兑换", "+"),

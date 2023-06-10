@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from loguru import Logger
 
 _conf = PluginDataManager.plugin_data_obj
-_driver = nonebot.get_driver()
 
 
 class CommandBegin:
@@ -58,11 +57,10 @@ def get_last_command_sep():
     """
     获取第最后一个命令分隔符
     """
-    if _driver.config.command_sep:
-        return list(_driver.config.command_sep)[-1]
+    if nonebot.get_driver().config.command_sep:
+        return list(nonebot.get_driver().config.command_sep)[-1]
 
 
-_driver.on_startup(CommandBegin.set_command_begin)
 COMMAND_BEGIN = CommandBegin()
 '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
