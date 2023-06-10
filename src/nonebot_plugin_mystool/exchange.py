@@ -291,8 +291,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
             image_bytes = io.BytesIO(f.read())
         await get_good_image.finish(MessageSegment.image(image_bytes))
     else:
-        threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()
-        await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
+        await get_good_image.finish(f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
 
 
 @_driver.on_startup
