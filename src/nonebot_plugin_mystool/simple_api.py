@@ -647,7 +647,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
                 address_list = list(map(Address.parse_obj, api_result.data["list"]))
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"获取地址数据 - 服务器没有正确返回")
+            logger.exception("获取地址数据 - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
