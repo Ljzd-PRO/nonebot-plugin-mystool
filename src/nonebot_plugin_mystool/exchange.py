@@ -24,7 +24,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange, good_exchange_sync
+from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import NtpTime, COMMAND_BEGIN, logger, _driver, get_last_command_sep
 
@@ -300,7 +300,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     else:
         await get_good_image.finish(f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
 
-lock = asyncio.Lock()
+lock = threading.Lock()
 finished: Dict[ExchangePlan, List[bool]] = {}
 
 @lambda func: scheduler.add_listener(func, EVENT_JOB_EXECUTED)
