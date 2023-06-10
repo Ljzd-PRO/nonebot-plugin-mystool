@@ -283,19 +283,16 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
         await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
     else:
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
-    good_list = await get_good_list(arg[0])
-    if good_list:
-        img_path = time.strftime(
-            f'{_conf.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
-        if os.path.exists(img_path):
-            with open(img_path, 'rb') as f:
-                image_bytes = io.BytesIO(f.read())
-            await get_good_image.finish(MessageSegment.image(image_bytes))
-        else:
-            threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()
-            await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
+
+    img_path = time.strftime(
+        f'{_conf.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+    if os.path.exists(img_path):
+        with open(img_path, 'rb') as f:
+            image_bytes = io.BytesIO(f.read())
+        await get_good_image.finish(MessageSegment.image(image_bytes))
     else:
-        await get_good_image.finish(f"{arg[1]} 部分目前没有可兑换商品哦~")
+        threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()
+        await get_good_image.finish('⏳后台正在生成商品信息图片，请稍后查询')
 
 
 @_driver.on_startup
@@ -333,7 +330,11 @@ def image_process(game: str, lock: Lock):
     :return: 生成成功或无商品返回True，否则返回False
     """
     loop = asyncio.new_event_loop()
-    _, good_list = loop.run_until_complete(get_good_list(game))
+    good_list_status, good_list = loop.run_until_complete(get_good_list(game))
+    if not good_list_status:
+        logger.error(f"{_conf.preference.log_head}获取 {game} 分区的商品列表失败，跳过该分区的商品图片生成")
+        return False
+    good_list = list(filter(lambda x: not x.time_end and x.time_limited, good_list))
     if good_list:
         logger.info(f"{_conf.preference.log_head}正在生成 {game} 分区的商品列表图片")
         image_bytes = loop.run_until_complete(game_list_to_image(good_list, lock))
@@ -345,7 +346,7 @@ def image_process(game: str, lock: Lock):
             f.write(image_bytes)
         logger.info(f"{_conf.preference.log_head}已完成 {game} 分区的商品列表图片生成")
     else:
-        logger.info(f"{_conf.preference.log_head}{game}分区暂时没有商品，跳过生成商品列表图片")
+        logger.info(f"{_conf.preference.log_head}{game}分区暂时没有商品，跳过该分区的商品图片生成")
     return True
 
 
@@ -355,7 +356,6 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
 
     :param is_auto: True为每日自动生成，False为用户手动更新
     :param callback: 回调函数，参数为生成成功与否
-    >>> generate_image(is_auto=False)
     """
     for root, _, files in os.walk(_conf.good_list_image_config.SAVE_PATH, topdown=False):
         for name in files:
