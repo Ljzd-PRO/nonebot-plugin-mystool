@@ -174,7 +174,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user = _conf.users[event.user_id]
     await matcher.send(
         f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}"
-        f"\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
+        "\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
