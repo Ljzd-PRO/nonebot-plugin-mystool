@@ -651,7 +651,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取地址数据 - 请求失败")
+            logger.exception("获取地址数据 - 请求失败")
             return BaseApiStatus(network_error=True), None
     return BaseApiStatus(success=True), address_list
 
