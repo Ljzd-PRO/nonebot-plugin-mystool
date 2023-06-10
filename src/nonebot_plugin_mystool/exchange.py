@@ -34,7 +34,10 @@ myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
                                         (f"{_conf.preference.command_start}兑换", "-")},
                                priority=5, block=True)
 myb_exchange_plan.name = "兑换"
-myb_exchange_plan.usage = f"跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，并使用『{COMMAND_BEGIN}地址』选择你要使用的地址。所需的商品ID可通过命令『{COMMAND_BEGIN}商品』获取。注意，不限兑换时间的商品将不会在此处显示。 "
+myb_exchange_plan.usage = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，" \
+                          "并使用『{HEAD}地址』选择你要使用的地址。" \
+                          "所需的商品ID可通过命令『{HEAD}商品』获取。" \
+                          "注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.extra_usage = """\
 具体用法：
 {HEAD}兑换{SEP}+ <商品ID> ➢ 新增兑换计划
