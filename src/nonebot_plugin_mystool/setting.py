@@ -174,7 +174,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @global_setting.got('choice')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, choice: Message = ArgPlainText('choice')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher,
+            choice: Message = ArgPlainText('choice')):
     """
     根据选择变更通知设置
     """

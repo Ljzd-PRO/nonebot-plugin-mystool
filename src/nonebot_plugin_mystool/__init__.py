@@ -65,8 +65,10 @@ __plugin_meta__ = PluginMetadata(
 )
 
 # 在此处设置自启动函数，防止多进程生成图片时重复执行get_driver()
+
 from .plugin_data import PluginDataManager
 from nonebot import get_driver
+
 get_driver().on_startup(PluginDataManager.load_plugin_data)
 
 # 加载其它代码

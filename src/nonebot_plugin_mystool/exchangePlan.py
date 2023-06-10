@@ -105,7 +105,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('bbs_uid')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=ArgStr('bbs_uid')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
+            uid=ArgStr('bbs_uid')):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
@@ -119,7 +120,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('good_id')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, good_id=ArgPlainText('good_id')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
+            good_id=ArgPlainText('good_id')):
     """
     处理三级命令，即商品ID
     """
@@ -197,7 +199,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('uid')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=ArgPlainText('uid')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
+            uid=ArgPlainText('uid')):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """
