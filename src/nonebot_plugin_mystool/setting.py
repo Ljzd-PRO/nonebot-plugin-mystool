@@ -120,7 +120,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
         await account_setting.send(
             "请发送你想要执行米游币任务的频道："
             "\n❕多个频道请用空格分隔，如 “原神 崩坏3 大别野”"
-            f"\n\n可选的频道："
+            "\n\n可选的频道："
             f"\n- {games_show}"
             "\n\n🚪发送“退出”即可退出"
         )
