@@ -375,3 +375,5 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
                              callback=callback)
         pool.close()
         pool.join()
+
+    logger.info(f"{_conf.preference.log_head}已完成所有分区的商品列表图片生成")
