@@ -254,6 +254,7 @@ class PluginDataManager:
                 raise
             logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
 
+PluginDataManager.load_plugin_data()
 
 def write_plugin_data(data: PluginData = None):
     """
