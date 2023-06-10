@@ -153,7 +153,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         msg = f"🪪账户 {account.bbs_uid}" \
                               f"\n🎮『{signer.NAME}』今日签到成功！" \
                               f"\n{signer.record.nickname}·{signer.record.level}" \
-                              f"\n\n🎁今日签到奖励：" \
+                              "\n\n🎁今日签到奖励：" \
                               f"\n{award.name} * {award.cnt}" \
                               f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
