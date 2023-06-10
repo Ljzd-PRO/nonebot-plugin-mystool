@@ -611,7 +611,7 @@ async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
                 page += 1
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"获取商品信息列表 - 获取商品列表: 服务器没有正确返回")
+            logger.exception("获取商品信息列表 - 获取商品列表: 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
