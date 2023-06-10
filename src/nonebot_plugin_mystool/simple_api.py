@@ -1149,7 +1149,7 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: Optional[str] = No
             logger.debug(f"网络请求返回: {res.text}")
             return GetCookieStatus(incorrect_return=True), None
         else:
-            logger.exception(f"通过 stoken_v1 获取 stoken_v2: 网络请求失败")
+            logger.exception("通过 stoken_v1 获取 stoken_v2: 网络请求失败")
             return GetCookieStatus(network_error=True), None
 
 
