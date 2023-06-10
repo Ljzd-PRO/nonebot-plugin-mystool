@@ -166,7 +166,8 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
     if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     elif len(user_account) == 1:
-        matcher.set_arg('bbs_uid', Message(next(user_account.values()).bbs_uid))
+        account = next(iter(user_account.values()))
+        matcher.set_arg('bbs_uid', Message(account.bbs_uid))
     else:
         uids = map(lambda x: x.bbs_uid, user_account)
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
