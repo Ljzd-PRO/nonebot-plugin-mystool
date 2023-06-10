@@ -394,7 +394,7 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
                     map(GameInfo.parse_obj, api_result.data["list"]))
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"获取游戏信息(GameInfo) - 服务器没有正确返回")
+            logger.exception("获取游戏信息(GameInfo) - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
