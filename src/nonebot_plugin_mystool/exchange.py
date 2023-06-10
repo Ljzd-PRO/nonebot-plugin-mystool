@@ -346,7 +346,7 @@ def image_process(game: str, lock: Lock):
             f.write(image_bytes)
         logger.info(f"{_conf.preference.log_head}已完成 {game} 分区的商品列表图片生成")
     else:
-        logger.info(f"{_conf.preference.log_head}{game}分区暂时没有商品，跳过该分区的商品图片生成")
+        logger.info(f"{_conf.preference.log_head}{game}分区暂时没有可兑换的限时商品，跳过该分区的商品图片生成")
     return True
 
 
