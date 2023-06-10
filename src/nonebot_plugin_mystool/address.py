@@ -10,8 +10,8 @@ from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
-from .simple_api import get_address
 from .plugin_data import PluginDataManager, write_plugin_data
+from .simple_api import get_address
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
@@ -66,15 +66,15 @@ async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
 
     if address_list:
         address_text = map(
-                            lambda x: f"省 ➢ {x.province_name}" \
-                                      f"\n市 ➢ {x.city_name}" \
-                                      f"\n区/县 ➢ {x.county_name}" \
-                                      f"\n详细地址 ➢ {x.addr_ext}" \
-                                      f"\n联系电话 ➢ {x.phone}" \
-                                      f"\n联系人 ➢ {x.connect_name}" \
-                                      f"\n地址ID ➢ {x.id}",
-                            address_list
-                        )
+            lambda x: f"省 ➢ {x.province_name}" \
+                      f"\n市 ➢ {x.city_name}" \
+                      f"\n区/县 ➢ {x.county_name}" \
+                      f"\n详细地址 ➢ {x.addr_ext}" \
+                      f"\n联系电话 ➢ {x.phone}" \
+                      f"\n联系人 ➢ {x.connect_name}" \
+                      f"\n地址ID ➢ {x.id}",
+            address_list
+        )
         msg = "以下为查询结果：" \
               "\n\n" + "\n- - -\n".join(address_text)
         await address_matcher.send(msg)

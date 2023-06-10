@@ -1,7 +1,7 @@
 """
 ### 用户设置相关
 """
-from typing import Union, Dict
+from typing import Union
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent

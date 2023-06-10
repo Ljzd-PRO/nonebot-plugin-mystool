@@ -11,11 +11,11 @@ from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
                                          PrivateMessageEvent, GroupMessageEvent)
 from nonebot_plugin_apscheduler import scheduler
 
-from .simple_api import genshin_board_bbs, get_game_record
 from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
+from .simple_api import genshin_board_bbs, get_game_record
 from .utils import get_file, logger, COMMAND_BEGIN
 
 _conf = PluginDataManager.plugin_data_obj

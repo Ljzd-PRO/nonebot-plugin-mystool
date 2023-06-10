@@ -10,9 +10,9 @@ from typing import List
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 
-from .simple_api import get_good_detail
 from .data_model import Good
 from .plugin_data import PluginDataManager, DATA_PATH
+from .simple_api import get_good_detail
 from .utils import (get_file, logger, get_async_retry)
 
 _conf = PluginDataManager.plugin_data_obj
