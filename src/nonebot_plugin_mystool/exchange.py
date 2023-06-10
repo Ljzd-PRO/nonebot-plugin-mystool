@@ -312,7 +312,7 @@ def exchange_notice(event: JobExecutionEvent):
         bot = get_bot()
         loop = asyncio.get_event_loop()
 
-        thread_id = int(event.job_id.split('-')[-1])
+        thread_id = int(event.job_id.split('-')[-1]) + 1
         result: Tuple[ExchangeStatus, Optional[ExchangeResult]] = event.retval
         exchange_status, exchange_result = result
 
