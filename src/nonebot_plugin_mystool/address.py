@@ -85,7 +85,7 @@ async def _(_: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 
-    address_filter = filter(lambda x: x.address_id == address_id, state['address_list'])
+    address_filter = filter(lambda x: x.id == address_id, state['address_list'])
     address = next(address_filter, None)
     if address is not None:
         account: UserAccount = state["account"]
