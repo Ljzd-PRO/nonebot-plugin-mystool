@@ -1145,7 +1145,7 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: Optional[str] = No
 
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"通过 stoken_v1 获取 stoken_v2: 服务器没有正确返回")
+            logger.exception("通过 stoken_v1 获取 stoken_v2: 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return GetCookieStatus(incorrect_return=True), None
         else:
