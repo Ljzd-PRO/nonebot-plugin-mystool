@@ -1084,7 +1084,7 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: Optional[st
                         cookies.bbs_uid = api_result.data["uid"]
                     return GetCookieStatus(success=True), cookies
                 elif api_result.login_expired:
-                    logger.warning(f"通过 stoken 获取 cookie_token: 登录失效")
+                    logger.warning("通过 stoken 获取 cookie_token: 登录失效")
                     return GetCookieStatus(login_expired=True), None
                 else:
                     raise IncorrectReturn
