@@ -13,7 +13,7 @@ from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.0.0-dev"
+VERSION = "v1.0.0-beta.1"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
