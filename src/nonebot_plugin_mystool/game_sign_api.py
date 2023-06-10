@@ -1,3 +1,6 @@
+"""
+### 米游社的游戏签到相关API
+"""
 from typing import List, Optional, Tuple, Literal, Set, Type
 from urllib.parse import urlencode
 

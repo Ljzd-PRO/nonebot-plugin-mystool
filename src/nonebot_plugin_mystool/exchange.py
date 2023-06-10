@@ -1,3 +1,6 @@
+"""
+### 商品图片生成等
+"""
 import io
 import os
 import zipfile

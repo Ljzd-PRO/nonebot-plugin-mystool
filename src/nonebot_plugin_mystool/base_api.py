@@ -1,3 +1,6 @@
+"""
+### 米游社一些简单API相关
+"""
 from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
 

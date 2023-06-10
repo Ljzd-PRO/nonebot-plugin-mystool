@@ -1,3 +1,6 @@
+"""
+### 米游社的米游币任务相关API
+"""
 import asyncio
 from typing import List, Optional, Tuple, Set, Type
 

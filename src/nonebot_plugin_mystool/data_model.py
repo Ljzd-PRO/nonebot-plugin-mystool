@@ -1,3 +1,6 @@
+"""
+### 米游社API的客户端调用所用的数据模型
+"""
 import inspect
 import time
 from abc import abstractmethod
