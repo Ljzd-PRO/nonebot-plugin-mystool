@@ -93,7 +93,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             good_detail_status, good = await get_good_detail(plan.good)
             if not good_detail_status:
                 await matcher.finish("⚠️获取商品详情失败，请稍后再试")
-            msg += f"-- 商品 {good.general_name}" \
+            msg += f"-- 商品：{good.general_name}" \
                    f"\n- 🔢商品ID：{good.goods_id}" \
                    f"\n- 💰商品价格：{good.price} 米游币" \
                    f"\n- 📅兑换时间：{good.time_text}" \
