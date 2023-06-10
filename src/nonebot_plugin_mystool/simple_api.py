@@ -746,7 +746,7 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
         if client:
             await client.aclose()
         if is_incorrect_return(e):
-            logger.exception(f"获取短信验证-人机验证任务(create_mmt) - 服务器没有正确返回")
+            logger.exception("获取短信验证-人机验证任务(create_mmt) - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None, device_id, client
         else:
