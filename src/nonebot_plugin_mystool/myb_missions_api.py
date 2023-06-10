@@ -451,7 +451,7 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取米游币任务列表: 请求失败")
+            logger.exception("获取米游币任务列表: 请求失败")
             return BaseApiStatus(network_error=True), None
 
 
