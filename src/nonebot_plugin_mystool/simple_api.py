@@ -1095,7 +1095,7 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: Optional[st
             logger.debug(f"网络请求返回: {res.text}")
             return GetCookieStatus(incorrect_return=True), None
         else:
-            logger.exception(f"通过 stoken 获取 cookie_token: 网络请求失败")
+            logger.exception("通过 stoken 获取 cookie_token: 网络请求失败")
             return GetCookieStatus(network_error=True), None
 
 
