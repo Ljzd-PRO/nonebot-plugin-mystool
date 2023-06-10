@@ -36,6 +36,7 @@ import pkgutil
 from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
+
 from .plugin_data import VERSION
 
 __plugin_meta__ = PluginMetadata(

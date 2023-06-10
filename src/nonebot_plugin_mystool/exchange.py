@@ -298,10 +298,13 @@ async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
             image_bytes = io.BytesIO(f.read())
         await get_good_image.finish(MessageSegment.image(image_bytes))
     else:
-        await get_good_image.finish(f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
+        await get_good_image.finish(
+            f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
+
 
 lock = threading.Lock()
 finished: Dict[ExchangePlan, List[bool]] = {}
+
 
 @lambda func: scheduler.add_listener(func, EVENT_JOB_EXECUTED)
 def exchange_notice(event: JobExecutionEvent):
@@ -326,11 +329,11 @@ def exchange_notice(event: JobExecutionEvent):
                 finished[plan].append(False)
                 loop.create_task(
                     bot.send_private_msg(
-                    user_id=user_id,
-                    message=f"⚠️账户 {plan.account.bbs_uid}"
-                            f"\n- {plan.good.general_name}"
-                            f"\n- 线程 {thread_id}"
-                            f"\n- 兑换请求发送失败"
+                        user_id=user_id,
+                        message=f"⚠️账户 {plan.account.bbs_uid}"
+                                f"\n- {plan.good.general_name}"
+                                f"\n- 线程 {thread_id}"
+                                f"\n- 兑换请求发送失败"
                     )
                 )
                 if len(finished[plan]) == _conf.preference.exchange_thread_count:
@@ -374,6 +377,7 @@ def exchange_notice(event: JobExecutionEvent):
                         pass
                     else:
                         write_plugin_data()
+
 
 @_driver.on_startup
 async def _():
