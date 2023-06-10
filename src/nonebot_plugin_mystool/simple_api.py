@@ -750,7 +750,7 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None, device_id, client
         else:
-            logger.exception(f"获取短信验证-人机验证任务(create_mmt) - 请求失败")
+            logger.exception("获取短信验证-人机验证任务(create_mmt) - 请求失败")
             return BaseApiStatus(network_error=True), None, device_id, None
 
 
