@@ -578,7 +578,7 @@ async def get_good_games(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Li
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"米游币商品兑换 - 获取商品列表: 网络请求失败")
+            logger.exception("米游币商品兑换 - 获取商品列表: 网络请求失败")
             return BaseApiStatus(network_error=True), None
 
 
