@@ -615,7 +615,7 @@ async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取商品信息列表 - 获取商品列表: 网络请求失败")
+            logger.exception("获取商品信息列表 - 获取商品列表: 网络请求失败")
             return BaseApiStatus(network_error=True), None
 
     return BaseApiStatus(success=True), good_list
