@@ -894,7 +894,7 @@ async def get_login_ticket_by_captcha(phone_number: str,
                         return GetCookieStatus(success=True), cookies
                 elif api_result.wrong_captcha:
                     logger.info(
-                        f"通过短信验证码获取 login_ticket - 验证码错误，但你可以再次尝试登录")
+                        "通过短信验证码获取 login_ticket - 验证码错误，但你可以再次尝试登录")
                     return GetCookieStatus(incorrect_captcha=True), None
                 else:
                     raise IncorrectReturn
