@@ -33,64 +33,61 @@ account_setting.usage = "配置游戏自动签到、米游币任务是否开启�
 
 
 @account_setting.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
     """
     账号设置命令触发
     """
-    if isinstance(event, GroupMessageEvent):
-        await account_setting.finish('⚠️为了保护您的隐私，请添加机器人好友后私聊进行设置操作')
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
-    state['user_account'] = user_account
     if not user_account:
         await account_setting.finish(
             f"⚠️你尚未绑定米游社账户，请先使用『{_conf.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
-        phone_number = next(iter(user_account.values())).phone_number
-        matcher.set_arg('phone', Message(str(phone_number)))
+        uid = next(iter(user_account.values())).bbs_uid
+        matcher.set_arg('bbs_uid', Message(uid))
     else:
-        phones = map(lambda x: str(x.phone_number), user_account.values())
+        uids = map(lambda x: x.bbs_uid, user_account.values())
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
-        msg += "📱" + "\n📱".join(phones)
+        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
         msg += "\n🚪发送“退出”即可退出"
         await matcher.send(msg)
 
 
-@account_setting.got('phone')
-async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg('phone')):
+@account_setting.got('bbs_uid')
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=Arg('bbs_uid')):
     """
     根据手机号设置相应的账户
     """
-    if isinstance(phone, Message):
-        phone = phone.extract_plain_text().strip()
-    if phone == '退出':
+    if isinstance(uid, Message):
+        uid = uid.extract_plain_text().strip()
+    if uid == '退出':
         await matcher.finish('🚪已成功退出')
 
-    user_account: Dict[str, UserAccount] = state['user_account']
-    account_filter = filter(lambda x: str(x.phone_number) == phone, user_account.values())
-    account = next(account_filter, None)
-    if account is None:
+    user_account = _conf.users[event.user_id].accounts
+    if uid not in user_account:
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+    account = user_account[uid]
     state['account'] = account
     state["prepare_to_delete"] = False
 
     user_setting = ""
-    user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.enable_mission else '关'}\n"
-    user_setting += f"2️⃣ 游戏自动签到：{'开' if account.enable_mission else '关'}\n"
+    user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.enable_mission else '关'}"
+    user_setting += f"\n2️⃣ 游戏自动签到：{'开' if account.enable_mission else '关'}"
     platform_show = "iOS" if account.platform == "ios" else "安卓"
-    user_setting += f"3️⃣ 设备平台：{platform_show}\n"
+    user_setting += f"\n3️⃣ 设备平台：{platform_show}"
 
     # 筛选出用户数据中的missionGame对应的游戏全称
-    user_setting += "4️⃣ 执行米游币任务的频道：『" + \
-                    "、".join(map(lambda x: x.NAME, account.mission_games)) + "』\n"
-    user_setting += f"5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
-    user_setting += "⚠️6⃣️ 删除账户数据"
+    user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
+                    "\n" + "、".join(map(lambda x: x.NAME, account.mission_games))
+    user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}\n"
+    user_setting += "\n⚠️6⃣️ 删除账户数据"
 
-    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6\n🚪发送“退出”即可退出')
+    await account_setting.send(user_setting + '\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6'
+                                              '\n🚪发送“退出”即可退出')
 
 
 @account_setting.got('arg')
-async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('arg')):
     """
     根据所选更改相应账户的相应设置
     """
@@ -140,7 +137,7 @@ async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('arg')):
 
 
 @account_setting.got('missionGame')
-async def _(_: PrivateMessageEvent, state: T_State, arg=ArgPlainText('missionGame')):
+async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('missionGame')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
@@ -167,7 +164,7 @@ global_setting.usage = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()
-async def _(event: MessageEvent, matcher: Matcher):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
     """
     通知设置命令触发
     """
@@ -177,7 +174,7 @@ async def _(event: MessageEvent, matcher: Matcher):
 
 
 @global_setting.got('choice')
-async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgPlainText('choice')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, choice: Message = ArgPlainText('choice')):
     """
     根据选择变更通知设置
     """
@@ -186,6 +183,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, choice: Message = ArgP
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
         user.enable_notice = not user.enable_notice
+        write_plugin_data()
         await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if user.enable_notice else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")
