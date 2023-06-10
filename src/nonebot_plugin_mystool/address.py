@@ -65,17 +65,20 @@ async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
         await address_matcher.finish("⚠️获取失败，请稍后重新尝试")
 
     if address_list:
-        await address_matcher.send("以下为查询结果：")
-        for address in address_list:
-            address_string = f"\n省 ➢ {address.province_name}" \
-                             f"\n市 ➢ {address.city_name}" \
-                             f"\n区/县 ➢ {address.county_name}" \
-                             f"\n详细地址 ➢ {address.addr_ext}" \
-                             f"\n联系电话 ➢ {address.phone}" \
-                             f"\n联系人 ➢ {address.connect_name}" \
-                             f"\n地址ID ➢ {address.id}"
-            await address_matcher.send(address_string)
-            await asyncio.sleep(0.2)
+        address_text = map(
+                            lambda x: f"省 ➢ {x.province_name}" \
+                                      f"\n市 ➢ {x.city_name}" \
+                                      f"\n区/县 ➢ {x.county_name}" \
+                                      f"\n详细地址 ➢ {x.addr_ext}" \
+                                      f"\n联系电话 ➢ {x.phone}" \
+                                      f"\n联系人 ➢ {x.connect_name}" \
+                                      f"\n地址ID ➢ {x.id}",
+                            address_list
+                        )
+        msg = "以下为查询结果：" \
+              "\n\n" + "\n- - -\n".join(address_text)
+        await address_matcher.send(msg)
+        await asyncio.sleep(0.2)
     else:
         await address_matcher.finish("⚠️您还没有配置地址，请先前往米游社配置地址！")
 
