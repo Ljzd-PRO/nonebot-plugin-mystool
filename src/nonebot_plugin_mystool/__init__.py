@@ -36,9 +36,7 @@ import pkgutil
 from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
-
-VERSION = "v1.0.0-dev"
-'''插件版本号'''
+from .plugin_data import VERSION
 
 __plugin_meta__ = PluginMetadata(
     name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
