@@ -1194,7 +1194,7 @@ async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: Optional[str] = N
 
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"通过 stoken 获取 ltoken: 服务器没有正确返回")
+            logger.exception("通过 stoken 获取 ltoken: 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return GetCookieStatus(incorrect_return=True), None
         else:
