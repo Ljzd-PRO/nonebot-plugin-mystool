@@ -90,7 +90,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     else:
         msg = ""
         for plan in user.exchange_plans:
-            good_detail_status, good = await get_good_detail(plan[0])
+            good_detail_status, good = await get_good_detail(plan.good)
             if not good_detail_status:
                 await matcher.finish("⚠️获取商品详情失败，请稍后再试")
             msg += f"-- 商品 {good.general_name}" \
