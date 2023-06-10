@@ -71,7 +71,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user_account = user.accounts if user else None
     if not user_account:
         await matcher.finish(
-            f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}{_conf.preference.command_start}登录』进行登录")
+            f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
 
     # 如果使用了二级命令 + - 则跳转进下一步，通过phone选择账户进行设置
     if len(command) > 1:
