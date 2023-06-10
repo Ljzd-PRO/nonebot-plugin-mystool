@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple, Set, Type
 import httpx
 import tenacity
 
-from .base_api import ApiResultHandler, is_incorrect_return
+from .simple_api import ApiResultHandler, is_incorrect_return
 from .data_model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState
 from .plugin_data import PluginDataManager
