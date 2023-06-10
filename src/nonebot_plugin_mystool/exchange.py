@@ -233,12 +233,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     finished.setdefault(plan, [])
     for i in range(_conf.preference.exchange_thread_count):
         scheduler.add_job(
+            good_exchange_sync,
+            "date",
             id=f"exchange-plan-{hash(plan)}-{i}",
             replace_existing=True,
-            trigger='date',
-            func=good_exchange_sync,
             args=(plan,),
-            next_run_time=datetime.fromtimestamp(good.time),
+            run_date=datetime.fromtimestamp(good.time),
             max_instances=_conf.preference.exchange_thread_count
         )
 
@@ -394,12 +394,12 @@ async def _():
                 finished.setdefault(plan, [])
                 for i in range(_conf.preference.exchange_thread_count):
                     scheduler.add_job(
+                        good_exchange_sync,
+                        "date",
                         id=f"exchange-plan-{hash(plan)}-{i}",
                         replace_existing=True,
-                        trigger='date',
-                        func=good_exchange_sync,
                         args=(plan,),
-                        next_run_time=datetime.fromtimestamp(good.time),
+                        run_date=datetime.fromtimestamp(good.time),
                         max_instances=_conf.preference.exchange_thread_count
                     )
 
