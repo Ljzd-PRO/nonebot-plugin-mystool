@@ -155,7 +155,7 @@ class BaseMission:
                 logger.debug(f"网络请求返回: {res.text}")
                 return MissionStatus(incorrect_return=True), None
             else:
-                logger.exception(f"米游币任务 - 讨论区签到: 请求失败")
+                logger.exception("米游币任务 - 讨论区签到: 请求失败")
                 return MissionStatus(network_error=True), None
 
     async def get_posts(self, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[str]]]:
