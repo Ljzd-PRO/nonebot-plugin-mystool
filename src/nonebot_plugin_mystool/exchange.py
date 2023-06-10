@@ -313,14 +313,16 @@ async def _():
                 write_plugin_data()
                 continue
             else:
-                scheduler.add_job(
-                    id=f"{plan.account.bbs_uid}_{good.goods_id}",
-                    replace_existing=True,
-                    trigger='date',
-                    func=good_exchange,
-                    args=(plan,),
-                    next_run_time=datetime.fromtimestamp(good.time)
-                )
+                for i in range(_conf.preference.exchange_thread_count):
+                    scheduler.add_job(
+                        id=f"exchange_{hash(plan)}_{i}",
+                        replace_existing=True,
+                        trigger='date',
+                        func=good_exchange,
+                        args=(plan,),
+                        next_run_time=datetime.fromtimestamp(good.time),
+                        max_instances=_conf.preference.exchange_thread_count
+                    )
 
 
 def image_process(game: str, lock: Lock):
