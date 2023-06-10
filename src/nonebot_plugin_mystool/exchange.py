@@ -324,7 +324,7 @@ def exchange_notice(event: JobExecutionEvent):
             plan, user_id = plan_tuple
             with lock:
                 finished[plan].append(False)
-                loop.run_until_complete(
+                loop.create_task(
                     bot.send_private_msg(
                     user_id=user_id,
                     message=f"⚠️账户 {plan.account.bbs_uid}"
@@ -346,7 +346,7 @@ def exchange_notice(event: JobExecutionEvent):
                 if True not in finished[plan]:
                     if exchange_result.result:
                         finished[plan].append(True)
-                        loop.run_until_complete(
+                        loop.create_task(
                             bot.send_private_msg(
                                 user_id=user_id,
                                 message=f"🎉账户 {plan.account.bbs_uid}"
@@ -357,7 +357,7 @@ def exchange_notice(event: JobExecutionEvent):
                         )
                     else:
                         finished[plan].append(False)
-                        loop.run_until_complete(
+                        loop.create_task(
                             bot.send_private_msg(
                                 user_id=user_id,
                                 message=f"💦账户 {plan.account.bbs_uid}"
