@@ -826,7 +826,7 @@ async def create_mobile_captcha(phone_number: int,
         if client:
             await client.aclose()
         if is_incorrect_return(e):
-            logger.exception(f"发送短信验证码 - 服务器没有正确返回")
+            logger.exception("发送短信验证码 - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return CreateMobileCaptchaStatus(incorrect_return=True), client
         else:
