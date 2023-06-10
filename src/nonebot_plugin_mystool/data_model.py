@@ -133,11 +133,11 @@ class Good(BaseModelWithUpdate):
         :return:
         如果返回`None`，说明需要进一步查询商品详细信息才能获取兑换时间
         """
-        if self.is_time_end():
+        if self.time_end:
             return "已结束"
         elif self.time == 0:
             return None
-        elif self.is_time_limited():
+        elif self.time_limited:
             return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.time))
         else:
             return "任何时间"
@@ -147,21 +147,23 @@ class Good(BaseModelWithUpdate):
         """
         商品的库存文本
         """
-        if self.is_time_end():
+        if self.time_end:
             return "无"
-        elif self.is_time_limited():
+        elif self.time_limited:
             return str(self.num)
         else:
             return "不限"
 
-    def is_time_limited(self):
+    @property
+    def time_limited(self):
         """
         是否为限时商品
         """
         # 不限量被认为是不限时商品
         return not self.unlimit
 
-    def is_time_end(self):
+    @property
+    def time_end(self):
         """
         兑换是否已经结束
         """

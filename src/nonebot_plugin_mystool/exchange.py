@@ -140,7 +140,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         break_flag = False
         good = None
         for good_list in good_dict.values():
-            goods_on_sell = filter(lambda x: not x.is_time_end, good_list)
+            goods_on_sell = filter(lambda x: not x.time_end and x.time_limited, good_list)
             for good in goods_on_sell:
                 if good.goods_id == good_id:
                     flag = False
