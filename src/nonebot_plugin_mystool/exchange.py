@@ -208,8 +208,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user = _conf.users[event.user_id]
     account: UserAccount = state['account']
     good: Good = state['good']
-    records: List[GameRecord] = state['records']
     if good.is_virtual:
+        records: List[GameRecord] = state['records']
         if uid == '退出':
             await matcher.finish('🚪已成功退出')
         record_filter = filter(lambda x: x.game_role_id == uid, records)
