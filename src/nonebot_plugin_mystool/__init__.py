@@ -1,46 +1,9 @@
-"""
-# mysTool - 米游社辅助工具插件
-
-**版本 - v0.2.9**
-
-## 使用说明
-
-### 🛠️ NoneBot2 机器人部署和插件安装
-
-请查看 -> [🔗Installation](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Installation)
-
-### 📖 插件具体使用说明
-
-请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki)
-
-### ❓ 获取插件帮助信息
-
-#### 插件命令
-
-```
-/帮助
-```
-
-> ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#command_start)
-
-## 其他
-
-### [📃源码说明](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
-### 适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支
-- https://github.com/MWTJC/zhenxun-plugin-mystool
-- https://github.com/ayakasuki/nonebot-plugin-mystool
-
-"""
-
 import pkgutil
 from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-from .data import create_files
-
-VERSION = "v0.2.9"
-'''插件版本号'''
+from .plugin_data import VERSION
 
 __plugin_meta__ = PluginMetadata(
     name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
@@ -65,9 +28,6 @@ __plugin_meta__ = PluginMetadata(
     """.strip(),
     extra={"version": VERSION}
 )
-
-# 需要最先执行的函数
-create_files()
 
 # 加载其它代码
 

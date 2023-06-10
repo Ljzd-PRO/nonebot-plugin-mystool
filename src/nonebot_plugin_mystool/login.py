@@ -2,193 +2,23 @@
 ### 米游社登录获取Cookie相关
 """
 import json
-import traceback
-from typing import Literal, Union, List
+from typing import Union
 
-import httpx
-import requests.utils
-import tenacity
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, Message
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
 
-from .config import config as conf
-from .data import UserData, UserAccount
-from .utils import custom_attempt_times, generate_device_id, logger, COMMAND_BEGIN
+from .plugin_data import PluginDataManager, write_plugin_data
+from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
+    get_ltoken_by_stoken, get_cookie_token_by_stoken
+from .user_data import UserAccount, UserData
+from .utils import logger, COMMAND_BEGIN
 
-URL_1 = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
-URL_2 = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
-URL_3 = "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile"
-HEADERS_1 = {
-    "Host": "webapi.account.mihoyo.com",
-    "Connection": "keep-alive",
-    "sec-ch-ua": conf.device.UA,
-    "DNT": "1",
-    "x-rpc-device_model": conf.device.X_RPC_DEVICE_MODEL_PC,
-    "sec-ch-ua-mobile": "?0",
-    "User-Agent": conf.device.USER_AGENT_PC,
-    "x-rpc-device_id": None,
-    "Accept": "application/json, text/plain, */*",
-    "x-rpc-device_name": conf.device.X_RPC_DEVICE_NAME_PC,
-    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-    "x-rpc-client_type": "4",
-    "sec-ch-ua-platform": conf.device.UA_PLATFORM,
-    "Origin": "https://user.mihoyo.com",
-    "Sec-Fetch-Site": "same-site",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Dest": "empty",
-    "Referer": "https://user.mihoyo.com/",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6"
-}
-HEADERS_2 = {
-    "Host": "api-takumi.mihoyo.com",
-    "Content-Type": "application/json;charset=utf-8",
-    "Origin": "https://bbs.mihoyo.com",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Accept": "application/json, text/plain, */*",
-    "User-Agent": conf.device.USER_AGENT_PC,
-    "Referer": "https://bbs.mihoyo.com/",
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9"
-}
+_conf = PluginDataManager.plugin_data_obj
 
-
-class GetCookie:
-    """
-    获取Cookie(需先初始化对象)
-    """
-
-    def __init__(self, qq: int, phone: int) -> None:
-        self.phone = phone
-        self.bbsUID: str = ""
-        self.cookie: dict = {}
-        '''获取到的Cookie数据'''
-        self.client = httpx.AsyncClient()
-        account = UserData.read_account(qq, phone)
-        if account is None:
-            self.deviceID = generate_device_id()
-        else:
-            self.deviceID = account.deviceID
-
-    async def get_1(self, captcha: str, retry: bool = True) -> Literal[1, -1, -2, -3, -4]:
-        """
-        第一次获取Cookie(目标是login_ticket)
-
-        :param captcha: 短信验证码
-        :param retry: 是否允许重试
-
-        - 若返回 `1` 说明已成功
-        - 若返回 `-1` 说明Cookie缺少`login_ticket`
-        - 若返回 `-2` 说明Cookie缺少米游社UID(bbsUID)，如`stuid`
-        - 若返回 `-3` 说明请求失败
-        - 若返回 `-4` 说明验证码错误
-        """
-        headers = HEADERS_1.copy()
-        headers["x-rpc-device_id"] = self.deviceID
-        try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
-                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
-                with attempt:
-                    res = await self.client.post(URL_1, headers=headers,
-                                                 content=f"mobile={self.phone}&mobile_captcha={captcha}&source=user"
-                                                         ".mihoyo.com", timeout=conf.TIME_OUT)
-                    try:
-                        res_json = res.json()
-                        if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
-                            logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
-                            return -4
-                    except Exception:
-                        pass
-                    if "login_ticket" not in res.cookies:
-                        return -1
-                    for item in ("login_uid", "stuid", "ltuid", "account_id"):
-                        if item in res.cookies:
-                            self.bbsUID = res.cookies[item]
-                            break
-                    if not self.bbsUID:
-                        return -2
-                    self.cookie = requests.utils.dict_from_cookiejar(
-                        res.cookies.jar)
-                    return 1
-        except tenacity.RetryError:
-            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取第一次Cookie: 网络请求失败")
-            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-            return -3
-
-    async def get_2(self, retry: bool = True):
-        """
-        获取stoken
-
-        :param retry: 是否允许重试
-
-        - 若返回 `True` 说明Cookie缺少`cookie_token`
-        - 若返回 `False` 说明网络请求失败或服务器没有正确返回
-        """
-        try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), reraise=True,
-                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
-                with attempt:
-                    res = await self.client.get(URL_2.format(self.cookie["login_ticket"], self.bbsUID),
-                                                timeout=conf.TIME_OUT)
-                    stoken = list(filter(
-                        lambda data: data["name"] == "stoken", res.json()["data"]["list"]))[0]["token"]
-                    self.cookie["stoken"] = stoken
-                    return True
-        except KeyError:
-            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取stoken: 服务器没有正确返回")
-            logger.debug(f"{conf.LOG_HEAD}网络请求返回: {res.text}")
-            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-        except Exception:
-            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取stoken: 网络请求失败")
-            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-        return False
-
-    async def get_3(self, captcha: str, retry: bool = True) -> Literal[1, -1, -2, -3]:
-        """
-        第二次获取Cookie(目标是cookie_token)
-
-        :param captcha: 短信验证码
-        :param retry: 是否允许重试
-
-        - 若返回 `1` 说明已成功
-        - 若返回 `-1` 说明Cookie缺少`cookie_token`
-        - 若返回 `-2` 说明请求失败
-        - 若返回 `-3` 说明验证码错误
-        """
-        try:
-            async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
-                                                        wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
-                with attempt:
-                    res = await self.client.post(URL_3, headers=HEADERS_2, json={
-                        "is_bh2": False,
-                        "mobile": str(self.phone),
-                        "captcha": captcha,
-                        "action_type": "login",
-                        "token_type": 6
-                    }, timeout=conf.TIME_OUT)
-                    try:
-                        res_json = res.json()
-                        if res_json["data"]["msg"] == "验证码错误" or res_json["data"]["info"] == "Captcha not match Err":
-                            logger.info(f"{conf.LOG_HEAD}登录米哈游账号 - 验证码错误")
-                            return -3
-                    except Exception:
-                        pass
-                    if "cookie_token" not in res.cookies:
-                        return -1
-                    self.cookie.update(
-                        requests.utils.dict_from_cookiejar(res.cookies.jar))
-                    await self.client.aclose()
-                    return 1
-        except tenacity.RetryError:
-            logger.error(f"{conf.LOG_HEAD}登录米哈游账号 - 获取第三次Cookie: 网络请求失败")
-            logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-            return -2
-
-
-get_cookie = on_command(conf.COMMAND_START + '登录', priority=4, block=True)
+get_cookie = on_command(_conf.preference.command_start + '登录', priority=4, block=True)
 get_cookie.name = '登录'
 get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
 
@@ -197,34 +27,29 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     if isinstance(event, GroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
-    account_num = len(UserData.read_all())
-    if account_num < conf.MAX_USER:
+    user_num = len(_conf.users)
+    if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         await get_cookie.send("""\
         登录过程概览：\
         \n1.发送手机号\
         \n2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）\
-        \n3.发送验证码给QQ机器人\
-        \n4.刷新网页，再次获取验证码并发送给QQ机器人\
+        \n3.发送验证码给QQ机器人，完成登录\
         \n🚪过程中发送“退出”即可退出\
             """.strip())
     else:
         await get_cookie.finish('⚠️目前可支持使用用户数已经满啦~')
 
 
-@get_cookie.got('手机号', prompt='1.请发送您的手机号：')
-async def _(event: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('手机号')):
+@get_cookie.got('phone', prompt='1.请发送您的手机号：')
+async def _(_: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('phone')):
     if phone == '退出':
         await get_cookie.finish("🚪已成功退出")
-    phone_num = None
-    try:
-        phone_num = int(phone)
-    except Exception:
-        await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
+    if not phone.isdigit():
+        await get_cookie.reject("⚠️手机号应为数字，请重新输入")
     if len(phone) != 11:
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
-        state['phone'] = phone_num
-        state['getCookie'] = GetCookie(event.user_id, phone_num)
+        state['phone'] = phone
 
 
 @get_cookie.handle()
@@ -232,99 +57,136 @@ async def _(_: PrivateMessageEvent):
     await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
 
 
-@get_cookie.got("验证码1", prompt='3.请发送验证码：')
-async def _(_: PrivateMessageEvent, state: T_State, captcha1: str = ArgPlainText('验证码1')):
-    if captcha1 == '退出':
+@get_cookie.got("captcha", prompt='3.请发送验证码：')
+async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainText('captcha')):
+    phone_number: str = state['phone']
+    if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
-    try:
-        int(captcha1)
-    except Exception:
-        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
-    if len(captcha1) != 6:
-        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
+    if not captcha.isdigit():
+        await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
-        status: int = await state['getCookie'].get_1(captcha1)
-        if status == -1:
-            await get_cookie.finish("⚠️由于Cookie缺少login_ticket，无法继续，请稍后再试")
-        elif status == -2:
-            await get_cookie.finish("⚠️由于Cookie缺少uid，无法继续，请稍后再试")
-        elif status == -3:
-            await get_cookie.finish("⚠️网络请求失败，无法继续，请稍后再试")
-        elif status == -4:
-            await get_cookie.reject("⚠️验证码错误，注意不要在网页上使用掉验证码，请重新发送")
+        _conf.users.setdefault(event.user_id, UserData())
+        user = _conf.users[event.user_id]
+        # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
+        login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
+        if login_status:
+            # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
+            account = _conf.users[event.user_id].accounts.get(cookies.bbs_uid)
+            """当前的账户数据对象"""
+            if not account or not account.cookies:
+                user.accounts.update({
+                    cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies)
+                })
+                account = user.accounts[cookies.bbs_uid]
+            else:
+                account.cookies.update(cookies)
+            write_plugin_data()
 
-    status: bool = await state["getCookie"].get_2()
-    if not status:
-        await get_cookie.finish("⚠️获取stoken失败，一种可能是登录失效，请稍后再试")
+            # 2. 通过 login_ticket 获取 stoken 和 ltoken
+            if login_status or account:
+                login_status, cookies = await get_multi_token_by_login_ticket(account.cookies)
+                if login_status:
+                    logger.info(f"用户 {phone_number} 成功获取 stoken: {cookies.stoken}")
+                    account.cookies.update(cookies)
+                    write_plugin_data()
 
+                    # 3. 通过 stoken_v1 获取 stoken_v2 和 mid
+                    login_status, cookies = await get_stoken_v2_by_v1(account.cookies, account.device_id_ios)
+                    if login_status:
+                        logger.info(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
+                        account.cookies.update(cookies)
+                        write_plugin_data()
 
-@get_cookie.handle()
-async def _(_: PrivateMessageEvent):
-    await get_cookie.send('4.请刷新网页，再次获取验证码（不要登录！）')
+                        # 4. 通过 stoken_v2 获取 ltoken
+                        login_status, cookies = await get_ltoken_by_stoken(account.cookies, account.device_id_ios)
+                        if login_status:
+                            logger.info(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
+                            account.cookies.update(cookies)
+                            write_plugin_data()
 
+                            # 5. 通过 stoken_v2 获取 cookie_token
+                            login_status, cookies = await get_cookie_token_by_stoken(account.cookies,
+                                                                                     account.device_id_ios)
+                            if login_status:
+                                logger.info(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
+                                account.cookies.update(cookies)
+                                write_plugin_data()
 
-@get_cookie.got('验证码2', prompt='4.请发送验证码：')
-async def _(event: PrivateMessageEvent, state: T_State, captcha2: str = ArgPlainText('验证码2')):
-    if captcha2 == '退出':
-        await get_cookie.finish("🚪已成功退出")
-    try:
-        int(captcha2)
-    except Exception:
-        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
-    if len(captcha2) != 6:
-        await get_cookie.reject("⚠️验证码应为6位数字，请重新输入")
-    else:
-        status: bool = await state["getCookie"].get_3(captcha2)
-        if status < 0:
-            if status == -3:
-                await get_cookie.reject("⚠️验证码错误，注意不要在网页上使用掉验证码，请重新发送")
-            await get_cookie.finish("⚠️获取cookie_token失败，一种可能是登录失效，请稍后再试")
+                                # TODO 2023/04/12 此处如果可以模拟App的登录操作，再标记为登录完成，更安全
+                                logger.info(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
+                                await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
 
-    UserData.set_cookie(state['getCookie'].cookie,
-                        int(event.user_id), state['phone'])
-    logger.info(f"{conf.LOG_HEAD}米游社账户 {state['phone']} 绑定成功")
-    await get_cookie.finish(f"🎉米游社账户 {state['phone']} 绑定成功")
+        if not login_status:
+            notice_text = "⚠️登录失败："
+            if login_status.incorrect_captcha:
+                notice_text += "验证码错误！"
+            elif login_status.login_expired:
+                notice_text += "登录失效！"
+            elif login_status.incorrect_return:
+                notice_text += "服务器返回错误！"
+            elif login_status.network_error:
+                notice_text += "网络连接失败！"
+            elif login_status.missing_bbs_uid:
+                notice_text += "Cookies缺少 bbs_uid（例如 ltuid, stuid）"
+            elif login_status.missing_login_ticket:
+                notice_text += "Cookies缺少 login_ticket！"
+            elif login_status.missing_cookie_token:
+                notice_text += "Cookies缺少 cookie_token！"
+            elif login_status.missing_stoken:
+                notice_text += "Cookies缺少 stoken！"
+            elif login_status.missing_stoken_v1:
+                notice_text += "Cookies缺少 stoken_v1"
+            elif login_status.missing_stoken_v2:
+                notice_text += "Cookies缺少 stoken_v2"
+            elif login_status.missing_mid:
+                notice_text += "Cookies缺少 mid"
+            else:
+                notice_text += "未知错误！"
+            notice_text += " 如果部分步骤成功，你仍然可以尝试获取收货地址、兑换等功能"
+            await get_cookie.finish(notice_text)
 
 
 output_cookies = on_command(
-    conf.COMMAND_START + '导出Cookies',
-    aliases={conf.COMMAND_START + '导出Cookie', conf.COMMAND_START + '导出账号',
-             conf.COMMAND_START + '导出cookie', conf.COMMAND_START + '导出cookies'}, priority=4, block=True)
+    _conf.preference.command_start + '导出Cookies',
+    aliases={_conf.preference.command_start + '导出Cookie', _conf.preference.command_start + '导出账号',
+             _conf.preference.command_start + '导出cookie', _conf.preference.command_start + '导出cookies'}, priority=4,
+    block=True)
 output_cookies.name = '导出Cookies'
 output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State):
+async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], matcher: Matcher):
     """
     Cookies导出命令触发
     """
     if isinstance(event, GroupMessageEvent):
-        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
-    if not UserData.read_account_all(event.user_id):
+        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行Cookies导出。")
+    user_account = _conf.users[event.user_id].accounts
+    if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    elif len(user_account) == 1:
+        account = next(iter(user_account.values()))
+        matcher.set_arg('bbs_uid', Message(account.bbs_uid))
     else:
-        user_account = UserData.read_account_all(event.user_id)
-        phones = [str(str(user_account[i].phone)) for i in range(len(user_account))]
-        state['user_account'] = user_account
+        uids = map(lambda x: x.bbs_uid, user_account)
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
-        msg += "📱" + "\n📱".join(phones)
+        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
         msg += "\n🚪发送“退出”即可退出"
         await output_cookies.send(msg)
 
 
-@output_cookies.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+@output_cookies.got('bbs_uid')
+async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
     """
     根据手机号设置导出相应的账户的Cookies
     """
-    if isinstance(phone, Message):
-        phone = phone.extract_plain_text().strip()
-    if phone == '退出':
+    if isinstance(uid, Message):
+        uid = uid.extract_plain_text().strip()
+    if uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account: List[UserAccount] = state['user_account']
-    phones = [str(user_account[i].phone) for i in range(len(user_account))]
-    if phone in phones:
-        await output_cookies.finish(json.dumps(UserData.read_account(event.user_id, int(phone)).cookie, indent=4))
+    user_account = _conf.users[event.user_id].accounts
+    if uid in user_account:
+        await output_cookies.finish(json.dumps(user_account[uid].cookies.dict(cookie_type=True), indent=4))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')

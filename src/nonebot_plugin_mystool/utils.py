@@ -3,14 +3,13 @@
 """
 import hashlib
 import json
-import os
 import random
 import string
 import time
 import traceback
 import uuid
-from typing import (TYPE_CHECKING, Any, Dict, List, Literal,
-                    Union)
+from typing import (TYPE_CHECKING, Dict, Literal,
+                    Union, Optional)
 from urllib.parse import urlencode
 
 import httpx
@@ -22,12 +21,13 @@ import tenacity
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
-from .config import config as conf
+from .plugin_data import PluginDataManager
 
 if TYPE_CHECKING:
     from loguru import Logger
 
-driver = nonebot.get_driver()
+_conf = PluginDataManager.plugin_data_obj
+_driver = nonebot.get_driver()
 
 
 class CommandBegin:
@@ -45,9 +45,9 @@ class CommandBegin:
         机器人启动时设置命令开头字段
         """
         if nonebot.get_driver().config.command_start:
-            cls.string = list(nonebot.get_driver().config.command_start)[0] + conf.COMMAND_START
+            cls.string = list(nonebot.get_driver().config.command_start)[0] + _conf.preference.command_start
         else:
-            cls.string = conf.COMMAND_START
+            cls.string = _conf.preference.command_start
 
     @classmethod
     def __str__(cls):
@@ -58,11 +58,11 @@ def get_last_command_sep():
     """
     获取第最后一个命令分隔符
     """
-    if driver.config.command_sep:
-        return list(driver.config.command_sep)[-1]
+    if _driver.config.command_sep:
+        return list(_driver.config.command_sep)[-1]
 
 
-driver.on_startup(CommandBegin.set_command_begin)
+_driver.on_startup(CommandBegin.set_command_begin)
 COMMAND_BEGIN = CommandBegin()
 '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
@@ -73,36 +73,24 @@ def set_logger(logger: "Logger"):
     """
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
-    logger.add(conf.LOG_PATH, diagnose=False, format=nonebot.log.default_format,
-               filter=lambda record: record["name"] == conf.PLUGIN_NAME or
-                                     (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
-                                     record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1,
-               rotation=conf.LOG_ROTATION)
+    logger.add(_conf.preference.log_path, diagnose=False, format=nonebot.log.default_format,
+               filter=lambda record: record["name"] == _conf.preference.plugin_name or
+                                     (_conf.preference.log_head != "" and record["message"].find(
+                                         _conf.preference.log_head) == 0) or
+                                     record["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1,
+               rotation=_conf.preference.log_rotation)
     return logger
 
 
 logger = set_logger(logger)
 """本插件所用日志记录器对象（包含输出到文件）"""
 
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
+PLUGIN = nonebot.plugin.get_plugin(_conf.preference.plugin_name)
 '''本插件数据'''
 
 if not PLUGIN:
-    logger.warning("插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
-
-
-class NtpTime:
-    """
-    `NtpTime.time() #获取校准后的时间（如果校准成功）`
-    """
-    time_offset = 0
-
-    @classmethod
-    def time(cls) -> float:
-        """
-        获取校准后的时间（如果校准成功）
-        """
-        return time.time() + cls.time_offset
+    logger.warning(
+        "插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
 
 
 def custom_attempt_times(retry: bool):
@@ -113,35 +101,61 @@ def custom_attempt_times(retry: bool):
     :param retry True - 重试次数达到配置中 MAX_RETRY_TIMES 时停止; False - 执行次数达到1时停止，即不进行重试
     """
     if retry:
-        return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES + 1)
+        return tenacity.stop_after_attempt(_conf.preference.max_retry_times + 1)
     else:
         return tenacity.stop_after_attempt(1)
 
 
-@driver.on_startup
-def ntp_time_sync():
+def get_async_retry(retry: bool):
     """
-    启动时校对互联网时间
+    获取异步重试装饰器
+
+    :param retry: True - 重试次数达到偏好设置中 max_retry_times 时停止; False - 执行次数达到1时停止，即不进行重试
     """
-    NtpTime.time_offset = 0
-    try:
-        for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
-            with attempt:
-                logger.info(f"{conf.LOG_HEAD}正在校对互联网时间")
-                try:
-                    NtpTime.time_offset = ntplib.NTPClient().request(
-                        conf.NTP_SERVER).tx_time - time.time()
-                    format_offset = "%.2f" % NtpTime.time_offset
-                    logger.info(
-                        f"{conf.LOG_HEAD}系统时间与网络时间的误差为 {format_offset} 秒")
-                    if abs(NtpTime.time_offset) > 0.2:
-                        logger.warning(
-                            f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
-                except Exception:
-                    logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败，正在重试")
-                    raise
-    except tenacity.RetryError:
-        logger.warning(f"{conf.LOG_HEAD}校对互联网时间失败")
+    return tenacity.AsyncRetrying(
+        stop=custom_attempt_times(retry),
+        retry=tenacity.retry_if_exception_type(BaseException),
+        wait=tenacity.wait_fixed(_conf.preference.retry_interval),
+    )
+
+
+class NtpTime:
+    """
+    NTP时间校准相关
+    """
+    time_offset = 0
+    """本地时间与互联网时间的偏差"""
+
+    @classmethod
+    def sync(cls):
+        """
+        校准时间
+        """
+        if _conf.preference.enable_ntp_sync:
+            if not _conf.preference.ntp_server:
+                logger.error("开启了互联网时间校对，但未配置NTP服务器 preference.ntp_server，放弃时间同步")
+                return False
+            try:
+                for attempt in get_async_retry(True):
+                    with attempt:
+                        cls.time_offset = ntplib.NTPClient().request(
+                            _conf.preference.ntp_server).tx_time - time.time()
+            except tenacity.RetryError:
+                logger.error("校对互联网时间失败，改为使用本地时间")
+                logger.debug(traceback.format_exc())
+                return False
+            logger.info("互联网时间校对完成")
+            return True
+        else:
+            logger.info("未开启互联网时间校对，跳过时间同步")
+            return True
+
+    @classmethod
+    def time(cls) -> float:
+        """
+        获取校准后的时间（如果校准成功）
+        """
+        return time.time() + cls.time_offset
 
 
 def generate_device_id() -> str:
@@ -180,20 +194,21 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = "",
-                platform: Literal["ios", "android"] = "ios"):
+def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, dict, None] = None,
+                platform: Literal["ios", "android"] = "ios", salt: Optional[str] = None):
     """
     获取Headers中所需DS
 
     :param data: 可选，网络请求中需要发送的数据
     :param params: 可选，URL参数
     :param platform: 可选，平台，ios或android
+    :param salt: 可选，自定义salt
     """
-    if data == "" and params == "":
+    if data is None and params is None or salt != _conf.salt_config.SALT_PROD:
         if platform == "ios":
-            salt = conf.salt.SALT_IOS
+            salt = salt or _conf.salt_config.SALT_IOS
         else:
-            salt = conf.salt.SALT_ANDROID
+            salt = salt or _conf.salt_config.SALT_ANDROID
         t = str(int(NtpTime.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -201,12 +216,24 @@ def generate_ds(data: Union[str, dict, list] = "", params: Union[str, dict] = ""
             f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
-        salt = conf.salt.SALT_DATA
+        if params:
+            salt = _conf.salt_config.SALT_PARAMS if not salt else salt
+        else:
+            salt = _conf.salt_config.SALT_DATA if not salt else salt
+
+        if not data:
+            if salt == _conf.salt_config.SALT_PROD:
+                data = {}
+            else:
+                data = ""
+        if not params:
+            params = ""
+
         if not isinstance(data, str):
             data = json.dumps(data)
         if not isinstance(params, str):
             params = urlencode(params)
-            salt = conf.salt.SALT_PARAMS
+
         t = str(int(time.time()))
         r = str(random.randint(100000, 200000))
         c = hashlib.md5(
@@ -223,59 +250,14 @@ async def get_file(url: str, retry: bool = True):
     :return: 文件数据
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry),
-                                                    wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)
+                    res = await client.get(url, timeout=_conf.preference.timeout, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.error(f"{conf.LOG_HEAD}下载文件 - {url} 失败")
-        logger.debug(f"{conf.LOG_HEAD}{traceback.format_exc()}")
-
-
-def check_login(response: str):
-    """
-    通过网络请求返回的数据，检查是否登录失效
-
-    如果返回数据为`None`，返回`True`
-
-    :param response: 网络请求返回的数据
-    :return: 是否登录失效
-    """
-    try:
-        if response is None:
-            return True
-        res_dict = json.loads(response)
-        if "message" in res_dict:
-            response: str = res_dict["message"]
-            for string in ("Please login", "登录失效", "尚未登录"):
-                if response.find(string) != -1:
-                    return False
-            return True
-    except (json.JSONDecodeError, KeyError):
-        return True
-
-
-def check_ds(response: str):
-    """
-    通过网络请求返回的数据，检查Header中DS是否有效
-
-    如果返回数据为`None`，返回`True`
-
-    :param response: 网络请求返回的数据
-    :return: DS是否有效
-    """
-    try:
-        if response is None:
-            return True
-        res_dict = json.loads(response)
-        if res_dict["message"] == "invalid request":
-            return False
-        else:
-            return True
-    except (json.JSONDecodeError, KeyError):
-        return True
+        logger.error(f"{_conf.preference.log_head}下载文件 - {url} 失败")
+        logger.debug(f"{_conf.preference.log_head}{traceback.format_exc()}")
 
 
 def blur_phone(phone: Union[str, int]) -> str:
@@ -289,59 +271,6 @@ def blur_phone(phone: Union[str, int]) -> str:
         phone = str(phone)
     return f"{phone[:3]}****{phone[-4:]}"
 
-
-class Subscribe:
-    """
-    在线配置相关(需实例化)
-    """
-    URL = os.path.join(
-        conf.GITHUB_PROXY, "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/raw/dev/subscribe/config.json")
-    conf_list: List[Dict[str, Any]] = []
-    '''当前插件版本可用的配置资源'''
-
-    def __init__(self):
-        self.index = 0
-
-    @classmethod
-    async def download(cls) -> bool:
-        """
-        读取在线配置资源
-        :return: 是否成功
-        """
-        try:
-            for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
-                with attempt:
-                    file = await get_file(cls.URL)
-                    file = json.loads(file.decode())
-                    if not file:
-                        return False
-                    cls.conf_list = list(
-                        filter(lambda co: PLUGIN.metadata.extra["version"] in co["version"], file))
-                    cls.conf_list.sort(
-                        key=lambda co: conf["time"], reverse=True)
-                    return True
-        except (json.JSONDecodeError, KeyError):
-            logger.error(f"{conf.LOG_HEAD}获取在线配置资源 - 解析文件失败")
-            return False
-
-    async def load(self, force: bool = False) -> bool:
-        """
-        优先加载来自网络的配置，若获取失败，则返回本地默认配置。\n
-        若下载失败返回`False`
-
-        :param force: 是否强制在线读取配置，而不使用本地缓存的
-        """
-        success = True
-        if not Subscribe.conf_list or force or self.index >= len(Subscribe.conf_list):
-            logger.info(f"{conf.LOG_HEAD}读取配置 - 开始下载配置...")
-            success = await self.download()
-            self.index = 0
-        if not success:
-            return False
-        else:
-            conf.parse_obj(Subscribe.conf_list[self.index]["config"])
-            self.index += 1
-            return True
 
 # TODO: 一个用于构建on_command事件相应器的函数，
 #  将使用偏好设置里的priority优先级和block设置，
