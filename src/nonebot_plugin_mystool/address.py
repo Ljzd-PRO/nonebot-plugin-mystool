@@ -2,7 +2,7 @@
 ### 米游社收货地址相关
 """
 import asyncio
-from typing import Union, Dict
+from typing import Union
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
@@ -29,33 +29,31 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
-    state['user_account'] = user_account
     if not user_account:
         await address_matcher.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     else:
         await address_matcher.send(
             "请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
-        matcher.set_arg('phone', Message(str(next(user_account.values()).phone_number)))
+        matcher.set_arg('bbs_uid', Message(next(user_account.values()).bbs_uid))
     else:
-        phones = map(lambda x: str(x.phone_number), user_account.values())
+        uids = map(lambda x: x.bbs_uid, user_account.values())
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
-        msg += "📱" + "\n📱".join(phones)
+        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
         await matcher.send(msg)
 
 
-@address_matcher.got('phone')
-async def _(_: PrivateMessageEvent, state: T_State, phone=Arg()):
-    if isinstance(phone, Message):
-        phone = phone.extract_plain_text().strip()
-    if phone == '退出':
+@address_matcher.got('bbs_uid')
+async def _(event: PrivateMessageEvent, state: T_State, uid=Arg()):
+    if isinstance(uid, Message):
+        uid = uid.extract_plain_text().strip()
+    if uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
-    user_account: Dict[str, UserAccount] = state['user_account']
-    account_filter = filter(lambda x: str(x.phone_number) == phone, user_account.values())
-    account = next(account_filter, None)
-    if account is None:
+    user_account = _conf.users[event.user_id].accounts
+    if uid not in user_account:
         await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
+    account = user_account[uid]
     state['account'] = account
 
     address_status, address_list = await get_address(account)
@@ -68,15 +66,13 @@ async def _(_: PrivateMessageEvent, state: T_State, phone=Arg()):
     if address_list:
         await address_matcher.send("以下为查询结果：")
         for address in address_list:
-            address_string = f"""\
-            \n省 ➢ {address.province_name}\
-            \n市 ➢ {address.city_name}\
-            \n区/县 ➢ {address.county_name}\
-            \n详细地址 ➢ {address.addr_ext}\
-            \n联系电话 ➢ {address.phone}\
-            \n联系人 ➢ {address.connect_name}\
-            \n地址ID ➢ {address.id}\
-            """.strip()
+            address_string = f"\n省 ➢ {address.province_name}" \
+                             f"\n市 ➢ {address.city_name}" \
+                             f"\n区/县 ➢ {address.county_name}" \
+                             f"\n详细地址 ➢ {address.addr_ext}" \
+                             f"\n联系电话 ➢ {address.phone}" \
+                             f"\n联系人 ➢ {address.connect_name}" \
+                             f"\n地址ID ➢ {address.id}"
             await address_matcher.send(address_string)
             await asyncio.sleep(0.2)
     else:

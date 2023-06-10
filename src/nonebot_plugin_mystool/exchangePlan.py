@@ -67,8 +67,6 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 '⚠️商品ID必须为数字，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
                                                                                  SEP=get_last_command_sep()))
 
-    if isinstance(event, GroupMessageEvent):
-        await matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行操作")
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
     if not user_account:
@@ -80,12 +78,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         state['command_2'] = command[1]
         matcher.set_arg("good_id", command_arg)
         if len(user_account) == 1:
-            phone_number = next(iter(user_account.values())).phone_number
-            matcher.set_arg('phone', Message(phone_number))
+            uid = next(iter(user_account.values())).bbs_uid
+            matcher.set_arg('bbs_uid', Message(uid))
         else:
-            phones = map(lambda x: x.phone_number, user_account.values())
+            uids = map(lambda x: x.bbs_uid, user_account.values())
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
-            msg += "📱" + "\n📱".join(phones)
+            msg += "\n".join(map(lambda x: f"🆔{x}", uids))
             msg += "\n🚪发送“退出”即可退出"
             await matcher.send(msg)
     # 如果未使用二级命令，则进行查询操作，并结束交互
@@ -99,32 +97,29 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                    f"\n- 🔢商品ID：{good.goods_id}" \
                    f"\n- 💰商品价格：{good.price} 米游币" \
                    f"\n- 📅兑换时间：{good.time_text}" \
-                   f"\n- 📱账户：{plan.account.bbs_uid}"
+                   f"\n- 🆔账户：{plan.account.bbs_uid}"
             msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
         await matcher.finish(msg + matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
 
 
-@myb_exchange_plan.got('phone')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=ArgStr('phone')):
+@myb_exchange_plan.got('bbs_uid')
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=ArgStr('bbs_uid')):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
     user_account = _conf.users[event.user_id].accounts
-    if phone == '退出':
+    if uid == '退出':
         await matcher.finish('🚪已成功退出')
-    try:
-        state["account"] = next(
-            filter(lambda account: account.phone_number == phone, user_account.values()))
-    except StopIteration:
+    if uid in user_account:
+        state["account"] = user_account[uid]
+    else:
         await matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
-    except ValueError:
-        await matcher.reject('⚠️您发送的账号不是手机号，请重新发送')
 
 
 @myb_exchange_plan.got('good_id')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_id=ArgPlainText('good_id')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, good_id=ArgPlainText('good_id')):
     """
     处理三级命令，即商品ID
     """
@@ -202,7 +197,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, good_i
 
 
 @myb_exchange_plan.got('uid')
-async def _(event: PrivateMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText('uid')):
+async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=ArgPlainText('uid')):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """

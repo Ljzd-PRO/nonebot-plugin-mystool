@@ -227,7 +227,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                 if not is_auto:
                     if not group_event:
                         await bot.send_private_msg(user_id=qq,
-                                                   message=f'📱账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
+                                                   message=f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
                 # 执行任务
                 for key_name, (mission, current) in missions_state.state_dict.items():
@@ -266,7 +266,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                         notice_string = f"⚠️今日米游币任务未全部完成 - 分区『{class_type.NAME}』"
 
                     msg = f"{notice_string}" \
-                          f"\n📱账户 {account.bbs_uid}"
+                          f"\n🆔账户 {account.bbs_uid}"
                     for key_name, (mission, current) in missions_state.state_dict.items():
                         if key_name == BaseMission.SIGN:
                             mission_name = "签到"

@@ -2,7 +2,7 @@
 ### 米游社登录获取Cookie相关
 """
 import json
-from typing import Union, List
+from typing import Union
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, Message
@@ -156,36 +156,36 @@ output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State):
+async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], matcher: Matcher):
     """
     Cookies导出命令触发
     """
     if isinstance(event, GroupMessageEvent):
-        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
+        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行Cookies导出。")
     user_account = _conf.users[event.user_id].accounts
-    if user_account:
+    if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    elif len(user_account) == 1:
+        matcher.set_arg('bbs_uid', Message(next(user_account.values()).bbs_uid))
     else:
-        phones = [str(str(user_account[i].phone)) for i in range(len(user_account))]
-        state['user_account'] = user_account
+        uids = map(lambda x: x.bbs_uid, user_account)
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
-        msg += "📱" + "\n📱".join(phones)
+        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
         msg += "\n🚪发送“退出”即可退出"
         await output_cookies.send(msg)
 
 
-@output_cookies.got('phone')
-async def _(_: PrivateMessageEvent, matcher: Matcher, state: T_State, phone=Arg()):
+@output_cookies.got('bbs_uid')
+async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg()):
     """
     根据手机号设置导出相应的账户的Cookies
     """
-    if isinstance(phone, Message):
-        phone = phone.extract_plain_text().strip()
-    if phone == '退出':
+    if isinstance(uid, Message):
+        uid = uid.extract_plain_text().strip()
+    if uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account: List[UserAccount] = state['user_account']
-    phones = [str(user_account[i].phone_number) for i in range(len(user_account))]
-    if phone in phones:
-        await output_cookies.finish(json.dumps(next(filter(lambda x: x.phone_number == phone, user_account)), indent=4))
+    user_account = _conf.users[event.user_id].accounts
+    if uid in user_account:
+        await output_cookies.finish(json.dumps(user_account[uid].cookies.dict(cookie_type=True), indent=4))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
