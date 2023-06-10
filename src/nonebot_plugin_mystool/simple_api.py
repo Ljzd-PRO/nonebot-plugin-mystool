@@ -1046,7 +1046,7 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
             logger.debug(f"网络请求返回: {res.text}")
             return GetCookieStatus(incorrect_return=True), None
         else:
-            logger.exception(f"使用密码登录获取login_ticket - 请求失败")
+            logger.exception("使用密码登录获取login_ticket - 请求失败")
             return GetCookieStatus(network_error=True), None
 
 
