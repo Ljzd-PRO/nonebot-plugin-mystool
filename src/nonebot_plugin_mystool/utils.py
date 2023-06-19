@@ -202,7 +202,8 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
     :param platform: 可选，平台，ios或android
     :param salt: 可选，自定义salt
     """
-    if data is None and params is None or salt != _conf.salt_config.SALT_PROD:
+    if data is None and params is None or\
+            salt is not None and salt != _conf.salt_config.SALT_PROD:
         if platform == "ios":
             salt = salt or _conf.salt_config.SALT_IOS
         else:
