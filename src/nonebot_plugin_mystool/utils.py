@@ -6,7 +6,6 @@ import json
 import random
 import string
 import time
-import traceback
 import uuid
 from typing import (TYPE_CHECKING, Dict, Literal,
                     Union, Optional)
@@ -139,8 +138,7 @@ class NtpTime:
                         cls.time_offset = ntplib.NTPClient().request(
                             _conf.preference.ntp_server).tx_time - time.time()
             except tenacity.RetryError:
-                logger.error("校对互联网时间失败，改为使用本地时间")
-                logger.debug(traceback.format_exc())
+                logger.exception("校对互联网时间失败，改为使用本地时间")
                 return False
             logger.info("互联网时间校对完成")
             return True
@@ -255,8 +253,7 @@ async def get_file(url: str, retry: bool = True):
                     res = await client.get(url, timeout=_conf.preference.timeout, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.error(f"{_conf.preference.log_head}下载文件 - {url} 失败")
-        logger.debug(f"{_conf.preference.log_head}{traceback.format_exc()}")
+        logger.exception(f"{_conf.preference.log_head}下载文件 - {url} 失败")
 
 
 def blur_phone(phone: Union[str, int]) -> str:
