@@ -255,13 +255,13 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
         "challenge": challenge
     }
 
-    if gt and challenge and _conf.preference.geetest:
+    if gt and challenge and _conf.preference.geetest_url:
         try:
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
-                            _conf.preference.geetest,
+                            _conf.preference.geetest_url,
                             timeout=60,
                             json=content)
                     geetest_data = res.json()
