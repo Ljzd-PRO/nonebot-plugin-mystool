@@ -4,7 +4,7 @@
 import asyncio
 import random
 import threading
-from typing import Union
+from typing import Union, Optional
 
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
@@ -95,6 +95,8 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
     failed_accounts = []
     user = _conf.users[qq]
     for account in _conf.users.get(qq).accounts.values():
+        signed = False
+        """是否已经完成过签到"""
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
             if group_event:
@@ -111,7 +113,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 continue
             else:
                 games_has_record.append(signer)
-            get_info_status, info_one = await signer.get_info(account.platform)
+            get_info_status, info = await signer.get_info(account.platform)
             if not get_info_status:
                 if group_event:
                     await bot.send(event=group_event, at_sender=True,
@@ -121,11 +123,12 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
 
             # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
             # 若获取今日签到情况失败，仍可继续
-            sign_status = BaseApiStatus()
             if ((account.enable_game_sign and is_auto) or not is_auto) and (
-                    (info_one and not info_one.is_sign) or not get_info_status):
-                sign_status = await signer.sign(account.platform,manually_game_sign=manually_game_sign)
-                logger.info(sign_status)
+                    (info and not info.is_sign) or not get_info_status):
+                sign_status = await signer.sign(
+                    account.platform,
+                    lambda: bot.send_private_msg(user_id=qq, message=f"⏳正在尝试完成人机验证，请稍后...")
+                )
                 if not sign_status:
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
@@ -144,6 +147,8 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
             # 若用户未开启自动签到且手动签到过了，不再提醒
             elif not account.enable_game_sign and is_auto:
                 continue
+            else:
+                signed = True
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or not is_auto:
@@ -155,30 +160,22 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
-                        if not sign_status.success:
-                            if info_one.is_sign:
-                                status = "今日已经签到！"
-                            elif sign_status.need_verify:
-                                status = "成功绕过验证码！"
-                            else:
-                                status = "今日签到成功！"
-                        else:
-                            status = "失败"
+                        status = "签到成功！" if not signed else "已经签到过了"
                         msg = f"🪪账户 {account.bbs_uid}" \
-                            f"\n🎮『{signer.NAME}』" \
-                            f"\n🎮状态: {status}" \
-                            f"\n{signer.record.nickname}·{signer.record.level}" \
-                            "\n\n🎁今日签到奖励：" \
-                            f"\n{award.name} * {award.cnt}" \
-                            f"\n\n📅本月签到次数：{info.total_sign_day}"
-                        #img_file = await get_file(award.icon)
-                        #img = MessageSegment.image(img_file)
+                              f"\n🎮『{signer.NAME}』" \
+                              f"\n🎮状态: {status}" \
+                              f"\n{signer.record.nickname}·{signer.record.level}" \
+                              "\n\n🎁今日签到奖励：" \
+                              f"\n{award.name} * {award.cnt}" \
+                              f"\n\n📅本月签到次数：{info.total_sign_day}"
+                        img_file = await get_file(award.icon)
+                        img = MessageSegment.image(img_file)
                     else:
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if group_event:
-                    await bot.send(event=group_event, at_sender=True, message=msg)
+                    await bot.send(event=group_event, at_sender=True, message=msg + img)
                 else:
-                    await bot.send_msg(message_type="private", user_id=qq, message=msg)
+                    await bot.send_msg(message_type="private", user_id=qq, message=msg + img)
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
@@ -363,12 +360,12 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                                                    message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             if genshin_board_status.need_verify:
-                    if group_event:
-                        await bot.send(event=group_event, at_sender=True,
-                                        message=f'⚠️遇到验证码正在尝试绕过')
-                    else:
-                        await bot.send_private_msg(user_id=qq,
-                                                    message=f'⚠️遇到验证码正在尝试绕过')
+                if group_event:
+                    await bot.send(event=group_event, at_sender=True,
+                                   message=f'⚠️遇到验证码正在尝试绕过')
+                else:
+                    await bot.send_private_msg(user_id=qq,
+                                               message=f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not is_auto:
@@ -415,6 +412,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
                 await bot.send_private_msg(user_id=qq, message=msg)
+
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 def daily_update():
