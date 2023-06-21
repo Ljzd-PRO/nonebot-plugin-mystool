@@ -1,7 +1,7 @@
 """
 ### 米游社的游戏签到相关API
 """
-from typing import List, Optional, Tuple, Literal, Set, Type
+from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any
 from urllib.parse import urlencode
 
 import httpx
@@ -130,11 +130,15 @@ class BaseGameSign:
                 logger.exception(f"获取签到数据 - 请求失败")
                 return BaseApiStatus(network_error=True), None
 
-    async def sign(self, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> BaseApiStatus:
+    async def sign(self,
+                   platform: Literal["ios", "android"] = "ios",
+                   on_geetest_callback: Callable[[], Any] = None,
+                   retry: bool = True) -> BaseApiStatus:
         """
         签到
 
         :param platform: 设备平台
+        :param on_geetest_callback: 开始尝试进行人机验证时调用的回调函数
         :param retry: 是否允许重试
         """
         if not self.record:
@@ -203,8 +207,9 @@ class BaseGameSign:
                         if gt and challenge:
                             geetest_result = await get_validate(gt, challenge)
                             if _conf.preference.geetest_url:
-                                # 此处可重试 retry_interval 次，而请求打码平台也允许重试 retry_interval 次，可能需要改进，防止等待时间过久
-                                raise Exception("游戏签到被人机验证阻拦，尝试完成人机验证")
+                                if on_geetest_callback and attempt.retry_state.attempt_number == 1:
+                                    on_geetest_callback()
+                                continue
                             else:
                                 return BaseApiStatus(need_verify=True)
             return BaseApiStatus(success=True)
