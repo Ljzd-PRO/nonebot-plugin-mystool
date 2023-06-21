@@ -240,7 +240,7 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{r},{c}"
 
 
-async def get_validate(gt: Optional[str], challenge: Optional[str]):
+async def get_validate(gt: str = None, challenge: str = None):
     """
     获取获取validate
 
