@@ -4,7 +4,7 @@
 import asyncio
 import random
 import threading
-from typing import Union, Optional
+from typing import Union
 
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
@@ -15,9 +15,8 @@ from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import genshin_board_bbs, get_game_record
+from .simple_api import genshin_board, get_game_record
 from .utils import get_file, logger, COMMAND_BEGIN
-from .data_model import BaseApiStatus
 
 _conf = PluginDataManager.plugin_data_obj
 
@@ -329,7 +328,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
                                                            {"resin": False, "coin": False, "transformer": False})
         if (account.enable_resin and is_auto) or not is_auto:
-            genshin_board_status, board = await genshin_board_bbs(account)
+            genshin_board_status, board = await genshin_board(account)
             logger.info(genshin_board_status)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:

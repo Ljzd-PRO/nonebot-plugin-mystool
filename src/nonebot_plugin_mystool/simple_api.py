@@ -313,7 +313,7 @@ class ApiResultHandler(BaseModel):
                 self.message = self.content.get(key)
                 if not self.message:
                     self.message = self.data.get(key) if self.data else None
-    
+
     @property
     def success(self):
         """
@@ -1315,13 +1315,12 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             return ExchangeStatus(network_error=True), None
 
 
-async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
+async def genshin_board(account: UserAccount) -> Tuple[
     Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
     """
-    使用米游社内页面API获取原神实时便笺
+    获取原神实时便笺
 
     :param account: 用户账户数据
-    :param retry: 是否允许重试
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
@@ -1358,24 +1357,28 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
                                 f"原神实时便笺: 用户 {account.bbs_uid} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
                             return GenshinBoardStatus(login_expired=True), None
+
                         if api_result.invalid_ds:
                             logger.info(
                                 f"原神实时便笺: 用户 {account.bbs_uid} DS 校验失败")
                             logger.debug(f"网络请求返回: {res.text}")
-                            return GenshinBoardStatus(invalid_ds=True), None
                         if api_result.retcode == 1034:
                             logger.info(
                                 f"原神实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
+                        if api_result.invalid_ds or api_result.retcode == 1034:
                             headers["DS"] = generate_ds()
-                            url = f"{URL_GENSHEN_STATUS_WIDGET}"
+                            headers["x-rpc-device_id"] = account.device_id_ios
                             async with httpx.AsyncClient() as client:
-                                res = await client.get(url, headers=headers,
-                                                    cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                                    timeout=_conf.preference.timeout)
+                                res = await client.get(
+                                    URL_GENSHEN_STATUS_WIDGET,
+                                    headers=headers,
+                                    cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                                    timeout=_conf.preference.timeout
+                                )
                             api_result = ApiResultHandler(res.json())
-                            api_result.data["transformer"] = ""
-                            return GenshinBoardStatus(need_verify=True, success=True), GenshinBoard.parse_obj(api_result.data)
+                            return GenshinBoardStatus(success=True), \
+                                GenshinBoard.parse_obj(api_result.data)
                         return GenshinBoardStatus(success=True), GenshinBoard.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
