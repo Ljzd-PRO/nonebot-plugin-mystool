@@ -6,9 +6,8 @@ from urllib.parse import urlencode
 
 import httpx
 import tenacity
-from nonebot.matcher import Matcher
 
-from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo
+from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult
 from .plugin_data import PluginDataManager
 from .simple_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
 from .user_data import UserAccount
@@ -131,15 +130,13 @@ class BaseGameSign:
                 logger.exception(f"获取签到数据 - 请求失败")
                 return BaseApiStatus(network_error=True), None
 
-    async def sign(self, platform: Literal["ios", "android"] = "ios", retry: bool = True, test=False, manually_game_sign:Matcher=None) -> BaseApiStatus:
+    async def sign(self, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> BaseApiStatus:
         """
         签到
 
         :param platform: 设备平台
         :param retry: 是否允许重试
         """
-        if test:
-            return BaseApiStatus(geetest=True)
         if not self.record:
             return BaseApiStatus(success=True)
         content = {
@@ -163,20 +160,28 @@ class BaseGameSign:
             await device_login(self.account)
             await device_save(self.account)
             headers["DS"] = generate_ds(platform="android")
-        geetest = {}
-        start = True
+
+        challenge = ""
+        """人机验证任务 challenge"""
+        geetest_result = GeetestResult("", "")
+        """人机验证结果"""
+
         try:
             async for attempt in get_async_retry(retry):
                 with attempt:
-                    logger.info(geetest)
-                    if geetest.get("validate", None):
-                        validate = geetest.get("validate")
-                        headers["x-rpc-validate"] = validate
-                        headers["x-rpc-challenge"] = geetest.get("challenge")
-                        headers["x-rpc-seccode"] = f'{validate}|jordan'
+                    if geetest_result.validate:
+                        headers["x-rpc-validate"] = geetest_result.validate
+                        headers["x-rpc-challenge"] = challenge
+                        headers["x-rpc-seccode"] = f'{geetest_result.validate}|jordan'
+
                     async with httpx.AsyncClient() as client:
-                        res = await client.post(self.URL_SIGN, headers=headers, cookies=self.account.cookies.dict(),
-                                                timeout=_conf.preference.timeout, json=content)
+                        res = await client.post(
+                            self.URL_SIGN,
+                            headers=headers,
+                            cookies=self.account.cookies.dict(),
+                            timeout=_conf.preference.timeout,
+                            json=content
+                        )
 
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
@@ -191,26 +196,26 @@ class BaseGameSign:
                         return BaseApiStatus(invalid_ds=True)
                     if api_result.data.get("risk_code") != 0:
                         logger.warning(
-                            f"{_conf.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被验证码阻拦")
+                            f"{_conf.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
                         logger.debug(f"{_conf.preference.log_head}网络请求返回: {res.text}")
-                        if api_result.data.get("gt", None):
-                            gt = api_result.data.get("gt", None)
-                            challenge = api_result.data.get("challenge", None)
-                            if start:
-                                start = False
-                                await manually_game_sign.send("遇到验证码，尝试绕过")
-                            geetest = await get_validate(gt, challenge)
-                            raise Exception("遇到验证码尝试")
-                            #await self.sign(platform, retry, geetest)
-                    if geetest.get("validate", None):
-                        return BaseApiStatus(success=True, need_verify=True)
+                        gt = api_result.data.get("gt", None)
+                        challenge = api_result.data.get("challenge", None)
+                        if gt and challenge:
+                            geetest_result = await get_validate(gt, challenge)
+                            if _conf.preference.geetest_url:
+                                # 此处可重试 retry_interval 次，而请求打码平台也允许重试 retry_interval 次，可能需要改进，防止等待时间过久
+                                raise Exception("游戏签到被人机验证阻拦，尝试完成人机验证")
+                            else:
+                                return BaseApiStatus(need_verify=True)
             return BaseApiStatus(success=True)
+
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
                 logger.exception(f"游戏签到 - 服务器没有正确返回")
                 logger.debug(f"网络请求返回: {res.text}")
                 return BaseApiStatus(incorrect_return=True)
-            elif e == "遇到验证码尝试":
+            elif _conf.preference.geetest_url and gt and challenge:
+                logger.error(f"游戏签到 - 进行人机验证失败")
                 return BaseApiStatus(need_verify=True)
             else:
                 logger.exception(f"游戏签到 - 请求失败")
@@ -266,7 +271,7 @@ class StarRailSign(BaseGameSign):
 
 
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(GenshinImpactSign)
-#BaseGameSign.AVAILABLE_GAME_SIGNS.add(HonkaiImpact3Sign)
-#BaseGameSign.AVAILABLE_GAME_SIGNS.add(HoukaiGakuen2Sign)
-#BaseGameSign.AVAILABLE_GAME_SIGNS.add(TearsOfThemisSign)
+# BaseGameSign.AVAILABLE_GAME_SIGNS.add(HonkaiImpact3Sign)
+# BaseGameSign.AVAILABLE_GAME_SIGNS.add(HoukaiGakuen2Sign)
+# BaseGameSign.AVAILABLE_GAME_SIGNS.add(TearsOfThemisSign)
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(StarRailSign)
