@@ -391,22 +391,23 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.bbs_uid]['coin'] = False
                 # 参量质变仪就绪提醒
-                if board.transformer_text == '已准备就绪':
-                    # 防止重复提醒
-                    if has_checked[account.bbs_uid]['transformer']:
-                        return
+                if board.transformer:
+                    if board.transformer_text == '已准备就绪':
+                        # 防止重复提醒
+                        if has_checked[account.bbs_uid]['transformer']:
+                            return
+                        else:
+                            has_checked[account.bbs_uid]['transformer'] = True
+                            msg += '❕您的参量质变仪已准备就绪\n\n'
                     else:
-                        has_checked[account.bbs_uid]['transformer'] = True
-                        msg += '❕您的参量质变仪已准备就绪\n\n'
-                else:
-                    has_checked[account.bbs_uid]['transformer'] = False
-                    return
+                        has_checked[account.bbs_uid]['transformer'] = False
+                        return
             msg += "❖实时便笺❖" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
                    f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
                    f"\n📅每日委托：{4 - board.finished_task_num} 个任务未完成" \
                    f"\n💰洞天财瓮：{board.current_home_coin} / {board.max_home_coin}" \
-                   f"\n🎰参量质变仪：{board.transformer_text}"
+                   f"\n🎰参量质变仪：{board.transformer_text if board.transformer else 'N/A'}"
             if group_event:
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
