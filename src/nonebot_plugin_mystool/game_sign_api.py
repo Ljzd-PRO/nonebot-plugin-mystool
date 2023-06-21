@@ -276,7 +276,7 @@ class StarRailSign(BaseGameSign):
 
 
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(GenshinImpactSign)
-# BaseGameSign.AVAILABLE_GAME_SIGNS.add(HonkaiImpact3Sign)
-# BaseGameSign.AVAILABLE_GAME_SIGNS.add(HoukaiGakuen2Sign)
-# BaseGameSign.AVAILABLE_GAME_SIGNS.add(TearsOfThemisSign)
+BaseGameSign.AVAILABLE_GAME_SIGNS.add(HonkaiImpact3Sign)
+BaseGameSign.AVAILABLE_GAME_SIGNS.add(HoukaiGakuen2Sign)
+BaseGameSign.AVAILABLE_GAME_SIGNS.add(TearsOfThemisSign)
 BaseGameSign.AVAILABLE_GAME_SIGNS.add(StarRailSign)
