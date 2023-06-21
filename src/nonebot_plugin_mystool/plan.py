@@ -35,7 +35,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await manually_game_sign.send("开始签到")
+    await manually_game_sign.send("⏳开始游戏签到...")
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
@@ -53,7 +53,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await manually_game_sign.send("开始签到")
+    await manually_game_sign.send("⏳开始执行米游币任务...")
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
