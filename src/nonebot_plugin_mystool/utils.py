@@ -240,6 +240,29 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{r},{c}"
 
 
+async def get_validate(gt: Optional[str], challenge: Optional[str]):
+    """
+    获取获取validate
+
+    :param gt: 验证码gt
+    :param challenge: challenge
+    """
+    geetest={
+        "gt": gt,
+        "challenge": challenge
+    }
+    if gt and challenge:
+        async with httpx.AsyncClient() as client:
+            geetest_responme = await client.post(
+                _conf.preference.geetest,
+                timeout=60,
+                json=geetest)
+        logger.info("打码:"+geetest_responme.text)
+        geetest_data = geetest_responme.json()
+        if geetest_data['data']['result'] != 'fail':
+            geetest["validate"] = geetest_data['data']['validate']
+    return geetest
+
 async def get_file(url: str, retry: bool = True):
     """
     下载文件

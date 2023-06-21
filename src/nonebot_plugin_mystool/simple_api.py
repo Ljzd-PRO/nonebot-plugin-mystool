@@ -43,6 +43,7 @@ URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
 URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
 URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
+URL_GENSHEN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -312,7 +313,7 @@ class ApiResultHandler(BaseModel):
                 self.message = self.content.get(key)
                 if not self.message:
                     self.message = self.data.get(key) if self.data else None
-
+    
     @property
     def success(self):
         """
@@ -1343,7 +1344,7 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
                 url = f"{URL_GENSHEN_STATUS_BBS}?{urlencode(params)}"
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
-                async for attempt in get_async_retry(retry):
+                async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(
                             params={"role_id": record.game_role_id, "server": record.region})
@@ -1362,6 +1363,19 @@ async def genshin_board_bbs(account: UserAccount, retry: bool = True) -> Tuple[
                                 f"原神实时便笺: 用户 {account.bbs_uid} DS 校验失败")
                             logger.debug(f"网络请求返回: {res.text}")
                             return GenshinBoardStatus(invalid_ds=True), None
+                        if api_result.retcode == 1034:
+                            logger.info(
+                                f"原神实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
+                            logger.debug(f"网络请求返回: {res.text}")
+                            headers["DS"] = generate_ds()
+                            url = f"{URL_GENSHEN_STATUS_WIDGET}"
+                            async with httpx.AsyncClient() as client:
+                                res = await client.get(url, headers=headers,
+                                                    cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                                                    timeout=_conf.preference.timeout)
+                            api_result = ApiResultHandler(res.json())
+                            api_result.data["transformer"] = ""
+                            return GenshinBoardStatus(need_verify=True, success=True), GenshinBoard.parse_obj(api_result.data)
                         return GenshinBoardStatus(success=True), GenshinBoard.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):

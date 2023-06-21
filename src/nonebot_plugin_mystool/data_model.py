@@ -475,6 +475,8 @@ class GenshinBoardStatus(BaseApiStatus):
     """
     no_genshin_account = False
     """用户没有任何原神账户"""
+    need_verify = False
+    """需要进行人机验证"""
 
 
 GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)

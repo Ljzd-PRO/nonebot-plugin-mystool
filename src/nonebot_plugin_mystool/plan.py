@@ -17,6 +17,7 @@ from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board_bbs, get_game_record
 from .utils import get_file, logger, COMMAND_BEGIN
+from .data_model import BaseApiStatus
 
 _conf = PluginDataManager.plugin_data_obj
 
@@ -34,6 +35,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    await manually_game_sign.send("开始签到")
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
@@ -51,6 +53,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    await manually_game_sign.send("开始签到")
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
@@ -66,7 +69,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
+async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     """
     手动查看原神便笺
     """
@@ -108,7 +111,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 continue
             else:
                 games_has_record.append(signer)
-            get_info_status, info = await signer.get_info(account.platform)
+            get_info_status, info_one = await signer.get_info(account.platform)
             if not get_info_status:
                 if group_event:
                     await bot.send(event=group_event, at_sender=True,
@@ -118,9 +121,11 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
 
             # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
             # 若获取今日签到情况失败，仍可继续
+            sign_status = BaseApiStatus()
             if ((account.enable_game_sign and is_auto) or not is_auto) and (
-                    (info and not info.is_sign) or not get_info_status):
-                sign_status = await signer.sign(account.platform)
+                    (info_one and not info_one.is_sign) or not get_info_status):
+                sign_status = await signer.sign(account.platform,manually_game_sign=manually_game_sign)
+                logger.info(sign_status)
                 if not sign_status:
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
@@ -150,20 +155,30 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
+                        if not sign_status.success:
+                            if info_one.is_sign:
+                                status = "今日已经签到！"
+                            elif sign_status.need_verify:
+                                status = "成功绕过验证码！"
+                            else:
+                                status = "今日签到成功！"
+                        else:
+                            status = "失败"
                         msg = f"🪪账户 {account.bbs_uid}" \
-                              f"\n🎮『{signer.NAME}』今日签到成功！" \
-                              f"\n{signer.record.nickname}·{signer.record.level}" \
-                              "\n\n🎁今日签到奖励：" \
-                              f"\n{award.name} * {award.cnt}" \
-                              f"\n\n📅本月签到次数：{info.total_sign_day}"
-                        img_file = await get_file(award.icon)
-                        img = MessageSegment.image(img_file)
+                            f"\n🎮『{signer.NAME}』" \
+                            f"\n🎮状态: {status}" \
+                            f"\n{signer.record.nickname}·{signer.record.level}" \
+                            "\n\n🎁今日签到奖励：" \
+                            f"\n{award.name} * {award.cnt}" \
+                            f"\n\n📅本月签到次数：{info.total_sign_day}"
+                        #img_file = await get_file(award.icon)
+                        #img = MessageSegment.image(img_file)
                     else:
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if group_event:
-                    await bot.send(event=group_event, at_sender=True, message=msg + img)
+                    await bot.send(event=group_event, at_sender=True, message=msg)
                 else:
-                    await bot.send_msg(message_type="private", user_id=qq, message=msg + img)
+                    await bot.send_msg(message_type="private", user_id=qq, message=msg)
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
@@ -318,6 +333,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                                                            {"resin": False, "coin": False, "transformer": False})
         if (account.enable_resin and is_auto) or not is_auto:
             genshin_board_status, board = await genshin_board_bbs(account)
+            logger.info(genshin_board_status)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:
                     if not is_auto:
@@ -346,6 +362,13 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         await bot.send_private_msg(user_id=qq,
                                                    message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
+            if genshin_board_status.need_verify:
+                    if group_event:
+                        await bot.send(event=group_event, at_sender=True,
+                                        message=f'⚠️遇到验证码正在尝试绕过')
+                    else:
+                        await bot.send_private_msg(user_id=qq,
+                                                    message=f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not is_auto:
@@ -392,7 +415,6 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
                 await bot.send_private_msg(user_id=qq, message=msg)
-
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 def daily_update():

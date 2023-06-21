@@ -84,6 +84,8 @@ class Preference(BaseSettings):
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
     resin_interval: int = 60
     '''每次检查原神便笺间隔，单位为分钟'''
+    geetest: str = ""
+    '''打码接口url'''
 
     @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):
