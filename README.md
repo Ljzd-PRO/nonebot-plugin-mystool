@@ -14,12 +14,20 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v1.0.0-beta.1**
+**版本 - v1.0.0-beta.2**
 
 ### 📣 更新内容
 
-#### 2023.6.10
+#### 2023.6.10 - v1.0.0-beta.2
+改动较大，目前是 Beta 版，可能不稳定
 
+Windows、macOS 下无法多进程生成商品图片的问题暂时没有修复
+
+- 支持使用人机验证打码平台处理人机验证任务 [#119](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/119) by @Night-stars-1
+- 原神便笺获取失败时更换为使用米游社iOS小组件API获取 [#119](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/119) by @Night-stars-1
+- 修复原神便笺和讨论区签到可能因为DS无效而失败的问题
+
+#### 2023.6.10 - v1.0.0-beta.1
 改动较大，目前是 Beta 版，可能不稳定
 
 - 大量的代码重构，包括米游社API的客户端实现、用户数据相关、插件配置相关、API相关数据模型
