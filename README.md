@@ -14,24 +14,19 @@
 
 # mysTool - 米游社辅助工具插件
 
-**版本 - v1.0.0-beta.2**
+## 📣 更新内容
 
-### 📣 更新内容
+### 2023.6.23 - v1.0.0
+#### v1.0.0
+- 修复Windows, macOS多进程生成商品图片失败的问题 [#120](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/120) by @Night-stars-1
 
-#### 2023.6.22 - v1.0.0-beta.2
-改动较大，目前是 Beta 版，可能不稳定
-
-Windows、macOS 下无法多进程生成商品图片的问题暂时没有修复
-
+#### v1.0.0-beta.2
 - 支持使用人机验证打码平台处理人机验证任务 [#119](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/119) by @Night-stars-1
 - 原神便笺获取失败时更换为使用米游社iOS小组件API获取 [#119](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/119) by @Night-stars-1
 - 修复原神便笺和讨论区签到可能因为DS无效而失败的问题
 
-#### 2023.6.10 - v1.0.0-beta.1
-改动较大，目前是 Beta 版，可能不稳定
-
+#### v1.0.0-beta.1
 - 大量的代码重构，包括米游社API的客户端实现、用户数据相关、插件配置相关、API相关数据模型
-- ~~修复在 Windows 下无法多进程生成商品图片的问题~~
 - 从显示用户账号绑定的手机号改为显示账号的米游社ID
 - 设置、兑换计划功能支持群聊使用
 - 登陆绑定只需要进行一次短信验证
@@ -41,18 +36,18 @@ Windows、macOS 下无法多进程生成商品图片的问题暂时没有修复
 - 异常捕获更加准确
 - 改进了一些文本
 
-#### 2023.5.18
+### 2023.5.18 - v0.2.9
 - 多进程生成商品图片（多核），加快图片生成速度
 - 修复部分商品兑换时间错误的问题（如米游社商品晚了一周）
 
-#### 2023.5.4
+### 2023.5.4 - v0.2.8
 - 增加对星穹铁道的签到功能的支持 - [#89](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/89) by @ayakasuki
 - 修复插件命令优先度问题 - [#88](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/88) by @ayakasuki
 - 部分文本错误修正 - [#90](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/90) by @black-zero358
 
 ...
 
-#### 2023.3.30
+### 2023.3.30 - v0.2.5
 - 修复 `/兑换` 命令可能与其他插件命令冲突的问题，同时 [🔗用法变更](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Information-Exchange#增加删除兑换计划)
 - ...
 
