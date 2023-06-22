@@ -15,7 +15,7 @@ from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import genshin_board_bbs, get_game_record
+from .simple_api import genshin_board, get_game_record
 from .utils import get_file, logger, COMMAND_BEGIN
 
 _conf = PluginDataManager.plugin_data_obj
@@ -34,6 +34,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    await manually_game_sign.send("⏳开始游戏签到...")
     await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
@@ -51,6 +52,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     user = _conf.users.get(event.user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    await manually_game_sign.send("⏳开始执行米游币任务...")
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
@@ -66,7 +68,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent]):
+async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     """
     手动查看原神便笺
     """
@@ -92,6 +94,8 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
     failed_accounts = []
     user = _conf.users[qq]
     for account in _conf.users.get(qq).accounts.values():
+        signed = False
+        """是否已经完成过签到"""
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
             if group_event:
@@ -120,7 +124,10 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
             # 若获取今日签到情况失败，仍可继续
             if ((account.enable_game_sign and is_auto) or not is_auto) and (
                     (info and not info.is_sign) or not get_info_status):
-                sign_status = await signer.sign(account.platform)
+                sign_status = await signer.sign(
+                    account.platform,
+                    lambda: bot.send_private_msg(user_id=qq, message=f"⏳正在尝试完成人机验证，请稍后...")
+                )
                 if not sign_status:
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
@@ -139,6 +146,8 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
             # 若用户未开启自动签到且手动签到过了，不再提醒
             elif not account.enable_game_sign and is_auto:
                 continue
+            else:
+                signed = True
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or not is_auto:
@@ -150,8 +159,10 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
+                        status = "签到成功！" if not signed else "已经签到过了"
                         msg = f"🪪账户 {account.bbs_uid}" \
-                              f"\n🎮『{signer.NAME}』今日签到成功！" \
+                              f"\n🎮『{signer.NAME}』" \
+                              f"\n🎮状态: {status}" \
                               f"\n{signer.record.nickname}·{signer.record.level}" \
                               "\n\n🎁今日签到奖励：" \
                               f"\n{award.name} * {award.cnt}" \
@@ -317,7 +328,8 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
                                                            {"resin": False, "coin": False, "transformer": False})
         if (account.enable_resin and is_auto) or not is_auto:
-            genshin_board_status, board = await genshin_board_bbs(account)
+            genshin_board_status, board = await genshin_board(account)
+            logger.info(genshin_board_status)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:
                     if not is_auto:
@@ -346,6 +358,13 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         await bot.send_private_msg(user_id=qq,
                                                    message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
+            if genshin_board_status.need_verify:
+                if group_event:
+                    await bot.send(event=group_event, at_sender=True,
+                                   message=f'⚠️遇到验证码正在尝试绕过')
+                else:
+                    await bot.send_private_msg(user_id=qq,
+                                               message=f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not is_auto:
@@ -372,22 +391,23 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.bbs_uid]['coin'] = False
                 # 参量质变仪就绪提醒
-                if board.transformer_text == '已准备就绪':
-                    # 防止重复提醒
-                    if has_checked[account.bbs_uid]['transformer']:
-                        return
+                if board.transformer:
+                    if board.transformer_text == '已准备就绪':
+                        # 防止重复提醒
+                        if has_checked[account.bbs_uid]['transformer']:
+                            return
+                        else:
+                            has_checked[account.bbs_uid]['transformer'] = True
+                            msg += '❕您的参量质变仪已准备就绪\n\n'
                     else:
-                        has_checked[account.bbs_uid]['transformer'] = True
-                        msg += '❕您的参量质变仪已准备就绪\n\n'
-                else:
-                    has_checked[account.bbs_uid]['transformer'] = False
-                    return
+                        has_checked[account.bbs_uid]['transformer'] = False
+                        return
             msg += "❖实时便笺❖" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
                    f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
                    f"\n📅每日委托：{4 - board.finished_task_num} 个任务未完成" \
                    f"\n💰洞天财瓮：{board.current_home_coin} / {board.max_home_coin}" \
-                   f"\n🎰参量质变仪：{board.transformer_text}"
+                   f"\n🎰参量质变仪：{board.transformer_text if board.transformer else 'N/A'}"
             if group_event:
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:

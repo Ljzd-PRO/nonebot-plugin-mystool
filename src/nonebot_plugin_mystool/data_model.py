@@ -358,7 +358,7 @@ class GenshinBoard(BaseModel):
     """洞天财瓮 未收取的宝钱数"""
     max_home_coin: int
     """洞天财瓮 最多可容纳宝钱数"""
-    transformer: Dict[str, Any]
+    transformer: Optional[Dict[str, Any]]
     """参量质变仪相关数据"""
 
     @property
