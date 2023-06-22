@@ -20,6 +20,7 @@ import tenacity
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
+from .data_model import GeetestResult
 from .plugin_data import PluginDataManager
 
 if TYPE_CHECKING:
@@ -200,7 +201,7 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
     :param platform: 可选，平台，ios或android
     :param salt: 可选，自定义salt
     """
-    if data is None and params is None or\
+    if data is None and params is None or \
             salt is not None and salt != _conf.salt_config.SALT_PROD:
         if platform == "ios":
             salt = salt or _conf.salt_config.SALT_IOS
@@ -236,6 +237,38 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         c = hashlib.md5(
             f"salt={salt}&t={t}&r={r}&b={data}&q={params}".encode()).hexdigest()
         return f"{t},{r},{c}"
+
+
+async def get_validate(gt: str = None, challenge: str = None, retry: bool = True):
+    """
+    使用打码平台获取人机验证validate
+
+    :param gt: 验证码gt
+    :param challenge: challenge
+    :param retry: 是否允许重试
+    :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
+    """
+    content = {
+        "gt": gt,
+        "challenge": challenge
+    }
+
+    if gt and challenge and _conf.preference.geetest_url:
+        try:
+            async for attempt in get_async_retry(retry):
+                with attempt:
+                    async with httpx.AsyncClient() as client:
+                        res = await client.post(
+                            _conf.preference.geetest_url,
+                            timeout=60,
+                            json=content)
+                    geetest_data = res.json()
+                    if geetest_data['data']['result'] != 'fail':
+                        return GeetestResult(validate=geetest_data['data']['validate'], seccode="")
+        except tenacity.RetryError:
+            logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
+    else:
+        return GeetestResult("", "")
 
 
 async def get_file(url: str, retry: bool = True):
