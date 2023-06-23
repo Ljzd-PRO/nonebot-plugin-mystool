@@ -760,7 +760,7 @@ async def create_mobile_captcha(phone_number: int,
                                 geetest_result: Union[GeetestResult, GeetestResultV4],
                                 client: Optional[httpx.AsyncClient] = None,
                                 use_v4: bool = True,
-                                device_id: str = generate_device_id(),
+                                device_id: str = None,
                                 retry: bool = True
                                 ) -> Tuple[CreateMobileCaptchaStatus, Optional[httpx.AsyncClient]]:
     """
@@ -771,21 +771,22 @@ async def create_mobile_captcha(phone_number: int,
     :param geetest_result: 人机验证结果数据
     :param client: httpx.AsyncClient 连接
     :param use_v4: 是否使用极验第四代人机验证
-    :param device_id: 设备 ID
+    :param device_id: 设备ID
     :param retry: 是否允许重试
     """
     headers = HEADERS_WEBAPI.copy()
-    headers["x-rpc-device_id"] = device_id
+    headers["x-rpc-device_id"] = device_id or generate_device_id()
     if use_v4 and isinstance(geetest_result, GeetestResultV4):
-        params = {
+        geetest_v4_data = geetest_result.dict(skip_defaults=True)
+        content = {
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
-            "geetest_v4_data": geetest_result.dict(skip_defaults=True),
-            "mobile": phone_number,
-            "t": round(NtpTime.time() * 1000)
+            "geetest_v4_data": str(geetest_v4_data).replace("'", '"'),
+            "mobile": str(phone_number),
+            "t": str(round(NtpTime.time() * 1000))
         }
     else:
-        params = {
+        content = {
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
             "geetest_challenge": mmt_data.challenge,
@@ -794,25 +795,19 @@ async def create_mobile_captcha(phone_number: int,
             "mobile": phone_number,
             "t": round(NtpTime.time() * 1000)
         }
-    encoded_params = urlencode(params)
 
     async def request():
         """
         发送请求的闭包函数
         """
         return await client.post(URL_CREATE_MOBILE_CAPTCHA,
-                                 content=encoded_params,
+                                 data=content,
                                  headers=headers,
                                  timeout=_conf.preference.timeout)
 
     try:
         async for attempt in get_async_retry(retry):
             with attempt:
-                # FIXME 2023/4/13: 似乎会导致卡在连接状态，暂时弃用
-                #   res = await client.options(URL_CREATE_MOBILE_CAPTCHA,
-                #                            headers=headers,
-                #                            timeout=conf.preference.timeout)
-                #   cookies.update(res.cookies)
                 if client and not client.is_closed:
                     res = await request()
                 else:
@@ -827,11 +822,11 @@ async def create_mobile_captcha(phone_number: int,
         if client:
             await client.aclose()
         if is_incorrect_return(e):
-            logger.exception("发送短信验证码 - 服务器没有正确返回")
+            logger.exception(f"发送短信验证码 - 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return CreateMobileCaptchaStatus(incorrect_return=True), client
         else:
-            logger.exception("发送短信验证码 - 请求失败")
+            logger.exception(f"发送短信验证码 - 请求失败")
             return CreateMobileCaptchaStatus(network_error=True), None
 
 
