@@ -488,5 +488,5 @@ class GeetestResultV4(BaseModel):
     captcha_id: str
     lot_number: str
     pass_token: str
-    gen_time: int
+    gen_time: str
     captcha_output: str
