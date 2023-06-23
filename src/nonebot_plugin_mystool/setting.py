@@ -74,7 +74,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
     user_setting = ""
     user_setting += f"1️⃣ 米游币任务自动执行：{'开' if account.enable_mission else '关'}"
-    user_setting += f"\n2️⃣ 游戏自动签到：{'开' if account.enable_mission else '关'}"
+    user_setting += f"\n2️⃣ 游戏自动签到：{'开' if account.enable_game_sign else '关'}"
     platform_show = "iOS" if account.platform == "ios" else "安卓"
     user_setting += f"\n3️⃣ 设备平台：{platform_show}"
 
