@@ -169,9 +169,8 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
         account = next(iter(user_account.values()))
         matcher.set_arg('bbs_uid', Message(account.bbs_uid))
     else:
-        uids = map(lambda x: x.bbs_uid, user_account)
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
-        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
+        msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
         msg += "\n🚪发送“退出”即可退出"
         await output_cookies.send(msg)
 

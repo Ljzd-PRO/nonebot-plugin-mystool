@@ -87,9 +87,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             uid = next(iter(user_account.values())).bbs_uid
             matcher.set_arg('bbs_uid', Message(uid))
         else:
-            uids = map(lambda x: x.bbs_uid, user_account.values())
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
-            msg += "\n".join(map(lambda x: f"🆔{x}", uids))
+            msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
             msg += "\n🚪发送“退出”即可退出"
             await matcher.send(msg)
     # 如果未使用二级命令，则进行查询操作，并结束交互
