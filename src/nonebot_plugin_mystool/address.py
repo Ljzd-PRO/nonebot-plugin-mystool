@@ -38,9 +38,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         account = next(iter(user_account.values()))
         matcher.set_arg('bbs_uid', Message(account.bbs_uid))
     else:
-        uids = map(lambda x: x.bbs_uid, user_account.values())
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
-        msg += "\n".join(map(lambda x: f"🆔{x}", uids))
+        msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
         await matcher.send(msg)
 
 
