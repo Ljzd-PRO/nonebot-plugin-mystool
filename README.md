@@ -16,6 +16,12 @@
 
 ## 📣 更新内容
 
+### 2023.6.23 - v1.0.1
+- 修复无法导出Cookies的问题
+- 修复因缺少参量质变仪数据而导致不断提醒的Bug
+- 修复账号设置中游戏签到开启/关闭状态实际对应的是米游币任务的Bug #121 by @xxtg666
+
+
 ### 2023.6.23 - v1.0.0
 #### v1.0.0
 - 修复Windows, macOS多进程生成商品图片失败的问题 [#120](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/120) by @Night-stars-1
@@ -44,12 +50,6 @@
 - 增加对星穹铁道的签到功能的支持 - [#89](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/89) by @ayakasuki
 - 修复插件命令优先度问题 - [#88](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/88) by @ayakasuki
 - 部分文本错误修正 - [#90](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/90) by @black-zero358
-
-...
-
-### 2023.3.30 - v0.2.5
-- 修复 `/兑换` 命令可能与其他插件命令冲突的问题，同时 [🔗用法变更](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Information-Exchange#增加删除兑换计划)
-- ...
 
 ## 功能和特性
 
