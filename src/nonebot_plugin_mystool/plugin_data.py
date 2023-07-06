@@ -137,7 +137,7 @@ class GoodListImageConfig(BaseModel):
 
 class SaltConfig(BaseSettings):
     """
-    生成Headers - DS所用salt值
+    生成Headers - DS所用salt值，非必要请勿修改
     """
     SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
     '''生成Headers iOS DS所需的salt'''
@@ -156,7 +156,7 @@ class SaltConfig(BaseSettings):
 class DeviceConfig(BaseSettings):
     """
     设备信息
-    DS算法与设备信息有关联，非必要请勿修改
+    Headers所用的各种数据，非必要请勿修改
     """
     USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.28.1"
     '''移动端 User-Agent(Mozilla UA)'''
