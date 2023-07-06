@@ -88,6 +88,8 @@ class Preference(BaseSettings):
     '''每次检查原神便笺间隔，单位为分钟'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
+    override_device_and_salt: bool = False
+    """是否读取插件数据文件中的 device_config 设备配置 和 salt_config 配置而不是默认配置（一般情况不建议开启）"""
 
     @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):
@@ -239,7 +241,7 @@ class PluginDataManager:
             try:
                 new_model = PluginData.parse_file(PLUGIN_DATA_PATH)
                 for attr in new_model.__fields__:
-                    PluginDataManager.plugin_data_obj.__setattr__(attr, new_model.__getattribute__(attr))
+                    cls.plugin_data_obj.__setattr__(attr, new_model.__getattribute__(attr))
             except (ValidationError, JSONDecodeError):
                 logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 格式是否正确")
                 raise
@@ -247,6 +249,19 @@ class PluginDataManager:
                 logger.exception(
                     f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
                 raise
+            else:
+                if not cls.plugin_data_obj.preference.override_device_and_salt:
+                    default_device_config = DeviceConfig()
+                    default_salt_config = SaltConfig()
+                    if cls.plugin_data_obj.device_config != default_device_config \
+                            or cls.plugin_data_obj.salt_config != default_salt_config:
+                        cls.plugin_data_obj.device_config = default_device_config
+                        cls.plugin_data_obj.salt_config = default_salt_config
+                        logger.warning("检测到设备信息配置 device_config 或 salt_config 使用了非默认值，"
+                                       "如果你修改过这些配置，需要设置 preference.override_device_and_salt 为 True 以覆盖默认值并生效。"
+                                       "如果继续，将可能保存默认值到插件数据文件。")
+                else:
+                    logger.info("已开启覆写 device_config 和 salt_config，将读取插件数据文件中的配置以覆写默认配置")
         else:
             plugin_data = PluginData()
             try:
