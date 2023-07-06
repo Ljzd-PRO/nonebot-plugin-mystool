@@ -35,7 +35,7 @@ URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={" \
                 "page}&game={game} "
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
-URL_EXCHANGE = "https://api-takumi.mihoyo.com/mall/v1/web/goods/exchange"
+URL_EXCHANGE = "https://api-takumi.miyoushe.com/mall/v1/web/goods/exchange"
 URL_ADDRESS = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 URL_REGISTRABLE = "https://webapi.account.mihoyo.com/Api/is_mobile_registrable?mobile={mobile}&t={t}"
 URL_CREATE_MMT = "https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}"
@@ -203,9 +203,13 @@ HEADERS_EXCHANGE = {
     "Connection":
         "keep-alive",
     "Content-Type":
-        "application/json;charset=utf-8",
+        "application/json",
     "Host":
-        "api-takumi.mihoyo.com",
+        "api-takumi.miyoushe.com",
+    "Origin":
+        "https://webstatic.miyoushe.com",
+    "Referer":
+        "https://webstatic.miyoushe.com/",
     "User-Agent":
         _conf.device_config.USER_AGENT_MOBILE,
     "x-rpc-app_version":
