@@ -1216,7 +1216,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
     :param retry: 是否允许重试
 
     >>> import asyncio
-    >>> coroutine = get_device_fp()
+    >>> coroutine = get_device_fp(generate_device_id())
     >>> assert asyncio.new_event_loop().run_until_complete(coroutine)[0].success is True
     """
     content = {
