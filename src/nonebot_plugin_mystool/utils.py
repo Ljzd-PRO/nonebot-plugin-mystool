@@ -21,7 +21,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
 from .data_model import GeetestResult
-from .plugin_data import PluginDataManager
+from .plugin_data import PluginDataManager, Preference
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -248,10 +248,10 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
-    content = {
-        "gt": gt,
-        "challenge": challenge
-    }
+    content = _conf.preference.geetest_json or Preference().geetest_json
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = value.format(gt=gt, challenge=challenge)
 
     if gt and challenge and _conf.preference.geetest_url:
         try:

@@ -88,6 +88,11 @@ class Preference(BaseSettings):
     '''每次检查原神便笺间隔，单位为分钟'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
+    geetest_json: Optional[Dict[str, Any]] = {
+        "gt": "{gt}",
+        "challenge": "{challenge}"
+    }
+    '''极验Geetest人机验证打码API发送的JSON数据 `{gt}`, `{challenge}` 为占位符'''
     override_device_and_salt: bool = False
     """是否读取插件数据文件中的 device_config 设备配置 和 salt_config 配置而不是默认配置（一般情况不建议开启）"""
 
