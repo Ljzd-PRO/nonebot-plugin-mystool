@@ -281,6 +281,16 @@ def generate_seed_id(length: int = 8) -> str:
     return hex(random.randint(0, max_num))[2:]
 
 
+def generate_fp_locally(length: int = 13):
+    """
+    于本地生成 device_fp
+
+    :param length: device_fp 长度
+    """
+    characters = string.digits + "abcdef"
+    return ''.join(random.choices(characters, k=length))
+
+
 async def get_file(url: str, retry: bool = True):
     """
     下载文件

@@ -17,7 +17,7 @@ from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtD
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
-    NtpTime, get_async_retry, generate_seed_id
+    NtpTime, get_async_retry, generate_seed_id, generate_fp_locally
 
 _conf = PluginDataManager.plugin_data_obj
 
@@ -1233,7 +1233,8 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
                       "\"deviceMemory\":\"unknown\",\"hardwareConcurrency\":\"4\",\"cpuClass\":\"unknown\","
                       "\"ifNotTrack\":\"unknown\",\"ifAdBlock\":0,\"hasLiedResolution\":1,\"hasLiedOs\":0,"
                       "\"hasLiedBrowser\":0}",
-        "app_name": "account_cn"
+        "app_name": "account_cn",
+        "device_fp": generate_fp_locally()
     }
     try:
         async for attempt in get_async_retry(retry):
@@ -1273,7 +1274,7 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
-    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_seed_id(6)
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_fp_locally()
     content = {
         "app_id": 1,
         "point_sn": "myb",
@@ -1330,7 +1331,7 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
-    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_seed_id(6)
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_fp_locally()
     content = {
         "app_id": 1,
         "point_sn": "myb",
