@@ -403,7 +403,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         has_checked[account.bbs_uid]['transformer'] = False
                         return
                 else:
-                    has_checked[account.bbs_uid]['transformer'] = False
+                    has_checked[account.bbs_uid]['transformer'] = True
             msg += "❖实时便笺❖" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
                    f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
