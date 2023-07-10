@@ -469,6 +469,14 @@ class MissionStatus(BaseApiStatus):
     """获取文章失败"""
 
 
+class GetFpStatus(BaseApiStatus):
+    """
+    兑换操作 返回结果
+    """
+    invalid_arguments = False
+    """参数错误"""
+
+
 class GenshinBoardStatus(BaseApiStatus):
     """
     原神实时便笺 返回结果
