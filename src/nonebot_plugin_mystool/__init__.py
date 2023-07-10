@@ -32,11 +32,13 @@ __plugin_meta__ = PluginMetadata(
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
 from .utils import CommandBegin
+from .plugin_data import PluginDataManager
 from nonebot import init
 from nonebot import get_driver
 
 init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
+PluginDataManager.load_plugin_data()  # 加载插件数据
 
 # 加载其它代码
 
