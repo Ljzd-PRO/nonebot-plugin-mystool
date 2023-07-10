@@ -271,7 +271,7 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
         return GeetestResult("", "")
 
 
-async def generate_seed_id(length: int = 8) -> str:
+def generate_seed_id(length: int = 8) -> str:
     """
     生成随机的 seed_id（即长度为8的十六进制数）
 
