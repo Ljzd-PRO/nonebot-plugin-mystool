@@ -10,7 +10,7 @@ from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
                                          GroupRequestEvent, RequestEvent)
 from nonebot_plugin_apscheduler import scheduler
 
-from .plugin_data import PluginDataManager, write_plugin_data, DATA_PATH, DELETED_USERS_PATH
+from .plugin_data import PluginDataManager, write_plugin_data, DELETED_USERS_PATH
 from .utils import logger
 
 _conf = PluginDataManager.plugin_data_obj

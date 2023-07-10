@@ -232,7 +232,8 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             logger.info(f"账号 {plan.account.bbs_uid} 未设置 device_fp，正在获取...")
             fp_status, plan.account.device_fp = await get_device_fp(plan.account.device_id_ios)
             if not fp_status:
-                await matcher.send('⚠️从服务器获取device_fp失败！兑换时将在本地生成device_fp。你也可以尝试重新添加兑换计划。')
+                await matcher.send(
+                    '⚠️从服务器获取device_fp失败！兑换时将在本地生成device_fp。你也可以尝试重新添加兑换计划。')
         write_plugin_data()
 
     # 初始化兑换任务

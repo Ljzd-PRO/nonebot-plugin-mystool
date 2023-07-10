@@ -1,9 +1,9 @@
 """
 ### 米游社一些简单API相关
 """
+import time
 from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
-import time
 
 import httpx
 import tenacity
