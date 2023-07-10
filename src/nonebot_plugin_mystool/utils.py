@@ -271,11 +271,13 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
         return GeetestResult("", "")
 
 
-async def generate_seed_id() -> str:
+async def generate_seed_id(length: int = 8) -> str:
     """
     生成随机的 seed_id（即长度为8的十六进制数）
+
+    :param length: 16进制数长度
     """
-    max_num = int("FF" * 8, 16)
+    max_num = int("FF" * length, 16)
     return hex(random.randint(0, max_num))[2:]
 
 

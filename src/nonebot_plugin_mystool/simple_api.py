@@ -1282,11 +1282,12 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_seed_id(6)
     content = {
         "app_id": 1,
         "point_sn": "myb",
         "goods_id": plan.good.goods_id,
-        "exchange_num": 1,
+        "exchange_num": 1
     }
     if plan.address is not None:
         content.setdefault("address_id", plan.address.id)
@@ -1300,7 +1301,7 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
         async with httpx.AsyncClient() as client:
             res = await client.post(
                 URL_EXCHANGE, headers=headers, json=content,
-                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                cookies=plan.account.cookies.dict(cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
@@ -1338,11 +1339,12 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_seed_id(6)
     content = {
         "app_id": 1,
         "point_sn": "myb",
         "goods_id": plan.good.goods_id,
-        "exchange_num": 1,
+        "exchange_num": 1
     }
     if plan.address is not None:
         content.setdefault("address_id", plan.address.id)
@@ -1356,7 +1358,7 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
         with httpx.Client() as client:
             res = client.post(
                 URL_EXCHANGE, headers=headers, json=content,
-                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                cookies=plan.account.cookies.dict(cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
