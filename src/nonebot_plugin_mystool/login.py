@@ -12,7 +12,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
-    get_ltoken_by_stoken, get_cookie_token_by_stoken
+    get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN
 
@@ -80,6 +80,10 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
                 account = user.accounts[cookies.bbs_uid]
             else:
                 account.cookies.update(cookies)
+            if not account.device_id_ios:
+                fp_status, account.device_fp = await get_device_fp(account.device_id_ios)
+                if fp_status:
+                    logger.info(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
             write_plugin_data()
 
             # 2. 通过 login_ticket 获取 stoken 和 ltoken
@@ -112,7 +116,6 @@ async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainT
                                 account.cookies.update(cookies)
                                 write_plugin_data()
 
-                                # TODO 2023/04/12 此处如果可以模拟App的登录操作，再标记为登录完成，更安全
                                 logger.info(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
                                 await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
 
