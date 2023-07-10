@@ -1245,11 +1245,15 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
                         timeout=_conf.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
-                if api_result.success:
-                    return GetFpStatus(success=True), api_result.data["device_fp"]
-                elif api_result.data["code"] == 403 or api_result.data["msg"] == "传入的参数有误":
+                if api_result.data["code"] == 403 or api_result.data["msg"] == "传入的参数有误":
                     logger.error("传入的参数有误")
                     return GetFpStatus(invalid_arguments=True), None
+                elif api_result.success:
+                    device_fp = api_result.data["device_fp"]
+                    if not device_fp:
+                        logger.error("获取 x-rpc-device_fp: 服务器返回的 device_fp 为空")
+                        return GetFpStatus(incorrect_return=True), None
+                    return GetFpStatus(success=True), device_fp
 
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
