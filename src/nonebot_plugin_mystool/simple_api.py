@@ -1224,28 +1224,15 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
         "device_id": device_id.lower(),
         "platform": "5",
         "seed_time": str(int(time.time() * 1000)),
-        "ext_fields": {
-            "userAgent": _conf.device_config.USER_AGENT_MOBILE,
-            "browserScreenSize": 243750,
-            "maxTouchPoints": 5,
-            "isTouchSupported": True,
-            "browserLanguage": "zh-CN",
-            "browserPlat": "iPhone",
-            "browserTimeZone": "Asia/Shanghai",
-            "webGlRender": "Apple GPU",
-            "webGlVendor": "Apple Inc.",
-            "numOfPlugins": 0,
-            "listOfPlugins": "unknown",
-            "screenRatio": 3,
-            "deviceMemory": "unknown",
-            "hardwareConcurrency": "4",
-            "cpuClass": "unknown",
-            "ifNotTrack": "unknown",
-            "ifAdBlock": 0,
-            "hasLiedResolution": 1,
-            "hasLiedOs": 0,
-            "hasLiedBrowser": 0
-        },
+        "ext_fields": "{\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit\/605.1.15 "
+                      f"(KHTML, like Gecko) miHoYoBBS\/{_conf.device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
+                      f"\":243750,\"maxTouchPoints\":5,"
+                      "\"isTouchSupported\":true,\"browserLanguage\":\"zh-CN\",\"browserPlat\":\"iPhone\","
+                      "\"browserTimeZone\":\"Asia\/Shanghai\",\"webGlRender\":\"Apple GPU\",\"webGlVendor\":\"Apple "
+                      "Inc.\",\"numOfPlugins\":0,\"listOfPlugins\":\"unknown\",\"screenRatio\":3,"
+                      "\"deviceMemory\":\"unknown\",\"hardwareConcurrency\":\"4\",\"cpuClass\":\"unknown\","
+                      "\"ifNotTrack\":\"unknown\",\"ifAdBlock\":0,\"hasLiedResolution\":1,\"hasLiedOs\":0,"
+                      "\"hasLiedBrowser\":0}",
         "app_name": "account_cn"
     }
     try:
