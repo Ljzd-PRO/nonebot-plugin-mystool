@@ -12,7 +12,7 @@ from .plugin_data import PluginDataManager
 from .simple_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
 from .user_data import UserAccount
 from .utils import logger, generate_ds, \
-    get_async_retry, get_validate
+    get_async_retry, get_validate, MystoolException
 
 _conf = PluginDataManager.plugin_data_obj
 
@@ -132,7 +132,6 @@ class BaseGameSign:
 
     async def sign(self,
                    platform: Literal["ios", "android"] = "ios",
-                   on_geetest_callback: Callable[[], Any] = None,
                    retry: bool = True) -> BaseApiStatus:
         """
         签到
@@ -173,6 +172,10 @@ class BaseGameSign:
         try:
             async for attempt in get_async_retry(retry):
                 with attempt:
+                    logger.info(f"{self.NAME}签到开始")
+                    logger.info(geetest_result)
+                    headers["DS"] = generate_ds() if platform == "ios" else generate_ds(platform="android")
+                    logger.info(f"{self.NAME}签到验证码:"+geetest_result.validate)
                     if geetest_result.validate:
                         headers["x-rpc-validate"] = geetest_result.validate
                         headers["x-rpc-challenge"] = challenge
@@ -188,6 +191,7 @@ class BaseGameSign:
                         )
 
                     api_result = ApiResultHandler(res.json())
+                    logger.info(res.json())
                     if api_result.login_expired:
                         logger.info(
                             f"游戏签到 - 用户 {self.account.bbs_uid} 登录失效")
@@ -207,13 +211,17 @@ class BaseGameSign:
                         if gt and challenge:
                             geetest_result = await get_validate(gt, challenge)
                             if _conf.preference.geetest_url:
-                                if on_geetest_callback and attempt.retry_state.attempt_number == 1:
-                                    on_geetest_callback()
-                                continue
+                                #if attempt.retry_state.attempt_number == 1:
+                                raise MystoolException("遇到验证码")
                             else:
                                 return BaseApiStatus(need_verify=True)
-            return BaseApiStatus(success=True)
-
+            if geetest_result.validate:
+                return BaseApiStatus(success=True, need_verify=True)
+            else:
+                return BaseApiStatus(success=True)
+            
+        except MystoolException:
+            return BaseApiStatus(need_verify=True)
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
                 logger.exception(f"游戏签到 - 服务器没有正确返回")

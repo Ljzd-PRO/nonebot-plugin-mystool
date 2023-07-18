@@ -22,6 +22,7 @@ from nonebot.log import logger
 
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager
+from .utils import logger
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -255,16 +256,18 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
 
     if gt and challenge and _conf.preference.geetest_url:
         try:
+            url_with_geetest_url = f"{_conf.preference.geetest_url}&referer=https://webstatic.mihoyo.com/&gt={gt}&challenge={challenge}"
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
-                            _conf.preference.geetest_url,
+                            url_with_geetest_url,
                             timeout=60,
                             json=content)
                     geetest_data = res.json()
-                    if geetest_data['data']['result'] != 'fail':
-                        return GeetestResult(validate=geetest_data['data']['validate'], seccode="")
+                    logger.info(f"打码:{geetest_data}")
+                    validate=geetest_data['data']['validate']
+                    return GeetestResult(validate=validate, seccode="")
         except tenacity.RetryError:
             logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
     else:
@@ -316,3 +319,10 @@ def command_matcher(command: str, priority: int = None, block: bool = None) -> M
     :return: 事件响应器
     """
     ...
+
+class MystoolException(Exception):
+    """Base genshinhelper exception."""
+
+    def __init__(self, message):
+        super().__init__(message)
+        logger.error(message)
