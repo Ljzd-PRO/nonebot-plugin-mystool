@@ -16,13 +16,13 @@
 
 ## 📣 更新内容
 ### 2023.7.19 - v1.1.0
-- 便笺功能增加崩坏：星穹铁道的支持 #140 #143 by @Joseandluue @RemiDre
+- 增加崩坏：星穹铁道的便笺功能 #140 #143 by @Joseandluue @RemiDre
 - 修复每小时都发送便笺通知的Bug #135
 - 人机验证打码平台支持自定义JSON内容 #133
 - 修复商品兑换API（但因加入了人机验证，实际大概率兑换失败）#110
 - 不在好友列表的用户数据在删除前将进行备份 #129
 - 防止因插件数据文件中默认存在 device_config, salt_config 而导致更新后默认配置被原配置覆盖的问题
-- 若需要修改 device_config 配置，修改后还设置用户数据文件中 preference.override_device_and_salt 为 true 以覆盖默认值
+- 若需要修改 device_config 配置，修改后还设置插件数据文件中 preference.override_device_and_salt 为 true 以覆盖默认值
 
 ### 2023.6.23 - v1.0.1
 - 修复无法导出Cookies的问题
