@@ -56,9 +56,17 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check = on_command(_conf.preference.command_start + '便笺',
-                                  aliases={_conf.preference.command_start + '便签'}, priority=5, block=True)
-manually_resin_check.name = '便笺'
+manually_resin_check = on_command(
+    _conf.preference.command_start + '原神便笺',
+    aliases={
+        _conf.preference.command_start + '便笺',
+        _conf.preference.command_start + '便签',
+        _conf.preference.command_start + '原神便签',
+    },
+    priority=5,
+    block=True
+)
+manually_resin_check.name = '原神便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 has_checked = {}
 for user in _conf.users.values():
@@ -80,10 +88,17 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check_sr = on_command(_conf.preference.command_start + '便笺sr',
-                                     aliases={_conf.preference.command_start + '便签sr'}, priority=5, block=True)
-manually_resin_check_sr.name = '便笺sr'
-manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺（sr），即开拓力、每日实训、每周模拟宇宙积分等信息'
+manually_resin_check_sr = on_command(
+    _conf.preference.command_start + '星穹铁道便笺',
+    aliases={
+        _conf.preference.command_start + '铁道便笺',
+        _conf.preference.command_start + '铁道便签',
+    },
+    priority=5,
+    block=True
+)
+manually_resin_check_sr.name = '星穹铁道便笺'
+manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息'
 for user in _conf.users.values():
     for account in user.accounts.values():
         if account.enable_resin:
