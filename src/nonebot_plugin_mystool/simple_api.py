@@ -1547,4 +1547,4 @@ async def StarRail_board(account: UserAccount) -> Tuple[
                     logger.exception(f"崩铁实时便笺: 请求失败")
                     return StarRailBoardStatus(network_error=True), None
     if flag:
-        return StarRailBoardStatus(no_genshin_account=True), None
+        return StarRailBoardStatus(no_starrail_account=True), None
