@@ -10,7 +10,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
     Mapping
 
 from loguru import logger
-from pydantic import BaseModel, ValidationError, BaseSettings, validator
+from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
 from .user_data import UserData, UserAccount
 
@@ -51,10 +51,6 @@ class Preference(BaseSettings):
     """最大网络请求重试次数"""
     retry_interval: float = 2
     """网络请求重试间隔（单位：秒）（除兑换请求外）"""
-    enable_ntp_sync: Optional[bool] = True
-    """是否开启NTP时间同步（将调整实际发出兑换请求的时间，而不是修改系统时间）"""
-    ntp_server: Optional[str] = "ntp.aliyun.com"
-    """NTP服务器地址"""
     timezone: Optional[str] = "Asia/Shanghai"
     """兑换时所用的时区"""
     exchange_thread_count: int = 2

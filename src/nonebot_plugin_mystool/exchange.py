@@ -395,7 +395,7 @@ async def _():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
-            if good_detail_status.good_not_existed or good.time < NtpTime.time():
+            if good_detail_status.good_not_existed or good.time < time.time():
                 # 若商品不存在则删除
                 # 若重启时兑换超时则删除该兑换
                 user.exchange_plans.remove(plan)

@@ -671,7 +671,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_ADDRESS.format(
-                        round(NtpTime.time() * 1000)), headers=headers,
+                        round(time.time() * 1000)), headers=headers,
                         cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                         timeout=_conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
@@ -710,7 +710,7 @@ async def check_registrable(phone_number: int, keep_client: bool = False, retry:
         """
         发送请求的闭包函数
         """
-        time_now = round(NtpTime.time() * 1000)
+        time_now = round(time.time() * 1000)
         # await client.options(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
         #                      headers=headers, timeout=conf.preference.timeout)
         return await client.get(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
@@ -762,7 +762,7 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
         """
         发送请求的闭包函数
         """
-        time_now = round(NtpTime.time() * 1000)
+        time_now = round(time.time() * 1000)
         # await client.options(URL_CREATE_MMT.format(now=time_now, t=time_now),
         #                      headers=headers, timeout=conf.preference.timeout)
         return await client.get(URL_CREATE_MMT.format(now=time_now, t=time_now),
@@ -818,7 +818,7 @@ async def create_mobile_captcha(phone_number: int,
             "mmt_key": mmt_data.mmt_key,
             "geetest_v4_data": str(geetest_v4_data).replace("'", '"'),
             "mobile": str(phone_number),
-            "t": str(round(NtpTime.time() * 1000))
+            "t": str(round(time.time() * 1000))
         }
     else:
         content = {
@@ -828,7 +828,7 @@ async def create_mobile_captcha(phone_number: int,
             "geetest_validate": geetest_result.validate,
             "geetest_seccode": geetest_result.seccode,
             "mobile": phone_number,
-            "t": round(NtpTime.time() * 1000)
+            "t": round(time.time() * 1000)
         }
 
     async def request():
@@ -890,7 +890,7 @@ async def get_login_ticket_by_captcha(phone_number: str,
         "mobile": phone_number,
         "mobile_captcha": captcha,
         "source": "user.mihoyo.com",
-        "t": round(NtpTime.time() * 1000),
+        "t": round(time.time() * 1000),
     }
     encoded_params = urlencode(params)
 
@@ -1051,7 +1051,7 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
         "geetest_validate": geetest_result.validate,
         "geetest_seccode": geetest_result.seccode,
         "source": "user.mihoyo.com",
-        "t": round(NtpTime.time() * 1000)
+        "t": round(time.time() * 1000)
     }
     encoded_params = urlencode(params)
     try:

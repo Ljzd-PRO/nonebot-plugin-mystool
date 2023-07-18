@@ -117,44 +117,6 @@ def get_async_retry(retry: bool):
     )
 
 
-class NtpTime:
-    """
-    NTP时间校准相关
-    """
-    time_offset = 0
-    """本地时间与互联网时间的偏差"""
-
-    @classmethod
-    def sync(cls):
-        """
-        校准时间
-        """
-        if _conf.preference.enable_ntp_sync:
-            if not _conf.preference.ntp_server:
-                logger.error("开启了互联网时间校对，但未配置NTP服务器 preference.ntp_server，放弃时间同步")
-                return False
-            try:
-                for attempt in get_async_retry(True):
-                    with attempt:
-                        cls.time_offset = ntplib.NTPClient().request(
-                            _conf.preference.ntp_server).tx_time - time.time()
-            except tenacity.RetryError:
-                logger.exception("校对互联网时间失败，改为使用本地时间")
-                return False
-            logger.info("互联网时间校对完成")
-            return True
-        else:
-            logger.info("未开启互联网时间校对，跳过时间同步")
-            return True
-
-    @classmethod
-    def time(cls) -> float:
-        """
-        获取校准后的时间（如果校准成功）
-        """
-        return time.time() + cls.time_offset
-
-
 def generate_device_id() -> str:
     """
     生成随机的x-rpc-device_id
@@ -207,7 +169,7 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
             salt = salt or _conf.salt_config.SALT_IOS
         else:
             salt = salt or _conf.salt_config.SALT_ANDROID
-        t = str(int(NtpTime.time()))
+        t = str(int(time.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
