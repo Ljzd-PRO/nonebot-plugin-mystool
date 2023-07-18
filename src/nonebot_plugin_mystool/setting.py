@@ -14,7 +14,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)
 setting.name = "设置"

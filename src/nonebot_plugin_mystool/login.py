@@ -16,7 +16,7 @@ from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ti
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 get_cookie = on_command(_conf.preference.command_start + '登录', priority=4, block=True)
 get_cookie.name = '登录'

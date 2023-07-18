@@ -29,15 +29,14 @@ __plugin_meta__ = PluginMetadata(
     extra={"version": VERSION}
 )
 
-from nonebot import init
-from .plugin_data import PluginDataManager
-
-init()  # 初始化Driver对象
-PluginDataManager.load_plugin_data()  # 加载插件数据
+# 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
 from .utils import CommandBegin
+from nonebot import init
 from nonebot import get_driver
 
+init() # 初始化Driver对象
+init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
 
 # 加载其它代码

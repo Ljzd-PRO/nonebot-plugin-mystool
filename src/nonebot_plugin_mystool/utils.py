@@ -26,7 +26,7 @@ from .plugin_data import PluginDataManager, Preference
 if TYPE_CHECKING:
     from loguru import Logger
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 
 class CommandBegin:

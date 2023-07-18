@@ -29,7 +29,7 @@ from .simple_api import get_game_record, get_good_detail, get_good_list, good_ex
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import NtpTime, COMMAND_BEGIN, logger, get_last_command_sep
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
 
 myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
