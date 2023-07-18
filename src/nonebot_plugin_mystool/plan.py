@@ -57,6 +57,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
 
 
 manually_resin_check = on_command(_conf.preference.command_start + '便笺', aliases={_conf.preference.command_start + '便签'}, priority=5, block=True)
+manually_resin_check.name = '便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 has_checked = {}
 for user in _conf.users.values():
