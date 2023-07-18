@@ -21,7 +21,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
 from .data_model import GeetestResult
-from .plugin_data import PluginDataManager
+from .plugin_data import PluginDataManager, Preference
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -248,10 +248,10 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
-    content = {
-        "gt": gt,
-        "challenge": challenge
-    }
+    content = _conf.preference.geetest_json or Preference().geetest_json
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = value.format(gt=gt, challenge=challenge)
 
     if gt and challenge and _conf.preference.geetest_url:
         try:
@@ -269,6 +269,26 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
             logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
     else:
         return GeetestResult("", "")
+
+
+def generate_seed_id(length: int = 8) -> str:
+    """
+    生成随机的 seed_id（即长度为8的十六进制数）
+
+    :param length: 16进制数长度
+    """
+    max_num = int("FF" * length, 16)
+    return hex(random.randint(0, max_num))[2:]
+
+
+def generate_fp_locally(length: int = 13):
+    """
+    于本地生成 device_fp
+
+    :param length: device_fp 长度
+    """
+    characters = string.digits + "abcdef"
+    return ''.join(random.choices(characters, k=length))
 
 
 async def get_file(url: str, retry: bool = True):

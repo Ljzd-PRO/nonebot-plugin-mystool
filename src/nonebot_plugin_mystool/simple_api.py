@@ -1,6 +1,7 @@
 """
 ### 米游社一些简单API相关
 """
+import time
 from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
 
@@ -11,11 +12,12 @@ from requests.utils import dict_from_cookiejar
 
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
-    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus, StarRailBoardStatus, StarRailBoard
+    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus, \
+    GetFpStatus, StarRailBoardStatus, StarRailBoard
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
-    NtpTime, get_async_retry
+    NtpTime, get_async_retry, generate_seed_id, generate_fp_locally
 
 _conf = PluginDataManager.plugin_data_obj
 
@@ -35,12 +37,13 @@ URL_DEVICE_SAVE = "https://bbs-api.mihoyo.com/apihub/api/saveDevice"
 URL_GOOD_LIST = "https://api-takumi.mihoyo.com/mall/v1/web/goods/list?app_id=1&point_sn=myb&page_size=20&page={" \
                 "page}&game={game} "
 URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=1&point_sn=myb&goods_id={}"
-URL_EXCHANGE = "https://api-takumi.mihoyo.com/mall/v1/web/goods/exchange"
+URL_EXCHANGE = "https://api-takumi.miyoushe.com/mall/v1/web/goods/exchange"
 URL_ADDRESS = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 URL_REGISTRABLE = "https://webapi.account.mihoyo.com/Api/is_mobile_registrable?mobile={mobile}&t={t}"
 URL_CREATE_MMT = "https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}"
 URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile_captcha"
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
+URL_GET_DEVICE_FP = "https://public-data-api.mihoyo.com/device-fp/api/getFp"
 URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
 URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
 URL_GENSHEN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
@@ -205,9 +208,13 @@ HEADERS_EXCHANGE = {
     "Connection":
         "keep-alive",
     "Content-Type":
-        "application/json;charset=utf-8",
+        "application/json",
     "Host":
-        "api-takumi.mihoyo.com",
+        "api-takumi.miyoushe.com",
+    "Origin":
+        "https://webstatic.miyoushe.com",
+    "Referer":
+        "https://webstatic.miyoushe.com/",
     "User-Agent":
         _conf.device_config.USER_AGENT_MOBILE,
     "x-rpc-app_version":
@@ -216,6 +223,9 @@ HEADERS_EXCHANGE = {
         "appstore",
     "x-rpc-client_type":
         "1",
+    "x-rpc-verify_key":
+        "bll8iq97cem8",
+    "x-rpc-device_fp": None,
     "x-rpc-device_id": None,
     "x-rpc-device_model":
         _conf.device_config.X_RPC_DEVICE_MODEL_MOBILE,
@@ -1222,6 +1232,64 @@ async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: Optional[str] = N
             return GetCookieStatus(network_error=True), None
 
 
+async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus, Optional[str]]:
+    """
+    获取 x-rpc-device_fp
+
+    :param device_id: x-rpc-device_id 的值
+    :param retry: 是否允许重试
+
+    >>> import asyncio
+    >>> coroutine = get_device_fp(generate_device_id())
+    >>> assert asyncio.new_event_loop().run_until_complete(coroutine)[0].success is True
+    """
+    content = {
+        "seed_id": generate_seed_id(),
+        "device_id": device_id.lower(),
+        "platform": "5",
+        "seed_time": str(int(time.time() * 1000)),
+        "ext_fields": "{\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit\/605.1.15 "
+                      f"(KHTML, like Gecko) miHoYoBBS\/{_conf.device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
+                      f"\":243750,\"maxTouchPoints\":5,"
+                      "\"isTouchSupported\":true,\"browserLanguage\":\"zh-CN\",\"browserPlat\":\"iPhone\","
+                      "\"browserTimeZone\":\"Asia\/Shanghai\",\"webGlRender\":\"Apple GPU\",\"webGlVendor\":\"Apple "
+                      "Inc.\",\"numOfPlugins\":0,\"listOfPlugins\":\"unknown\",\"screenRatio\":3,"
+                      "\"deviceMemory\":\"unknown\",\"hardwareConcurrency\":\"4\",\"cpuClass\":\"unknown\","
+                      "\"ifNotTrack\":\"unknown\",\"ifAdBlock\":0,\"hasLiedResolution\":1,\"hasLiedOs\":0,"
+                      "\"hasLiedBrowser\":0}",
+        "app_name": "account_cn",
+        "device_fp": generate_fp_locally()
+    }
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(
+                        URL_GET_DEVICE_FP,
+                        json=content,
+                        timeout=_conf.preference.timeout
+                    )
+                api_result = ApiResultHandler(res.json())
+                if api_result.data["code"] == 403 or api_result.data["msg"] == "传入的参数有误":
+                    logger.error("传入的参数有误")
+                    return GetFpStatus(invalid_arguments=True), None
+                elif api_result.success:
+                    device_fp = api_result.data["device_fp"]
+                    if not device_fp:
+                        logger.error("获取 x-rpc-device_fp: 服务器返回的 device_fp 为空")
+                        return GetFpStatus(incorrect_return=True), None
+                    return GetFpStatus(success=True), device_fp
+
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception(f"获取 x-rpc-device_fp: 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return GetFpStatus(incorrect_return=True), None
+        else:
+            logger.exception(f"获取 x-rpc-device_fp: 网络请求失败")
+            return GetFpStatus(network_error=True), None
+
+
 async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[ExchangeResult]]:
     """
     执行米游币商品兑换
@@ -1230,11 +1298,12 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_fp_locally()
     content = {
         "app_id": 1,
         "point_sn": "myb",
         "goods_id": plan.good.goods_id,
-        "exchange_num": 1,
+        "exchange_num": 1
     }
     if plan.address is not None:
         content.setdefault("address_id", plan.address.id)
@@ -1248,7 +1317,7 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
         async with httpx.AsyncClient() as client:
             res = await client.post(
                 URL_EXCHANGE, headers=headers, json=content,
-                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                cookies=plan.account.cookies.dict(cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
@@ -1286,11 +1355,12 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
     """
     headers = HEADERS_EXCHANGE
     headers["x-rpc-device_id"] = plan.account.device_id_ios
+    headers["x-rpc-device_fp"] = plan.account.device_fp or generate_fp_locally()
     content = {
         "app_id": 1,
         "point_sn": "myb",
         "goods_id": plan.good.goods_id,
-        "exchange_num": 1,
+        "exchange_num": 1
     }
     if plan.address is not None:
         content.setdefault("address_id", plan.address.id)
@@ -1304,7 +1374,7 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
         with httpx.Client() as client:
             res = client.post(
                 URL_EXCHANGE, headers=headers, json=content,
-                cookies=plan.account.cookies.dict(v2_stoken=True, cookie_type=True),
+                cookies=plan.account.cookies.dict(cookie_type=True),
                 timeout=_conf.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:

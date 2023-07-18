@@ -215,6 +215,8 @@ class UserAccount(BaseModelWithSetter):
     """iOS设备用 deviceID"""
     device_id_android: str
     """安卓设备用 deviceID"""
+    device_fp: Optional[str]
+    """iOS设备用 deviceFp"""
 
     enable_mission: bool = True
     '''是否开启米游币任务计划'''

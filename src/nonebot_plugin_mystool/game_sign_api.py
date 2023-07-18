@@ -163,7 +163,7 @@ class BaseGameSign:
             headers.pop("x-rpc-platform")
             await device_login(self.account)
             await device_save(self.account)
-            headers["DS"] = generate_ds(platform="android")
+            headers["DS"] = generate_ds(data=content)
 
         challenge = ""
         """人机验证任务 challenge"""

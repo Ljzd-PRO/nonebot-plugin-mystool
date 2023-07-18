@@ -25,7 +25,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync
+from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import NtpTime, COMMAND_BEGIN, logger, get_last_command_sep
 
@@ -228,6 +228,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await matcher.finish('⚠️您已经配置过该商品的兑换哦！')
     else:
         user.exchange_plans.add(plan)
+        if not plan.account.device_fp:
+            logger.info(f"账号 {plan.account.bbs_uid} 未设置 device_fp，正在获取...")
+            fp_status, plan.account.device_fp = await get_device_fp(plan.account.device_id_ios)
+            if not fp_status:
+                await matcher.send(
+                    '⚠️从服务器获取device_fp失败！兑换时将在本地生成device_fp。你也可以尝试重新添加兑换计划。')
         write_plugin_data()
 
     # 初始化兑换任务
