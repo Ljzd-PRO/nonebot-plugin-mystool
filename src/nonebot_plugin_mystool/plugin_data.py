@@ -26,7 +26,8 @@ DATA_PATH = ROOT_PATH / "data" / "nonebot-plugin-mystool"
 PLUGIN_DATA_PATH = DATA_PATH / "plugin_data.json"
 """插件数据文件默认路径"""
 
-DELETED_USERS_PATH = DATA_PATH / "deletedUsers"
+DELETED_USERS_PATH = DATA_PATH / "deletedUsers.json"
+"""已删除用户数据文件默认路径"""
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
