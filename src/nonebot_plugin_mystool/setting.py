@@ -80,7 +80,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
                     "\n- " + "、".join(map(lambda x: f"『{x.NAME}』", account.mission_games))
-    user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}"
+    user_setting += f"\n\n5️⃣ 原神、星穹铁道便笺提醒：{'开' if account.enable_resin else '关'}"
     user_setting += "\n6️⃣⚠️删除账户数据"
 
     await account_setting.send(user_setting + '\n\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6'
@@ -126,7 +126,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
     elif arg == '5':
         account.enable_resin = not account.enable_resin
         write_plugin_data()
-        await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
+        await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif arg == '6':
         state["prepare_to_delete"] = True
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
