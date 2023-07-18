@@ -469,10 +469,10 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                     if not is_auto:
                         if group_event:
                             await bot.send(event=group_event, at_sender=True,
-                                           message=f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
+                                           message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
                         else:
                             await bot.send_private_msg(user_id=qq,
-                                                       message=f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
+                                                       message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
                         account.enable_resin = False
                         write_plugin_data()
                         continue
@@ -517,19 +517,16 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.bbs_uid]['train_score'] = False
                 # 每周模拟宇宙积分提醒
-                if board.transformer:
-                    if board.current_rogue_score == board.max_rogue_scor:
-                        # 防止重复提醒
-                        if has_checked[account.bbs_uid]['rogue_score']:
-                            return
-                        else:
-                            has_checked[account.bbs_uid]['rogue_score'] = True
-                            msg += '❕您的模拟宇宙积分已经打满了\n\n'
-                    else:
-                        has_checked[account.bbs_uid]['rogue_score'] = False
+                if board.current_rogue_score == board.max_rogue_scor:
+                    # 防止重复提醒
+                    if has_checked[account.bbs_uid]['rogue_score']:
                         return
+                    else:
+                        has_checked[account.bbs_uid]['rogue_score'] = True
+                        msg += '❕您的模拟宇宙积分已经打满了\n\n'
                 else:
                     has_checked[account.bbs_uid]['rogue_score'] = False
+                    return
             msg += "❖星穹铁道实时便笺❖" \
                    f"\n⏳开拓力数量：{board.current_stamina} / 180" \
                    f"\n⏱开拓力将在{board.stamina_recover_text}回满" \
