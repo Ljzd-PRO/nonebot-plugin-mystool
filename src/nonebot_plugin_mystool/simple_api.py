@@ -13,7 +13,7 @@ from requests.utils import dict_from_cookiejar
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus, \
-    GetFpStatus
+    GetFpStatus, StarRailBoardStatus, StarRailBoard
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
@@ -47,6 +47,8 @@ URL_GET_DEVICE_FP = "https://public-data-api.mihoyo.com/device-fp/api/getFp"
 URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
 URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
 URL_GENSHEN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
+URL_STARRAIL_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
+URL_STARRAIL_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -271,6 +273,28 @@ HEADERS_GENSHIN_STATUS_BBS = {
     "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
     "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-client_type": "5"
+}
+
+HEADERS_STARRAIL_STATUS_WIDGET = {
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "User-Agent": _conf.device_config.USER_AGENT_WIDGET,
+
+    # "DS": None,
+    "Referer": "https://app.mihoyo.com",
+    "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
+    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL,
+    "x-rpc-client_type": "2",
+    "x-rpc-page": '',
+    "x-rpc-device_fp": '',
+    "x-rpc-device_id": '',
+    "x-rpc-device_model": _conf.device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION,
+
+    "Connection": "keep-alive",
+    "Host": "api-takumi-record.mihoyo.com"
 }
 
 IncorrectReturn = (KeyError, TypeError, AttributeError, IndexError, ValidationError)
@@ -1455,3 +1479,71 @@ async def genshin_board(account: UserAccount) -> Tuple[
                     return GenshinBoardStatus(network_error=True), None
     if flag:
         return GenshinBoardStatus(no_genshin_account=True), None
+    
+async def StarRail_board(account: UserAccount) -> Tuple[
+    Union[BaseApiStatus, StarRailBoardStatus], Optional[StarRailBoard]]:
+    """
+    获取崩铁实时便笺
+
+    :param account: 用户账户数据
+    """
+    game_record_status, records = await get_game_record(account)
+    logger.info(f"genshin_board game_record_status : {game_record_status}")
+    logger.info(f"genshin_board records : {records}")
+    if not game_record_status:
+        return game_record_status, None
+    game_list_status, game_list = await get_game_list()
+    if not game_list_status:
+        return game_list_status, None
+    game_filter = filter(lambda x: x.en_name == 'sr', game_list)
+    game_info = next(game_filter, None)
+    if not game_info:
+        return StarRailBoardStatus(no_starrail_account=True), None
+    else:
+        game_id = game_info.id
+    flag = True
+    for record in records:
+        if record.game_id == game_id:
+            try:
+                flag = False 
+                headers = HEADERS_STARRAIL_STATUS_WIDGET.copy()
+
+                url = f"{URL_STARRAIL_STATUS_WIDGET}"
+                async for attempt in get_async_retry(False):
+                    with attempt:
+                        headers["DS"] = generate_ds(data = {}) 
+                        async with httpx.AsyncClient() as client:
+
+                            cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)
+                            logger.info(f"StarRail_board headers :  {headers}")
+                            logger.info(f"StarRail_board cookies :  {cookies}")
+                            res = await client.get(url, headers=headers,
+                                                   cookies=cookies,
+                                                   timeout=_conf.preference.timeout)
+                        api_result = ApiResultHandler(res.json())
+                        logger.info(f"simple_api StarRail_board api_result : {api_result}")
+                        if api_result.login_expired:
+                            logger.info(
+                                f"崩铁实时便笺: 用户 {account.bbs_uid} 登录失效")
+                            logger.debug(f"网络请求返回: {res.text}")
+                            return StarRailBoardStatus(login_expired=True), None
+
+                        if api_result.invalid_ds:
+                            logger.info(
+                                f"崩铁实时便笺: 用户 {account.bbs_uid} DS 校验失败")
+                            logger.debug(f"网络请求返回: {res.text}")
+                        if api_result.retcode == 1034:
+                            logger.info(
+                                f"崩铁实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
+                            logger.debug(f"网络请求返回: {res.text}")
+                        return StarRailBoardStatus(success=True), StarRailBoard.parse_obj(api_result.data)
+            except tenacity.RetryError as e:
+                if is_incorrect_return(e):
+                    logger.exception(f"崩铁实时便笺: 服务器没有正确返回")
+                    logger.debug(f"网络请求返回: {res.text}")
+                    return StarRailBoardStatus(incorrect_return=True), None
+                else:
+                    logger.exception(f"崩铁实时便笺: 请求失败")
+                    return StarRailBoardStatus(network_error=True), None
+    if flag:
+        return StarRailBoardStatus(no_genshin_account=True), None

@@ -15,7 +15,7 @@ from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import genshin_board, get_game_record
+from .simple_api import genshin_board, get_game_record, StarRail_board
 from .utils import get_file, logger, COMMAND_BEGIN
 
 _conf = PluginDataManager.plugin_data_obj
@@ -56,7 +56,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check = on_command(_conf.preference.command_start + '便笺', priority=5, block=True)
+manually_resin_check = on_command(_conf.preference.command_start + '便笺', aliases={_conf.preference.command_start + '便签'}, priority=5, block=True)
 manually_resin_check.name = '便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 has_checked = {}
@@ -78,6 +78,25 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
+manually_resin_check_sr = on_command(_conf.preference.command_start + '便笺sr', aliases={_conf.preference.command_start + '便签sr'}, priority=5, block=True)
+manually_resin_check_sr.name = '便笺sr'
+manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺（sr），即开拓力、每日实训、每周模拟宇宙积分等信息'
+for user in _conf.users.values():
+    for account in user.accounts.values():
+        if account.enable_resin:
+            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
+                                                           {"stamina": False, "train_score": False, "rogue_score": False})
+
+@manually_resin_check_sr.handle()
+async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+    """
+    手动查看星穹铁道便笺（sr）
+    """
+    bot = get_bot(str(event.self_id))
+    user = _conf.users.get(event.user_id)
+    if not user or not user.accounts:
+        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    await resin_check_sr(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                             group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
@@ -414,6 +433,111 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
                 await bot.send_private_msg(user_id=qq, message=msg)
+
+
+async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
+                      group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+    """
+    查看星铁实时便笺函数，并发送给用户任务执行消息。
+
+    :param bot: Bot实例
+    :param qq: 用户QQ号
+    :param is_auto: True为自动检查，False为用户手动调用该功能
+    :param group_event: 若为群消息触发，则为群消息事件，否则为None
+    """
+    if isinstance(group_event, PrivateMessageEvent):
+        group_event = None
+    global has_checked
+    user = _conf.users[qq]
+    for account in user.accounts.values():
+        if account.enable_resin:
+            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
+                                                           {"stamina": False, "train_score": False, "rogue_score": False})
+        if (account.enable_resin and is_auto) or not is_auto:
+            starrail_board_status, board = await StarRail_board(account)
+            logger.info(starrail_board_status)
+            if not starrail_board_status:
+                if starrail_board_status.login_expired:
+                    if not is_auto:
+                        if group_event:
+                            await bot.send(event=group_event, at_sender=True,
+                                           message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        else:
+                            await bot.send_private_msg(user_id=qq,
+                                                       message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                if starrail_board_status.no_starrail_account:
+                    if not is_auto:
+                        if group_event:
+                            await bot.send(event=group_event, at_sender=True,
+                                           message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                        else:
+                            await bot.send_private_msg(user_id=qq,
+                                                       message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                        account.enable_resin = False
+                        write_plugin_data()
+                        continue
+                if not is_auto:
+                    if group_event:
+                        await bot.send(event=group_event, at_sender=True,
+                                       message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                    else:
+                        await bot.send_private_msg(user_id=qq,
+                                                   message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                continue
+            if starrail_board_status.need_verify:
+                if group_event:
+                    await bot.send(event=group_event, at_sender=True,
+                                   message=f'⚠️遇到验证码正在尝试绕过')
+                else:
+                    await bot.send_private_msg(user_id=qq,
+                                               message=f'⚠️遇到验证码正在尝试绕过')
+            msg = ''
+            # 手动查询体力时，无需判断是否溢出
+            if not is_auto:
+                pass
+            else:
+                # 体力溢出提醒
+                if board.current_stamina == 180:
+                    # 防止重复提醒
+                    if has_checked[account.bbs_uid]['stamina']:
+                        return
+                    else:
+                        has_checked[account.bbs_uid]['stamina'] = True
+                        msg += '❕您的开拓力已经满啦\n'
+                else:
+                    has_checked[account.bbs_uid]['stamina'] = False
+                # 每日实训状态提醒
+                if board.current_train_score == board.max_train_score:
+                    # 防止重复提醒
+                    if has_checked[account.bbs_uid]['train_score']:
+                        return
+                    else:
+                        has_checked[account.bbs_uid]['train_score'] = True
+                        msg += '❕您的每日实训已完成\n'
+                else:
+                    has_checked[account.bbs_uid]['train_score'] = False
+                # 每周模拟宇宙积分提醒
+                if board.current_rogue_score == board.max_rogue_scor:
+                    # 防止重复提醒
+                    if has_checked[account.bbs_uid]['rogue_score']:
+                        return
+                    else:
+                        has_checked[account.bbs_uid]['rogue_score'] = True
+                        msg += '❕您的模拟宇宙积分已经打满了\n\n'
+                else:
+                    has_checked[account.bbs_uid]['rogue_score'] = False
+                    return
+            msg += "❖星穹铁道实时便笺❖" \
+                   f"\n⏳开拓力数量：{board.current_stamina} / 180" \
+                   f"\n⏱开拓力将在{board.stamina_recover_text}回满" \
+                   f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
+                   f"\n📅每日委托：{4 - board.accepted_expedition_num} 个任务未完成" \
+                   f"\n🌌模拟宇宙：{board.current_rogue_score} / {board.max_rogue_score}"
+            if group_event:
+                await bot.send(event=group_event, at_sender=True, message=msg)
+            else:
+                await bot.send_private_msg(user_id=qq, message=msg)
+
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
