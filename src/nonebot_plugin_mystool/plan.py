@@ -598,3 +598,4 @@ async def auto_resin_check():
     bot = get_bot()
     for qq in _conf.users:
         await resin_check(bot=bot, qq=qq, is_auto=True)
+        await resin_check_sr(bot=bot, qq=qq, is_auto=True)
