@@ -15,7 +15,6 @@ import httpx
 import nonebot
 import nonebot.log
 import nonebot.plugin
-import ntplib
 import tenacity
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger

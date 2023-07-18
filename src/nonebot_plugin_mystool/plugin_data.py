@@ -1,8 +1,8 @@
 """
 ### 插件数据相关
 """
-import os
 import json
+import os
 from datetime import time, timedelta
 from json import JSONDecodeError
 from pathlib import Path
@@ -10,7 +10,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
     Mapping
 
 from loguru import logger
-from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
+from pydantic import BaseModel, ValidationError, BaseSettings, validator
 
 from .user_data import UserData, UserAccount
 

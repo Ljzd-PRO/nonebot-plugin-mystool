@@ -35,7 +35,7 @@ from .utils import CommandBegin
 from nonebot import init
 from nonebot import get_driver
 
-init() # 初始化Driver对象
+init()  # 初始化Driver对象
 init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
 

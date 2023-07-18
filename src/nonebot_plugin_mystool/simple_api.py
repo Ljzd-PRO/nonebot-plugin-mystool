@@ -17,7 +17,7 @@ from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtD
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
-    NtpTime, get_async_retry, generate_seed_id, generate_fp_locally
+    get_async_retry, generate_seed_id, generate_fp_locally
 
 _conf = PluginDataManager.plugin_data
 device_config = PluginDataManager.device_config
@@ -1480,7 +1480,8 @@ async def genshin_board(account: UserAccount) -> Tuple[
                     return GenshinBoardStatus(network_error=True), None
     if flag:
         return GenshinBoardStatus(no_genshin_account=True), None
-    
+
+
 async def StarRail_board(account: UserAccount) -> Tuple[
     Union[BaseApiStatus, StarRailBoardStatus], Optional[StarRailBoard]]:
     """
@@ -1506,13 +1507,13 @@ async def StarRail_board(account: UserAccount) -> Tuple[
     for record in records:
         if record.game_id == game_id:
             try:
-                flag = False 
+                flag = False
                 headers = HEADERS_STARRAIL_STATUS_WIDGET.copy()
 
                 url = f"{URL_STARRAIL_STATUS_WIDGET}"
                 async for attempt in get_async_retry(False):
                     with attempt:
-                        headers["DS"] = generate_ds(data = {}) 
+                        headers["DS"] = generate_ds(data={})
                         async with httpx.AsyncClient() as client:
 
                             cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)

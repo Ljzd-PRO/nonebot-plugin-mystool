@@ -56,7 +56,8 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
 
-manually_resin_check = on_command(_conf.preference.command_start + '便笺', aliases={_conf.preference.command_start + '便签'}, priority=5, block=True)
+manually_resin_check = on_command(_conf.preference.command_start + '便笺',
+                                  aliases={_conf.preference.command_start + '便签'}, priority=5, block=True)
 manually_resin_check.name = '便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 has_checked = {}
@@ -78,14 +79,18 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
 
-manually_resin_check_sr = on_command(_conf.preference.command_start + '便笺sr', aliases={_conf.preference.command_start + '便签sr'}, priority=5, block=True)
+
+manually_resin_check_sr = on_command(_conf.preference.command_start + '便笺sr',
+                                     aliases={_conf.preference.command_start + '便签sr'}, priority=5, block=True)
 manually_resin_check_sr.name = '便笺sr'
 manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺（sr），即开拓力、每日实训、每周模拟宇宙积分等信息'
 for user in _conf.users.values():
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"stamina": False, "train_score": False, "rogue_score": False})
+                                                           {"stamina": False, "train_score": False,
+                                                            "rogue_score": False})
+
 
 @manually_resin_check_sr.handle()
 async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
@@ -97,6 +102,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await resin_check_sr(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
+
 
 async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                             group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
@@ -436,7 +442,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
 
 
 async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
-                      group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+                         group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
@@ -452,7 +458,8 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"stamina": False, "train_score": False, "rogue_score": False})
+                                                           {"stamina": False, "train_score": False,
+                                                            "rogue_score": False})
         if (account.enable_resin and is_auto) or not is_auto:
             starrail_board_status, board = await StarRail_board(account)
             logger.info(starrail_board_status)
@@ -537,7 +544,6 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
                 await bot.send_private_msg(user_id=qq, message=msg)
-
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")

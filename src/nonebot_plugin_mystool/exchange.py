@@ -27,7 +27,7 @@ from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import NtpTime, COMMAND_BEGIN, logger, get_last_command_sep
+from .utils import COMMAND_BEGIN, logger, get_last_command_sep
 
 _conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
