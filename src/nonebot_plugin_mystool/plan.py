@@ -517,7 +517,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                 else:
                     has_checked[account.bbs_uid]['train_score'] = False
                 # 每周模拟宇宙积分提醒
-                if board.current_rogue_score == board.max_rogue_scor:
+                if board.current_rogue_score == board.max_rogue_score:
                     # 防止重复提醒
                     if has_checked[account.bbs_uid]['rogue_score']:
                         return
