@@ -23,7 +23,7 @@
     > 说明文档：[🔗geetest_json](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#geetest_json)
 - 修复商品兑换API（但因加入了人机验证，实际大概率兑换失败）#110
 - 不在好友列表的用户数据在删除前将进行备份 #129
-    > 备份路径：`data/nonebot_plugin_mystool/deletedUsers.json`
+    > 备份目录：`data/nonebot_plugin_mystool/deletedUsers`
 - 防止因插件数据文件中默认存在 device_config, salt_config 而导致更新后默认配置被原配置覆盖的问题
 - 若需要修改 device_config 配置，修改后还设置插件数据文件中 preference.override_device_and_salt 为 true 以覆盖默认值
     > 说明文档：
