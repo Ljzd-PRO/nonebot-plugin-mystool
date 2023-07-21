@@ -16,9 +16,10 @@ from typing import List, Union, Callable, Any, Tuple, Optional, Dict
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_bot
-from nonebot.adapters.onebot.v11 import (MessageEvent, MessageSegment,
-                                         PrivateMessageEvent, GroupMessageEvent)
+from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent
+from nonebot.adapters.onebot.v11 import (MessageSegment)
 from nonebot.adapters.onebot.v11.message import Message
+from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
@@ -53,8 +54,13 @@ myb_exchange_plan.extra_usage = """\
 
 
 @myb_exchange_plan.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, command=Command(),
-            command_arg=CommandArg()):
+async def _(
+        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        matcher: Matcher,
+        state: T_State,
+        command=Command(),
+        command_arg=CommandArg()
+):
     """
     主命令触发
 
@@ -77,7 +83,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
                 f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
             )
 
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await matcher.finish(
@@ -114,12 +120,16 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('bbs_uid')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
-            uid=ArgStr('bbs_uid')):
+async def _(
+        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        matcher: Matcher,
+        state: T_State,
+        uid=ArgStr('bbs_uid')
+):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    user_account = _conf.users[event.user_id].accounts
+    user_account = _conf.users[event.get_user_id()].accounts
     if uid == '退出':
         await matcher.finish('🚪已成功退出')
     if uid in user_account:
@@ -129,8 +139,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('good_id')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
-            good_id=ArgPlainText('good_id')):
+async def _(
+        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        matcher: Matcher,
+        state: T_State,
+        good_id=ArgPlainText('good_id')
+):
     """
     处理三级命令，即商品ID
     """
@@ -189,7 +203,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
     elif command_2 == '-':
-        plans = _conf.users[event.user_id].exchange_plans
+        plans = _conf.users[event.get_user_id()].exchange_plans
         if plans:
             for plan in plans:
                 if plan.good.goods_id == good_id:
@@ -209,12 +223,16 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @myb_exchange_plan.got('uid')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State,
-            uid=ArgPlainText('uid')):
+async def _(
+        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        matcher: Matcher,
+        state: T_State,
+        uid=ArgPlainText('uid')
+):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """
-    user = _conf.users[event.user_id]
+    user = _conf.users[event.get_user_id()]
     account: UserAccount = state['account']
     good: Good = state['good']
     if good.is_virtual:
@@ -263,7 +281,7 @@ get_good_image.usage = "获取当日米游币商品信息。添加自动兑换�
 
 
 @get_good_image.handle()
-async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
+async def _(_: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Matcher, arg=CommandArg()):
     # 若有使用二级命令，即传入了想要查看的商品类别，则跳过询问
     if arg:
         matcher.set_arg("content", arg)
@@ -278,7 +296,7 @@ async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
+async def _(_: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -317,6 +335,7 @@ lock = threading.Lock()
 finished: Dict[ExchangePlan, List[bool]] = {}
 
 
+# TODO: bot.send_private_msg 需要适配QQ频道
 @lambda func: scheduler.add_listener(func, EVENT_JOB_EXECUTED)
 def exchange_notice(event: JobExecutionEvent):
     """
