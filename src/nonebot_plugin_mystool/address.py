@@ -7,6 +7,7 @@ from typing import Union
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
+from nonebot.adapters.qqguild import MessageCreateEvent, DirectMessageCreateEvent
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
@@ -24,8 +25,16 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
-    if isinstance(event, GroupMessageEvent):
+async def _(
+        event: Union[
+            PrivateMessageEvent,
+            GroupMessageEvent,
+            DirectMessageCreateEvent,
+            MessageCreateEvent
+        ],
+        matcher: Matcher
+):
+    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
@@ -44,7 +53,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
+async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, uid=Arg("bbs_uid")):
     if isinstance(uid, Message):
         uid = uid.extract_plain_text().strip()
     if uid == '退出':
@@ -83,7 +92,7 @@ async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
 
 
 @address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(_: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
+async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 
