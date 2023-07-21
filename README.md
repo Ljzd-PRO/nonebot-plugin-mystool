@@ -41,11 +41,6 @@
 - 修复因缺少参量质变仪数据而导致不断提醒的Bug
 - 修复账号设置中游戏签到开启/关闭状态实际对应的是米游币任务的Bug #121 by @xxtg666
 
-### 2023.6.23 - v1.0.1
-- 修复无法导出Cookies的问题
-- 修复因缺少参量质变仪数据而导致不断提醒的Bug
-- 修复账号设置中游戏签到开启/关闭状态实际对应的是米游币任务的Bug #121 by @xxtg666
-
 ### 2023.6.23 - v1.0.0
 #### v1.0.0
 - 修复Windows, macOS多进程生成商品图片失败的问题 [#120](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/120) by @Night-stars-1
