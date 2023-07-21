@@ -4,6 +4,7 @@
 import asyncio
 import io
 import os
+import random
 import threading
 import time
 from datetime import datetime
@@ -25,7 +26,8 @@ from nonebot_plugin_apscheduler import scheduler
 from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp
+from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp, \
+    good_exchange
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
 from .utils import COMMAND_BEGIN, logger, get_last_command_sep
 
@@ -386,6 +388,27 @@ def exchange_notice(event: JobExecutionEvent):
                         write_plugin_data()
 
 
+def exchange_begin(plan: ExchangePlan):
+    """
+    到点后执行兑换
+
+    :param plan: 兑换计划
+    """
+    duration = 0
+    random_x, random_y = _conf.preference.exchange_latency
+    exchange_status, exchange_result = ExchangeStatus(), None
+
+    # 在兑换开始后的一段时间内，不断尝试兑换，直到成功（因为太早兑换可能被认定不在兑换时间）
+    while duration < _conf.preference.exchange_duration:
+        latency = random.uniform(random_x, random_y)
+        time.sleep(latency)
+        exchange_status, exchange_result = await good_exchange(plan)
+        if exchange_status and exchange_result.result:
+            break
+        duration += latency
+    return exchange_status, exchange_result
+
+
 @_driver.on_startup
 async def _():
     """
@@ -405,7 +428,7 @@ async def _():
                 finished.setdefault(plan, [])
                 for i in range(_conf.preference.exchange_thread_count):
                     scheduler.add_job(
-                        good_exchange_sync,
+                        exchange_begin,
                         "date",
                         id=f"exchange-plan-{hash(plan)}-{i}",
                         replace_existing=True,

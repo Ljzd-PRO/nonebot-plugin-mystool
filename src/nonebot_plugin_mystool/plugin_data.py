@@ -56,8 +56,10 @@ class Preference(BaseSettings, extra=Extra.ignore):
     """兑换时所用的时区"""
     exchange_thread_count: int = 2
     """兑换线程数"""
-    exchange_latency: Tuple[float, float] = (0, 0.35)
-    """兑换时间延迟随机范围（单位：秒）（防止因为发出请求的时间过于精准而被服务器认定为非人工操作）"""
+    exchange_latency: Tuple[float, float] = (0, 0.5)
+    """同一线程下，每个兑换请求之间的间隔时间"""
+    exchange_duration: float = 5
+    """兑换持续时间随机范围（单位：秒）"""
     enable_log_output: bool = True
     """是否保存日志"""
     log_head: str = ""
