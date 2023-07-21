@@ -30,6 +30,7 @@ ntplib = "^0.4.0"
 Pillow = ">=9.5,<11.0"
 requests = "^2.31.0"
 nonebot_adapter_onebot = "^2.2.3"
+nonebot-adapter-qqguild = "^0.2.3"
 tenacity = "^8.2.2"
 
 [tool.poetry.urls]
