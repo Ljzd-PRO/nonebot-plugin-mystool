@@ -68,12 +68,14 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     elif len(command) > 1 and command[1] in ["+", "-"]:
         if not command_arg:
             await matcher.reject(
-                '⚠️您的输入有误，缺少商品ID，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
-                                                                                        SEP=get_last_command_sep()))
+                '⚠️您的输入有误，缺少商品ID，请重新输入\n\n'
+                f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+            )
         elif not str(command_arg).isdigit():
             await matcher.reject(
-                '⚠️商品ID必须为数字，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
-                                                                                 SEP=get_last_command_sep()))
+                '⚠️商品ID必须为数字，请重新输入\n\n'
+                f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+            )
 
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
