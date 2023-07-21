@@ -531,12 +531,21 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                    f"\n⏳开拓力数量：{board.current_stamina} / 180" \
                    f"\n⏱开拓力将在{board.stamina_recover_text}回满" \
                    f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
-                   f"\n📅每日委托：{4 - board.accepted_expedition_num} 个任务未完成" \
+                   f"\n📅每日委托：{board.accepted_expedition_num} / 4" \
                    f"\n🌌模拟宇宙：{board.current_rogue_score} / {board.max_rogue_score}"
-            if group_event:
-                await bot.send(event=group_event, at_sender=True, message=msg)
+            if not is_auto:
+                if group_event:
+                    await bot.send(event=group_event, at_sender=True, message=msg)
+                else:
+                    await bot.send_private_msg(user_id=qq, message=msg)
             else:
-                await bot.send_private_msg(user_id=qq, message=msg)
+                if board.current_stamina >= _conf.preference.stamina_threshold:
+                    if group_event:
+                        await bot.send(event=group_event, at_sender=True, message=msg)
+                    else:
+                        await bot.send_private_msg(user_id=qq, message=msg)
+                else:
+                    logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
 
 
 

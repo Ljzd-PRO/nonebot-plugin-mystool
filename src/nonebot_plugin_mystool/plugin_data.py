@@ -86,6 +86,8 @@ class Preference(BaseSettings):
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
     resin_interval: int = 60
     '''每次检查原神便笺间隔，单位为分钟'''
+    stamina_threshold: int = 0
+    '''崩铁便签开拓力提醒阈值，默认为0：一直提醒'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
     geetest_json: Optional[Dict[str, Any]] = {
