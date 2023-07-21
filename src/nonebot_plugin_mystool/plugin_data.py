@@ -10,7 +10,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
     Mapping
 
 from loguru import logger
-from pydantic import BaseModel, ValidationError, BaseSettings, validator
+from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
 from .user_data import UserData, UserAccount
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     MappingIntStrAny = Mapping[IntStr, Any]
 
 
-class Preference(BaseSettings):
+class Preference(BaseSettings, extra=Extra.ignore):
     """
     偏好设置
     """
@@ -108,11 +108,6 @@ class Preference(BaseSettings):
         elif not os.access(absolute_path, os.W_OK):
             logger.warning(f"程序没有写入日志文件 {absolute_path} 的权限")
         return v
-
-    class Config:
-        # TODO: env_prefix = "..."  # 环境变量前缀
-        #   使用 nonebot2 的 环境变量规范
-        ...
 
 
 class GoodListImageConfig(BaseModel):
