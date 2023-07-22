@@ -4,11 +4,10 @@
 import asyncio
 import random
 import threading
-from typing import Union
 
 from nonebot import get_bot, on_command
 from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
-                                         PrivateMessageEvent, GroupMessageEvent)
+                                         PrivateMessageEvent)
 from nonebot_plugin_apscheduler import scheduler
 
 from .exchange import generate_image
@@ -16,9 +15,11 @@ from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
-from .utils import get_file, logger, COMMAND_BEGIN
+from .utils import get_file, logger, COMMAND_BEGIN, MessageEvent
 
 _conf = PluginDataManager.plugin_data
+
+# TODO: bot.send, bot.send_private_msg 仍需适配QQ频道
 
 manually_game_sign = on_command(_conf.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
@@ -26,16 +27,16 @@ manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励�
 
 
 @manually_game_sign.handle()
-async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+async def _(event: MessageEvent):
     """
     手动游戏签到函数
     """
     bot = get_bot(str(event.self_id))
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await manually_game_sign.send("⏳开始游戏签到...")
-    await perform_game_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
+    await perform_game_sign(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
 
 
 manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
@@ -44,16 +45,16 @@ manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米�
 
 
 @manually_bbs_sign.handle()
-async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+async def _(event: MessageEvent):
     """
     手动米游币任务函数
     """
     bot = get_bot(str(event.self_id))
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await manually_game_sign.send("⏳开始执行米游币任务...")
-    await perform_bbs_sign(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
+    await perform_bbs_sign(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
 
 
 manually_resin_check = on_command(
@@ -77,15 +78,15 @@ for user in _conf.users.values():
 
 
 @manually_resin_check.handle()
-async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+async def _(event: MessageEvent):
     """
     手动查看原神便笺
     """
     bot = get_bot(str(event.self_id))
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
+    await resin_check(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
 
 
 manually_resin_check_sr = on_command(
@@ -108,19 +109,19 @@ for user in _conf.users.values():
 
 
 @manually_resin_check_sr.handle()
-async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+async def _(event: MessageEvent):
     """
     手动查看星穹铁道便笺（sr）
     """
     bot = get_bot(str(event.self_id))
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check_sr(bot=bot, qq=event.user_id, is_auto=False, group_event=event)
+    await resin_check_sr(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
 
 
-async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
-                            group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+async def perform_game_sign(bot: Bot, qq: str, is_auto: bool,
+                            group_event: MessageEvent = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -142,7 +143,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 await bot.send(event=group_event, at_sender=True,
                                message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
             else:
-                await bot.send_private_msg(user_id=qq,
+                await bot.send_private_msg(user_id=int(qq),
                                            message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
             continue
         games_has_record = []
@@ -158,7 +159,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                     await bot.send(event=group_event, at_sender=True,
                                    message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
                 else:
-                    await bot.send_private_msg(user_id=qq, message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
+                    await bot.send_private_msg(user_id=int(qq), message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
 
             # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。若没签到，则进行签到功能。
             # 若获取今日签到情况失败，仍可继续
@@ -166,7 +167,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                     (info and not info.is_sign) or not get_info_status):
                 sign_status = await signer.sign(
                     account.platform,
-                    lambda: bot.send_private_msg(user_id=qq, message=f"⏳正在尝试完成人机验证，请稍后...")
+                    lambda: bot.send_private_msg(user_id=int(qq), message=f"⏳正在尝试完成人机验证，请稍后...")
                 )
                 if not sign_status:
                     if sign_status.login_expired:
@@ -179,7 +180,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                         if group_event:
                             await bot.send(event=group_event, at_sender=True, message=message)
                         else:
-                            await bot.send_msg(message_type="private", user_id=qq, message=message)
+                            await bot.send_msg(message_type="private", user_id=int(qq), message=message)
                     await asyncio.sleep(_conf.preference.sleep_time)
                     continue
                 await asyncio.sleep(_conf.preference.sleep_time)
@@ -214,7 +215,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
                 if group_event:
                     await bot.send(event=group_event, at_sender=True, message=msg + img)
                 else:
-                    await bot.send_msg(message_type="private", user_id=qq, message=msg + img)
+                    await bot.send_msg(message_type="private", user_id=int(qq), message=msg + img)
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
@@ -227,7 +228,7 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
             else:
                 await bot.send_msg(
                     message_type="private",
-                    user_id=qq,
+                    user_id=int(qq),
                     message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到"
                 )
 
@@ -237,8 +238,8 @@ async def perform_game_sign(bot: Bot, qq: int, is_auto: bool,
         write_plugin_data()
 
 
-async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
-                           group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+async def perform_bbs_sign(bot: Bot, qq: str, is_auto: bool,
+                           group_event: MessageEvent = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
@@ -261,13 +262,13 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                         await bot.send(event=group_event, at_sender=True,
                                        message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                     else:
-                        await bot.send_private_msg(user_id=qq, message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        await bot.send_private_msg(user_id=int(qq), message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                     continue
                 if group_event:
                     await bot.send(event=group_event, at_sender=True,
                                    message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 else:
-                    await bot.send_private_msg(user_id=qq,
+                    await bot.send_private_msg(user_id=int(qq),
                                                message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 continue
 
@@ -277,7 +278,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
             if (account.enable_mission and is_auto) or not is_auto:
                 if not is_auto:
                     if not group_event:
-                        await bot.send_private_msg(user_id=qq,
+                        await bot.send_private_msg(user_id=int(qq),
                                                    message=f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
                 # 执行任务
@@ -301,14 +302,14 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                                 await bot.send(event=group_event, at_sender=True,
                                                message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                             else:
-                                await bot.send_private_msg(user_id=qq,
+                                await bot.send_private_msg(user_id=int(qq),
                                                            message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                             continue
                         if group_event:
                             await bot.send(event=group_event, at_sender=True,
                                            message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                         else:
-                            await bot.send_private_msg(user_id=qq,
+                            await bot.send_private_msg(user_id=int(qq),
                                                        message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                         continue
                     if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.values())):
@@ -339,7 +340,7 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
                     else:
                         await bot.send_msg(
                             message_type="private",
-                            user_id=qq,
+                            user_id=int(qq),
                             message=msg
                         )
 
@@ -349,8 +350,8 @@ async def perform_bbs_sign(bot: Bot, qq: int, is_auto: bool,
         write_plugin_data()
 
 
-async def resin_check(bot: Bot, qq: int, is_auto: bool,
-                      group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+async def resin_check(bot: Bot, qq: str, is_auto: bool,
+                      group_event: MessageEvent = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
@@ -377,7 +378,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                             await bot.send(event=group_event, at_sender=True,
                                            message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                         else:
-                            await bot.send_private_msg(user_id=qq,
+                            await bot.send_private_msg(user_id=int(qq),
                                                        message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                 if genshin_board_status.no_genshin_account:
                     if not is_auto:
@@ -385,7 +386,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                             await bot.send(event=group_event, at_sender=True,
                                            message=f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
                         else:
-                            await bot.send_private_msg(user_id=qq,
+                            await bot.send_private_msg(user_id=int(qq),
                                                        message=f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
                         account.enable_resin = False
                         write_plugin_data()
@@ -395,7 +396,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                         await bot.send(event=group_event, at_sender=True,
                                        message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                     else:
-                        await bot.send_private_msg(user_id=qq,
+                        await bot.send_private_msg(user_id=int(qq),
                                                    message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             if genshin_board_status.need_verify:
@@ -403,7 +404,7 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                     await bot.send(event=group_event, at_sender=True,
                                    message=f'⚠️遇到验证码正在尝试绕过')
                 else:
-                    await bot.send_private_msg(user_id=qq,
+                    await bot.send_private_msg(user_id=int(qq),
                                                message=f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
@@ -453,11 +454,11 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
             if group_event:
                 await bot.send(event=group_event, at_sender=True, message=msg)
             else:
-                await bot.send_private_msg(user_id=qq, message=msg)
+                await bot.send_private_msg(user_id=int(qq), message=msg)
 
 
-async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
-                         group_event: Union[GroupMessageEvent, PrivateMessageEvent, None] = None):
+async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
+                         group_event: MessageEvent = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
@@ -485,7 +486,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                             await bot.send(event=group_event, at_sender=True,
                                            message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                         else:
-                            await bot.send_private_msg(user_id=qq,
+                            await bot.send_private_msg(user_id=int(qq),
                                                        message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                 if starrail_board_status.no_starrail_account:
                     if not is_auto:
@@ -493,7 +494,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                             await bot.send(event=group_event, at_sender=True,
                                            message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
                         else:
-                            await bot.send_private_msg(user_id=qq,
+                            await bot.send_private_msg(user_id=int(qq),
                                                        message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
                         account.enable_resin = False
                         write_plugin_data()
@@ -503,7 +504,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                         await bot.send(event=group_event, at_sender=True,
                                        message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                     else:
-                        await bot.send_private_msg(user_id=qq,
+                        await bot.send_private_msg(user_id=int(qq),
                                                    message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             if starrail_board_status.need_verify:
@@ -511,7 +512,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                     await bot.send(event=group_event, at_sender=True,
                                    message=f'⚠️遇到验证码正在尝试绕过')
                 else:
-                    await bot.send_private_msg(user_id=qq,
+                    await bot.send_private_msg(user_id=int(qq),
                                                message=f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
@@ -559,13 +560,13 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                 if group_event:
                     await bot.send(event=group_event, at_sender=True, message=msg)
                 else:
-                    await bot.send_private_msg(user_id=qq, message=msg)
+                    await bot.send_private_msg(user_id=int(qq), message=msg)
             else:
                 if board.current_stamina >= _conf.preference.stamina_threshold:
                     if group_event:
                         await bot.send(event=group_event, at_sender=True, message=msg)
                     else:
-                        await bot.send_private_msg(user_id=qq, message=msg)
+                        await bot.send_private_msg(user_id=int(qq), message=msg)
                 else:
                     logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
 
