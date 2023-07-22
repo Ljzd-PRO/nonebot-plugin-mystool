@@ -1,10 +1,8 @@
 """
 ### 用户设置相关
 """
-from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
@@ -12,7 +10,7 @@ from nonebot.params import Arg, ArgPlainText, T_State
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN
+from .utils import COMMAND_BEGIN, MessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -35,11 +33,11 @@ account_setting.usage = "配置游戏自动签到、米游币任务是否开启�
 
 
 @account_setting.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
+async def _(event: MessageEvent, matcher: Matcher):
     """
     账号设置命令触发
     """
-    user = _conf.users.get(event.user_id)
+    user = _conf.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await account_setting.finish(
@@ -55,7 +53,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @account_setting.got('bbs_uid')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher, state: T_State, uid=Arg('bbs_uid')):
+async def _(event: MessageEvent, matcher: Matcher, state: T_State, uid=Arg('bbs_uid')):
     """
     根据手机号设置相应的账户
     """
@@ -64,7 +62,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     if uid == '退出':
         await matcher.finish('🚪已成功退出')
 
-    user_account = _conf.users[event.user_id].accounts
+    user_account = _conf.users[event.get_user_id()].accounts
     if uid not in user_account:
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     account = user_account[uid]
@@ -88,13 +86,13 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @account_setting.got('arg')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('arg')):
+async def _(event: MessageEvent, state: T_State, arg=ArgPlainText('arg')):
     """
     根据所选更改相应账户的相应设置
     """
     arg = arg.strip()
     account: UserAccount = state['account']
-    user_account = _conf.users[event.user_id].accounts
+    user_account = _conf.users[event.get_user_id()].accounts
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     elif arg == '1':
@@ -139,7 +137,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
 
 
 @account_setting.got('missionGame')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('missionGame')):
+async def _(_: MessageEvent, state: T_State, arg=ArgPlainText('missionGame')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
@@ -166,23 +164,23 @@ global_setting.usage = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
+async def _(event: MessageEvent, matcher: Matcher):
     """
     通知设置命令触发
     """
-    user = _conf.users[event.user_id]
+    user = _conf.users[event.get_user_id()]
     await matcher.send(
         f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}"
         "\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
 
 
 @global_setting.got('choice')
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher,
+async def _(event: MessageEvent, matcher: Matcher,
             choice: Message = ArgPlainText('choice')):
     """
     根据选择变更通知设置
     """
-    user = _conf.users[event.user_id]
+    user = _conf.users[event.get_user_id()]
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
