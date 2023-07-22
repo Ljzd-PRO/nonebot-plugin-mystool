@@ -158,14 +158,14 @@ async def _(_: MessageEvent, state: T_State, arg=ArgPlainText('setting_arg')):
             stamina_threshold = int(arg)
         except ValueError:
             await account_setting.reject("⚠️请输入有效的数字。")
-
-        if 0 <= stamina_threshold <= 180:
-            # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
-            account.user_stamina_threshold = stamina_threshold
-            write_plugin_data()
-            await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
         else:
-            await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+            if 0 <= stamina_threshold <= 180:
+                # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
+                account.user_stamina_threshold = stamina_threshold
+                write_plugin_data()
+                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
+            else:
+                await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
 
     elif state["setting_item"] == "mission_games":
         games_input = arg.split()
