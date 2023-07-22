@@ -6,6 +6,7 @@ from typing import Union
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, Message
+from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
@@ -14,7 +15,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
 from .user_data import UserAccount, UserData
-from .utils import logger, COMMAND_BEGIN
+from .utils import logger, COMMAND_BEGIN, MessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -24,8 +25,8 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 
 
 @get_cookie.handle()
-async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent]):
-    if isinstance(event, GroupMessageEvent):
+async def handle_first_receive(event: MessageEvent):
+    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     user_num = len(_conf.users)
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
@@ -41,7 +42,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
 
 
 @get_cookie.got('phone', prompt='1.请发送您的手机号：')
-async def _(_: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('phone')):
+async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, phone: str = ArgPlainText('phone')):
     if phone == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not phone.isdigit():
@@ -53,25 +54,25 @@ async def _(_: PrivateMessageEvent, state: T_State, phone: str = ArgPlainText('p
 
 
 @get_cookie.handle()
-async def _(_: PrivateMessageEvent):
+async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent]):
     await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
 
 
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
-async def _(event: PrivateMessageEvent, state: T_State, captcha: str = ArgPlainText('captcha')):
+async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, captcha: str = ArgPlainText('captcha')):
     phone_number: str = state['phone']
     if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not captcha.isdigit():
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
-        _conf.users.setdefault(event.user_id, UserData())
-        user = _conf.users[event.user_id]
+        _conf.users.setdefault(event.get_user_id(), UserData())
+        user = _conf.users[event.get_user_id()]
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
         if login_status:
             # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
-            account = _conf.users[event.user_id].accounts.get(cookies.bbs_uid)
+            account = _conf.users[event.get_user_id()].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
@@ -159,13 +160,13 @@ output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], matcher: Matcher):
+async def handle_first_receive(event: MessageEvent, matcher: Matcher):
     """
     Cookies导出命令触发
     """
-    if isinstance(event, GroupMessageEvent):
+    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行Cookies导出。")
-    user_account = _conf.users[event.user_id].accounts
+    user_account = _conf.users[event.get_user_id()].accounts
     if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     elif len(user_account) == 1:
@@ -179,7 +180,7 @@ async def handle_first_receive(event: Union[GroupMessageEvent, PrivateMessageEve
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
+async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], matcher: Matcher, uid=Arg("bbs_uid")):
     """
     根据手机号设置导出相应的账户的Cookies
     """
@@ -187,7 +188,7 @@ async def _(event: PrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
         uid = uid.extract_plain_text().strip()
     if uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account = _conf.users[event.user_id].accounts
+    user_account = _conf.users[event.get_user_id()].accounts
     if uid in user_account:
         await output_cookies.finish(json.dumps(user_account[uid].cookies.dict(cookie_type=True), indent=4))
     else:
