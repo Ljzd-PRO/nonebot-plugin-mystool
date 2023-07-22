@@ -562,7 +562,8 @@ async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
                 else:
                     await bot.send_private_msg(user_id=int(qq), message=msg)
             else:
-                if board.current_stamina >= _conf.preference.stamina_threshold:
+                if board.current_stamina >= account.user_stamina_threshold:
+
                     if group_event:
                         await bot.send(event=group_event, at_sender=True, message=msg)
                     else:
