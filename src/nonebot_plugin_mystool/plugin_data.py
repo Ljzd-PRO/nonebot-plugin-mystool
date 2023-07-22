@@ -135,6 +135,8 @@ class GoodListImageConfig(BaseModel):
     '''字体大小'''
     SAVE_PATH: Path = DATA_PATH
     '''商品列表图片缓存目录'''
+    MULTI_PROCESS: bool = True
+    '''是否使用多进程生成图片（如果生成图片时崩溃，可尝试关闭此选项）'''
 
 
 class SaltConfig(BaseSettings):

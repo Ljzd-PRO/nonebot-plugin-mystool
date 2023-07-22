@@ -31,9 +31,11 @@
     > - [🔗override_device_and_salt](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#override_device_and_salt)
 - 在兑换开始后的一段时间内不断尝试兑换，直到成功
   > 完整流程：兑换开始后，数个线程同时进行，每个线程在一段时间内重复发送兑换请求  
+  > 因此，不建议将 `preference.exchange_thread_count` 设置过大，以免触发请求频繁的返回  
   > 原因：[太早兑换可能被认定不在兑换时间](https://github.com/Ljzd-PRO/Mys_Goods_Tool/discussions/135#discussioncomment-6487717)
 - 兑换开始后将不会延迟兑换，用户数据文件中 `preference.exchange_latency` 将作为同一线程下每个兑换请求之间的时间间隔
-  > `preference.exchange_latency` 为列表类型，包含两个浮点数，分别为最小延迟和最大延迟，单位为秒，可参考默认值
+  > `preference.exchange_latency` 为列表类型，包含两个浮点数，分别为最小延迟和最大延迟，单位为秒，可参考默认值  
+  > 建议将 `preference.exchange_latency`, `preference.exchange_thread_count` 设为最新默认值，直接从插件数据文件中删除它们即可
 - 兑换请求日志内容增加了发送请求时的时间戳
 
 ### 2023.6.23 - v1.0.1
