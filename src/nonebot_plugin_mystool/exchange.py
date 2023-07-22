@@ -438,7 +438,7 @@ async def _():
                     )
 
 
-def image_process(game: str, lock: Lock):
+def image_process(game: str, lock: Lock = None):
     """
     生成并保存图片的进程函数
 
@@ -485,13 +485,17 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
 
-    lock: Lock = Manager().Lock()
-    with Pool() as pool:
+    if _conf.good_list_image_config.MULTI_PROCESS:
+        lock: Lock = Manager().Lock()
+        with Pool() as pool:
+            for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
+                pool.apply_async(image_process,
+                                 args=(game, lock),
+                                 callback=callback)
+            pool.close()
+            pool.join()
+    else:
         for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
-            pool.apply_async(image_process,
-                             args=(game, lock),
-                             callback=callback)
-        pool.close()
-        pool.join()
+            image_process(game)
 
     logger.info(f"{_conf.preference.log_head}已完成所有分区的商品列表图片生成")
