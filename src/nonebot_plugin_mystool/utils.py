@@ -22,11 +22,15 @@ from nonebot.log import logger
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager, Preference
 
+from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent
+from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent
+
 if TYPE_CHECKING:
     from loguru import Logger
 
 _conf = PluginDataManager.plugin_data
 
+MessageEvent = Union[OnebotV11MessageEvent, QQGuildMessageEvent]
 
 class CommandBegin:
     """

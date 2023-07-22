@@ -3,13 +3,12 @@
 #### 参考了`nonebot-plugin-help`
 """
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .plugin_data import PluginDataManager
-from .utils import PLUGIN, COMMAND_BEGIN
+from .utils import PLUGIN, COMMAND_BEGIN, MessageEvent
 
 _conf = PluginDataManager.plugin_data
 

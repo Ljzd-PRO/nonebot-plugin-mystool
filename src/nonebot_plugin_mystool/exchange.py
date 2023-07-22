@@ -11,15 +11,13 @@ from datetime import datetime
 from multiprocessing import Manager
 from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
-from typing import List, Union, Callable, Any, Tuple, Optional, Dict
+from typing import List, Callable, Any, Tuple, Optional, Dict
 
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_bot
-from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent
 from nonebot.adapters.onebot.v11 import (MessageSegment)
 from nonebot.adapters.onebot.v11.message import Message
-from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
@@ -30,7 +28,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp, \
     good_exchange
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import COMMAND_BEGIN, logger, get_last_command_sep
+from .utils import COMMAND_BEGIN, logger, get_last_command_sep, MessageEvent
 
 _conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
@@ -55,7 +53,7 @@ myb_exchange_plan.extra_usage = """\
 
 @myb_exchange_plan.handle()
 async def _(
-        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        event: MessageEvent,
         matcher: Matcher,
         state: T_State,
         command=Command(),
@@ -121,7 +119,7 @@ async def _(
 
 @myb_exchange_plan.got('bbs_uid')
 async def _(
-        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        event: MessageEvent,
         matcher: Matcher,
         state: T_State,
         uid=ArgStr('bbs_uid')
@@ -140,7 +138,7 @@ async def _(
 
 @myb_exchange_plan.got('good_id')
 async def _(
-        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        event: MessageEvent,
         matcher: Matcher,
         state: T_State,
         good_id=ArgPlainText('good_id')
@@ -224,7 +222,7 @@ async def _(
 
 @myb_exchange_plan.got('uid')
 async def _(
-        event: Union[OnebotV11MessageEvent, QQGuildMessageEvent],
+        event: MessageEvent,
         matcher: Matcher,
         state: T_State,
         uid=ArgPlainText('uid')
@@ -281,7 +279,7 @@ get_good_image.usage = "获取当日米游币商品信息。添加自动兑换�
 
 
 @get_good_image.handle()
-async def _(_: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Matcher, arg=CommandArg()):
+async def _(_: MessageEvent, matcher: Matcher, arg=CommandArg()):
     # 若有使用二级命令，即传入了想要查看的商品类别，则跳过询问
     if arg:
         matcher.set_arg("content", arg)
@@ -296,7 +294,7 @@ async def _(_: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Match
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(_: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Matcher, arg=ArgPlainText("content")):
+async def _(_: MessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """

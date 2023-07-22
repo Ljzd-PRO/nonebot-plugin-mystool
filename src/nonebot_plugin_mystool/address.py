@@ -5,16 +5,16 @@ import asyncio
 from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent, MessageEvent as OnebotV11MessageEvent
+from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
-from nonebot.adapters.qqguild import MessageCreateEvent, DirectMessageCreateEvent, MessageEvent as QQGuildMessageEvent
+from nonebot.adapters.qqguild import MessageCreateEvent, DirectMessageCreateEvent
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN
+from .utils import COMMAND_BEGIN, MessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -25,7 +25,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: Union[OnebotV11MessageEvent, QQGuildMessageEvent], matcher: Matcher):
+async def _(event: MessageEvent, matcher: Matcher):
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
