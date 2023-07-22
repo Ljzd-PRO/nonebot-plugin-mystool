@@ -388,7 +388,7 @@ def exchange_notice(event: JobExecutionEvent):
                         write_plugin_data()
 
 
-def exchange_begin(plan: ExchangePlan):
+async def exchange_begin(plan: ExchangePlan):
     """
     到点后执行兑换
 
