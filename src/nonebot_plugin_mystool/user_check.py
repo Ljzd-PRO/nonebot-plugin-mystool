@@ -13,7 +13,7 @@ from nonebot_plugin_apscheduler import scheduler
 from .plugin_data import PluginDataManager, write_plugin_data, DELETED_USERS_PATH
 from .utils import logger
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 _driver = get_driver()
 friendRequest = on_request(priority=1, block=True)
 

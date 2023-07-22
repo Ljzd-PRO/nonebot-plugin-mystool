@@ -14,7 +14,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)
 setting.name = "设置"
@@ -128,7 +128,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
     elif arg == '5':
         account.enable_resin = not account.enable_resin
         write_plugin_data()
-        await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
+        await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif arg == '6':
         await account_setting.send(
             "请输入想要所需阈值数字："

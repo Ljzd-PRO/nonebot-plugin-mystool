@@ -14,7 +14,7 @@ from .user_data import UserAccount
 from .utils import logger, generate_ds, \
     get_async_retry, get_validate
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 
 class BaseGameSign:

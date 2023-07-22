@@ -15,7 +15,8 @@ __plugin_meta__ = PluginMetadata(
     \n📅 {HEAD}任务 ➢ 手动执行米游币任务\
     \n🛒 {HEAD}兑换 ➢ 米游币商品兑换相关\
     \n🎁 {HEAD}商品 ➢ 查看米游币商品信息(商品ID)\
-    \n📊 {HEAD}便笺 ➢ 查看原神实时便笺(原神树脂、洞天财瓮等)\
+    \n📊 {HEAD}原神便笺 ➢ 查看原神实时便笺(原神树脂、洞天财瓮等)\
+    \n📊 {HEAD}铁道便笺 ➢ 查看星穹铁道实时便笺(开拓力、每日实训等)\
     \n⚙️ {HEAD}设置 ➢ 设置是否开启通知、每日任务等相关选项\
     \n🔑 {HEAD}账号设置 ➢ 设置设备平台、是否开启每日计划任务、频道任务\
     \n🔔 {HEAD}通知设置 ➢ 设置是否开启每日米游币任务、游戏签到的结果通知\
@@ -29,15 +30,13 @@ __plugin_meta__ = PluginMetadata(
     extra={"version": VERSION}
 )
 
-from nonebot import init
-from .plugin_data import PluginDataManager
-
-init()  # 初始化Driver对象
-PluginDataManager.load_plugin_data()  # 加载插件数据
+# 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
 from .utils import CommandBegin
+from nonebot import init
 from nonebot import get_driver
 
+init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
 
 # 加载其它代码

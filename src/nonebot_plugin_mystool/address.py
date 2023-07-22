@@ -15,7 +15,7 @@ from .simple_api import get_address
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 address_matcher = on_command(_conf.preference.command_start + '地址', priority=4, block=True)
 

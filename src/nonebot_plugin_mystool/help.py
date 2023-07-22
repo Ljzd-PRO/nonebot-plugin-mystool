@@ -11,7 +11,7 @@ from nonebot.params import Arg, CommandArg
 from .plugin_data import PluginDataManager
 from .utils import PLUGIN, COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 helper = on_command(_conf.preference.command_start + "help",
                     priority=1,

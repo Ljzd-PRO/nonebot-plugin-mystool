@@ -1,6 +1,7 @@
 """
 ### 插件数据相关
 """
+import json
 import os
 from datetime import time, timedelta
 from json import JSONDecodeError
@@ -9,11 +10,11 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
     Mapping
 
 from loguru import logger
-from pydantic import BaseModel, ValidationError, BaseSettings, validator
+from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.0.2-dev"
+VERSION = "v1.1.0-dev"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
@@ -26,6 +27,7 @@ PLUGIN_DATA_PATH = DATA_PATH / "plugin_data.json"
 """插件数据文件默认路径"""
 
 DELETED_USERS_PATH = DATA_PATH / "deletedUsers"
+"""已删除用户数据文件默认备份目录"""
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -34,7 +36,7 @@ if TYPE_CHECKING:
     MappingIntStrAny = Mapping[IntStr, Any]
 
 
-class Preference(BaseSettings):
+class Preference(BaseSettings, extra=Extra.ignore):
     """
     偏好设置
     """
@@ -50,16 +52,14 @@ class Preference(BaseSettings):
     """最大网络请求重试次数"""
     retry_interval: float = 2
     """网络请求重试间隔（单位：秒）（除兑换请求外）"""
-    enable_ntp_sync: Optional[bool] = True
-    """是否开启NTP时间同步（将调整实际发出兑换请求的时间，而不是修改系统时间）"""
-    ntp_server: Optional[str] = "ntp.aliyun.com"
-    """NTP服务器地址"""
     timezone: Optional[str] = "Asia/Shanghai"
     """兑换时所用的时区"""
     exchange_thread_count: int = 2
     """兑换线程数"""
-    exchange_latency: Tuple[float, float] = (0, 0.35)
-    """兑换时间延迟随机范围（单位：秒）（防止因为发出请求的时间过于精准而被服务器认定为非人工操作）"""
+    exchange_latency: Tuple[float, float] = (0, 0.5)
+    """同一线程下，每个兑换请求之间的间隔时间"""
+    exchange_duration: float = 5
+    """兑换持续时间随机范围（单位：秒）"""
     enable_log_output: bool = True
     """是否保存日志"""
     log_head: str = ""
@@ -108,11 +108,6 @@ class Preference(BaseSettings):
         elif not os.access(absolute_path, os.W_OK):
             logger.warning(f"程序没有写入日志文件 {absolute_path} 的权限")
         return v
-
-    class Config:
-        # TODO: env_prefix = "..."  # 环境变量前缀
-        #   使用 nonebot2 的 环境变量规范
-        ...
 
 
 class GoodListImageConfig(BaseModel):
@@ -234,7 +229,8 @@ class PluginData(BaseModel):
 
 
 class PluginDataManager:
-    plugin_data_obj = PluginData()
+    plugin_data = PluginData()
+    device_config = DeviceConfig()
     """加载出的插件数据对象"""
 
     @classmethod
@@ -244,9 +240,15 @@ class PluginDataManager:
         """
         if os.path.exists(PLUGIN_DATA_PATH) and os.path.isfile(PLUGIN_DATA_PATH):
             try:
-                new_model = PluginData.parse_file(PLUGIN_DATA_PATH)
-                for attr in new_model.__fields__:
-                    cls.plugin_data_obj.__setattr__(attr, new_model.__getattribute__(attr))
+                with open(PLUGIN_DATA_PATH, "r") as f:
+                    device_config_dict = json.load(f)["device_config"]
+                device_config_from_file = DeviceConfig.parse_obj(device_config_dict)
+                for attr in device_config_from_file.__fields__:
+                    cls.device_config.__setattr__(attr, device_config_from_file.__getattribute__(attr))
+
+                plugin_data_from_file = PluginData.parse_file(PLUGIN_DATA_PATH)
+                for attr in plugin_data_from_file.__fields__:
+                    cls.plugin_data.__setattr__(attr, plugin_data_from_file.__getattribute__(attr))
             except (ValidationError, JSONDecodeError):
                 logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 格式是否正确")
                 raise
@@ -255,22 +257,22 @@ class PluginDataManager:
                     f"读取插件数据文件失败，请检查插件数据文件 {PLUGIN_DATA_PATH} 是否存在且有权限读取和写入")
                 raise
             else:
-                if not cls.plugin_data_obj.preference.override_device_and_salt:
+                if not cls.plugin_data.preference.override_device_and_salt:
                     default_device_config = DeviceConfig()
                     default_salt_config = SaltConfig()
-                    if cls.plugin_data_obj.device_config != default_device_config \
-                            or cls.plugin_data_obj.salt_config != default_salt_config:
-                        cls.plugin_data_obj.device_config = default_device_config
-                        cls.plugin_data_obj.salt_config = default_salt_config
+                    if cls.plugin_data.device_config != default_device_config \
+                            or cls.plugin_data.salt_config != default_salt_config:
+                        cls.plugin_data.device_config = default_device_config
+                        cls.plugin_data.salt_config = default_salt_config
                         logger.warning("检测到设备信息配置 device_config 或 salt_config 使用了非默认值，"
                                        "如果你修改过这些配置，需要设置 preference.override_device_and_salt 为 True 以覆盖默认值并生效。"
                                        "如果继续，将可能保存默认值到插件数据文件。")
                 else:
                     logger.info("已开启覆写 device_config 和 salt_config，将读取插件数据文件中的配置以覆写默认配置")
         else:
-            plugin_data = PluginData()
+            plugin_data_from_file = PluginData()
             try:
-                str_data = plugin_data.json(indent=4)
+                str_data = plugin_data_from_file.json(indent=4)
                 with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
                     f.write(str_data)
             except (AttributeError, TypeError, ValueError, PermissionError):
@@ -289,7 +291,7 @@ def write_plugin_data(data: PluginData = None):
     :param data: 配置对象
     """
     if data is None:
-        data = PluginDataManager.plugin_data_obj
+        data = PluginDataManager.plugin_data
     try:
         str_data = data.json(indent=4)
     except (AttributeError, TypeError, ValueError):

@@ -15,7 +15,7 @@ from .plugin_data import PluginDataManager, DATA_PATH
 from .simple_api import get_good_detail
 from .utils import (get_file, logger, get_async_retry)
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 FONT_URL = os.path.join(
     _conf.preference.github_proxy,

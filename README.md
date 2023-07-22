@@ -15,12 +15,31 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.7.19 - v1.1.0
+- 增加崩坏：星穹铁道的便笺功能 #140 #143 by @Joseandluue @RemiDre
+    > 说明文档：[🔗星穹铁道实时便笺](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Information-StarRailStatus)
+- 修复每小时都发送便笺通知的Bug #135
+- 人机验证打码平台支持自定义JSON内容 #133
+    > 说明文档：[🔗geetest_json](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#geetest_json)
+- 修复商品兑换API（但因加入了人机验证，实际大概率兑换失败）#110
+- 不在好友列表的用户数据在删除前将进行备份 #129
+    > 备份目录：`data/nonebot_plugin_mystool/deletedUsers`
+- 防止因插件数据文件中默认存在 device_config, salt_config 而导致更新后默认配置被原配置覆盖的问题
+- 若需要修改 device_config 配置，修改后还设置插件数据文件中 preference.override_device_and_salt 为 true 以覆盖默认值
+    > 说明文档：
+    > - [🔗网络请求设备信息 `class DeviceConfig`](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-DeviceConfig)
+    > - [🔗override_device_and_salt](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#override_device_and_salt)
+- 在兑换开始后的一段时间内不断尝试兑换，直到成功
+  > 完整流程：兑换开始后，数个线程同时进行，每个线程在一段时间内重复发送兑换请求  
+  > 原因：[太早兑换可能被认定不在兑换时间](https://github.com/Ljzd-PRO/Mys_Goods_Tool/discussions/135#discussioncomment-6487717)
+- 兑换开始后将不会延迟兑换，用户数据文件中 `preference.exchange_latency` 将作为同一线程下每个兑换请求之间的时间间隔
+  > `preference.exchange_latency` 为列表类型，包含两个浮点数，分别为最小延迟和最大延迟，单位为秒，可参考默认值
+- 兑换请求日志内容增加了发送请求时的时间戳
 
 ### 2023.6.23 - v1.0.1
 - 修复无法导出Cookies的问题
 - 修复因缺少参量质变仪数据而导致不断提醒的Bug
 - 修复账号设置中游戏签到开启/关闭状态实际对应的是米游币任务的Bug #121 by @xxtg666
-
 
 ### 2023.6.23 - v1.0.0
 #### v1.0.0
@@ -42,24 +61,15 @@
 - 异常捕获更加准确
 - 改进了一些文本
 
-### 2023.5.18 - v0.2.9
-- 多进程生成商品图片（多核），加快图片生成速度
-- 修复部分商品兑换时间错误的问题（如米游社商品晚了一周）
-
-### 2023.5.4 - v0.2.8
-- 增加对星穹铁道的签到功能的支持 - [#89](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/89) by @ayakasuki
-- 修复插件命令优先度问题 - [#88](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/88) by @ayakasuki
-- 部分文本错误修正 - [#90](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/pull/90) by @black-zero358
-
 ## 功能和特性
 
 - 短信验证登录，免抓包获取 Cookie
 - 自动完成每日米游币任务
 - 自动进行游戏签到
-- 可制定米游币商品兑换计划，到点兑换
+- 可制定米游币商品兑换计划，到点兑换（因加入了人机验证，成功率较低）
 - 可支持多个 QQ 账号，每个 QQ 账号可绑定多个米哈游账户
 - QQ 推送执行结果通知
-- 原神树脂、洞天宝钱、质量参变仪已满时推送通知
+- 原神、崩坏：星穹铁道状态便笺通知
 
 ## 使用说明
 

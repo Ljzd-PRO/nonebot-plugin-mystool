@@ -15,7 +15,8 @@ from .user_data import UserAccount
 from .utils import logger, generate_ds, \
     get_async_retry
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
+device_config = PluginDataManager.device_config
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.miyoushe.com/post/api/feeds/posts?fresh_action=1&gids={}&is_first_initialize=false" \
@@ -28,14 +29,14 @@ URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsSt
 HEADERS_BASE = {
     "Host": "bbs-api.miyoushe.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': _conf.device_config.USER_AGENT_ANDROID_OTHER,
-    "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
-    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL_ANDROID,
+    'User-Agent': device_config.USER_AGENT_ANDROID_OTHER,
+    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
+    "x-rpc-channel": device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
-    "x-rpc-device_model": _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
-    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
-    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION_ANDROID,
     "Accept-Encoding": "gzip",
     "Connection": "Keep-Alive",
     "DS": None
@@ -45,7 +46,7 @@ HEADERS_MISSION = {
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
-    "User-Agent": _conf.device_config.USER_AGENT_MOBILE,
+    "User-Agent": device_config.USER_AGENT_MOBILE,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
@@ -55,14 +56,14 @@ HEADERS_GET_POSTS = {
     "Accept": "*/*",
     "x-rpc-client_type": "1",
     "x-rpc-device_id": None,
-    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL,
+    "x-rpc-channel": device_config.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION,
+    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": _conf.device_config.X_RPC_APP_VERSION,
-    "User-Agent": _conf.device_config.USER_AGENT_OTHER,
+    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
+    "User-Agent": device_config.USER_AGENT_OTHER,
     "Connection": "keep-alive"
 }
 
@@ -70,14 +71,14 @@ HEADERS_GET_POSTS = {
 HEADERS_OLD = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
-    'User-Agent': _conf.device_config.USER_AGENT_ANDROID_OTHER,
+    'User-Agent': device_config.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": "2.36.1",
-    "x-rpc-channel": _conf.device_config.X_RPC_CHANNEL_ANDROID,
+    "x-rpc-channel": device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
-    "x-rpc-device_model": _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID,
-    "x-rpc-device_name": _conf.device_config.X_RPC_DEVICE_NAME_ANDROID,
-    "x-rpc-sys_version": _conf.device_config.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION_ANDROID,
     "Accept-Encoding": "gzip",
     "Connection": "Keep-Alive",
     "DS": None
