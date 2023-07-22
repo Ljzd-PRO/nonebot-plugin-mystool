@@ -125,6 +125,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
             f"\n- {games_show}"
             "\n\n🚪发送“退出”即可退出"
         )
+        state["setting_item"] = "mission_games"
     elif arg == '5':
         account.enable_resin = not account.enable_resin
         write_plugin_data()
@@ -135,6 +136,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
             "支持输入[0,180]"
             "\n\n🚪发送“退出”即可退出"
         )
+        state["setting_item"] = "threshold"
     elif arg == '7':
         state["prepare_to_delete"] = True
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
@@ -146,47 +148,42 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('threshold')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('threshold')):
+@account_setting.got('setting_arg')
+async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('setting_arg')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
-    try:
-        stamina_threshold = int(arg)
-    except ValueError:
-        await account_setting.reject("⚠️请输入有效的数字。")
 
-    if 0 <= stamina_threshold <= 180:
-        # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
-        account.user_stamina_threshold = stamina_threshold
-        write_plugin_data()
-        await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
-    else:
-        await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+    if state["setting_item"] == "threshold":
+        try:
+            stamina_threshold = int(arg)
+        except ValueError:
+            await account_setting.reject("⚠️请输入有效的数字。")
 
-
-
-@account_setting.got('missionGame')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('missionGame')):
-    arg = arg.strip()
-    if arg == '退出':
-        await account_setting.finish('🚪已成功退出')
-    account: UserAccount = state['account']
-    games_input = arg.split()
-    mission_games = set()
-    for game in games_input:
-        game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
-        game_obj = next(game_filter, None)
-        if game_obj is None:
-            await account_setting.reject("⚠️您的输入有误，请重新输入")
+        if 0 <= stamina_threshold <= 180:
+            # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
+            account.user_stamina_threshold = stamina_threshold
+            write_plugin_data()
+            await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
         else:
-            mission_games.add(game_obj)
+            await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
 
-    account.mission_games = mission_games
-    write_plugin_data()
-    arg = arg.replace(" ", "、")
-    await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
+    elif state["setting_item"] == "mission_games":
+        games_input = arg.split()
+        mission_games = set()
+        for game in games_input:
+            game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
+            game_obj = next(game_filter, None)
+            if game_obj is None:
+                await account_setting.reject("⚠️您的输入有误，请重新输入")
+            else:
+                mission_games.add(game_obj)
+
+        account.mission_games = mission_games
+        write_plugin_data()
+        arg = arg.replace(" ", "、")
+        await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
 
 
 global_setting = on_command(_conf.preference.command_start + '通知设置', priority=5, block=True)
