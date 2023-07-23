@@ -1251,7 +1251,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
         "seed_time": str(int(time.time() * 1000)),
         "ext_fields": "{\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit\/605.1.15 "
                       f"(KHTML, like Gecko) miHoYoBBS\/{device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
-                      f"\":243750,\"maxTouchPoints\":5,"
+                      "\":243750,\"maxTouchPoints\":5,"
                       "\"isTouchSupported\":true,\"browserLanguage\":\"zh-CN\",\"browserPlat\":\"iPhone\","
                       "\"browserTimeZone\":\"Asia\/Shanghai\",\"webGlRender\":\"Apple GPU\",\"webGlVendor\":\"Apple "
                       "Inc.\",\"numOfPlugins\":0,\"listOfPlugins\":\"unknown\",\"screenRatio\":3,"
