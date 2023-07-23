@@ -29,6 +29,7 @@
     > 说明文档：
     > - [🔗网络请求设备信息 `class DeviceConfig`](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-DeviceConfig)
     > - [🔗override_device_and_salt](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#override_device_and_salt)
+- 增加了是否使用多进程生成商品图片的配置项 `good_list_image_config`.`MULTI_PROCESS`，如果遇到生成图片失败可以尝试关闭该项
 - 在兑换开始后的一段时间内不断尝试兑换，直到成功 #110
 - 兑换开始后将不会延迟兑换，用户数据文件中 `preference.exchange_latency` 将作为同一线程下每个兑换请求之间的时间间隔 #110
 - 兑换请求日志内容增加了发送请求时的时间戳
