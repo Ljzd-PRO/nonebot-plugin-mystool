@@ -2,12 +2,11 @@
 ### 米游社收货地址相关
 """
 import asyncio
-from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from nonebot.adapters.onebot.v11.message import Message
-from nonebot.adapters.qqguild import MessageCreateEvent, DirectMessageCreateEvent
+from nonebot.adapters.qqguild import MessageCreateEvent
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
