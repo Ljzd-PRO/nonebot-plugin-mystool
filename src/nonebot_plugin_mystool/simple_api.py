@@ -1549,7 +1549,7 @@ async def StarRail_board(account: UserAccount) -> Tuple[
                     logger.debug(f"网络请求返回: {res.text}")
                     return StarRailBoardStatus(incorrect_return=True), None
                 else:
-                    logger.exception(f"崩铁实时便笺: 请求失败")
+                    logger.exception("崩铁实时便笺: 请求失败")
                     return StarRailBoardStatus(network_error=True), None
     if flag:
         return StarRailBoardStatus(no_starrail_account=True), None
