@@ -108,7 +108,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check_sr.handle()
-async def _(event: GeneralMessageEvent):
+async def _(event: GeneralMessageEvent, matcher: Matcher):
     """
     手动查看星穹铁道便笺（sr）
     """
@@ -116,7 +116,7 @@ async def _(event: GeneralMessageEvent):
     user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check_sr(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
+    await resin_check_sr(user_id=event.get_user_id(), matcher=matcher)
 
 
 async def perform_game_sign(user_id: str, matcher: Matcher = None):
@@ -425,68 +425,42 @@ async def resin_check(user_id: str, matcher: Matcher = None):
             #     await bot.send_private_msg(user_id=int(user_id), message=msg)
 
 
-async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
-                         group_event: GeneralMessageEvent = None):
+async def resin_check_sr(user_id: str, matcher: Matcher = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
-    :param bot: Bot实例
-    :param qq: 用户QQ号
-    :param is_auto: True为自动检查，False为用户手动调用该功能
-    :param group_event: 若为群消息触发，则为群消息事件，否则为None
+    :param user_id: 用户QQ号
+    :param matcher: 事件响应器
     """
-    if isinstance(group_event, GeneralPrivateMessageEvent):
-        group_event = None
     global has_checked
-    user = _conf.users[qq]
+    user = _conf.users[user_id]
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
                                                            {"stamina": False, "train_score": False,
                                                             "rogue_score": False})
-        if (account.enable_resin and is_auto) or not is_auto:
+        if account.enable_resin or matcher:
             starrail_board_status, board = await StarRail_board(account)
             logger.info(starrail_board_status)
             if not starrail_board_status:
                 if starrail_board_status.login_expired:
-                    if not is_auto:
-                        if group_event:
-                            await bot.send(event=group_event, at_sender=True,
-                                           message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                        else:
-                            await bot.send_private_msg(user_id=int(qq),
-                                                       message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    if matcher:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                 if starrail_board_status.no_starrail_account:
-                    if not is_auto:
-                        if group_event:
-                            await bot.send(event=group_event, at_sender=True,
-                                           message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
-                        else:
-                            await bot.send_private_msg(user_id=int(qq),
-                                                       message=f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
-                        account.enable_resin = False
-                        write_plugin_data()
-                        continue
-                if not is_auto:
-                    if group_event:
-                        await bot.send(event=group_event, at_sender=True,
-                                       message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
-                    else:
-                        await bot.send_private_msg(user_id=int(qq),
-                                                   message=f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                    if matcher:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                    account.enable_resin = False
+                    write_plugin_data()
+                    continue
+                if matcher:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
             if starrail_board_status.need_verify:
-                if group_event:
-                    await bot.send(event=group_event, at_sender=True,
-                                   message=f'⚠️遇到验证码正在尝试绕过')
-                else:
-                    await bot.send_private_msg(user_id=int(qq),
-                                               message=f'⚠️遇到验证码正在尝试绕过')
+                if matcher:
+                    await matcher.send(f'⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
-            if not is_auto:
-                pass
-            else:
+            if not matcher:
                 # 体力溢出提醒
                 if board.current_stamina == 180:
                     # 防止重复提醒
@@ -524,20 +498,15 @@ async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
                    f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
                    f"\n📅每日委托：{board.accepted_expedition_num} / 4" \
                    f"\n🌌模拟宇宙：{board.current_rogue_score} / {board.max_rogue_score}"
-            if not is_auto:
-                if group_event:
-                    await bot.send(event=group_event, at_sender=True, message=msg)
-                else:
-                    await bot.send_private_msg(user_id=int(qq), message=msg)
-            else:
-                if board.current_stamina >= account.user_stamina_threshold:
 
-                    if group_event:
-                        await bot.send(event=group_event, at_sender=True, message=msg)
-                    else:
-                        await bot.send_private_msg(user_id=int(qq), message=msg)
-                else:
-                    logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
+            if matcher:
+                await matcher.send(msg)
+            # TODO: 自动执行的情况
+            # else:
+            #     if board.current_stamina >= account.user_stamina_threshold:
+            #         await bot.send_private_msg(user_id=int(user_id), message=msg)
+            #     else:
+            #         logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
@@ -573,7 +542,6 @@ async def auto_resin_check():
     """
     自动查看实时便笺
     """
-    bot = get_bot()
     for qq in _conf.users:
         await resin_check(user_id=qq)
-        await resin_check_sr(bot=bot, qq=qq, is_auto=True)
+        await resin_check_sr(user_id=qq)
