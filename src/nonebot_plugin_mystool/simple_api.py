@@ -1251,7 +1251,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
         "seed_time": str(int(time.time() * 1000)),
         "ext_fields": "{\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit\/605.1.15 "
                       f"(KHTML, like Gecko) miHoYoBBS\/{device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
-                      f"\":243750,\"maxTouchPoints\":5,"
+                      "\":243750,\"maxTouchPoints\":5,"
                       "\"isTouchSupported\":true,\"browserLanguage\":\"zh-CN\",\"browserPlat\":\"iPhone\","
                       "\"browserTimeZone\":\"Asia\/Shanghai\",\"webGlRender\":\"Apple GPU\",\"webGlVendor\":\"Apple "
                       "Inc.\",\"numOfPlugins\":0,\"listOfPlugins\":\"unknown\",\"screenRatio\":3,"
@@ -1283,11 +1283,11 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
 
     except tenacity.RetryError as e:
         if is_incorrect_return(e):
-            logger.exception(f"获取 x-rpc-device_fp: 服务器没有正确返回")
+            logger.exception("获取 x-rpc-device_fp: 服务器没有正确返回")
             logger.debug(f"网络请求返回: {res.text}")
             return GetFpStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取 x-rpc-device_fp: 网络请求失败")
+            logger.exception("获取 x-rpc-device_fp: 网络请求失败")
             return GetFpStatus(network_error=True), None
 
 
@@ -1545,11 +1545,11 @@ async def StarRail_board(account: UserAccount) -> Tuple[
                         return StarRailBoardStatus(success=True), StarRailBoard.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
-                    logger.exception(f"崩铁实时便笺: 服务器没有正确返回")
+                    logger.exception("崩铁实时便笺: 服务器没有正确返回")
                     logger.debug(f"网络请求返回: {res.text}")
                     return StarRailBoardStatus(incorrect_return=True), None
                 else:
-                    logger.exception(f"崩铁实时便笺: 请求失败")
+                    logger.exception("崩铁实时便笺: 请求失败")
                     return StarRailBoardStatus(network_error=True), None
     if flag:
         return StarRailBoardStatus(no_starrail_account=True), None
