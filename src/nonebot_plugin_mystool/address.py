@@ -14,7 +14,7 @@ from nonebot.params import Arg, ArgPlainText, T_State
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, MessageEvent
+from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -25,7 +25,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: MessageEvent, matcher: Matcher):
+async def _(event: GeneralMessageEvent, matcher: Matcher):
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
@@ -45,7 +45,7 @@ async def _(event: MessageEvent, matcher: Matcher):
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, uid=Arg("bbs_uid")):
+async def _(event: GeneralPrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
     if isinstance(uid, Message):
         uid = uid.extract_plain_text().strip()
     if uid == '退出':
@@ -84,7 +84,7 @@ async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: 
 
 
 @address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, address_id=ArgPlainText()):
+async def _(_: GeneralPrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 

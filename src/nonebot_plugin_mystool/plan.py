@@ -6,8 +6,7 @@ import random
 import threading
 
 from nonebot import get_bot, on_command
-from nonebot.adapters.onebot.v11 import (Bot, MessageSegment,
-                                         PrivateMessageEvent)
+from nonebot.adapters.onebot.v11 import (Bot, MessageSegment)
 from nonebot_plugin_apscheduler import scheduler
 
 from .exchange import generate_image
@@ -15,7 +14,7 @@ from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
-from .utils import get_file, logger, COMMAND_BEGIN, MessageEvent
+from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -27,7 +26,7 @@ manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励�
 
 
 @manually_game_sign.handle()
-async def _(event: MessageEvent):
+async def _(event: GeneralMessageEvent):
     """
     手动游戏签到函数
     """
@@ -45,7 +44,7 @@ manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米�
 
 
 @manually_bbs_sign.handle()
-async def _(event: MessageEvent):
+async def _(event: GeneralMessageEvent):
     """
     手动米游币任务函数
     """
@@ -78,7 +77,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check.handle()
-async def _(event: MessageEvent):
+async def _(event: GeneralMessageEvent):
     """
     手动查看原神便笺
     """
@@ -109,7 +108,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check_sr.handle()
-async def _(event: MessageEvent):
+async def _(event: GeneralMessageEvent):
     """
     手动查看星穹铁道便笺（sr）
     """
@@ -121,7 +120,7 @@ async def _(event: MessageEvent):
 
 
 async def perform_game_sign(bot: Bot, qq: str, is_auto: bool,
-                            group_event: MessageEvent = None):
+                            group_event: GeneralMessageEvent = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -130,7 +129,7 @@ async def perform_game_sign(bot: Bot, qq: str, is_auto: bool,
     :param is_auto: `True`为当日自动签到，`False`为用户手动调用签到功能
     :param group_event: 若为群消息触发，则为群消息事件，否则为None
     """
-    if isinstance(group_event, PrivateMessageEvent):
+    if isinstance(group_event, GeneralPrivateMessageEvent):
         group_event = None
     failed_accounts = []
     user = _conf.users[qq]
@@ -239,7 +238,7 @@ async def perform_game_sign(bot: Bot, qq: str, is_auto: bool,
 
 
 async def perform_bbs_sign(bot: Bot, qq: str, is_auto: bool,
-                           group_event: MessageEvent = None):
+                           group_event: GeneralMessageEvent = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
@@ -248,7 +247,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, is_auto: bool,
     :param is_auto: True为当日自动执行任务，False为用户手动调用任务功能
     :param group_event: 若为群消息触发，则为群消息事件，否则为None
     """
-    if isinstance(group_event, PrivateMessageEvent):
+    if isinstance(group_event, GeneralPrivateMessageEvent):
         group_event = None
     failed_accounts = []
     user = _conf.users[qq]
@@ -351,7 +350,7 @@ async def perform_bbs_sign(bot: Bot, qq: str, is_auto: bool,
 
 
 async def resin_check(bot: Bot, qq: str, is_auto: bool,
-                      group_event: MessageEvent = None):
+                      group_event: GeneralMessageEvent = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
@@ -360,7 +359,7 @@ async def resin_check(bot: Bot, qq: str, is_auto: bool,
     :param is_auto: True为自动检查，False为用户手动调用该功能
     :param group_event: 若为群消息触发，则为群消息事件，否则为None
     """
-    if isinstance(group_event, PrivateMessageEvent):
+    if isinstance(group_event, GeneralPrivateMessageEvent):
         group_event = None
     global has_checked
     user = _conf.users[qq]
@@ -458,7 +457,7 @@ async def resin_check(bot: Bot, qq: str, is_auto: bool,
 
 
 async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
-                         group_event: MessageEvent = None):
+                         group_event: GeneralMessageEvent = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
@@ -467,7 +466,7 @@ async def resin_check_sr(bot: Bot, qq: str, is_auto: bool,
     :param is_auto: True为自动检查，False为用户手动调用该功能
     :param group_event: 若为群消息触发，则为群消息事件，否则为None
     """
-    if isinstance(group_event, PrivateMessageEvent):
+    if isinstance(group_event, GeneralPrivateMessageEvent):
         group_event = None
     global has_checked
     user = _conf.users[qq]

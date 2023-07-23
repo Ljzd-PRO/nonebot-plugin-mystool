@@ -15,7 +15,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
 from .user_data import UserAccount, UserData
-from .utils import logger, COMMAND_BEGIN, MessageEvent
+from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -25,7 +25,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 
 
 @get_cookie.handle()
-async def handle_first_receive(event: MessageEvent):
+async def handle_first_receive(event: GeneralMessageEvent):
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
         await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
     user_num = len(_conf.users)
@@ -42,7 +42,7 @@ async def handle_first_receive(event: MessageEvent):
 
 
 @get_cookie.got('phone', prompt='1.请发送您的手机号：')
-async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, phone: str = ArgPlainText('phone')):
+async def _(_: GeneralPrivateMessageEvent, state: T_State, phone: str = ArgPlainText('phone')):
     if phone == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not phone.isdigit():
@@ -54,12 +54,12 @@ async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_St
 
 
 @get_cookie.handle()
-async def _(_: Union[PrivateMessageEvent, DirectMessageCreateEvent]):
+async def _(_: GeneralPrivateMessageEvent):
     await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
 
 
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
-async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], state: T_State, captcha: str = ArgPlainText('captcha')):
+async def _(event: GeneralPrivateMessageEvent, state: T_State, captcha: str = ArgPlainText('captcha')):
     phone_number: str = state['phone']
     if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
@@ -160,7 +160,7 @@ output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: MessageEvent, matcher: Matcher):
+async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
     """
     Cookies导出命令触发
     """
@@ -180,7 +180,7 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher):
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: Union[PrivateMessageEvent, DirectMessageCreateEvent], matcher: Matcher, uid=Arg("bbs_uid")):
+async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
     """
     根据手机号设置导出相应的账户的Cookies
     """

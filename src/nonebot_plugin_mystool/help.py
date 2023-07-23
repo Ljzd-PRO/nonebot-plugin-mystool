@@ -8,7 +8,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .plugin_data import PluginDataManager
-from .utils import PLUGIN, COMMAND_BEGIN, MessageEvent
+from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -26,7 +26,7 @@ helper.usage = '''\
 
 
 @helper.handle()
-async def _(_: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def _(_: GeneralMessageEvent, matcher: Matcher, args: Message = CommandArg()):
     """
     主命令触发
     """
@@ -43,7 +43,7 @@ async def _(_: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
 
 
 @helper.got('content')
-async def _(_: MessageEvent, content: Message = Arg()):
+async def _(_: GeneralMessageEvent, content: Message = Arg()):
     """
     二级命令触发。功能详细说明查询
     """
