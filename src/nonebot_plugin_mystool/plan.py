@@ -120,10 +120,7 @@ async def _(event: GeneralMessageEvent):
     await resin_check_sr(bot=bot, qq=event.get_user_id(), is_auto=False, group_event=event)
 
 
-async def perform_game_sign(
-        user_id: str,
-        matcher: Matcher = None
-):
+async def perform_game_sign(user_id: str, matcher: Matcher = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -240,10 +237,7 @@ async def perform_game_sign(
         write_plugin_data()
 
 
-async def perform_bbs_sign(
-        user_id: str,
-        matcher: Matcher = None
-):
+async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
