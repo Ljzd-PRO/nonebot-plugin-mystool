@@ -30,9 +30,9 @@ if TYPE_CHECKING:
 
 _conf = PluginDataManager.plugin_data
 
-GeneralMessageEvent = (OnebotV11MessageEvent, QQGuildMessageEvent)
+GeneralMessageEvent = Union[OnebotV11MessageEvent, QQGuildMessageEvent]
 """消息事件类型"""
-GeneralPrivateMessageEvent = (PrivateMessageEvent, DirectMessageCreateEvent)
+GeneralPrivateMessageEvent = Union[PrivateMessageEvent, DirectMessageCreateEvent]
 """私聊消息事件类型"""
 
 
