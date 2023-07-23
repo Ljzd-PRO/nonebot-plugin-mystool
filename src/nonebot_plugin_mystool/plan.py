@@ -19,7 +19,7 @@ from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, General
 
 _conf = PluginDataManager.plugin_data
 
-# TODO: bot.send, bot.send_private_msg 仍需适配QQ频道
+# TODO: bot.send_private_msg 仍需适配QQ频道
 
 manually_game_sign = on_command(_conf.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
