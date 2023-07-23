@@ -586,7 +586,6 @@ async def daily_schedule():
     # 随机延迟
     await asyncio.sleep(random.randint(0, 59))
     logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
-    bot = get_bot()
     for qq in _conf.users:
         await perform_bbs_sign(user_id=qq)
         await perform_game_sign(user_id=qq)
