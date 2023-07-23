@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "v1.0.1"
+version = "v1.1.0"
 description = "NoneBot2插件|米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录、原神树脂提醒"
 license = "MIT"
 authors = [
@@ -27,7 +27,7 @@ python = ">=3.9,<4.0"
 httpx = "^0.24.1"
 nonebot_plugin_apscheduler = ">=0.2.0"
 ntplib = "^0.4.0"
-Pillow = "^9.5.0"
+Pillow = ">=9.5,<11.0"
 requests = "^2.31.0"
 nonebot_adapter_onebot = "^2.2.3"
 tenacity = "^8.2.2"

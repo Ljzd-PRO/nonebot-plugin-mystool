@@ -14,7 +14,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
 from .utils import COMMAND_BEGIN
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)
 setting.name = "设置"
@@ -81,9 +81,11 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
                     "\n- " + "、".join(map(lambda x: f"『{x.NAME}』", account.mission_games))
     user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}"
-    user_setting += "\n6️⃣⚠️删除账户数据"
+    user_setting += f"\n6️⃣更改崩铁便笺开拓力提醒阈值 \
+                            当前提醒阈值：{account.user_stamina_threshold}"
+    user_setting += "\n7️⃣⚠️删除账户数据"
 
-    await account_setting.send(user_setting + '\n\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6'
+    await account_setting.send(user_setting + '\n\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6 / 7'
                                               '\n🚪发送“退出”即可退出')
 
 
@@ -123,11 +125,19 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
             f"\n- {games_show}"
             "\n\n🚪发送“退出”即可退出"
         )
+        state["setting_item"] = "mission_games"
     elif arg == '5':
         account.enable_resin = not account.enable_resin
         write_plugin_data()
-        await account_setting.finish(f"📅原神树脂恢复提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
+        await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif arg == '6':
+        await account_setting.send(
+            "请输入想要所需阈值数字："
+            "支持输入[0,180]"
+            "\n\n🚪发送“退出”即可退出"
+        )
+        state["setting_item"] = "threshold"
+    elif arg == '7':
         state["prepare_to_delete"] = True
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
     elif arg == '确认删除' and state["prepare_to_delete"]:
@@ -138,26 +148,42 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('missionGame')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('missionGame')):
+@account_setting.got('setting_arg')
+async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('setting_arg')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
-    games_input = arg.split()
-    mission_games = set()
-    for game in games_input:
-        game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
-        game_obj = next(game_filter, None)
-        if game_obj is None:
-            await account_setting.reject("⚠️您的输入有误，请重新输入")
-        else:
-            mission_games.add(game_obj)
 
-    account.mission_games = mission_games
-    write_plugin_data()
-    arg = arg.replace(" ", "、")
-    await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
+    if state["setting_item"] == "threshold":
+        try:
+            stamina_threshold = int(arg)
+        except ValueError:
+            await account_setting.reject("⚠️请输入有效的数字。")
+        else:
+            if 0 <= stamina_threshold <= 180:
+                # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
+                account.user_stamina_threshold = stamina_threshold
+                write_plugin_data()
+                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
+            else:
+                await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+
+    elif state["setting_item"] == "mission_games":
+        games_input = arg.split()
+        mission_games = set()
+        for game in games_input:
+            game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
+            game_obj = next(game_filter, None)
+            if game_obj is None:
+                await account_setting.reject("⚠️您的输入有误，请重新输入")
+            else:
+                mission_games.add(game_obj)
+
+        account.mission_games = mission_games
+        write_plugin_data()
+        arg = arg.replace(" ", "、")
+        await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
 
 
 global_setting = on_command(_conf.preference.command_start + '通知设置', priority=5, block=True)

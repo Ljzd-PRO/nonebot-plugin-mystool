@@ -14,7 +14,7 @@ from .user_data import UserAccount
 from .utils import logger, generate_ds, \
     get_async_retry, get_validate
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 
 class BaseGameSign:
@@ -163,7 +163,7 @@ class BaseGameSign:
             headers.pop("x-rpc-platform")
             await device_login(self.account)
             await device_save(self.account)
-            headers["DS"] = generate_ds(platform="android")
+            headers["DS"] = generate_ds(data=content)
 
         challenge = ""
         """人机验证任务 challenge"""

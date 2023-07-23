@@ -4,6 +4,7 @@
 import asyncio
 import io
 import os
+import random
 import threading
 import time
 from datetime import datetime
@@ -25,11 +26,12 @@ from nonebot_plugin_apscheduler import scheduler
 from .data_model import Good, GameRecord, ExchangeStatus
 from .good_image import game_list_to_image
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync
+from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp, \
+    good_exchange
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import NtpTime, COMMAND_BEGIN, logger, get_last_command_sep
+from .utils import COMMAND_BEGIN, logger, get_last_command_sep
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
 
 myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
@@ -228,6 +230,12 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
         await matcher.finish('⚠️您已经配置过该商品的兑换哦！')
     else:
         user.exchange_plans.add(plan)
+        if not plan.account.device_fp:
+            logger.info(f"账号 {plan.account.bbs_uid} 未设置 device_fp，正在获取...")
+            fp_status, plan.account.device_fp = await get_device_fp(plan.account.device_id_ios)
+            if not fp_status:
+                await matcher.send(
+                    '⚠️从服务器获取device_fp失败！兑换时将在本地生成device_fp。你也可以尝试重新添加兑换计划。')
         write_plugin_data()
 
     # 初始化兑换任务
@@ -380,6 +388,27 @@ def exchange_notice(event: JobExecutionEvent):
                         write_plugin_data()
 
 
+async def exchange_begin(plan: ExchangePlan):
+    """
+    到点后执行兑换
+
+    :param plan: 兑换计划
+    """
+    duration = 0
+    random_x, random_y = _conf.preference.exchange_latency
+    exchange_status, exchange_result = ExchangeStatus(), None
+
+    # 在兑换开始后的一段时间内，不断尝试兑换，直到成功（因为太早兑换可能被认定不在兑换时间）
+    while duration < _conf.preference.exchange_duration:
+        latency = random.uniform(random_x, random_y)
+        time.sleep(latency)
+        exchange_status, exchange_result = await good_exchange(plan)
+        if exchange_status and exchange_result.result:
+            break
+        duration += latency
+    return exchange_status, exchange_result
+
+
 @_driver.on_startup
 async def _():
     """
@@ -389,7 +418,7 @@ async def _():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
-            if good_detail_status.good_not_existed or good.time < NtpTime.time():
+            if good_detail_status.good_not_existed or good.time < time.time():
                 # 若商品不存在则删除
                 # 若重启时兑换超时则删除该兑换
                 user.exchange_plans.remove(plan)
@@ -399,7 +428,7 @@ async def _():
                 finished.setdefault(plan, [])
                 for i in range(_conf.preference.exchange_thread_count):
                     scheduler.add_job(
-                        good_exchange_sync,
+                        exchange_begin,
                         "date",
                         id=f"exchange-plan-{hash(plan)}-{i}",
                         replace_existing=True,
@@ -409,7 +438,7 @@ async def _():
                     )
 
 
-def image_process(game: str, lock: Lock):
+def image_process(game: str, lock: Lock = None):
     """
     生成并保存图片的进程函数
 
@@ -456,13 +485,17 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
 
-    lock: Lock = Manager().Lock()
-    with Pool() as pool:
+    if _conf.good_list_image_config.MULTI_PROCESS:
+        lock: Lock = Manager().Lock()
+        with Pool() as pool:
+            for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
+                pool.apply_async(image_process,
+                                 args=(game, lock),
+                                 callback=callback)
+            pool.close()
+            pool.join()
+    else:
         for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
-            pool.apply_async(image_process,
-                             args=(game, lock),
-                             callback=callback)
-        pool.close()
-        pool.join()
+            image_process(game)
 
     logger.info(f"{_conf.preference.log_head}已完成所有分区的商品列表图片生成")

@@ -15,18 +15,17 @@ import httpx
 import nonebot
 import nonebot.log
 import nonebot.plugin
-import ntplib
 import tenacity
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
 from .data_model import GeetestResult
-from .plugin_data import PluginDataManager
+from .plugin_data import PluginDataManager, Preference
 
 if TYPE_CHECKING:
     from loguru import Logger
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 
 
 class CommandBegin:
@@ -117,44 +116,6 @@ def get_async_retry(retry: bool):
     )
 
 
-class NtpTime:
-    """
-    NTP时间校准相关
-    """
-    time_offset = 0
-    """本地时间与互联网时间的偏差"""
-
-    @classmethod
-    def sync(cls):
-        """
-        校准时间
-        """
-        if _conf.preference.enable_ntp_sync:
-            if not _conf.preference.ntp_server:
-                logger.error("开启了互联网时间校对，但未配置NTP服务器 preference.ntp_server，放弃时间同步")
-                return False
-            try:
-                for attempt in get_async_retry(True):
-                    with attempt:
-                        cls.time_offset = ntplib.NTPClient().request(
-                            _conf.preference.ntp_server).tx_time - time.time()
-            except tenacity.RetryError:
-                logger.exception("校对互联网时间失败，改为使用本地时间")
-                return False
-            logger.info("互联网时间校对完成")
-            return True
-        else:
-            logger.info("未开启互联网时间校对，跳过时间同步")
-            return True
-
-    @classmethod
-    def time(cls) -> float:
-        """
-        获取校准后的时间（如果校准成功）
-        """
-        return time.time() + cls.time_offset
-
-
 def generate_device_id() -> str:
     """
     生成随机的x-rpc-device_id
@@ -207,7 +168,7 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
             salt = salt or _conf.salt_config.SALT_IOS
         else:
             salt = salt or _conf.salt_config.SALT_ANDROID
-        t = str(int(NtpTime.time()))
+        t = str(int(time.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
@@ -248,10 +209,10 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
-    content = {
-        "gt": gt,
-        "challenge": challenge
-    }
+    content = _conf.preference.geetest_json or Preference().geetest_json
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = value.format(gt=gt, challenge=challenge)
 
     if gt and challenge and _conf.preference.geetest_url:
         try:
@@ -269,6 +230,26 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
             logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
     else:
         return GeetestResult("", "")
+
+
+def generate_seed_id(length: int = 8) -> str:
+    """
+    生成随机的 seed_id（即长度为8的十六进制数）
+
+    :param length: 16进制数长度
+    """
+    max_num = int("FF" * length, 16)
+    return hex(random.randint(0, max_num))[2:]
+
+
+def generate_fp_locally(length: int = 13):
+    """
+    于本地生成 device_fp
+
+    :param length: device_fp 长度
+    """
+    characters = string.digits + "abcdef"
+    return ''.join(random.choices(characters, k=length))
 
 
 async def get_file(url: str, retry: bool = True):

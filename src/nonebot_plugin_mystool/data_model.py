@@ -4,6 +4,7 @@
 import inspect
 import time
 from abc import abstractmethod
+from datetime import datetime
 from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple
 
 from pydantic import BaseModel
@@ -378,6 +379,50 @@ class GenshinBoard(BaseModel):
             return None
 
 
+class StarRailBoard(BaseModel):
+    """
+    崩铁实时便笺数据 (从米游社内相关页面API的返回数据初始化)
+    """
+    current_stamina: int
+    """当前开拓力"""
+    max_stamina: int
+    """最大开拓力"""
+    stamina_recover_time: int
+    """剩余体力恢复时间"""
+    current_train_score: int
+    """当前每日实训值"""
+    max_train_score: int
+    """最大每日实训值"""
+    current_rogue_score: int
+    """当前模拟宇宙积分"""
+    max_rogue_score: int
+    """最大模拟宇宙积分"""
+    accepted_expedition_num: int
+    """已接受委托数量"""
+    total_expedition_num: int
+    """最大委托数量"""
+    has_signed: bool
+    """当天是否签到"""
+
+    @property
+    def stamina_recover_text(self):
+        """
+        剩余体力恢复文本
+        """
+        try:
+            if not self.stamina_recover_time:
+                return '体力未获得'
+            elif self.stamina_recover_time == 0:
+                return '体力已准备就绪'
+            else:
+                return datetime.fromtimestamp(int(time.time()) + self.stamina_recover_time)
+                # m, s = divmod(self.stamina_recover_time, 60)
+                # h, m = divmod(m, 60) 
+                # return f"{h} 小时 {m} 分钟 {s} 秒"
+        except KeyError:
+            return None
+
+
 class BaseApiStatus(BaseModel):
     """
     API返回结果基类
@@ -469,12 +514,28 @@ class MissionStatus(BaseApiStatus):
     """获取文章失败"""
 
 
+class GetFpStatus(BaseApiStatus):
+    """
+    兑换操作 返回结果
+    """
+    invalid_arguments = False
+    """参数错误"""
+
+
 class GenshinBoardStatus(BaseApiStatus):
     """
     原神实时便笺 返回结果
     """
     no_genshin_account = False
     """用户没有任何原神账户"""
+
+
+class StarRailBoardStatus(BaseApiStatus):
+    """
+    星铁实时便笺 返回结果
+    """
+    no_starrail_account = False
+    """用户没有任何星铁账户"""
 
 
 GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)

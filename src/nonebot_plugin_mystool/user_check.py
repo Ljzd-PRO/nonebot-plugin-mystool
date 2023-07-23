@@ -2,16 +2,18 @@
 ### QQ好友相关
 """
 import asyncio
+import json
+import os
 
 from nonebot import get_driver, on_request
 from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
                                          GroupRequestEvent, RequestEvent)
 from nonebot_plugin_apscheduler import scheduler
 
-from .plugin_data import PluginDataManager, write_plugin_data
+from .plugin_data import PluginDataManager, write_plugin_data, DELETED_USERS_PATH
 from .utils import logger
 
-_conf = PluginDataManager.plugin_data_obj
+_conf = PluginDataManager.plugin_data
 _driver = get_driver()
 friendRequest = on_request(priority=1, block=True)
 
@@ -45,9 +47,17 @@ async def check_friend_list(bot: Bot):
         user_filter = filter(lambda x: x["user_id"] == user, friend_list)
         friend = next(user_filter, None)
         if not friend:
-            logger.info(f'{_conf.preference.log_head}用户 {user} 不在好友列表内，已删除其数据')
-            _conf.users.pop(user)
+            if not os.path.exists(DELETED_USERS_PATH):
+                os.mkdir(DELETED_USERS_PATH)
+            json.dump(
+                _conf.users.pop(user),
+                open(DELETED_USERS_PATH / f"{user}.json", "w"),
+                ensure_ascii=False,
+                indent=4
+            )
             write_plugin_data()
+            logger.info(f'{_conf.preference.log_head}用户 {user} 不在好友列表内，'
+                        f'已删除其数据，并备份至 {DELETED_USERS_PATH / f"{user}.json"}')
 
 
 @_driver.on_bot_connect
