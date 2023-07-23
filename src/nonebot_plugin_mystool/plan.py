@@ -512,7 +512,7 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                                    message='⚠️遇到验证码正在尝试绕过')
                 else:
                     await bot.send_private_msg(user_id=qq,
-                                               message=f'⚠️遇到验证码正在尝试绕过')
+                                               message='⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not is_auto:
