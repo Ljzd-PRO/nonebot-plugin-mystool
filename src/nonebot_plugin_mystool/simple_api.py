@@ -1287,7 +1287,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
             logger.debug(f"网络请求返回: {res.text}")
             return GetFpStatus(incorrect_return=True), None
         else:
-            logger.exception(f"获取 x-rpc-device_fp: 网络请求失败")
+            logger.exception("获取 x-rpc-device_fp: 网络请求失败")
             return GetFpStatus(network_error=True), None
 
 
