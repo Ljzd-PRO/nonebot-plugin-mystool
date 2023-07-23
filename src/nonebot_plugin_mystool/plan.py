@@ -36,7 +36,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await manually_game_sign.send("⏳开始游戏签到...")
-    await perform_game_sign(user_id=event.get_user_id(), event=event, matcher=matcher)
+    await perform_game_sign(user_id=event.get_user_id(), matcher=matcher)
 
 
 manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
@@ -122,27 +122,25 @@ async def _(event: GeneralMessageEvent):
 
 async def perform_game_sign(
         user_id: str,
-        event: GeneralMessageEvent = None,
         matcher: Matcher = None
 ):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
     :param user_id: 用户QQ号
-    :param event: 消息事件
     :param matcher: 事件响应器
     """
     failed_accounts = []
     user = _conf.users[user_id]
     for account in _conf.users.get(user_id).accounts.values():
         # 自动签到时，要求用户打开了签到功能；手动签到时都可以调用执行。
-        if not event and not account.enable_game_sign:
+        if not matcher and not account.enable_game_sign:
             continue
         signed = False
         """是否已经完成过签到"""
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
-            if event:
+            if matcher:
                 await matcher.send(f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
             # TODO: 自动执行的情况
             # else:
@@ -158,7 +156,7 @@ async def perform_game_sign(
                 games_has_record.append(signer)
             get_info_status, info = await signer.get_info(account.platform)
             if not get_info_status:
-                if event:
+                if matcher:
                     await matcher.send(f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
                 # TODO: 自动执行的情况
                 # else:
@@ -168,7 +166,7 @@ async def perform_game_sign(
 
             # 若没签到，则进行签到功能；若获取今日签到情况失败，仍可继续
             if (get_info_status and not info.is_sign) or not get_info_status:
-                if event:
+                if matcher:
                     sign_status = await signer.sign(
                         account.platform,
                         lambda: matcher.send(f"⏳正在尝试完成人机验证，请稍后...")
@@ -179,14 +177,14 @@ async def perform_game_sign(
                 #         account.platform,
                 #         lambda: bot.send_private_msg(user_id=int(user_id), message=f"⏳正在尝试完成人机验证，请稍后...")
                 #     )
-                if not sign_status and (user.enable_notice or event):
+                if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
                     elif sign_status.need_verify:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时可能遇到验证码拦截，请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到"
                     else:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败，请稍后再试"
-                    if event:
+                    if matcher:
                         await matcher.send(message)
                     # TODO: 自动执行的情况
                     # elif user.enable_notice:
@@ -197,7 +195,7 @@ async def perform_game_sign(
                 await asyncio.sleep(_conf.preference.sleep_time)
 
             # 用户打开通知或手动签到时，进行通知
-            if user.enable_notice or event:
+            if user.enable_notice or matcher:
                 img = ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
@@ -218,7 +216,7 @@ async def perform_game_sign(
                         img = MessageSegment.image(img_file)
                     else:
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
-                if event:
+                if matcher:
                     await matcher.send(msg + img)
                 # TODO: 自动执行的情况
                 # else:
@@ -226,7 +224,7 @@ async def perform_game_sign(
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
-            if event:
+            if matcher:
                 await matcher.send(f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到")
             # TODO: 自动执行的情况
             # else:
