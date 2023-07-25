@@ -33,10 +33,15 @@ from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEv
 _conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
 
-myb_exchange_plan = on_command(f"{_conf.preference.command_start}兑换",
-                               aliases={(f"{_conf.preference.command_start}兑换", "+"),
-                                        (f"{_conf.preference.command_start}兑换", "-")},
-                               priority=5, block=True)
+myb_exchange_plan = on_command(
+    f"{_conf.preference.command_start}兑换",
+    aliases={
+        (f"{_conf.preference.command_start}兑换", "+"),
+        (f"{_conf.preference.command_start}兑换", "-")
+    },
+    priority=5,
+    block=True
+)
 myb_exchange_plan.name = "兑换"
 myb_exchange_plan.usage = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，" \
                           "并使用『{HEAD}地址』选择你要使用的地址。" \
@@ -69,7 +74,7 @@ async def _(
         # 如果没有二级命令，但是有参数，则说明用户没有意向使用本功能。
         # 例如：/兑换码获取，识别到的参数为"码获取"，而用户可能有意使用其他插件。
         await matcher.finish()
-    elif len(command) > 1 and command[1] in ["+", "-"]:
+    elif len(command) > 1:
         if not command_arg:
             await matcher.reject(
                 '⚠️您的输入有误，缺少商品ID，请重新输入\n\n'
