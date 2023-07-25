@@ -26,7 +26,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 @get_cookie.handle()
 async def handle_first_receive(event: GeneralMessageEvent):
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
-        await get_cookie.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行登录。")
+        await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
     user_num = len(_conf.users)
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         await get_cookie.send("""\
@@ -164,7 +164,7 @@ async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
     Cookies导出命令触发
     """
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
-        await output_cookies.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行Cookies导出。")
+        await output_cookies.finish("⚠️为了保护您的隐私，请私聊进行Cookies导出。")
     user_account = _conf.users[event.get_user_id()].accounts
     if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")

@@ -26,7 +26,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 @address_matcher.handle()
 async def _(event: GeneralMessageEvent, matcher: Matcher):
     if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
-        await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
+        await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None
     if not user_account:
