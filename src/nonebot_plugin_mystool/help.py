@@ -3,11 +3,12 @@
 #### 参考了`nonebot-plugin-help`
 """
 from nonebot import on_command
+from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
 from .plugin_data import PluginDataManager
-from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent
+from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
 _conf = PluginDataManager.plugin_data
 
@@ -36,12 +37,16 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
         matcher.set_arg("content", args)
     # 只有主命令“帮助”
     else:
-        await matcher.finish(
-            f"{PLUGIN.metadata.name}"
-            f"{PLUGIN.metadata.description}\n"
-            "具体用法：\n"
-            f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
-        )
+        try:
+            await matcher.finish(
+                f"{PLUGIN.metadata.name}"
+                f"{PLUGIN.metadata.description}\n"
+                "具体用法：\n"
+                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
+            )
+        except QQGuildActionFailed as e:
+            if e.code == 304003:
+                logger.exception(f"{_conf.preference.log_head}帮助命令的文本发送失败，原因是频道禁止发送URL")
 
 
 @helper.got('content')
