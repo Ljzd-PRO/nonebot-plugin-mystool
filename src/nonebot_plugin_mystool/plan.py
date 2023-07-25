@@ -355,7 +355,6 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                                                            {"resin": False, "coin": False, "transformer": False})
         if account.enable_resin or matcher:
             genshin_board_status, board = await genshin_board(account)
-            logger.info(genshin_board_status)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:
                     if matcher:
@@ -438,7 +437,6 @@ async def resin_check_sr(user_id: str, matcher: Matcher = None):
                                                             "rogue_score": False})
         if account.enable_resin or matcher:
             starrail_board_status, board = await StarRail_board(account)
-            logger.info(starrail_board_status)
             if not starrail_board_status:
                 if starrail_board_status.login_expired:
                     if matcher:
