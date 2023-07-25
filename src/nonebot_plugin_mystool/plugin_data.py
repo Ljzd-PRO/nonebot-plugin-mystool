@@ -252,9 +252,6 @@ class PluginData(BaseModel):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        if user_data._new_uuid_in_init:
-            write_plugin_data()
-
         self.do_user_bind()
 
     class Config:
@@ -276,7 +273,10 @@ class PluginDataManager:
             try:
                 with open(PLUGIN_DATA_PATH, "r") as f:
                     plugin_data_dict = json.load(f)
-                    override_device_and_salt = plugin_data_dict["preference"]["override_device_and_salt"]
+                    override_device_and_salt = plugin_data_dict["preference"].get("override_device_and_salt")
+                    # 读取 preference.override_device_and_salt 时，如果没有该配置，则默认为 False
+                    override_device_and_salt = override_device_and_salt \
+                        if override_device_and_salt is not None else False
                     device_config_dict = plugin_data_dict["device_config"]
 
                 # 先读取设备信息配置，因为之后导入其他代码时部分变量如Headers将会使用到，一旦完成导入，再修改设备信息配置将不会生效
@@ -340,3 +340,7 @@ def write_plugin_data(data: PluginData = None):
 
 
 PluginDataManager.load_plugin_data()
+
+# 如果插件数据文件加载后，发现有用户没有UUID密钥，进行了生成，则需要保存写入
+if user_data._new_uuid_in_init:
+    write_plugin_data()
