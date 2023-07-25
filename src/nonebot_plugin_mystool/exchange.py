@@ -49,9 +49,9 @@ myb_exchange_plan.usage = "跟随指引，配置米游币商品自动兑换计�
                           "注意，不限兑换时间的商品将不会在此处显示。 "
 myb_exchange_plan.extra_usage = """\
 具体用法：
-{HEAD}兑换{SEP}+ <商品ID> ➢ 新增兑换计划
-{HEAD}兑换{SEP}- <商品ID> ➢ 删除兑换计划
-{HEAD}商品 ➢ 查看米游社商品
+🛒 {HEAD}兑换{SEP}+ <商品ID> ➢ 新增兑换计划
+🗑️ {HEAD}兑换{SEP}- <商品ID> ➢ 删除兑换计划
+🎁 {HEAD}商品 ➢ 查看米游社商品
 『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可\
 """
 
