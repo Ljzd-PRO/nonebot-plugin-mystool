@@ -38,10 +38,14 @@ async def _(bot: Bot, event: RequestEvent):
 
 
 user_binding = on_command(
-    _conf.preference.command_start + '用户绑定',
+    f"{_conf.preference.command_start}用户绑定",
     aliases={
-        _conf.preference.command_start + '用户关联',
-        _conf.preference.command_start + '数据关联'
+        (f"{_conf.preference.command_start}用户绑定", "UUID"),
+        (f"{_conf.preference.command_start}用户绑定", "uuid"),
+        (f"{_conf.preference.command_start}用户绑定", "查询"),
+        (f"{_conf.preference.command_start}用户绑定", "还原"),
+        (f"{_conf.preference.command_start}用户绑定", "刷新UUID"),
+        (f"{_conf.preference.command_start}用户绑定", "刷新uuid")
     },
     priority=5,
     block=True
@@ -79,7 +83,7 @@ async def _(
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
 
-        elif command[1] in ["查看", "查询"]:
+        elif command[1] == "查询":
             if user_id in _conf.user_bind:
                 await matcher.send(
                     "🖇️目前您绑定关联了用户：\n"
@@ -95,7 +99,7 @@ async def _(
             else:
                 await matcher.send("⚠️您当前没有绑定任何用户数据，也没有任何用户绑定您的数据")
 
-        elif command[1] in ["还原", "清除"]:
+        elif command[1] == "还原":
             if user_id not in _conf.user_bind:
                 await matcher.finish("⚠️您当前没有绑定任何用户数据")
             else:
