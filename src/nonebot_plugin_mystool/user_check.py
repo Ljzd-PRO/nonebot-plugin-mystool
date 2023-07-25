@@ -116,8 +116,8 @@ async def _(
                 target_id = user_id
                 be_bind = True
 
-            user_filter = filter(lambda x: _conf.user_bind[x] == target_id, _conf.user_bind)
-            for key in user_filter:
+            src_users = list(filter(lambda x: _conf.user_bind[x] == target_id, _conf.user_bind))
+            for key in src_users:
                 del _conf.user_bind[key]
                 del _conf.users[key]
             _conf.users[target_id].uuid = str(uuid4())
