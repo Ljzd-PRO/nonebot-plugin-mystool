@@ -342,12 +342,12 @@ class UserData(BaseModelWithSetter):
     """
     用户数据类
     """
+    enable_notice: bool = True
+    """是否开启通知"""
     exchange_plans: Union[Set[ExchangePlan], List[ExchangePlan]] = set()
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
     """储存一些已绑定的账号数据"""
-    enable_notice: bool = True
-    """是否开启通知"""
 
     def __init__(self, **data: Any):
         super().__init__(**data)
