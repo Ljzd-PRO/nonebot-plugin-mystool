@@ -11,7 +11,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
 from .plugin_data import PluginDataManager, write_plugin_data
-from .user_data import UserData, uuid4_validate
+from .user_data import uuid4_validate
 from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep
 
 _conf = PluginDataManager.plugin_data
@@ -104,7 +104,7 @@ async def _(
                 await matcher.finish("⚠️您当前没有绑定任何用户数据")
             else:
                 del _conf.user_bind[user_id]
-                _conf.users[user_id] = UserData()
+                del _conf.users[user_id]
                 write_plugin_data()
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
 
@@ -119,7 +119,7 @@ async def _(
             user_filter = filter(lambda x: _conf.user_bind[x] == target_id, _conf.user_bind)
             for key in user_filter:
                 del _conf.user_bind[key]
-                _conf.users[key] = UserData()
+                del _conf.users[key]
             _conf.users[target_id].uuid = str(uuid4())
             write_plugin_data()
 
