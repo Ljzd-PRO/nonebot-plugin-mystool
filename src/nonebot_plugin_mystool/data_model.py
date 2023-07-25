@@ -446,6 +446,16 @@ class BaseApiStatus(BaseModel):
         else:
             return False
 
+    @property
+    def error_type(self):
+        """
+        返回错误类型
+        """
+        for key, field in self.__fields__.items():
+            if field and key != "success":
+                return key
+        return None
+
 
 class CreateMobileCaptchaStatus(BaseApiStatus):
     """
