@@ -3,7 +3,6 @@
 #### 参考了`nonebot-plugin-help`
 """
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.message import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 
@@ -26,7 +25,7 @@ helper.usage = '''\
 
 
 @helper.handle()
-async def _(_: GeneralMessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
     """
     主命令触发
     """
@@ -43,7 +42,7 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, args: Message = CommandArg
 
 
 @helper.got('content')
-async def _(_: GeneralMessageEvent, content: Message = Arg()):
+async def _(_: GeneralMessageEvent, content=Arg()):
     """
     二级命令触发。功能详细说明查询
     """
