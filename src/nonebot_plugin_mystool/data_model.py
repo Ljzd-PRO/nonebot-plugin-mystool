@@ -446,6 +446,16 @@ class BaseApiStatus(BaseModel):
         else:
             return False
 
+    @property
+    def error_type(self):
+        """
+        返回错误类型
+        """
+        for key, field in self.__fields__.items():
+            if field and key != "success":
+                return key
+        return None
+
 
 class CreateMobileCaptchaStatus(BaseApiStatus):
     """
@@ -522,7 +532,17 @@ class GetFpStatus(BaseApiStatus):
     """参数错误"""
 
 
-class GenshinBoardStatus(BaseApiStatus):
+class BoardStatus(BaseApiStatus):
+    """
+    实时便笺 返回结果
+    """
+    game_record_failed = False
+    """获取用户游戏数据失败"""
+    game_list_failed = False
+    """获取游戏列表失败"""
+
+
+class GenshinBoardStatus(BoardStatus):
     """
     原神实时便笺 返回结果
     """
@@ -530,7 +550,7 @@ class GenshinBoardStatus(BaseApiStatus):
     """用户没有任何原神账户"""
 
 
-class StarRailBoardStatus(BaseApiStatus):
+class StarRailBoardStatus(BoardStatus):
     """
     星铁实时便笺 返回结果
     """
