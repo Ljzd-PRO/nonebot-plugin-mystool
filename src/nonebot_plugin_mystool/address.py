@@ -13,7 +13,7 @@ from nonebot.params import Arg, ArgPlainText, T_State
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent
+from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -25,7 +25,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 @address_matcher.handle()
 async def _(event: GeneralMessageEvent, matcher: Matcher):
-    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
+    if isinstance(event, GeneralGroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
     user_account = user.accounts if user else None

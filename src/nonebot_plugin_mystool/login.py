@@ -14,7 +14,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
 from .user_data import UserAccount, UserData
-from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent
+from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -25,7 +25,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 
 @get_cookie.handle()
 async def handle_first_receive(event: GeneralMessageEvent):
-    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
+    if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
     user_num = len(_conf.users)
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
@@ -163,7 +163,7 @@ async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
     """
     Cookies导出命令触发
     """
-    if isinstance(event, (GroupMessageEvent, MessageCreateEvent)):
+    if isinstance(event, GeneralGroupMessageEvent):
         await output_cookies.finish("⚠️为了保护您的隐私，请私聊进行Cookies导出。")
     user_account = _conf.users[event.get_user_id()].accounts
     if not user_account:
