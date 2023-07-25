@@ -12,7 +12,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
-from .user_data import UserData, UserAccount
+from .user_data import UserData, UserAccount, _new_uuid_in_init
 
 VERSION = "v1.1.0"
 """程序当前版本"""
@@ -226,6 +226,11 @@ class PluginData(BaseModel):
     users: Dict[str, UserData] = {}
     '''所有用户数据'''
 
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        if _new_uuid_in_init:
+            write_plugin_data()
+
     class Config:
         json_encoders = UserAccount.Config.json_encoders
 
@@ -283,9 +288,6 @@ class PluginDataManager:
             logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
 
 
-PluginDataManager.load_plugin_data()
-
-
 def write_plugin_data(data: PluginData = None):
     """
     写入插件数据文件
@@ -302,3 +304,6 @@ def write_plugin_data(data: PluginData = None):
     with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
         f.write(str_data)
     return True
+
+
+PluginDataManager.load_plugin_data()
