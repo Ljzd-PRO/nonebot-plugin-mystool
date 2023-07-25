@@ -78,12 +78,12 @@ async def _(
         if not command_arg:
             await matcher.reject(
                 '⚠️您的输入有误，缺少商品ID，请重新输入\n\n'
-                f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
             )
         elif not str(command_arg).isdigit():
             await matcher.reject(
                 '⚠️商品ID必须为数字，请重新输入\n\n'
-                f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
             )
 
     user = _conf.users.get(event.get_user_id())
@@ -119,7 +119,7 @@ async def _(
             msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg + matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
+        await matcher.finish(msg + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
 
 
 @myb_exchange_plan.got('bbs_uid')
@@ -221,8 +221,8 @@ async def _(
 
     else:
         await matcher.reject(
-            '⚠️您的输入有误，请重新输入\n\n' + matcher.extra_usage.format(HEAD=COMMAND_BEGIN,
-                                                                         SEP=get_last_command_sep()))
+            '⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN,
+                                                                                   SEP=get_last_command_sep()))
 
 
 @myb_exchange_plan.got('uid')

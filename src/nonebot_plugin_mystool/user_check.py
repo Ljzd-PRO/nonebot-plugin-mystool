@@ -139,13 +139,13 @@ async def _(
         else:
             await matcher.reject(
                 '⚠️您的输入有误，二级命令不正确\n\n'
-                f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{user_binding.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
             )
     elif not command_arg:
         await matcher.send(
-            f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n"
-            f"{matcher.usage.format(HEAD=COMMAND_BEGIN)}\n"
-            f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+            f"『{COMMAND_BEGIN}{user_binding.name}』- 使用说明\n"
+            f"{user_binding.usage.format(HEAD=COMMAND_BEGIN)}\n"
+            f'{user_binding.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
         )
     else:
         if isinstance(event, GeneralMessageEvent):
