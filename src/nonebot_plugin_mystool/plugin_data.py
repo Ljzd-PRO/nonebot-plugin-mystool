@@ -12,7 +12,8 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
-from .user_data import UserData, UserAccount, _new_uuid_in_init
+from .user_data import UserData, UserAccount
+from . import user_data
 
 VERSION = "v1.1.0"
 """程序当前版本"""
@@ -251,7 +252,7 @@ class PluginData(BaseModel):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        if _new_uuid_in_init:
+        if user_data._new_uuid_in_init:
             write_plugin_data()
 
         self.do_user_bind()
