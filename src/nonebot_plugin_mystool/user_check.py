@@ -76,6 +76,9 @@ async def _(
         if user is None:
             await matcher.finish("⚠️您的用户数据不存在，只有进行登录操作以后才会生成用户数据")
         elif command[1] in ["UUID", "uuid"]:
+            if isinstance(event, GeneralMessageEvent):
+                await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥查看。")
+
             await matcher.send(
                 "🔑您的UUID密钥为：\n" if user_id not in _conf.user_bind else
                 "🔑您绑定的用户数据的UUID密钥为：\n"
@@ -109,6 +112,9 @@ async def _(
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
 
         elif command[1] in ["刷新UUID", "刷新uuid"]:
+            if isinstance(event, GeneralMessageEvent):
+                await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥刷新。")
+
             if user_id in _conf.user_bind:
                 target_id = _conf.user_bind[user_id]
                 be_bind = False
@@ -142,6 +148,9 @@ async def _(
             f'{matcher.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
         )
     else:
+        if isinstance(event, GeneralMessageEvent):
+            await matcher.finish("⚠️为了保护您的隐私，请私聊进行用户绑定。")
+
         uuid = str(command_arg).lower()
         if not uuid4_validate(uuid):
             await matcher.finish("⚠️您输入的UUID密钥格式不正确")
