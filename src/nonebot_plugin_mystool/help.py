@@ -11,10 +11,12 @@ from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
-helper = on_command(_conf.preference.command_start + "help",
-                    priority=1,
-                    aliases={_conf.preference.command_start + "帮助"},
-                    block=True)
+helper = on_command(
+    f"{_conf.preference.command_start}帮助",
+    priority=1,
+    aliases={f"{_conf.preference.command_start}help"},
+    block=True
+)
 
 helper.name = '帮助'
 helper.usage = '''\
