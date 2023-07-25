@@ -145,7 +145,7 @@ async def _(
         uuid = str(command_arg).lower()
         if not uuid4_validate(uuid):
             await matcher.finish("⚠️您输入的UUID密钥格式不正确")
-        elif uuid == user.uuid:
+        elif user and uuid == user.uuid:
             await matcher.finish("⚠️您不能绑定自己的UUID密钥")
         else:
             # 筛选UUID密钥对应的用户
