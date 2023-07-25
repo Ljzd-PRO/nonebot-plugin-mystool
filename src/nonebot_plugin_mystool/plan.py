@@ -369,7 +369,6 @@ async def resin_check(bot: Bot, qq: int, is_auto: bool,
                                                            {"resin": False, "coin": False, "transformer": False})
         if (account.enable_resin and is_auto) or not is_auto:
             genshin_board_status, board = await genshin_board(account)
-            logger.info(genshin_board_status)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:
                     if not is_auto:
@@ -477,7 +476,6 @@ async def resin_check_sr(bot: Bot, qq: int, is_auto: bool,
                                                             "rogue_score": False})
         if (account.enable_resin and is_auto) or not is_auto:
             starrail_board_status, board = await StarRail_board(account)
-            logger.info(starrail_board_status)
             if not starrail_board_status:
                 if starrail_board_status.login_expired:
                     if not is_auto:
