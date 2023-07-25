@@ -3,6 +3,7 @@
 """
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
     Mapping, Literal
+from uuid import UUID, uuid4
 
 from httpx import Cookies
 from pydantic import BaseModel, validator
@@ -338,21 +339,41 @@ class ExchangeResult(BaseModel):
     """兑换计划"""
 
 
+_uuid_set: Set[UUID] = set()
+"""已使用的用户UUID密钥集合"""
+_new_uuid_in_init = False
+"""插件反序列化用户数据时，是否生成了新的UUID密钥"""
+
+
 class UserData(BaseModelWithSetter):
     """
     用户数据类
     """
     enable_notice: bool = True
     """是否开启通知"""
+    uuid: Optional[UUID] = None
+    """用户UUID密钥，用于不同NoneBot适配器平台之间的数据同步，因此不可泄露"""
     exchange_plans: Union[Set[ExchangePlan], List[ExchangePlan]] = set()
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
     """储存一些已绑定的账号数据"""
 
     def __init__(self, **data: Any):
+        global _new_uuid_in_init
         super().__init__(**data)
+
         exchange_plans = self.exchange_plans
         self.exchange_plans = set()
         for plan in exchange_plans:
             plan = ExchangePlan.parse_obj(plan)
             self.exchange_plans.add(plan)
+
+        if self.uuid is None:
+            new_uuid = uuid4()
+            while new_uuid in _uuid_set:
+                new_uuid = uuid4()
+            self.uuid = new_uuid
+            _uuid_set.add(new_uuid)
+            _new_uuid_in_init = True
+        else:
+            _uuid_set.add(self.uuid)
