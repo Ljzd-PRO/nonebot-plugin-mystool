@@ -232,8 +232,9 @@ class PluginData(BaseModel):
 
 class PluginDataManager:
     plugin_data = PluginData()
-    device_config = DeviceConfig()
     """加载出的插件数据对象"""
+    device_config: DeviceConfig
+    """加载出的设备信息数据对象"""
 
     @classmethod
     def load_plugin_data(cls):
@@ -243,12 +244,18 @@ class PluginDataManager:
         if os.path.exists(PLUGIN_DATA_PATH) and os.path.isfile(PLUGIN_DATA_PATH):
             try:
                 with open(PLUGIN_DATA_PATH, "r") as f:
-                    device_config_dict = json.load(f)["device_config"]
-                device_config_from_file = DeviceConfig.parse_obj(device_config_dict)
-                for attr in device_config_from_file.__fields__:
-                    cls.device_config.__setattr__(attr, device_config_from_file.__getattribute__(attr))
+                    plugin_data_dict = json.load(f)
+                    override_device_and_salt = plugin_data_dict["preference"]["override_device_and_salt"]
+                    device_config_dict = plugin_data_dict["device_config"]
 
-                plugin_data_from_file = PluginData.parse_file(PLUGIN_DATA_PATH)
+                # 先读取设备信息配置，因为之后导入其他代码时部分变量如Headers将会使用到，一旦完成导入，再修改设备信息配置将不会生效
+                if override_device_and_salt:
+                    cls.device_config = DeviceConfig.parse_obj(device_config_dict)
+                else:
+                    cls.device_config = DeviceConfig()
+
+                # 读取完整的插件数据
+                plugin_data_from_file = PluginData.parse_obj(plugin_data_dict)
                 for attr in plugin_data_from_file.__fields__:
                     cls.plugin_data.__setattr__(attr, plugin_data_from_file.__getattribute__(attr))
             except (ValidationError, JSONDecodeError):
