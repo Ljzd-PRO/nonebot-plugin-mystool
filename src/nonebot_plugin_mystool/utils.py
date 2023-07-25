@@ -305,18 +305,3 @@ def command_matcher(command: str, priority: int = None, block: bool = None) -> M
     :return: 事件响应器
     """
     ...
-
-
-def uuid4_validate(v):
-    """
-    验证UUID是否为合法的UUIDv4
-
-    :param v: UUID
-    """
-    try:
-        uuid.UUID(v, version=4)
-    except:
-        logger.exception(f"{_conf.preference.log_head}UUID格式错误，不是合法的UUIDv4")
-        return False
-    else:
-        return True

@@ -3,13 +3,12 @@
 """
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
     Mapping, Literal
-from uuid import UUID, uuid4
+from uuid import uuid4, UUID
 
 from httpx import Cookies
 from pydantic import BaseModel, validator
 
 from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
-from .utils import uuid4_validate
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -344,6 +343,20 @@ _uuid_set: Set[str] = set()
 """已使用的用户UUID密钥集合"""
 _new_uuid_in_init = False
 """插件反序列化用户数据时，是否生成了新的UUID密钥"""
+
+
+def uuid4_validate(v):
+    """
+    验证UUID是否为合法的UUIDv4
+
+    :param v: UUID
+    """
+    try:
+        UUID(v, version=4)
+    except:
+        return False
+    else:
+        return True
 
 
 class UserData(BaseModelWithSetter):

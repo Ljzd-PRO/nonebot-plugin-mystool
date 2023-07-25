@@ -11,8 +11,8 @@ from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
 from .plugin_data import PluginDataManager, write_plugin_data
-from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, uuid4_validate
-from ..mys_goods_tool.user_data import UserData
+from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep
+from .user_data import UserData, uuid4_validate
 
 _conf = PluginDataManager.plugin_data
 _driver = get_driver()
