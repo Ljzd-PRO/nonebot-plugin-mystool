@@ -31,7 +31,6 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     """
     手动游戏签到函数
     """
-    bot = get_bot(str(event.self_id))
     user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
@@ -49,7 +48,6 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     """
     手动米游币任务函数
     """
-    bot = get_bot(str(event.self_id))
     user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
@@ -112,7 +110,6 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     """
     手动查看星穹铁道便笺（sr）
     """
-    bot = get_bot(str(event.self_id))
     user = _conf.users.get(event.get_user_id())
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
