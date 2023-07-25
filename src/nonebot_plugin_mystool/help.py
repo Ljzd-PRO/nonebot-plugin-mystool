@@ -37,10 +37,11 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
     # 只有主命令“帮助”
     else:
         await matcher.finish(
-            PLUGIN.metadata.name +
-            PLUGIN.metadata.description +
-            "\n具体用法：\n" +
-            PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN))
+            f"{PLUGIN.metadata.name}"
+            f"{PLUGIN.metadata.description}\n"
+            "具体用法：\n"
+            f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
+        )
 
 
 @helper.got('content')
