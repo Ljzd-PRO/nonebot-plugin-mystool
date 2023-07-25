@@ -223,6 +223,8 @@ class PluginData(BaseModel):
     """设备信息"""
     good_list_image_config: GoodListImageConfig = GoodListImageConfig()
     """商品列表输出图片设置"""
+    user_bind: Optional[Dict[str, str]] = {}
+    '''不同NoneBot适配器平台的用户数据绑定关系（如QQ聊天和QQ频道）'''
     users: Dict[str, UserData] = {}
     '''所有用户数据'''
 
@@ -230,6 +232,10 @@ class PluginData(BaseModel):
         super().__init__(**data)
         if _new_uuid_in_init:
             write_plugin_data()
+
+        # 完成用户数据绑定同步
+        for src, dst in self.user_bind.items():
+            self.users[src] = self.users[dst]
 
     class Config:
         json_encoders = UserAccount.Config.json_encoders
