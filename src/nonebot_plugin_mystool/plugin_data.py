@@ -15,7 +15,7 @@ from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 from .user_data import UserData, UserAccount
 from . import user_data
 
-VERSION = "v1.1.0"
+VERSION = "v1.2.0-dev"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
