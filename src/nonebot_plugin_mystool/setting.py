@@ -148,7 +148,7 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 @account_setting.got('setting_threshold_arg')
-async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('setting_threshold_arg')):
+async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_threshold_arg')):
     arg = arg.strip()
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
