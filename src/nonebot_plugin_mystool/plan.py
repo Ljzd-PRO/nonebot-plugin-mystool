@@ -5,8 +5,8 @@ import asyncio
 import random
 import threading
 
-from nonebot import get_bot, on_command
-from nonebot.adapters.onebot.v11 import (Bot, MessageSegment)
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import (MessageSegment)
 from nonebot.internal.matcher import Matcher
 from nonebot_plugin_apscheduler import scheduler
 
@@ -15,7 +15,7 @@ from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
-from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent
+from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -410,6 +410,7 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                     has_checked[account.bbs_uid]['transformer'] = True
             msg += "❖实时便笺❖" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
+                   f"\n⏱️树脂{board.resin_recovery_text}" \
                    f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
                    f"\n📅每日委托：{4 - board.finished_task_num} 个任务未完成" \
                    f"\n💰洞天财瓮：{board.current_home_coin} / {board.max_home_coin}" \
@@ -418,7 +419,10 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                 await matcher.send(msg)
             # TODO: 自动执行的情况
             # else:
-            #     await bot.send_private_msg(user_id=int(user_id), message=msg)
+            #     if board.current_resin >= account.user_resin_threshold:
+            #         await bot.send_private_msg(user_id=qq, message=msg)
+            #     else:
+            #         logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
 
 
 async def resin_check_sr(user_id: str, matcher: Matcher = None):
@@ -489,7 +493,7 @@ async def resin_check_sr(user_id: str, matcher: Matcher = None):
                     return
             msg += "❖星穹铁道实时便笺❖" \
                    f"\n⏳开拓力数量：{board.current_stamina} / 180" \
-                   f"\n⏱开拓力将在{board.stamina_recover_text}回满" \
+                   f"\n⏱开拓力{board.stamina_recover_text}" \
                    f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
                    f"\n📅每日委托：{board.accepted_expedition_num} / 4" \
                    f"\n🌌模拟宇宙：{board.current_rogue_score} / {board.max_rogue_score}"
