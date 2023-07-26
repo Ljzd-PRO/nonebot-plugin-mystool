@@ -32,6 +32,7 @@ requests = "^2.31.0"
 nonebot_adapter_onebot = "^2.2.3"
 nonebot-adapter-qqguild = "^0.2.3"
 tenacity = "^8.2.2"
+qrcode = '^7.4.2"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues"

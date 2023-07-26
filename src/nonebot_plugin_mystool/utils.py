@@ -2,6 +2,7 @@
 ### 工具函数
 """
 import hashlib
+import io
 import json
 import random
 import string
@@ -24,6 +25,8 @@ from .plugin_data import PluginDataManager, Preference
 
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent
+
+from qrcode import QRCode
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -290,6 +293,21 @@ def blur_phone(phone: Union[str, int]) -> str:
     if isinstance(phone, int):
         phone = str(phone)
     return f"{phone[:3]}****{phone[-4:]}"
+
+
+def generate_qr_img(data: str):
+    """
+    生成二维码图片
+
+    :param data: 二维码数据
+    """
+    qr_code = QRCode()
+    qr_code.add_data(data)
+    qr_code.make()
+    image = qr_code.make_image()
+    image_bytes = io.BytesIO()
+    image.save(image_bytes)
+    return image_bytes.getvalue()
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
