@@ -4,7 +4,7 @@
 import asyncio
 from uuid import uuid4
 
-from nonebot import get_driver, on_request, on_command
+from nonebot import get_driver, on_request, on_command, get_bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
 from nonebot.adapters.qqguild import Bot as QQGuildBot
 from nonebot.internal.matcher import Matcher
@@ -12,7 +12,8 @@ from nonebot.params import CommandArg, Command
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import uuid4_validate
-from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep
+from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, GeneralGroupMessageEvent, PLUGIN, \
+    send_private_msg
 
 _conf = PluginDataManager.plugin_data
 _driver = get_driver()
@@ -185,3 +186,22 @@ async def _(
                 return
             _conf.do_user_bind(user_id, target_id)
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
+
+
+direct_msg_respond = on_command(
+    f"{_conf.preference.command_start}私聊响应",
+    aliases={f"{_conf.preference.command_start}请求响应"},
+    priority=5,
+    block=True
+)
+direct_msg_respond.name = '私聊响应'
+direct_msg_respond.usage = '让机器人私聊发送给您一条消息，防止因为发送了三条私聊消息而机器人未回复导致无法继续私聊'
+
+
+@direct_msg_respond.handle()
+async def _(event: GeneralGroupMessageEvent):
+    msg_text = f"{PLUGIN.metadata.name}" \
+               f"{PLUGIN.metadata.description}\n" \
+               "具体用法：\n" \
+               f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
+    await send_private_msg(get_bot(str(event.self_id)), user_id=int(event.get_user_id()), message=msg_text)
