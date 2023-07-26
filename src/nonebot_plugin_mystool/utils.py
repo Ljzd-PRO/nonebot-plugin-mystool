@@ -315,17 +315,17 @@ def generate_qr_img(data: str):
 
 
 async def send_private_msg(
-        use: Union[Bot, Adapter, None],
         user_id: str,
         message: Union[str, Message],
+        use: Union[Bot, Adapter] = None,
         guild_id: int = None
 ):
     """
     主动发送私信消息
 
-    :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param user_id: 目标用户ID
     :param message: 消息内容
+    :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
     """
     if isinstance(use, (OnebotV11Bot, QQGuildBot)):
