@@ -204,4 +204,9 @@ async def _(event: GeneralGroupMessageEvent):
                f"{PLUGIN.metadata.description}\n" \
                "具体用法：\n" \
                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
-    await send_private_msg(get_bot(str(event.self_id)), user_id=int(event.get_user_id()), message=msg_text)
+    await send_private_msg(
+        use=get_bot(str(event.self_id)),
+        user_id=event.get_user_id(),
+        message=msg_text,
+        guild_id=event.guild_id
+    )

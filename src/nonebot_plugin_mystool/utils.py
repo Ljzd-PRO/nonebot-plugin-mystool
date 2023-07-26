@@ -9,7 +9,7 @@ import string
 import time
 import uuid
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional)
+                    Union, Optional, List)
 from urllib.parse import urlencode
 
 import httpx
@@ -22,7 +22,9 @@ from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent, \
-    Adapter as QQGuildAdapter, Bot as QQGuildBot
+    Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
+from nonebot.adapters.qqguild.api import Guild
+from nonebot.adapters.qqguild.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 from qrcode import QRCode
@@ -312,13 +314,19 @@ def generate_qr_img(data: str):
     return image_bytes.getvalue()
 
 
-async def send_private_msg(use: Union[Bot, Adapter, None], user_id: int, message: Union[str, Message]):
+async def send_private_msg(
+        use: Union[Bot, Adapter, None],
+        user_id: str,
+        message: Union[str, Message],
+        guild_id: int = None
+):
     """
-    发送私信消息
+    主动发送私信消息
 
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param user_id: 目标用户ID
     :param message: 消息内容
+    :param guild_id: 用户所在频道ID，为None则从用户数据中获取
     """
     if isinstance(use, (OnebotV11Bot, QQGuildBot)):
         bots = [use]
@@ -328,11 +336,58 @@ async def send_private_msg(use: Union[Bot, Adapter, None], user_id: int, message
         bots = nonebot.get_bots().values()
     if isinstance(use, (OnebotV11Bot, OnebotV11Adapter)):
         for bot in bots:
-            await bot.send_private_msg(user_id=user_id, message=message)
+            await bot.send_private_msg(user_id=int(user_id), message=message)
+        return True
     elif isinstance(use, (QQGuildBot, QQGuildAdapter)):
-        for bot in bots:
-            # TODO: QQ频道主动发送私信消息
-            ...
+        message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
+
+        content = message.extract_content() or None
+        if embed := (message["embed"] or None):
+            embed = embed[-1].data["embed"]
+        if ark := (message["ark"] or None):
+            ark = ark[-1].data["ark"]
+        if image := (message["attachment"] or None):
+            image = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            file_image = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
+
+        if guild_id is None:
+            user = _conf.users.get(user_id)
+            if user:
+                if not user.qq_guilds:
+                    logger.warning(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                    return False
+                guild_ids = iter(user.qq_guilds)
+                guild_id = next(guild_ids)
+            else:
+                logger.warning(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                return False
+        else:
+            guild_ids = iter([guild_id])
+
+        while guild_id is not None:
+            try:
+                for bot in bots:
+                    await bot.post_dms_messages(
+                        guild_id=guild_id,  # type: ignore
+                        content=content,
+                        embed=embed,  # type: ignore
+                        ark=ark,  # type: ignore
+                        image=image,  # type: ignore
+                        file_image=file_image,  # type: ignore
+                        markdown=markdown,  # type: ignore
+                        message_reference=reference,  # type: ignore
+                    )
+            except ActionFailed:
+                logger.exception(f"{_conf.preference.log_head}尝试主动发送私信消息失败")
+                guild_id = next(guild_ids, None)
+            else:
+                return True
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
