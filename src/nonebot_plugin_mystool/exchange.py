@@ -16,8 +16,9 @@ from typing import List, Callable, Any, Tuple, Optional, Dict
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_bot
-from nonebot.adapters.onebot.v11 import (MessageSegment)
-from nonebot.adapters.onebot.v11.message import Message
+from nonebot.adapters import Message
+from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, MessageSegment as OnebotV11MessageSegment
+from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.matcher import Matcher
 from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
@@ -299,7 +300,7 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, arg=CommandArg()):
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(_: GeneralMessageEvent, arg=ArgPlainText("content")):
+async def _(event: GeneralMessageEvent, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -328,7 +329,12 @@ async def _(_: GeneralMessageEvent, arg=ArgPlainText("content")):
     if os.path.exists(img_path):
         with open(img_path, 'rb') as f:
             image_bytes = io.BytesIO(f.read())
-        await get_good_image.finish(MessageSegment.image(image_bytes))
+        message_segment = None
+        if isinstance(event, OnebotV11MessageEvent):
+            message_segment = OnebotV11MessageSegment.image(image_bytes)
+        elif isinstance(event, QQGuildMessageEvent):
+            message_segment = QQGuildMessageSegment.file_image(image_bytes)
+        await get_good_image.finish(message_segment)
     else:
         await get_good_image.finish(
             f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
