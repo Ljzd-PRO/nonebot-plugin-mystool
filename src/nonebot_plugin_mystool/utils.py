@@ -383,8 +383,11 @@ async def send_private_msg(
                         message_reference=reference,  # type: ignore
                     )
             except ActionFailed:
-                logger.exception(f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
-                                 f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n{message}")
+                logger.exception(
+                    f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
+                    f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
+                    f"{message}"
+                )
             else:
                 return True
         return False
