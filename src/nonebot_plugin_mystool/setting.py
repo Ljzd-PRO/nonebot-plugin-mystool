@@ -147,6 +147,7 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
+
 @account_setting.got('setting_threshold_arg')
 async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_threshold_arg')):
     arg = arg.strip()
@@ -155,20 +156,21 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_th
     if state["setting_item"] == "threshold":
         if arg == "op":
             await account_setting.send(
-            "请输入想要所需阈值数字："
-            "支持输入[0,180]"
-            "\n\n🚪发送“退出”即可退出"
+                "请输入想要所需阈值数字："
+                "支持输入[0,180]"
+                "\n\n🚪发送“退出”即可退出"
             )
             state["setting_item"] = "op_threshold"
         elif arg == "sr":
             await account_setting.send(
-            "请输入想要所需阈值数字："
-            "支持输入[0,180]"
-            "\n\n🚪发送“退出”即可退出"
+                "请输入想要所需阈值数字："
+                "支持输入[0,180]"
+                "\n\n🚪发送“退出”即可退出"
             )
             state["setting_item"] = "sr_threshold"
         else:
             await account_setting.reject("⚠️您的输入有误，请重新输入")
+
 
 @account_setting.got('setting_arg')
 async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_arg')):
@@ -191,7 +193,7 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_ar
                                              \n   当前提醒阈值：{resin_threshold}")
             else:
                 await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
-    
+
     elif state["setting_item"] == "sr_threshold":
         try:
             stamina_threshold = int(arg)
