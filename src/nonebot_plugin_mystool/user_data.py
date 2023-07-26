@@ -373,6 +373,8 @@ class UserData(BaseModelWithSetter):
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
     """储存一些已绑定的账号数据"""
+
+    # TODO: 需要补充写入环节（新建用户数据时）
     qq_guilds: Optional[Set[int]] = set()
     """储存用户所在的QQ频道ID"""
 
