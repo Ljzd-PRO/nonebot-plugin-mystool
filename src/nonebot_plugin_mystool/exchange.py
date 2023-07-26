@@ -299,12 +299,12 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, arg=CommandArg()):
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(_: GeneralMessageEvent, matcher: Matcher, arg=ArgPlainText("content")):
+async def _(_: GeneralMessageEvent, arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
     if arg == '退出':
-        await matcher.finish('🚪已成功退出')
+        await get_good_image.finish('🚪已成功退出')
     elif arg in ['原神', 'ys']:
         arg = ('hk4e', '原神')
     elif arg in ['崩坏3', '崩坏三', '崩3', '崩三', '崩崩崩', '蹦蹦蹦', 'bh3']:
