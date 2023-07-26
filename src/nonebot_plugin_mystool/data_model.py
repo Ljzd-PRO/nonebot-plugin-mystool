@@ -362,7 +362,7 @@ class GenshinBoard(BaseModel):
     transformer: Optional[Dict[str, Any]]
     """参量质变仪相关数据"""
     resin_recovery_time: int
-    """剩余树脂恢复时间"""    
+    """剩余树脂恢复时间"""
 
     @property
     def transformer_text(self):
@@ -379,7 +379,7 @@ class GenshinBoard(BaseModel):
                        f"{self.transformer['recovery_time']['Hour']} 小时 {self.transformer['recovery_time']['Minute']} 分钟"
         except KeyError:
             return None
-    
+
     @property
     def resin_recovery_text(self):
         """
@@ -396,7 +396,6 @@ class GenshinBoard(BaseModel):
                 return f"将在{recovery_datetime.strftime('%m-%d %H:%M')}回满"
         except KeyError:
             return None
-
 
 
 class StarRailBoard(BaseModel):

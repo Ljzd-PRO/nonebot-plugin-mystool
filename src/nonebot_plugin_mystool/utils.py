@@ -9,7 +9,7 @@ import string
 import time
 import uuid
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional, List)
+                    Union, Optional)
 from urllib.parse import urlencode
 
 import httpx
@@ -23,7 +23,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, P
     Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
-from nonebot.adapters.qqguild.api import Guild, DMS
+from nonebot.adapters.qqguild.api import DMS
 from nonebot.adapters.qqguild.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger

@@ -12,8 +12,8 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
-from .user_data import UserData, UserAccount
 from . import user_data
+from .user_data import UserData, UserAccount
 
 VERSION = "v1.2.0-dev"
 """程序当前版本"""

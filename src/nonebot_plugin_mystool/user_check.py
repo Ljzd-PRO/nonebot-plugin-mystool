@@ -4,7 +4,7 @@
 import asyncio
 from uuid import uuid4
 
-from nonebot import get_driver, on_request, on_command, get_bot, Bot
+from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
 from nonebot.adapters.qqguild import Bot as QQGuildBot
 from nonebot.internal.matcher import Matcher
