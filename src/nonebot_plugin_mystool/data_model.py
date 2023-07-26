@@ -361,6 +361,8 @@ class GenshinBoard(BaseModel):
     """洞天财瓮 最多可容纳宝钱数"""
     transformer: Optional[Dict[str, Any]]
     """参量质变仪相关数据"""
+    resin_recovery_time: int
+    """剩余树脂恢复时间"""    
 
     @property
     def transformer_text(self):
@@ -377,6 +379,24 @@ class GenshinBoard(BaseModel):
                        f"{self.transformer['recovery_time']['Hour']} 小时 {self.transformer['recovery_time']['Minute']} 分钟"
         except KeyError:
             return None
+    
+    @property
+    def resin_recovery_text(self):
+        """
+        剩余树脂恢复文本
+        """
+        try:
+            if not self.resin_recovery_time:
+                return '未获得时间数据'
+            elif self.resin_recovery_time == 0:
+                return '已准备就绪'
+            else:
+                recovery_timestamp = int(time.time()) + self.resin_recovery_time
+                recovery_datetime = datetime.fromtimestamp(recovery_timestamp)
+                return f"将在{recovery_datetime.strftime('%m-%d %H:%M')}回满"
+        except KeyError:
+            return None
+
 
 
 class StarRailBoard(BaseModel):
@@ -411,14 +431,13 @@ class StarRailBoard(BaseModel):
         """
         try:
             if not self.stamina_recover_time:
-                return '体力未获得'
+                return '未获得时间数据'
             elif self.stamina_recover_time == 0:
-                return '体力已准备就绪'
+                return '已准备就绪'
             else:
-                return datetime.fromtimestamp(int(time.time()) + self.stamina_recover_time)
-                # m, s = divmod(self.stamina_recover_time, 60)
-                # h, m = divmod(m, 60) 
-                # return f"{h} 小时 {m} 分钟 {s} 秒"
+                recovery_timestamp = int(time.time()) + self.stamina_recover_time
+                recovery_datetime = datetime.fromtimestamp(recovery_timestamp)
+                return f"将在{recovery_datetime.strftime('%m-%d %H:%M')}回满"
         except KeyError:
             return None
 

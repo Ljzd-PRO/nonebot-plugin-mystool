@@ -81,8 +81,9 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
                     "\n- " + "、".join(map(lambda x: f"『{x.NAME}』", account.mission_games))
     user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}"
-    user_setting += f"\n6️⃣更改崩铁便笺开拓力提醒阈值 \
-                            当前提醒阈值：{account.user_stamina_threshold}"
+    user_setting += f"\n6️⃣更改便笺体力提醒阈值 \
+                      \n   当前原神提醒阈值：{account.user_resin_threshold} \
+                      \n   当前崩铁提醒阈值：{account.user_stamina_threshold}"
     user_setting += "\n7️⃣⚠️删除账户数据"
 
     await account_setting.send(user_setting + '\n\n您要更改哪一项呢？请发送 1 / 2 / 3 / 4 / 5 / 6 / 7'
@@ -132,8 +133,9 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
         await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif arg == '6':
         await account_setting.send(
-            "请输入想要所需阈值数字："
-            "支持输入[0,180]"
+            "请输入想要修改阈值的便笺："
+            "\n-  原神请输入 op"
+            "\n-  崩铁请输入 sr"
             "\n\n🚪发送“退出”即可退出"
         )
         state["setting_item"] = "threshold"
@@ -147,6 +149,28 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
+@account_setting.got('setting_threshold_arg')
+async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('setting_threshold_arg')):
+    arg = arg.strip()
+    if arg == '退出':
+        await account_setting.finish('🚪已成功退出')
+    if state["setting_item"] == "threshold":
+        if arg == "op":
+            await account_setting.send(
+            "请输入想要所需阈值数字："
+            "支持输入[0,180]"
+            "\n\n🚪发送“退出”即可退出"
+        )
+            state["setting_item"] = "op_threshold"
+        elif arg == "sr":
+            await account_setting.send(
+            "请输入想要所需阈值数字："
+            "支持输入[0,180]"
+            "\n\n🚪发送“退出”即可退出"
+        )
+            state["setting_item"] = "sr_threshold"
+        else:
+            await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 @account_setting.got('setting_arg')
 async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, arg=ArgPlainText('setting_arg')):
@@ -155,7 +179,22 @@ async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, ar
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
 
-    if state["setting_item"] == "threshold":
+    if state["setting_item"] == "op_threshold":
+        try:
+            resin_threshold = int(arg)
+        except ValueError:
+            await account_setting.reject("⚠️请输入有效的数字。")
+        else:
+            if 0 <= resin_threshold <= 180:
+                # 输入有效的数字范围，将 resin_threshold 赋值为输入的整数
+                account.user_resin_threshold = resin_threshold
+                write_plugin_data()
+                await account_setting.finish(f"更改原神便笺树脂提醒阈值成功 \
+                                             \n   当前提醒阈值：{resin_threshold}")
+            else:
+                await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+    
+    elif state["setting_item"] == "sr_threshold":
         try:
             stamina_threshold = int(arg)
         except ValueError:
@@ -165,7 +204,8 @@ async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, ar
                 # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
                 account.user_stamina_threshold = stamina_threshold
                 write_plugin_data()
-                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功，当前提醒阈值：{stamina_threshold}")
+                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功 \
+                                             \n   当前提醒阈值：{stamina_threshold}")
             else:
                 await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
 

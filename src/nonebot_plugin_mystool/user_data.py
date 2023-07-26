@@ -230,6 +230,8 @@ class UserAccount(BaseModelWithSetter):
     '''在哪些板块执行米游币任务计划'''
     user_stamina_threshold: Optional[int] = 0
     '''崩铁便笺体力提醒阈值，0为一直提醒'''
+    user_resin_threshold: Optional[int] = 0
+    '''原神便笺树脂提醒阈值，0为一直提醒'''
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
