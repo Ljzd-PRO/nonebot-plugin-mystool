@@ -23,7 +23,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, P
     Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
-from nonebot.adapters.qqguild.api import Guild
+from nonebot.adapters.qqguild.api import Guild, DMS
 from nonebot.adapters.qqguild.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
@@ -371,9 +371,9 @@ async def send_private_msg(
         while (guild_id := next(guild_ids, None)) is not None:
             try:
                 for bot in bots:
-                    await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
+                    dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
                     await bot.post_dms_messages(
-                        guild_id=guild_id,  # type: ignore
+                        guild_id=dms.guild_id,  # type: ignore
                         content=content,
                         embed=embed,  # type: ignore
                         ark=ark,  # type: ignore
