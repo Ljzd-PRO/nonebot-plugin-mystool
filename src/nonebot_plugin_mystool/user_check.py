@@ -4,7 +4,7 @@
 import asyncio
 from uuid import uuid4
 
-from nonebot import get_driver, on_request, on_command, get_bot
+from nonebot import get_driver, on_request, on_command, get_bot, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
 from nonebot.adapters.qqguild import Bot as QQGuildBot
 from nonebot.internal.matcher import Matcher
@@ -199,13 +199,13 @@ direct_msg_respond.usage = '让机器人私聊发送给您一条消息，防止�
 
 
 @direct_msg_respond.handle()
-async def _(event: GeneralGroupMessageEvent):
+async def _(bot: Bot, event: GeneralGroupMessageEvent):
     msg_text = f"{PLUGIN.metadata.name}" \
                f"{PLUGIN.metadata.description}\n" \
                "具体用法：\n" \
                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
     await send_private_msg(
-        use=get_bot(str(event.self_id)),
+        use=bot,
         user_id=event.get_user_id(),
         message=msg_text,
         guild_id=event.guild_id
