@@ -9,7 +9,7 @@ import string
 import time
 import uuid
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional)
+                    Union, Optional, Type)
 from urllib.parse import urlencode
 
 import httpx
@@ -17,14 +17,16 @@ import nonebot
 import nonebot.log
 import nonebot.plugin
 import tenacity
+from nonebot import Adapter, Bot
+from nonebot.adapters import Message
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager, Preference
 
-from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent
-from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent
+from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
+from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent, Adapter as QQGuildAdapter, Bot as QQGuildBot
 
 from qrcode import QRCode
 
@@ -308,6 +310,31 @@ def generate_qr_img(data: str):
     image_bytes = io.BytesIO()
     image.save(image_bytes)
     return image_bytes.getvalue()
+
+
+async def send_private_msg(use: Union[Bot, Adapter], user_id: int, message: Union[str, Message]):
+    """
+    发送私信消息
+
+    :param use: 使用的Bot或Adapter
+    :param user_id: 目标用户ID
+    :param message: 消息内容
+    """
+    if isinstance(use, (OnebotV11Bot, OnebotV11Adapter)):
+        if isinstance(use, OnebotV11Bot):
+            bots = [use]
+        else:
+            bots = use.bots.values()
+        for bot in bots:
+            await bot.send_private_msg(user_id=user_id, message=message)
+    elif isinstance(use, (QQGuildBot, QQGuildAdapter)):
+        if isinstance(use, QQGuildBot):
+            bots = [use]
+        else:
+            bots = use.bots.values()
+        for bot in bots:
+            # TODO: QQ频道主动发送私信消息
+            ...
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
