@@ -15,6 +15,15 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.7.27 - v1.2.0
+- 增加对QQ频道的支持
+  > 说明文档：[🔗QQ频道]()
+- 增加用户数据绑定关联功能（如QQ频道账号与QQ聊天账号的数据绑定）
+  > 说明文档：[🔗用户绑定]()
+- 增加原神便笺树脂提醒阙值的设置选项
+  > 说明文档：[🔗账号设置]()
+- 修复 `preference.override_device_and_salt` 关闭无效的问题
+
 ### 2023.7.23 - v1.1.0
 - 增加崩坏：星穹铁道的便笺功能 #140 #143 by @Joseandluue @RemiDre
     > 说明文档：[🔗星穹铁道实时便笺](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Information-StarRailStatus)
@@ -24,8 +33,8 @@
 - 修复商品兑换API #110
 - 不在好友列表的用户数据在删除前将进行备份 #129
     > 备份目录：`data/nonebot_plugin_mystool/deletedUsers`
-- 防止因插件数据文件中默认存在 device_config, salt_config 而导致更新后默认配置被原配置覆盖的问题
-- 若需要修改 device_config 配置，修改后还设置插件数据文件中 preference.override_device_and_salt 为 true 以覆盖默认值
+- 防止因插件数据文件中默认存在 `device_config`, `salt_config` 而导致更新后默认配置被原配置覆盖的问题
+- 若需要修改 `device_config` 配置，修改后还设置插件数据文件中 `preference.override_device_and_salt` 为 true 以覆盖默认值
     > 说明文档：
     > - [🔗网络请求设备信息 `class DeviceConfig`](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-DeviceConfig)
     > - [🔗override_device_and_salt](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#override_device_and_salt)
@@ -33,11 +42,6 @@
 - 在兑换开始后的一段时间内不断尝试兑换，直到成功 #110
 - 兑换开始后将不会延迟兑换，用户数据文件中 `preference.exchange_latency` 将作为同一线程下每个兑换请求之间的时间间隔 #110
 - 兑换请求日志内容增加了发送请求时的时间戳
-
-### 2023.6.23 - v1.0.1
-- 修复无法导出Cookies的问题
-- 修复因缺少参量质变仪数据而导致不断提醒的Bug
-- 修复账号设置中游戏签到开启/关闭状态实际对应的是米游币任务的Bug #121 by @xxtg666
 
 ## 功能和特性
 
