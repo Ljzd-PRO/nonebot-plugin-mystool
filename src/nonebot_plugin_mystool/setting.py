@@ -160,14 +160,14 @@ async def _(_: Union[PrivateMessageEvent, GroupMessageEvent], state: T_State, ar
             "请输入想要所需阈值数字："
             "支持输入[0,180]"
             "\n\n🚪发送“退出”即可退出"
-        )
+            )
             state["setting_item"] = "op_threshold"
         elif arg == "sr":
             await account_setting.send(
             "请输入想要所需阈值数字："
             "支持输入[0,180]"
             "\n\n🚪发送“退出”即可退出"
-        )
+            )
             state["setting_item"] = "sr_threshold"
         else:
             await account_setting.reject("⚠️您的输入有误，请重新输入")
