@@ -29,7 +29,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp, \
     good_exchange
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent
+from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, send_private_msg
 
 _conf = PluginDataManager.plugin_data
 _driver = nonebot.get_driver()
@@ -344,7 +344,6 @@ lock = threading.Lock()
 finished: Dict[ExchangePlan, List[bool]] = {}
 
 
-# TODO: bot.send_private_msg 需要适配QQ频道
 @lambda func: scheduler.add_listener(func, EVENT_JOB_EXECUTED)
 def exchange_notice(event: JobExecutionEvent):
     """
@@ -367,7 +366,8 @@ def exchange_notice(event: JobExecutionEvent):
             with lock:
                 finished[plan].append(False)
                 loop.create_task(
-                    bot.send_private_msg(
+                    send_private_msg(
+                        use=bot,
                         user_id=user_id,
                         message=f"⚠️账户 {plan.account.bbs_uid}"
                                 f"\n- {plan.good.general_name}"
@@ -389,7 +389,8 @@ def exchange_notice(event: JobExecutionEvent):
                     if exchange_result.result:
                         finished[plan].append(True)
                         loop.create_task(
-                            bot.send_private_msg(
+                            send_private_msg(
+                                use=bot,
                                 user_id=user_id,
                                 message=f"🎉账户 {plan.account.bbs_uid}"
                                         f"\n- {plan.good.general_name}"
@@ -400,7 +401,8 @@ def exchange_notice(event: JobExecutionEvent):
                     else:
                         finished[plan].append(False)
                         loop.create_task(
-                            bot.send_private_msg(
+                            send_private_msg(
+                                use=bot,
                                 user_id=user_id,
                                 message=f"💦账户 {plan.account.bbs_uid}"
                                         f"\n- {plan.good.general_name}"
