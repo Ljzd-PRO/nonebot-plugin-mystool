@@ -21,14 +21,14 @@ _driver = get_driver()
 @_driver.on_bot_connect
 async def check_qqguild_config(bot: QQGuildBot):
     """
-    检查QQGuild适配器是否开启了私聊功能 Intents.direct_message
+    检查QQGuild适配器是否开启了私信功能 Intents.direct_message
 
     :param bot: QQGuild的Bot对象
     """
     if isinstance(bot, QQGuildBot):
         if not bot.bot_info.intent.direct_message:
             logger.warning(
-                f'{_conf.preference.log_head}QQGuild适配器未开启私聊功能 Intents.direct_message，将无法响应私聊消息')
+                f'{_conf.preference.log_head}QQGuild适配器未开启私信功能 Intents.direct_message，将无法响应私信消息')
 
 
 friendRequest = on_request(priority=1, block=True)
