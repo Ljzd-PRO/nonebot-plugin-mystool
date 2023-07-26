@@ -15,11 +15,9 @@ from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
-from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent
+from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg
 
 _conf = PluginDataManager.plugin_data
-
-# TODO: bot.send_private_msg 仍需适配QQ频道
 
 manually_game_sign = on_command(_conf.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
@@ -135,10 +133,11 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
         if not game_record_status:
             if matcher:
                 await matcher.send(f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
-            # TODO: 自动执行的情况
-            # else:
-            #     await bot.send_private_msg(user_id=int(user_id),
-            #                                message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
+            else:
+                await send_private_msg(
+                    user_id=user_id,
+                    message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试"
+                )
             continue
         games_has_record = []
         for class_type in BaseGameSign.AVAILABLE_GAME_SIGNS:
@@ -151,9 +150,11 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
             if not get_info_status:
                 if matcher:
                     await matcher.send(f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
-                # TODO: 自动执行的情况
-                # else:
-                #     await bot.send_private_msg(user_id=int(user_id), message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
+                else:
+                    await send_private_msg(
+                        user_id=user_id,
+                        message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败"
+                    )
             else:
                 signed = info.is_sign
 
@@ -164,12 +165,11 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
                         account.platform,
                         lambda: matcher.send(f"⏳正在尝试完成人机验证，请稍后...")
                     )
-                # TODO: 自动执行的情况
-                # else:
-                #     sign_status = await signer.sign(
-                #         account.platform,
-                #         lambda: bot.send_private_msg(user_id=int(user_id), message=f"⏳正在尝试完成人机验证，请稍后...")
-                #     )
+                else:
+                    sign_status = await signer.sign(
+                        account.platform,
+                        lambda: send_private_msg(user_id=user_id, message=f"⏳正在尝试完成人机验证，请稍后...")
+                    )
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
@@ -179,9 +179,8 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败，请稍后再试"
                     if matcher:
                         await matcher.send(message)
-                    # TODO: 自动执行的情况
-                    # elif user.enable_notice:
-                    #     await bot.send_msg(message_type="private", user_id=int(user_id), message=message)
+                    elif user.enable_notice:
+                        await send_private_msg(user_id=user_id, message=message)
                     await asyncio.sleep(_conf.preference.sleep_time)
                     continue
 
@@ -211,21 +210,16 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if matcher:
                     await matcher.send(msg + img)
-                # TODO: 自动执行的情况
-                # else:
-                #     await bot.send_msg(message_type="private", user_id=int(user_id), message=msg + img)
+                else:
+                    await send_private_msg(user_id=user_id, message=msg + img)
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
             if matcher:
                 await matcher.send(f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到")
-            # TODO: 自动执行的情况
-            # else:
-            #     await bot.send_msg(
-            #         message_type="private",
-            #         user_id=int(user_id),
-            #         message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到"
-            #     )
+            else:
+                await send_private_msg(user_id=user_id,
+                                       message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到")
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
@@ -253,16 +247,14 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                 if missions_state_status.login_expired:
                     if matcher:
                         await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                    # TODO: 自动执行的情况
-                    # else:
-                    #     await bot.send_private_msg(user_id=int(user_id), message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    else:
+                        await send_private_msg(user_id=user_id, message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                     continue
                 if matcher:
                     await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                # TODO: 自动执行的情况
-                # else:
-                #     await bot.send_private_msg(user_id=int(user_id),
-                #                                message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+                else:
+                    await send_private_msg(user_id=user_id,
+                                           message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 continue
 
             myb_before_mission = missions_state.current_myb
@@ -289,17 +281,15 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                     if missions_state_status.login_expired:
                         if matcher:
                             await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                        # TODO: 自动执行的情况
-                        # else:
-                        #     await bot.send_private_msg(user_id=int(user_id),
-                        #                                message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        else:
+                            await send_private_msg(user_id=user_id,
+                                                   message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
                         continue
                     if matcher:
                         await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                    # TODO: 自动执行的情况
-                    # else:
-                    #     await bot.send_private_msg(user_id=int(user_id),
-                    #                                message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+                    else:
+                        await send_private_msg(user_id=user_id,
+                                               message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                     continue
                 if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.values())):
                     notice_string = f"🎉已完成今日米游币任务 - 分区『{class_type.NAME}』"
@@ -326,13 +316,8 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
 
                 if matcher:
                     await matcher.send(msg)
-                # TODO: 自动执行的情况
-                # else:
-                #     await bot.send_msg(
-                #         message_type="private",
-                #         user_id=int(user_id),
-                #         message=msg
-                #     )
+                else:
+                    await send_private_msg(user_id=user_id, message=msg)
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
@@ -417,12 +402,11 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                    f"\n🎰参量质变仪：{board.transformer_text if board.transformer else 'N/A'}"
             if matcher:
                 await matcher.send(msg)
-            # TODO: 自动执行的情况
-            # else:
-            #     if board.current_resin >= account.user_resin_threshold:
-            #         await bot.send_private_msg(user_id=qq, message=msg)
-            #     else:
-            #         logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
+            else:
+                if board.current_resin >= account.user_resin_threshold:
+                    await send_private_msg(user_id=user_id, message=msg)
+                else:
+                    logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
 
 
 async def resin_check_sr(user_id: str, matcher: Matcher = None):
@@ -500,12 +484,11 @@ async def resin_check_sr(user_id: str, matcher: Matcher = None):
 
             if matcher:
                 await matcher.send(msg)
-            # TODO: 自动执行的情况
-            # else:
-            #     if board.current_stamina >= account.user_stamina_threshold:
-            #         await bot.send_private_msg(user_id=int(user_id), message=msg)
-            #     else:
-            #         logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
+            else:
+                if board.current_stamina >= account.user_stamina_threshold:
+                    await send_private_msg(user_id=user_id, message=msg)
+                else:
+                    logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
