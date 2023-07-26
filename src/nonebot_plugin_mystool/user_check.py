@@ -5,8 +5,8 @@ import asyncio
 from uuid import uuid4
 
 from nonebot import get_driver, on_request, on_command
-from nonebot.adapters.onebot.v11 import (Bot, FriendRequestEvent,
-                                         GroupRequestEvent, RequestEvent)
+from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
+from nonebot.adapters.qqguild import Bot as QQGuildBot
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
@@ -16,11 +16,26 @@ from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_
 
 _conf = PluginDataManager.plugin_data
 _driver = get_driver()
+
+
+@_driver.on_bot_connect
+async def check_qqguild_config(bot: QQGuildBot):
+    """
+    检查QQGuild适配器是否开启了私聊功能 Intents.direct_message
+
+    :param bot: QQGuild的Bot对象
+    """
+    if isinstance(bot, QQGuildBot):
+        if not bot.bot_info.intent.direct_message:
+            logger.warning(
+                f'{_conf.preference.log_head}QQGuild适配器未开启私聊功能 Intents.direct_message，将无法响应私聊消息')
+
+
 friendRequest = on_request(priority=1, block=True)
 
 
 @friendRequest.handle()
-async def _(bot: Bot, event: RequestEvent):
+async def _(bot: OneBotV11Bot, event: RequestEvent):
     command_start = list(get_driver().config.command_start)[0]
     # 判断为加好友事件
     if isinstance(event, FriendRequestEvent):
