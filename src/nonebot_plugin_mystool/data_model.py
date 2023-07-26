@@ -387,7 +387,7 @@ class GenshinBoard(BaseModel):
         """
         try:
             if not self.resin_recovery_time:
-                return '未获得时间数据'
+                return ':未获得时间数据'
             elif self.resin_recovery_time == 0:
                 return '已准备就绪'
             else:
@@ -431,7 +431,7 @@ class StarRailBoard(BaseModel):
         """
         try:
             if not self.stamina_recover_time:
-                return '未获得时间数据'
+                return ':未获得时间数据'
             elif self.stamina_recover_time == 0:
                 return '已准备就绪'
             else:
