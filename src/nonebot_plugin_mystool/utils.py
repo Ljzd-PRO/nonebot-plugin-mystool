@@ -357,22 +357,21 @@ async def send_private_msg(
             reference = reference[-1].data["reference"]
 
         if guild_id is None:
-            user = _conf.users.get(user_id)
-            if user:
+            if user := _conf.users.get(user_id):
                 if not user.qq_guilds:
                     logger.warning(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
                     return False
                 guild_ids = iter(user.qq_guilds)
-                guild_id = next(guild_ids)
             else:
                 logger.warning(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
                 return False
         else:
             guild_ids = iter([guild_id])
 
-        while guild_id is not None:
+        while (guild_id := next(guild_ids, None)) is not None:
             try:
                 for bot in bots:
+                    await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
                     await bot.post_dms_messages(
                         guild_id=guild_id,  # type: ignore
                         content=content,
@@ -384,10 +383,11 @@ async def send_private_msg(
                         message_reference=reference,  # type: ignore
                     )
             except ActionFailed:
-                logger.exception(f"{_conf.preference.log_head}尝试主动发送私信消息失败")
-                guild_id = next(guild_ids, None)
+                logger.exception(f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
+                                 f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n{message}")
             else:
                 return True
+        return False
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
