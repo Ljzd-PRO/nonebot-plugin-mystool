@@ -4,8 +4,9 @@
 import json
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
-from nonebot.adapters.qqguild import MessageCreateEvent
+from nonebot.adapters import Message
+from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, \
+    MessageSegment as QQGuildMessageSegment
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
@@ -14,7 +15,8 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
 from .user_data import UserAccount, UserData
-from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
+from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
+    generate_qr_img
 
 _conf = PluginDataManager.plugin_data
 
@@ -29,13 +31,19 @@ async def handle_first_receive(event: GeneralMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
     user_num = len(_conf.users)
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
-        await get_cookie.send("""\
-        登录过程概览：\
-        \n1.发送手机号\
-        \n2.前往 https://user.mihoyo.com/#/login/captcha，输入手机号并获取验证码（网页上不要登录）\
-        \n3.发送验证码给QQ机器人，完成登录\
-        \n🚪过程中发送“退出”即可退出\
-            """.strip())
+        # QQ频道可能无法发送链接，需要发送二维码
+        login_url = "https://user.mihoyo.com/#/login/captcha"
+        msg_text = "登录过程概览：\n" \
+                   "1.发送手机号\n" \
+                   "2.扫描二维码，进入米哈游官方登录页，输入手机号并获取验证码（网页上不要登录）\n" \
+                   if isinstance(event, QQGuildMessageEvent) else \
+                   f"2.前往 {login_url}，输入手机号并获取验证码（网页上不要登录）\n" \
+                   "3.发送验证码给QQ机器人，完成登录\n" \
+                   "🚪过程中发送“退出”即可退出"
+        msg = Message(msg_text)
+        if isinstance(event, QQGuildMessageEvent):
+            msg += QQGuildMessageSegment.file_image(generate_qr_img(login_url))
+        await get_cookie.send(msg)
     else:
         await get_cookie.finish('⚠️目前可支持使用用户数已经满啦~')
 
