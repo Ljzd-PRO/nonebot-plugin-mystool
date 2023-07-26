@@ -189,13 +189,16 @@ async def _(
 
 
 direct_msg_respond = on_command(
-    f"{_conf.preference.command_start}私聊响应",
-    aliases={f"{_conf.preference.command_start}请求响应"},
+    f"{_conf.preference.command_start}私信响应",
+    aliases={
+        f"{_conf.preference.command_start}私聊响应",
+        f"{_conf.preference.command_start}请求响应"
+    },
     priority=5,
     block=True
 )
-direct_msg_respond.name = '私聊响应'
-direct_msg_respond.usage = '让机器人私聊发送给您一条消息，防止因为发送了三条私聊消息而机器人未回复导致无法继续私聊'
+direct_msg_respond.name = '私信响应'
+direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止因为发送了三条私信消息而机器人未回复导致无法继续私信'
 
 
 @direct_msg_respond.handle()
