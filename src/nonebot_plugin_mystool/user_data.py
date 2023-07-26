@@ -378,6 +378,8 @@ class UserData(BaseModelWithSetter):
     def uuid_validator(cls, v):
         """
         验证UUID是否为合法的UUIDv4
+
+        :raises ValueError: UUID格式错误，不是合法的UUIDv4
         """
         if v is None and not uuid4_validate(v):
             raise ValueError("UUID格式错误，不是合法的UUIDv4")
