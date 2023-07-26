@@ -15,7 +15,7 @@ from typing import List, Callable, Any, Tuple, Optional, Dict
 
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
-from nonebot import on_command, get_bot
+from nonebot import on_command
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, MessageSegment as OnebotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
@@ -350,7 +350,6 @@ def exchange_notice(event: JobExecutionEvent):
     接收兑换结果
     """
     if event.job_id.startswith("exchange-plan"):
-        bot = get_bot()
         loop = asyncio.get_event_loop()
 
         thread_id = int(event.job_id.split('-')[-1]) + 1
@@ -367,7 +366,6 @@ def exchange_notice(event: JobExecutionEvent):
                 finished[plan].append(False)
                 loop.create_task(
                     send_private_msg(
-                        use=bot,
                         user_id=user_id,
                         message=f"⚠️账户 {plan.account.bbs_uid}"
                                 f"\n- {plan.good.general_name}"
@@ -390,7 +388,6 @@ def exchange_notice(event: JobExecutionEvent):
                         finished[plan].append(True)
                         loop.create_task(
                             send_private_msg(
-                                use=bot,
                                 user_id=user_id,
                                 message=f"🎉账户 {plan.account.bbs_uid}"
                                         f"\n- {plan.good.general_name}"
@@ -402,7 +399,6 @@ def exchange_notice(event: JobExecutionEvent):
                         finished[plan].append(False)
                         loop.create_task(
                             send_private_msg(
-                                use=bot,
                                 user_id=user_id,
                                 message=f"💦账户 {plan.account.bbs_uid}"
                                         f"\n- {plan.good.general_name}"
