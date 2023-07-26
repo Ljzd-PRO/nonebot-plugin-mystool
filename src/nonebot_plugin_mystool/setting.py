@@ -3,7 +3,7 @@
 """
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11.message import Message
+from nonebot.adapters import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, T_State
 
