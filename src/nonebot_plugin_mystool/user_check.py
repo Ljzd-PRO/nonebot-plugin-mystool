@@ -185,6 +185,9 @@ async def _(
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
                 return
             _conf.do_user_bind(user_id, target_id)
+            user = _conf.users[user_id]
+            user.qq_guilds.setdefault(user_id, set())
+            user.qq_guilds[user_id].add(event.channel_id)
             write_plugin_data()
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
 
