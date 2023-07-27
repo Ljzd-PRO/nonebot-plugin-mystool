@@ -132,9 +132,7 @@ async def _(
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    if x := state.get("bbs_uid"):
-        bbs_uid = x
-    elif bbs_uid == '退出':
+    if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
     user_account = _conf.users[event.get_user_id()].accounts
     if bbs_uid in user_account:
@@ -243,9 +241,7 @@ async def _(
     good: Good = state['good']
     if good.is_virtual:
         records: List[GameRecord] = state['records']
-        if x := state.get("game_uid"):
-            game_uid = x
-        elif game_uid == '退出':
+        if game_uid == '退出':
             await matcher.finish('🚪已成功退出')
         record_filter = filter(lambda x: x.game_role_id == game_uid, records)
         record = next(record_filter, None)

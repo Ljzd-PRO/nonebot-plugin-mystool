@@ -193,9 +193,7 @@ async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State,
     """
     根据手机号设置导出相应的账户的Cookies
     """
-    if x := state.get("bbs_uid"):
-        bbs_uid = x
-    elif bbs_uid == '退出':
+    if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
     user_account = _conf.users[event.get_user_id()].accounts
     if bbs_uid in user_account:

@@ -42,9 +42,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 @address_matcher.got('bbs_uid')
 async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgPlainText()):
-    if x := state.get("bbs_uid"):
-        bbs_uid = x
-    elif bbs_uid == '退出':
+    if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.user_id].accounts
