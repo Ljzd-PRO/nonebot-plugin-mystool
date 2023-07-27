@@ -183,7 +183,6 @@ async def _(
             # 若为实物商品，也进入下一步骤，但是传入uid为None
             if good.is_virtual:
                 game_records_status, records = await get_game_record(account)
-
                 if game_records_status:
                     if len(records) == 0:
                         state['uid'] = records[0].game_role_id
@@ -200,6 +199,8 @@ async def _(
                         else:
                             await matcher.finish(
                                 f"您的米游社账户下还没有绑定游戏账号哦，暂时不能进行兑换，请先前往米游社绑定后重试")
+                else:
+                    await matcher.finish('⚠️获取游戏账号列表失败，无法继续')
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
