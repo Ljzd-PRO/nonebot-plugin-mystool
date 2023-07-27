@@ -304,6 +304,9 @@ def generate_qr_img(data: str):
     生成二维码图片
 
     :param data: 二维码数据
+
+    >>> b = generate_qr_img("https://github.com/Ljzd-PRO/nonebot-plugin-mystool")
+    >>> isinstance(b, bytes)
     """
     qr_code = QRCode()
     qr_code.add_data(data)
