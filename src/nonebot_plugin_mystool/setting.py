@@ -92,7 +92,6 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
     """
     根据所选更改相应账户的相应设置
     """
-    arg = arg.strip()
     account: UserAccount = state['account']
     user_account = _conf.users[event.get_user_id()].accounts
     if arg == '退出':
@@ -130,12 +129,12 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif arg == '6':
         await account_setting.send(
-            "请输入想要修改阈值的便笺："
-            "\n-  原神请输入 op"
-            "\n-  崩铁请输入 sr"
+            "请发送想要修改体力提醒阈值的游戏编号："
+            "\n1. 原神"
+            "\n2. 崩坏：星穹铁道"
             "\n\n🚪发送“退出”即可退出"
         )
-        state["setting_item"] = "threshold"
+        state["setting_item"] = "notice_value"
     elif arg == '7':
         state["prepare_to_delete"] = True
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
@@ -147,53 +146,51 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('setting_threshold_arg')
-async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_threshold_arg')):
-    arg = arg.strip()
+@account_setting.got('setting_notice_value_arg')
+async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
-    if state["setting_item"] == "threshold":
-        if arg == "op":
+    if state["setting_item"] == "notice_value":
+        if arg == "1":
             await account_setting.send(
-                "请输入想要所需阈值数字："
-                "支持输入[0,180]"
+                "请输入想要所需通知阈值，树脂达到该值时将进行通知："
+                "可用范围 [0, 160]"
                 "\n\n🚪发送“退出”即可退出"
             )
-            state["setting_item"] = "op_threshold"
-        elif arg == "sr":
+            state["setting_item"] = "notice_value_op"
+        elif arg == "2":
             await account_setting.send(
-                "请输入想要所需阈值数字："
-                "支持输入[0,180]"
+                "请输入想要所需阈值数字，开拓力达到该值时将进行通知："
+                "可用范围 [0, 180]"
                 "\n\n🚪发送“退出”即可退出"
             )
-            state["setting_item"] = "sr_threshold"
+            state["setting_item"] = "notice_value_sr"
         else:
             await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('setting_arg')
-async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_arg')):
-    arg = arg.strip()
+@account_setting.got('enter_notice_value_arg')
+async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
     if arg == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
 
-    if state["setting_item"] == "op_threshold":
+    if state["setting_item"] == "notice_value_op":
         try:
             resin_threshold = int(arg)
         except ValueError:
             await account_setting.reject("⚠️请输入有效的数字。")
         else:
-            if 0 <= resin_threshold <= 180:
+            if 0 <= resin_threshold <= 160:
                 # 输入有效的数字范围，将 resin_threshold 赋值为输入的整数
                 account.user_resin_threshold = resin_threshold
                 write_plugin_data()
-                await account_setting.finish(f"更改原神便笺树脂提醒阈值成功 \
-                                             \n   当前提醒阈值：{resin_threshold}")
+                await account_setting.finish(f"更改原神便笺树脂提醒阈值成功\n"
+                                             f"⏰当前提醒阈值：{resin_threshold}")
             else:
-                await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+                await account_setting.reject("⚠️输入的数字范围应在 0 到 160 之间。")
 
-    elif state["setting_item"] == "sr_threshold":
+    elif state["setting_item"] == "notice_value_sr":
         try:
             stamina_threshold = int(arg)
         except ValueError:
@@ -203,8 +200,8 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText('setting_ar
                 # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
                 account.user_stamina_threshold = stamina_threshold
                 write_plugin_data()
-                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功 \
-                                             \n   当前提醒阈值：{stamina_threshold}")
+                await account_setting.finish(f"更改崩铁便笺开拓力提醒阈值成功\n"
+                                             f"⏰当前提醒阈值：{stamina_threshold}")
             else:
                 await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
 
