@@ -364,6 +364,8 @@ def uuid4_validate(v):
 class UserData(BaseModelWithSetter):
     """
     用户数据类
+
+    >>> _ = UserData()
     """
     enable_notice: bool = True
     """是否开启通知"""
