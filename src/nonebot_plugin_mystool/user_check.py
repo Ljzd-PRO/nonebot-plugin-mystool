@@ -185,6 +185,7 @@ async def _(
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
                 return
             _conf.do_user_bind(user_id, target_id)
+            write_plugin_data()
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
 
 
