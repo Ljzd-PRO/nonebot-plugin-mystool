@@ -358,10 +358,10 @@ async def send_private_msg(
 
         if guild_id is None:
             if user := _conf.users.get(user_id):
-                if not user.qq_guilds:
+                if not (guilds := user.qq_guilds.get(user_id)):
                     logger.warning(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
                     return False
-                guild_ids = iter(user.qq_guilds)
+                guild_ids = iter(guilds)
             else:
                 logger.warning(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
                 return False
