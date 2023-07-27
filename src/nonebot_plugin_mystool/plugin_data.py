@@ -229,12 +229,14 @@ class PluginData(BaseModel):
     users: Dict[str, UserData] = {}
     '''所有用户数据'''
 
-    def do_user_bind(self, src: str = None, dst: str = None):
+    def do_user_bind(self, src: str = None, dst: str = None, write: bool = False):
         """
         执行用户数据绑定同步，将src指向dst的用户数据，即src处的数据将会被dst处的数据对象替换
 
         :param src: 源用户数据，为空则读取 self.user_bind 并执行全部绑定
         :param dst: 目标用户数据，为空则读取 self.user_bind 并执行全部绑定
+        :param write: 是否写入插件数据文件
+        :return: 执行是否成功
         """
         if None in [src, dst]:
             for src, dst in self.user_bind.items():
@@ -242,17 +244,24 @@ class PluginData(BaseModel):
                     self.users[src] = self.users[dst]
                 except KeyError:
                     logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
+                    return False
+                else:
+                    return True
         else:
             try:
                 self.user_bind[src] = dst
                 self.users[src] = self.users[dst]
             except KeyError:
                 logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
+                return False
+            else:
+                if write:
+                    write_plugin_data()
+                return True
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        self.do_user_bind()
-        write_plugin_data()
+        self.do_user_bind(write=True)
 
     class Config:
         json_encoders = UserAccount.Config.json_encoders
