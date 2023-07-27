@@ -52,19 +52,19 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @account_setting.got('bbs_uid')
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText()):
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgPlainText()):
     """
     根据手机号设置相应的账户
     """
     if x := state.get("bbs_uid"):
-        uid = x
-    elif uid == '退出':
+        bbs_uid = x
+    elif bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.get_user_id()].accounts
-    if uid not in user_account:
+    if bbs_uid not in user_account:
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
-    account = user_account[uid]
+    account = user_account[bbs_uid]
     state['account'] = account
     state["prepare_to_delete"] = False
 
@@ -87,24 +87,24 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, uid=Ar
                                               '\n🚪发送“退出”即可退出')
 
 
-@account_setting.got('arg')
-async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg')):
+@account_setting.got('setting_id')
+async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgPlainText()):
     """
     根据所选更改相应账户的相应设置
     """
     account: UserAccount = state['account']
     user_account = _conf.users[event.get_user_id()].accounts
-    if arg == '退出':
+    if setting_id == '退出':
         await account_setting.finish('🚪已成功退出')
-    elif arg == '1':
+    elif setting_id == '1':
         account.enable_mission = not account.enable_mission
         write_plugin_data()
         await account_setting.finish(f"📅米游币任务自动执行已 {'✅开启' if account.enable_mission else '❌关闭'}")
-    elif arg == '2':
+    elif setting_id == '2':
         account.enable_game_sign = not account.enable_game_sign
         write_plugin_data()
         await account_setting.finish(f"📅米哈游游戏自动签到已 {'✅开启' if account.enable_game_sign else '❌关闭'}")
-    elif arg == '3':
+    elif setting_id == '3':
         if account.platform == "ios":
             account.platform = "android"
             platform_show = "安卓"
@@ -113,7 +113,7 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
             platform_show = "iOS"
         write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
-    elif arg == '4':
+    elif setting_id == '4':
         games_show = "、".join(map(lambda x: f"『{x.NAME}』", BaseMission.AVAILABLE_GAMES))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道："
@@ -123,11 +123,11 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
             "\n\n🚪发送“退出”即可退出"
         )
         state["setting_item"] = "mission_games"
-    elif arg == '5':
+    elif setting_id == '5':
         account.enable_resin = not account.enable_resin
         write_plugin_data()
         await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
-    elif arg == '6':
+    elif setting_id == '6':
         await account_setting.send(
             "请发送想要修改体力提醒阈值的游戏编号："
             "\n1. 原神"
@@ -135,10 +135,10 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
             "\n\n🚪发送“退出”即可退出"
         )
         state["setting_item"] = "notice_value"
-    elif arg == '7':
+    elif setting_id == '7':
         state["prepare_to_delete"] = True
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
-    elif arg == '确认删除' and state["prepare_to_delete"]:
+    elif setting_id == '确认删除' and state["prepare_to_delete"]:
         user_account.pop(account.bbs_uid)
         write_plugin_data()
         await account_setting.finish(f"已删除账号 {account.phone_number} 的数据")
@@ -146,19 +146,19 @@ async def _(event: GeneralMessageEvent, state: T_State, arg=ArgPlainText('arg'))
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('setting_notice_value_arg')
-async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
-    if arg == '退出':
+@account_setting.got('notice_game')
+async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgPlainText()):
+    if notice_game == '退出':
         await account_setting.finish('🚪已成功退出')
     if state["setting_item"] == "notice_value":
-        if arg == "1":
+        if notice_game == "1":
             await account_setting.send(
                 "请输入想要所需通知阈值，树脂达到该值时将进行通知："
                 "可用范围 [0, 160]"
                 "\n\n🚪发送“退出”即可退出"
             )
             state["setting_item"] = "notice_value_op"
-        elif arg == "2":
+        elif notice_game == "2":
             await account_setting.send(
                 "请输入想要所需阈值数字，开拓力达到该值时将进行通知："
                 "可用范围 [0, 180]"
@@ -169,15 +169,15 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
             await account_setting.reject("⚠️您的输入有误，请重新输入")
 
 
-@account_setting.got('enter_notice_value_arg')
-async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
-    if arg == '退出':
+@account_setting.got('notice_value')
+async def _(_: GeneralMessageEvent, state: T_State, notice_value=ArgPlainText()):
+    if notice_value == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
 
     if state["setting_item"] == "notice_value_op":
         try:
-            resin_threshold = int(arg)
+            resin_threshold = int(notice_value)
         except ValueError:
             await account_setting.reject("⚠️请输入有效的数字。")
         else:
@@ -192,7 +192,7 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
 
     elif state["setting_item"] == "notice_value_sr":
         try:
-            stamina_threshold = int(arg)
+            stamina_threshold = int(notice_value)
         except ValueError:
             await account_setting.reject("⚠️请输入有效的数字。")
         else:
@@ -206,7 +206,7 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
                 await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
 
     elif state["setting_item"] == "mission_games":
-        games_input = arg.split()
+        games_input = notice_value.split()
         mission_games = set()
         for game in games_input:
             game_filter = filter(lambda x: x.NAME == game, BaseMission.AVAILABLE_GAMES)
@@ -218,8 +218,8 @@ async def _(_: GeneralMessageEvent, state: T_State, arg=ArgPlainText()):
 
         account.mission_games = mission_games
         write_plugin_data()
-        arg = arg.replace(" ", "、")
-        await account_setting.finish(f"💬执行米游币任务的频道已更改为『{arg}』")
+        notice_value = notice_value.replace(" ", "、")
+        await account_setting.finish(f"💬执行米游币任务的频道已更改为『{notice_value}』")
 
 
 global_setting = on_command(_conf.preference.command_start + '通知设置', priority=5, block=True)

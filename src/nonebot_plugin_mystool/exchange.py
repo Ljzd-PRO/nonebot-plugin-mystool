@@ -127,18 +127,18 @@ async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        uid=ArgPlainText()
+        bbs_uid=ArgPlainText()
 ):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
     if x := state.get("bbs_uid"):
-        uid = x
-    elif uid == '退出':
+        bbs_uid = x
+    elif bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
     user_account = _conf.users[event.get_user_id()].accounts
-    if uid in user_account:
-        state["account"] = user_account[uid]
+    if bbs_uid in user_account:
+        state["account"] = user_account[bbs_uid]
     else:
         await matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
 
@@ -185,7 +185,7 @@ async def _(
                 game_records_status, records = await get_game_record(account)
                 if game_records_status:
                     if len(records) == 0:
-                        state['uid'] = records[0].game_role_id
+                        state['game_uid'] = records[0].game_role_id
                     else:
                         msg = f'您米游社账户下的游戏账号：'
                         for record in records:
@@ -204,7 +204,7 @@ async def _(
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
-                state['uid'] = ''
+                state['game_uid'] = ''
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
@@ -228,12 +228,12 @@ async def _(
                                                                                    SEP=get_last_command_sep()))
 
 
-@myb_exchange_plan.got('uid')
+@myb_exchange_plan.got('game_uid')
 async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        uid=ArgPlainText()
+        game_uid=ArgPlainText()
 ):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
@@ -243,11 +243,11 @@ async def _(
     good: Good = state['good']
     if good.is_virtual:
         records: List[GameRecord] = state['records']
-        if x := state.get("uid"):
-            uid = x
-        elif uid == '退出':
+        if x := state.get("game_uid"):
+            game_uid = x
+        elif game_uid == '退出':
             await matcher.finish('🚪已成功退出')
-        record_filter = filter(lambda x: x.game_role_id == uid, records)
+        record_filter = filter(lambda x: x.game_role_id == game_uid, records)
         record = next(record_filter, None)
         if not record:
             await matcher.reject('⚠️您输入的UID不在上述账号内，请重新输入')

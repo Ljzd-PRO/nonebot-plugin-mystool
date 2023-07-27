@@ -41,16 +41,16 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, state: T_State, uid=ArgPlainText()):
+async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgPlainText()):
     if x := state.get("bbs_uid"):
-        uid = x
-    elif uid == '退出':
+        bbs_uid = x
+    elif bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.user_id].accounts
-    if uid not in user_account:
+    if bbs_uid not in user_account:
         await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
-    account = user_account[uid]
+    account = user_account[bbs_uid]
     state['account'] = account
 
     address_status, address_list = await get_address(account)

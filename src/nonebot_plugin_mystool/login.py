@@ -189,16 +189,16 @@ async def handle_first_receive(event: GeneralMessageEvent, state: T_State):
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText()):
+async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgPlainText()):
     """
     根据手机号设置导出相应的账户的Cookies
     """
     if x := state.get("bbs_uid"):
-        uid = x
-    elif uid == '退出':
+        bbs_uid = x
+    elif bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
     user_account = _conf.users[event.get_user_id()].accounts
-    if uid in user_account:
-        await output_cookies.finish(json.dumps(user_account[uid].cookies.dict(cookie_type=True), indent=4))
+    if bbs_uid in user_account:
+        await output_cookies.finish(json.dumps(user_account[bbs_uid].cookies.dict(cookie_type=True), indent=4))
     else:
         await matcher.reject('⚠️您输入的账号不在以上账号内，请重新输入')
