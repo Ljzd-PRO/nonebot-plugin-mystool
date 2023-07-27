@@ -310,9 +310,8 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                     else:
                         mission_name = mission.mission_key
                     msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
-                msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}"
-                msg += f"\n💰当前米游币: {missions_state.current_myb}"
-                msg.strip()
+                msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}" \
+                       f"\n💰当前米游币: {missions_state.current_myb}"
 
                 if matcher:
                     await matcher.send(msg)
