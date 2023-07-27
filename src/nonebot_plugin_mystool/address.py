@@ -4,9 +4,8 @@
 import asyncio
 
 from nonebot import on_command
-from nonebot.adapters import Message
 from nonebot.matcher import Matcher
-from nonebot.params import Arg, ArgPlainText, T_State
+from nonebot.params import ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
@@ -22,7 +21,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
     if isinstance(event, GeneralGroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
     user = _conf.users.get(event.user_id)
@@ -34,7 +33,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
             "请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
         account = next(iter(user_account.values()))
-        matcher.set_arg('bbs_uid', Message(account.bbs_uid))
+        state["bbs_uid"] = account.bbs_uid
     else:
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
         msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
@@ -42,10 +41,10 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
-    if isinstance(uid, Message):
-        uid = uid.extract_plain_text().strip()
-    if uid == '退出':
+async def _(event: GeneralPrivateMessageEvent, state: T_State, uid=ArgPlainText()):
+    if x := state.get("bbs_uid"):
+        uid = x
+    elif uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.user_id].accounts

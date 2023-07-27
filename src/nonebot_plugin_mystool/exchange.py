@@ -16,11 +16,10 @@ from typing import List, Callable, Any, Tuple, Optional, Dict
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command
-from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, MessageSegment as OnebotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.matcher import Matcher
-from nonebot.params import ArgStr, ArgPlainText, T_State, CommandArg, Command
+from nonebot.params import ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
 
 from .data_model import Good, GameRecord, ExchangeStatus
@@ -99,7 +98,7 @@ async def _(
         matcher.set_arg("good_id", command_arg)
         if len(user_account) == 1:
             uid = next(iter(user_account.values())).bbs_uid
-            matcher.set_arg('bbs_uid', Message(uid))
+            state["bbs_uid"] = uid
         else:
             msg = "您有多个账号，您要配置以下哪个账号的兑换计划？\n"
             msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
@@ -128,14 +127,16 @@ async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        uid=ArgStr('bbs_uid')
+        uid=ArgPlainText()
 ):
     """
     请求用户输入手机号以对账户设置兑换计划
     """
-    user_account = _conf.users[event.get_user_id()].accounts
-    if uid == '退出':
+    if x := state.get("bbs_uid"):
+        uid = x
+    elif uid == '退出':
         await matcher.finish('🚪已成功退出')
+    user_account = _conf.users[event.get_user_id()].accounts
     if uid in user_account:
         state["account"] = user_account[uid]
     else:
@@ -185,7 +186,7 @@ async def _(
 
                 if game_records_status:
                     if len(records) == 0:
-                        matcher.set_arg('uid', Message(records[0].game_role_id))
+                        state['uid'] = records[0].game_role_id
                     else:
                         msg = f'您米游社账户下的游戏账号：'
                         for record in records:
@@ -202,7 +203,7 @@ async def _(
             else:
                 if not account.address:
                     await matcher.finish('⚠️您还没有配置地址哦，请先配置地址')
-                matcher.set_arg('uid', Message())
+                state['uid'] = ''
         else:
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
@@ -231,7 +232,7 @@ async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        uid=ArgPlainText('uid')
+        uid=ArgPlainText()
 ):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
@@ -241,7 +242,9 @@ async def _(
     good: Good = state['good']
     if good.is_virtual:
         records: List[GameRecord] = state['records']
-        if uid == '退出':
+        if x := state.get("uid"):
+            uid = x
+        elif uid == '退出':
             await matcher.finish('🚪已成功退出')
         record_filter = filter(lambda x: x.game_role_id == uid, records)
         record = next(record_filter, None)

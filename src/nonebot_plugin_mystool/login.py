@@ -4,11 +4,9 @@
 import json
 
 from nonebot import on_command
-from nonebot.adapters import Message
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, \
     MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
 from nonebot.internal.matcher import Matcher
-from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
@@ -33,14 +31,13 @@ async def handle_first_receive(event: GeneralMessageEvent):
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
-        msg_text = "登录过程概览：\n" \
+        msg = "登录过程概览：\n" \
                    "1.发送手机号\n" \
                    "2.扫描二维码，进入米哈游官方登录页，输入手机号并获取验证码（网页上不要登录）\n" \
             if isinstance(event, QQGuildMessageEvent) else \
             f"2.前往 {login_url}，输入手机号并获取验证码（网页上不要登录）\n" \
             "3.发送验证码给QQ机器人，完成登录\n" \
             "🚪过程中发送“退出”即可退出"
-        msg = Message(msg_text)
         if isinstance(event, QQGuildMessageEvent):
             msg += QQGuildMessageSegment.file_image(generate_qr_img(login_url))
         await get_cookie.send(msg)
@@ -172,7 +169,7 @@ output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
 
 
 @output_cookies.handle()
-async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
+async def handle_first_receive(event: GeneralMessageEvent, state: T_State):
     """
     Cookies导出命令触发
     """
@@ -183,7 +180,7 @@ async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     elif len(user_account) == 1:
         account = next(iter(user_account.values()))
-        matcher.set_arg('bbs_uid', Message(account.bbs_uid))
+        state["bbs_uid"] = account.bbs_uid
     else:
         msg = "您有多个账号，您要导出哪个账号的Cookies数据？\n"
         msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
@@ -192,13 +189,13 @@ async def handle_first_receive(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, uid=Arg("bbs_uid")):
+async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText()):
     """
     根据手机号设置导出相应的账户的Cookies
     """
-    if isinstance(uid, Message):
-        uid = uid.extract_plain_text().strip()
-    if uid == '退出':
+    if x := state.get("bbs_uid"):
+        uid = x
+    elif uid == '退出':
         await matcher.finish('🚪已成功退出')
     user_account = _conf.users[event.get_user_id()].accounts
     if uid in user_account:

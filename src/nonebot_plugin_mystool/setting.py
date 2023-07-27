@@ -3,9 +3,8 @@
 """
 
 from nonebot import on_command
-from nonebot.adapters import Message
 from nonebot.matcher import Matcher
-from nonebot.params import Arg, ArgPlainText, T_State
+from nonebot.params import ArgPlainText, T_State
 
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
@@ -33,7 +32,7 @@ account_setting.usage = "配置游戏自动签到、米游币任务是否开启�
 
 
 @account_setting.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
     """
     账号设置命令触发
     """
@@ -44,7 +43,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
             f"⚠️你尚未绑定米游社账户，请先使用『{_conf.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
         uid = next(iter(user_account.values())).bbs_uid
-        matcher.set_arg('bbs_uid', Message(uid))
+        state["bbs_uid"] = uid
     else:
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
         msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
@@ -53,13 +52,13 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @account_setting.got('bbs_uid')
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, uid=Arg('bbs_uid')):
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, uid=ArgPlainText()):
     """
     根据手机号设置相应的账户
     """
-    if isinstance(uid, Message):
-        uid = uid.extract_plain_text().strip()
-    if uid == '退出':
+    if x := state.get("bbs_uid"):
+        uid = x
+    elif uid == '退出':
         await matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.get_user_id()].accounts
@@ -243,8 +242,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @global_setting.got('choice')
-async def _(event: GeneralMessageEvent, matcher: Matcher,
-            choice: Message = ArgPlainText('choice')):
+async def _(event: GeneralMessageEvent, matcher: Matcher, choice=ArgPlainText()):
     """
     根据选择变更通知设置
     """
