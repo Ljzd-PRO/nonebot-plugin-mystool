@@ -6,7 +6,7 @@ import json
 from nonebot import on_command
 from nonebot.adapters import Message
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, \
-    MessageSegment as QQGuildMessageSegment
+    MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import Arg
 from nonebot.params import ArgPlainText, T_State
@@ -73,13 +73,18 @@ async def _(event: GeneralPrivateMessageEvent, state: T_State, captcha: str = Ar
     if not captcha.isdigit():
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
-        _conf.users.setdefault(event.get_user_id(), UserData())
-        user = _conf.users[event.get_user_id()]
+        user_id = event.get_user_id()
+        _conf.users.setdefault(user_id, UserData())
+        user = _conf.users[user_id]
+        # 如果是QQ频道，需要记录频道ID
+        if isinstance(event, DirectMessageCreateEvent):
+            user.qq_guilds.setdefault(user_id, set())
+            user.qq_guilds[user_id].add(event.channel_id)
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
         if login_status:
             # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
-            account = _conf.users[event.get_user_id()].accounts.get(cookies.bbs_uid)
+            account = _conf.users[user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
