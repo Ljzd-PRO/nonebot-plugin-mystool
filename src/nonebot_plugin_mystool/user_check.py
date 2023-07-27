@@ -92,7 +92,7 @@ async def _(
         if user is None:
             await matcher.finish("⚠️您的用户数据不存在，只有进行登录操作以后才会生成用户数据")
         elif command[1] in ["UUID", "uuid"]:
-            if isinstance(event, GeneralMessageEvent):
+            if isinstance(event, GeneralGroupMessageEvent):
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥查看。")
 
             await matcher.send(
@@ -128,7 +128,7 @@ async def _(
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
 
         elif command[1] in ["刷新UUID", "刷新uuid"]:
-            if isinstance(event, GeneralMessageEvent):
+            if isinstance(event, GeneralGroupMessageEvent):
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥刷新。")
 
             if user_id in _conf.user_bind:
