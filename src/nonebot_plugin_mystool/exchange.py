@@ -18,6 +18,7 @@ from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, MessageSegment as OnebotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import ArgPlainText, T_State, CommandArg, Command
 from nonebot_plugin_apscheduler import scheduler
@@ -127,7 +128,7 @@ async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        bbs_uid=ArgPlainText()
+        bbs_uid=ArgStr()
 ):
     """
     请求用户输入手机号以对账户设置兑换计划
@@ -231,7 +232,7 @@ async def _(
         event: GeneralMessageEvent,
         matcher: Matcher,
         state: T_State,
-        game_uid=ArgPlainText()
+        game_uid=ArgStr()
 ):
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续

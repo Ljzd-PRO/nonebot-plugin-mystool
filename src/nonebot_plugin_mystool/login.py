@@ -7,6 +7,7 @@ from nonebot import on_command
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, \
     MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
 from nonebot.internal.matcher import Matcher
+from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
@@ -189,7 +190,7 @@ async def handle_first_receive(event: GeneralMessageEvent, state: T_State):
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgPlainText()):
+async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgStr()):
     """
     根据手机号设置导出相应的账户的Cookies
     """

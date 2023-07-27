@@ -4,8 +4,9 @@
 import asyncio
 
 from nonebot import on_command
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
-from nonebot.params import ArgPlainText, T_State
+from nonebot.params import T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
@@ -41,7 +42,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgPlainText()):
+async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgStr()):
     if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
@@ -78,7 +79,7 @@ async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgPlainT
 
 
 @address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(_: GeneralPrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
+async def _(_: GeneralPrivateMessageEvent, state: T_State, address_id=ArgStr()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 

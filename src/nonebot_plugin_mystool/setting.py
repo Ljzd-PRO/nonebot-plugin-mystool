@@ -3,13 +3,14 @@
 """
 
 from nonebot import on_command
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
-from nonebot.params import ArgPlainText, T_State
+from nonebot.params import T_State
 
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent
+from .utils import COMMAND_BEGIN, GeneralMessageEvent, logger
 
 _conf = PluginDataManager.plugin_data
 
@@ -52,7 +53,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @account_setting.got('bbs_uid')
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgPlainText()):
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgStr()):
     """
     根据手机号设置相应的账户
     """
@@ -86,10 +87,11 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_ui
 
 
 @account_setting.got('setting_id')
-async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgPlainText()):
+async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgStr()):
     """
     根据所选更改相应账户的相应设置
     """
+    logger.debug(f"{type(setting_id)}")
     account: UserAccount = state['account']
     user_account = _conf.users[event.get_user_id()].accounts
     if setting_id == '退出':
@@ -145,7 +147,7 @@ async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgPlainText(
 
 
 @account_setting.got('notice_game')
-async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgPlainText()):
+async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgStr()):
     if notice_game == '退出':
         await account_setting.finish('🚪已成功退出')
     if state["setting_item"] == "notice_value":
@@ -168,7 +170,7 @@ async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgPlainText()):
 
 
 @account_setting.got('notice_value')
-async def _(_: GeneralMessageEvent, state: T_State, notice_value=ArgPlainText()):
+async def _(_: GeneralMessageEvent, state: T_State, notice_value=ArgStr()):
     if notice_value == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
@@ -237,7 +239,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @global_setting.got('choice')
-async def _(event: GeneralMessageEvent, matcher: Matcher, choice=ArgPlainText()):
+async def _(event: GeneralMessageEvent, matcher: Matcher, choice=ArgStr()):
     """
     根据选择变更通知设置
     """

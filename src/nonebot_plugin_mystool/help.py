@@ -4,7 +4,7 @@
 """
 from nonebot import on_command
 from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
-from nonebot.internal.params import ArgPlainText
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
@@ -49,7 +49,7 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
 
 
 @helper.got('content')
-async def _(_: GeneralMessageEvent, content=ArgPlainText()):
+async def _(_: GeneralMessageEvent, content=ArgStr()):
     """
     二级命令触发。功能详细说明查询
     """
