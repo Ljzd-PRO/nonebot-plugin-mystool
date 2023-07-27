@@ -32,8 +32,8 @@ async def handle_first_receive(event: GeneralMessageEvent):
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
         msg = "登录过程概览：\n" \
-                   "1.发送手机号\n" \
-                   "2.扫描二维码，进入米哈游官方登录页，输入手机号并获取验证码（网页上不要登录）\n" \
+              "1.发送手机号\n" \
+              "2.扫描二维码，进入米哈游官方登录页，输入手机号并获取验证码（网页上不要登录）\n" \
             if isinstance(event, QQGuildMessageEvent) else \
             f"2.前往 {login_url}，输入手机号并获取验证码（网页上不要登录）\n" \
             "3.发送验证码给QQ机器人，完成登录\n" \
