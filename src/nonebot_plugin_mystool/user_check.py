@@ -1,5 +1,5 @@
 """
-### QQ好友相关
+### QQ好友相关、用户绑定相关
 """
 import asyncio
 from uuid import uuid4
