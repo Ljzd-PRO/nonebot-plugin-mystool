@@ -327,6 +327,7 @@ async def send_private_msg(
     :param message: 消息内容
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
+    :return: 是否发送成功
     """
     if isinstance(use, (OnebotV11Bot, QQGuildBot)):
         bots = [use]

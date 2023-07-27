@@ -335,6 +335,7 @@ def write_plugin_data(data: PluginData = None):
     写入插件数据文件
 
     :param data: 配置对象
+    :return: 是否成功
     """
     if data is None:
         data = PluginDataManager.plugin_data
