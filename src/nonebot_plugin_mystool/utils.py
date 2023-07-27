@@ -21,7 +21,7 @@ from nonebot import Adapter, Bot
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
-from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, DirectMessageCreateEvent, MessageCreateEvent, \
+from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
 from nonebot.adapters.qqguild.api import DMS
 from nonebot.adapters.qqguild.exception import ActionFailed
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 _conf = PluginDataManager.plugin_data
 
-GeneralMessageEvent = Union[OnebotV11MessageEvent, QQGuildMessageEvent]
+GeneralMessageEvent = Union[OnebotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent]
 """消息事件类型"""
 GeneralPrivateMessageEvent = Union[PrivateMessageEvent, DirectMessageCreateEvent]
 """私聊消息事件类型"""
