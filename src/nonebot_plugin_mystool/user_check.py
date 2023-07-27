@@ -73,7 +73,7 @@ user_binding.extra_usage = """\
 🔑 {HEAD}用户绑定{SEP}UUID ➢ 查看用于绑定的当前用户数据的UUID密钥
 🔍 {HEAD}用户绑定{SEP}查询 ➢ 查看当前用户的绑定情况
 ↩️ {HEAD}用户绑定{SEP}还原 ➢ 清除当前用户的绑定关系，使当前用户数据成为空白数据
-🔄️ {HEAD}用户绑定{SEP}刷新UUID ➢ 重新生成当前用户的UUID密钥，原先与您绑定的用户将无法访问您当前的用户数据
+🔄️ {HEAD}用户绑定{SEP}刷新UUID ➢ 重新生成当前用户的UUID密钥，同时原先与您绑定的用户将无法访问您当前的用户数据
 🖇️ {HEAD}用户绑定 <UUID> ➢ 绑定目标UUID的用户数据，当前用户的所有数据将被目标用户覆盖
 『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可\
 """
@@ -164,9 +164,6 @@ async def _(
             f'{user_binding.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
         )
     else:
-        if isinstance(event, GeneralMessageEvent):
-            await matcher.finish("⚠️为了保护您的隐私，请私聊进行用户绑定。")
-
         uuid = str(command_arg).lower()
         if not uuid4_validate(uuid):
             await matcher.finish("⚠️您输入的UUID密钥格式不正确")
@@ -187,7 +184,12 @@ async def _(
             _conf.do_user_bind(user_id, target_id)
             user = _conf.users[user_id]
             user.qq_guilds.setdefault(user_id, set())
-            user.qq_guilds[user_id].add(event.channel_id)
+            if isinstance(event, GeneralGroupMessageEvent):
+                user.qq_guilds[user_id].add(event.guild_id)
+                user.uuid = str(uuid4())
+                await matcher.send("🔑由于您在群聊中进行绑定，已刷新您的UUID密钥，但不会影响其他已绑定用户")
+            else:
+                user.qq_guilds[user_id].add(event.channel_id)
             write_plugin_data()
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
 
