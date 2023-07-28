@@ -5,6 +5,7 @@ import json
 
 from nonebot import on_command
 from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
+from nonebot.adapters.qqguild.exception import AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
@@ -43,10 +44,12 @@ async def handle_first_receive(event: GeneralMessageEvent):
             logger.exception("发送包含URL链接的登录消息失败")
             msg_img = QQGuildMessageSegment.file_image(generate_qr_img(login_url))
             try:
-                await get_cookie.send(msg_text.format(browse_way="扫描二维码，进入米哈游官方登录页") + msg_img)
-            except ActionFailed:
-                logger.exception("发送包含二维码的登录消息失败")
-                await get_cookie.send(msg_text.format(browse_way="前往米哈游官方登录页") + "\n\n⚠️发送二维码失败，请自行搜索米哈游通行证登录页")
+                await get_cookie.send(msg_img)
+                await get_cookie.send(msg_text.format(browse_way="扫描二维码，进入米哈游官方登录页"))
+            except (ActionFailed, AuditException) as e:
+                if isinstance(e, ActionFailed):
+                    logger.exception("发送包含二维码的登录消息失败")
+                    await get_cookie.send(msg_text.format(browse_way="前往米哈游官方登录页") + "\n\n⚠️发送二维码失败，请自行搜索米哈游通行证登录页")
     else:
         await get_cookie.finish('⚠️目前可支持使用用户数已经满啦~')
 
