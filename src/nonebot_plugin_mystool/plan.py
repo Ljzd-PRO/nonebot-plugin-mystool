@@ -5,8 +5,11 @@ import asyncio
 import random
 import threading
 
-from nonebot import on_command
-from nonebot.adapters.onebot.v11 import (MessageSegment)
+from nonebot import on_command, get_adapters
+from nonebot.adapters.onebot.v11 import MessageSegment as OnebotV11MessageSegment, Adapter as OnebotV11Adapter, MessageEvent as OnebotV11MessageEvent
+from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, Adapter as QQGuildAdapter, MessageEvent as QQGuildMessageEvent
+from nonebot.adapters.qqguild.exception import AuditException
+from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot_plugin_apscheduler import scheduler
 
@@ -33,7 +36,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await manually_game_sign.send("⏳开始游戏签到...")
-    await perform_game_sign(user_id=event.get_user_id(), matcher=matcher)
+    await perform_game_sign(user_id=event.get_user_id(), matcher=matcher, event=event)
 
 
 manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
@@ -114,12 +117,13 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     await resin_check_sr(user_id=event.get_user_id(), matcher=matcher)
 
 
-async def perform_game_sign(user_id: str, matcher: Matcher = None):
+async def perform_game_sign(user_id: str, matcher: Matcher = None, event: GeneralMessageEvent = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
     :param user_id: 用户QQ号
     :param matcher: 事件响应器
+    :param event: 事件
     """
     failed_accounts = []
     user = _conf.users[user_id]
@@ -188,7 +192,7 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or matcher:
-                img = ""
+                onebot_img_msg, qq_guild_img_msg = "", ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
                 if not get_info_status or not get_award_status:
@@ -205,13 +209,29 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None):
                               f"\n{award.name} * {award.cnt}" \
                               f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
-                        img = MessageSegment.image(img_file)
+                        onebot_img_msg = OnebotV11MessageSegment.image(img_file)
+                        qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if matcher:
-                    await matcher.send(msg + img)
+                    try:
+                        if isinstance(event, OnebotV11MessageEvent):
+                            await matcher.send(msg + onebot_img_msg)
+                        elif isinstance(event, QQGuildMessageEvent):
+                            await matcher.send(msg)
+                            await matcher.send(qq_guild_img_msg)
+                    except (ActionFailed, AuditException):
+                        pass
                 else:
-                    await send_private_msg(user_id=user_id, message=msg + img)
+                    for adapter in get_adapters().values():
+                        try:
+                            if isinstance(adapter, OnebotV11Adapter):
+                                await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
+                            elif isinstance(adapter, QQGuildAdapter):
+                                await send_private_msg(use=adapter, user_id=user_id, message=msg)
+                                await send_private_msg(use=adapter, user_id=user_id, message=qq_guild_img_msg)
+                        except (ActionFailed, AuditException):
+                            pass
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
