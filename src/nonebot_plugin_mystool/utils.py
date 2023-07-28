@@ -322,7 +322,7 @@ async def send_private_msg(
         message: Union[str, Message],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None
-):
+) -> Union[bool, ActionFailed]:
     """
     主动发送私信消息
 
@@ -331,6 +331,7 @@ async def send_private_msg(
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
     :return: 是否发送成功
+    :raise ActionFailed
     """
     if isinstance(use, (OnebotV11Bot, QQGuildBot)):
         bots = [use]
@@ -386,15 +387,15 @@ async def send_private_msg(
                         markdown=markdown,  # type: ignore
                         message_reference=reference,  # type: ignore
                     )
-            except ActionFailed:
+            except ActionFailed as e:
                 logger.exception(
                     f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
                     f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
                     f"{message}"
                 )
+                raise e
             else:
                 return True
-        return False
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，

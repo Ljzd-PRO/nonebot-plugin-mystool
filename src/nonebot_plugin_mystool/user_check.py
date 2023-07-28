@@ -5,8 +5,10 @@ import asyncio
 from uuid import uuid4
 
 from nonebot import get_driver, on_request, on_command, Bot
-from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
+from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot, \
+    ActionFailed as OneBotV11ActionFailed
 from nonebot.adapters.qqguild import Bot as QQGuildBot
+from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
@@ -204,7 +206,8 @@ direct_msg_respond = on_command(
     block=True
 )
 direct_msg_respond.name = '私信响应'
-direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止因为发送了三条私信消息而机器人未回复导致无法继续私信'
+direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止因为发送了三条私信消息而机器人未回复导致无法继续私信。' \
+                           '需要注意每个机器人每天只能对一个用户发2条主动消息。'
 
 
 @direct_msg_respond.handle()
@@ -213,9 +216,20 @@ async def _(bot: Bot, event: GeneralGroupMessageEvent):
                f"{PLUGIN.metadata.description}\n" \
                "具体用法：\n" \
                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
-    await send_private_msg(
-        user_id=event.get_user_id(),
-        message=msg_text,
-        guild_id=event.guild_id,
-        use=bot
-    )
+    try:
+        if await send_private_msg(
+            user_id=event.get_user_id(),
+            message=msg_text,
+            guild_id=event.guild_id,
+            use=bot
+        ):
+            await direct_msg_respond.send("✔已发送私信，请查看私信消息")
+        else:
+            await direct_msg_respond.send(f"⚠️发送私信失败，请检查后台日志")
+    except (QQGuildActionFailed, OneBotV11ActionFailed) as e:
+        if isinstance(e, QQGuildActionFailed):
+            if e.code == 304049:
+                await direct_msg_respond.finish(f"⚠️发送私信失败，达到了机器人每日主动私信次数限制。错误信息：{e!r}")
+            elif e.code == 304022:
+                await direct_msg_respond.finish(f"⚠️发送私信失败，请换一个时间再试。错误信息：{e!r}")
+        await direct_msg_respond.finish(f"⚠️发送私信失败，错误信息：{e!r}")
