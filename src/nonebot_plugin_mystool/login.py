@@ -103,28 +103,28 @@ async def _(event: GeneralPrivateMessageEvent, state: T_State, captcha: str = Ar
             if not account.device_id_ios:
                 fp_status, account.device_fp = await get_device_fp(account.device_id_ios)
                 if fp_status:
-                    logger.info(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
+                    logger.success(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
             write_plugin_data()
 
             # 2. 通过 login_ticket 获取 stoken 和 ltoken
             if login_status or account:
                 login_status, cookies = await get_multi_token_by_login_ticket(account.cookies)
                 if login_status:
-                    logger.info(f"用户 {phone_number} 成功获取 stoken: {cookies.stoken}")
+                    logger.success(f"用户 {phone_number} 成功获取 stoken: {cookies.stoken}")
                     account.cookies.update(cookies)
                     write_plugin_data()
 
                     # 3. 通过 stoken_v1 获取 stoken_v2 和 mid
                     login_status, cookies = await get_stoken_v2_by_v1(account.cookies, account.device_id_ios)
                     if login_status:
-                        logger.info(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
+                        logger.success(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
                         account.cookies.update(cookies)
                         write_plugin_data()
 
                         # 4. 通过 stoken_v2 获取 ltoken
                         login_status, cookies = await get_ltoken_by_stoken(account.cookies, account.device_id_ios)
                         if login_status:
-                            logger.info(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
+                            logger.success(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
                             account.cookies.update(cookies)
                             write_plugin_data()
 
@@ -132,11 +132,11 @@ async def _(event: GeneralPrivateMessageEvent, state: T_State, captcha: str = Ar
                             login_status, cookies = await get_cookie_token_by_stoken(account.cookies,
                                                                                      account.device_id_ios)
                             if login_status:
-                                logger.info(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
+                                logger.success(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
                                 account.cookies.update(cookies)
                                 write_plugin_data()
 
-                                logger.info(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
+                                logger.success(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
                                 await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
 
         if not login_status:
