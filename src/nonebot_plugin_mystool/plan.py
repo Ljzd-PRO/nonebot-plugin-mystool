@@ -6,8 +6,10 @@ import random
 import threading
 
 from nonebot import on_command, get_adapters
-from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, MessageEvent as OneBotV11MessageEvent
-from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, Adapter as QQGuildAdapter, MessageEvent as QQGuildMessageEvent
+from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
+    MessageEvent as OneBotV11MessageEvent
+from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, Adapter as QQGuildAdapter, \
+    MessageEvent as QQGuildMessageEvent
 from nonebot.adapters.qqguild.exception import AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher

@@ -218,10 +218,10 @@ async def _(bot: Bot, event: GeneralGroupMessageEvent):
                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
     try:
         if await send_private_msg(
-            user_id=event.get_user_id(),
-            message=msg_text,
-            guild_id=event.guild_id,
-            use=bot
+                user_id=event.get_user_id(),
+                message=msg_text,
+                guild_id=event.guild_id,
+                use=bot
         ):
             await direct_msg_respond.send("✔已发送私信，请查看私信消息")
         else:
