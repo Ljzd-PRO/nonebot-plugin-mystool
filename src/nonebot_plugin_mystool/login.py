@@ -4,8 +4,8 @@
 import json
 
 from nonebot import on_command
-from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, \
-    MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
+from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
+from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
@@ -32,16 +32,21 @@ async def handle_first_receive(event: GeneralMessageEvent):
     if user_num < _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
-        msg = "登录过程概览：\n" \
-              "1.发送手机号\n" \
-              "2.扫描二维码，进入米哈游官方登录页，输入手机号并获取验证码（网页上不要登录）\n" \
-            if isinstance(event, QQGuildMessageEvent) else \
-            f"2.前往 {login_url}，输入手机号并获取验证码（网页上不要登录）\n" \
-            "3.发送验证码给QQ机器人，完成登录\n" \
-            "🚪过程中发送“退出”即可退出"
-        if isinstance(event, QQGuildMessageEvent):
-            msg += QQGuildMessageSegment.file_image(generate_qr_img(login_url))
-        await get_cookie.send(msg)
+        msg_text = "登录过程概览：\n" \
+                   "1.发送手机号\n" \
+                   "2.{browse_way}，输入手机号并获取验证码（不要在网页上登录）\n" \
+                   "3.发送验证码给QQ机器人，完成登录\n" \
+                   "🚪过程中发送“退出”即可退出"
+        try:
+            await get_cookie.send(msg_text.format(browse_way=f"前往 {login_url}"))
+        except ActionFailed:
+            logger.exception("发送包含URL链接的登录消息失败")
+            msg_img = QQGuildMessageSegment.file_image(generate_qr_img(login_url))
+            try:
+                await get_cookie.send(msg_text.format(browse_way="扫描二维码，进入米哈游官方登录页") + msg_img)
+            except ActionFailed:
+                logger.exception("发送包含二维码的登录消息失败")
+                await get_cookie.send(msg_text.format(browse_way="前往米哈游官方登录页") + "\n\n⚠️发送二维码失败，请自行搜索米哈游通行证登录页")
     else:
         await get_cookie.finish('⚠️目前可支持使用用户数已经满啦~')
 
@@ -60,7 +65,7 @@ async def _(_: GeneralPrivateMessageEvent, state: T_State, phone: str = ArgPlain
 
 @get_cookie.handle()
 async def _(_: GeneralPrivateMessageEvent):
-    await get_cookie.send('2.前往 https://user.mihoyo.com/#/login/captcha，获取验证码（不要登录！）')
+    await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
@@ -190,7 +195,7 @@ async def handle_first_receive(event: GeneralMessageEvent, state: T_State):
 
 
 @output_cookies.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgStr()):
+async def _(event: GeneralPrivateMessageEvent, matcher: Matcher, bbs_uid=ArgStr()):
     """
     根据手机号设置导出相应的账户的Cookies
     """
