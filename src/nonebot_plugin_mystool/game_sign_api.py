@@ -247,7 +247,7 @@ class HonkaiImpact3Sign(BaseGameSign):
     崩坏3 游戏签到
     """
     NAME = "崩坏3"
-    ACT_ID = "e202207181446311"
+    ACT_ID = "e202306201626331"
     GAME_ID = 1
 
 
