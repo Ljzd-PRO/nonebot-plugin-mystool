@@ -178,8 +178,10 @@ class BBSCookies(BaseModelWithSetter, BaseModelWithUpdate):
         cookies_dict = super().dict(include=include, exclude=exclude, by_alias=by_alias, skip_defaults=skip_defaults,
                                     exclude_unset=exclude_unset, exclude_defaults=exclude_defaults,
                                     exclude_none=exclude_none)
-        if v2_stoken:
+        if v2_stoken and self.stoken_v2:
             cookies_dict["stoken"] = self.stoken_v2
+        else:
+            cookies_dict["stoken"] = self.stoken_v1
 
         if cookie_type:
             # 去除自定义的 stoken_v1, stoken_v2 字段
