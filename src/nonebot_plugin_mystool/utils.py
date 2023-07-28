@@ -19,8 +19,8 @@ import nonebot.plugin
 import tenacity
 from nonebot import Adapter, Bot
 from nonebot.adapters import Message
-from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
-    Adapter as OnebotV11Adapter, Bot as OnebotV11Bot
+from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
+    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
 from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
 from nonebot.adapters.qqguild.api import DMS
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 _conf = PluginDataManager.plugin_data
 
-GeneralMessageEvent = Union[OnebotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent]
+GeneralMessageEvent = Union[OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent]
 """消息事件类型"""
 GeneralPrivateMessageEvent = Union[PrivateMessageEvent, DirectMessageCreateEvent]
 """私聊消息事件类型"""
@@ -333,13 +333,13 @@ async def send_private_msg(
     :return: 是否发送成功
     :raise ActionFailed
     """
-    if isinstance(use, (OnebotV11Bot, QQGuildBot)):
+    if isinstance(use, (OneBotV11Bot, QQGuildBot)):
         bots = [use]
-    elif isinstance(use, (OnebotV11Adapter, QQGuildAdapter)):
+    elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
         bots = use.bots.values()
     else:
         bots = nonebot.get_bots().values()
-    if isinstance(use, (OnebotV11Bot, OnebotV11Adapter)):
+    if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
         for bot in bots:
             await bot.send_private_msg(user_id=int(user_id), message=message)
         return True

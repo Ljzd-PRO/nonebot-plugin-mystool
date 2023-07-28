@@ -6,7 +6,7 @@ import random
 import threading
 
 from nonebot import on_command, get_adapters
-from nonebot.adapters.onebot.v11 import MessageSegment as OnebotV11MessageSegment, Adapter as OnebotV11Adapter, MessageEvent as OnebotV11MessageEvent
+from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, MessageEvent as OneBotV11MessageEvent
 from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, Adapter as QQGuildAdapter, MessageEvent as QQGuildMessageEvent
 from nonebot.adapters.qqguild.exception import AuditException
 from nonebot.exception import ActionFailed
@@ -209,13 +209,13 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                               f"\n{award.name} * {award.cnt}" \
                               f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
-                        onebot_img_msg = OnebotV11MessageSegment.image(img_file)
+                        onebot_img_msg = OneBotV11MessageSegment.image(img_file)
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到失败！请尝试重新签到，若多次失败请尝试重新登录绑定账户"
                 if matcher:
                     try:
-                        if isinstance(event, OnebotV11MessageEvent):
+                        if isinstance(event, OneBotV11MessageEvent):
                             await matcher.send(msg + onebot_img_msg)
                         elif isinstance(event, QQGuildMessageEvent):
                             await matcher.send(msg)
@@ -225,7 +225,7 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                 else:
                     for adapter in get_adapters().values():
                         try:
-                            if isinstance(adapter, OnebotV11Adapter):
+                            if isinstance(adapter, OneBotV11Adapter):
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
                             elif isinstance(adapter, QQGuildAdapter):
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg)

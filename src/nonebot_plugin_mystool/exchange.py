@@ -16,7 +16,7 @@ from typing import List, Callable, Any, Tuple, Optional, Dict
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import MessageEvent as OnebotV11MessageEvent, MessageSegment as OnebotV11MessageSegment
+from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, MessageSegment as OneBotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
@@ -330,12 +330,12 @@ async def _(event: GeneralMessageEvent, arg=ArgPlainText("content")):
     if os.path.exists(img_path):
         with open(img_path, 'rb') as f:
             image_bytes = io.BytesIO(f.read())
-        message_segment = None
-        if isinstance(event, OnebotV11MessageEvent):
-            message_segment = OnebotV11MessageSegment.image(image_bytes)
+        msg = None
+        if isinstance(event, OneBotV11MessageEvent):
+            msg = OneBotV11MessageSegment.image(image_bytes)
         elif isinstance(event, QQGuildMessageEvent):
-            message_segment = QQGuildMessageSegment.file_image(image_bytes)
-        await get_good_image.finish(message_segment)
+            msg = QQGuildMessageSegment.file_image(image_bytes)
+        await get_good_image.finish(msg)
     else:
         await get_good_image.finish(
             f'{arg[1]} 分区暂时没有可兑换的限时商品。如果这与实际不符，你可以尝试用『{COMMAND_BEGIN}商品 更新』进行更新。')
