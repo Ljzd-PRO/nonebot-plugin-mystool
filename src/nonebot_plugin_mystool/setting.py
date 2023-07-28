@@ -148,6 +148,7 @@ async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgStr()):
 
     state["notice_game"] = ""
 
+
 @account_setting.got('notice_game')
 async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgStr()):
     if notice_game == '退出':
