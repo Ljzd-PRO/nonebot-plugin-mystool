@@ -87,12 +87,16 @@ def set_logger(logger: "Logger"):
     """
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
-    logger.add(_conf.preference.log_path, diagnose=False, format=nonebot.log.default_format,
-               filter=lambda record: record["name"] == _conf.preference.plugin_name or
-                                     (_conf.preference.log_head != "" and record["message"].find(
-                                         _conf.preference.log_head) == 0) or
-                                     record["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1,
-               rotation=_conf.preference.log_rotation)
+    logger.add(
+        _conf.preference.log_path,
+        diagnose=False,
+        format=nonebot.log.default_format,
+        rotation=_conf.preference.log_rotation,
+        filter=lambda x: x["name"] == _conf.preference.plugin_name or (
+                _conf.preference.log_head != "" and x["message"].find(_conf.preference.log_head) == 0
+        ) or x["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1
+    )
+
     return logger
 
 
