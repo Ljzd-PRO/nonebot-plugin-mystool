@@ -169,12 +169,12 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                 if matcher:
                     sign_status = await signer.sign(
                         account.platform,
-                        lambda: matcher.send(f"⏳正在尝试完成人机验证，请稍后...")
+                        lambda: matcher.send("⏳正在尝试完成人机验证，请稍后...")
                     )
                 else:
                     sign_status = await signer.sign(
                         account.platform,
-                        lambda: send_private_msg(user_id=user_id, message=f"⏳正在尝试完成人机验证，请稍后...")
+                        lambda: send_private_msg(user_id=user_id, message="⏳正在尝试完成人机验证，请稍后...")
                     )
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
@@ -376,7 +376,7 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                 continue
             if genshin_board_status.need_verify:
                 if matcher:
-                    await matcher.send(f'⚠️遇到验证码正在尝试绕过')
+                    await matcher.send('⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not matcher:
@@ -461,7 +461,7 @@ async def resin_check_sr(user_id: str, matcher: Matcher = None):
                 continue
             if starrail_board_status.need_verify:
                 if matcher:
-                    await matcher.send(f'⚠️遇到验证码正在尝试绕过')
+                    await matcher.send('⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not matcher:
