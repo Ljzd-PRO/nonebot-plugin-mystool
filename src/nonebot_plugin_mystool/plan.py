@@ -376,7 +376,7 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                 continue
             if genshin_board_status.need_verify:
                 if matcher:
-                    await matcher.send(f'⚠️遇到验证码正在尝试绕过')
+                    await matcher.send('⚠️遇到验证码正在尝试绕过')
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not matcher:
