@@ -169,7 +169,7 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                 if matcher:
                     sign_status = await signer.sign(
                         account.platform,
-                        lambda: matcher.send(f"⏳正在尝试完成人机验证，请稍后...")
+                        lambda: matcher.send("⏳正在尝试完成人机验证，请稍后...")
                     )
                 else:
                     sign_status = await signer.sign(
