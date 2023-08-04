@@ -1418,10 +1418,10 @@ async def genshin_board(account: UserAccount) -> Tuple[
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
-        return game_record_status, None
+        return GenshinBoardStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return game_list_status, None
+        return GenshinBoardStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'ys', game_list)
     game_info = next(game_filter, None)
     if not game_info:
@@ -1494,13 +1494,11 @@ async def StarRail_board(account: UserAccount) -> Tuple[
     :param account: 用户账户数据
     """
     game_record_status, records = await get_game_record(account)
-    logger.info(f"genshin_board game_record_status : {game_record_status}")
-    logger.info(f"genshin_board records : {records}")
     if not game_record_status:
-        return game_record_status, None
+        return StarRailBoardStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return game_list_status, None
+        return StarRailBoardStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'sr', game_list)
     game_info = next(game_filter, None)
     if not game_info:

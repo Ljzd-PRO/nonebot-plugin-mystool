@@ -3,6 +3,7 @@
 """
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
     Mapping, Literal
+from uuid import uuid4, UUID
 
 from httpx import Cookies
 from pydantic import BaseModel, validator
@@ -177,8 +178,10 @@ class BBSCookies(BaseModelWithSetter, BaseModelWithUpdate):
         cookies_dict = super().dict(include=include, exclude=exclude, by_alias=by_alias, skip_defaults=skip_defaults,
                                     exclude_unset=exclude_unset, exclude_defaults=exclude_defaults,
                                     exclude_none=exclude_none)
-        if v2_stoken:
+        if v2_stoken and self.stoken_v2:
             cookies_dict["stoken"] = self.stoken_v2
+        else:
+            cookies_dict["stoken"] = self.stoken_v1
 
         if cookie_type:
             # 去除自定义的 stoken_v1, stoken_v2 字段
@@ -228,8 +231,10 @@ class UserAccount(BaseModelWithSetter):
     '''设备平台'''
     mission_games: Set[type] = {}
     '''在哪些板块执行米游币任务计划'''
-    user_stamina_threshold: Optional[int] = 0
+    user_stamina_threshold: Optional[int] = 180
     '''崩铁便笺体力提醒阈值，0为一直提醒'''
+    user_resin_threshold: Optional[int] = 160
+    '''原神便笺树脂提醒阈值，0为一直提醒'''
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
@@ -338,21 +343,67 @@ class ExchangeResult(BaseModel):
     """兑换计划"""
 
 
+_uuid_set: Set[str] = set()
+"""已使用的用户UUID密钥集合"""
+_new_uuid_in_init = False
+"""插件反序列化用户数据时，是否生成了新的UUID密钥"""
+
+
+def uuid4_validate(v):
+    """
+    验证UUID是否为合法的UUIDv4
+
+    :param v: UUID
+    """
+    try:
+        UUID(v, version=4)
+    except:
+        return False
+    else:
+        return True
+
+
 class UserData(BaseModelWithSetter):
     """
     用户数据类
+
+    >>> _ = UserData()
     """
+    enable_notice: bool = True
+    """是否开启通知"""
+    uuid: Optional[str] = None
+    """用户UUID密钥，用于不同NoneBot适配器平台之间的数据同步，因此不可泄露"""
     exchange_plans: Union[Set[ExchangePlan], List[ExchangePlan]] = set()
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
     """储存一些已绑定的账号数据"""
-    enable_notice: bool = True
-    """是否开启通知"""
+    qq_guilds: Optional[Dict[str, Set[int]]] = {}
+    """储存用户所在的QQ频道ID {用户ID : [频道ID]}"""
+
+    @validator("uuid")
+    def uuid_validator(cls, v):
+        """
+        验证UUID是否为合法的UUIDv4
+
+        :raises ValueError: UUID格式错误，不是合法的UUIDv4
+        """
+        if v is None and not uuid4_validate(v):
+            raise ValueError("UUID格式错误，不是合法的UUIDv4")
 
     def __init__(self, **data: Any):
+        global _new_uuid_in_init
         super().__init__(**data)
+
         exchange_plans = self.exchange_plans
         self.exchange_plans = set()
         for plan in exchange_plans:
             plan = ExchangePlan.parse_obj(plan)
             self.exchange_plans.add(plan)
+
+        if self.uuid is None:
+            new_uuid = uuid4()
+            while str(new_uuid) in _uuid_set:
+                new_uuid = uuid4()
+            self.uuid = str(new_uuid)
+            _new_uuid_in_init = True
+        _uuid_set.add(self.uuid)

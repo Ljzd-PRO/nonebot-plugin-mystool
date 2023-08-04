@@ -2,18 +2,16 @@
 ### 米游社收货地址相关
 """
 import asyncio
-from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, GroupMessageEvent
-from nonebot.adapters.onebot.v11.message import Message
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
-from nonebot.params import Arg, ArgPlainText, T_State
+from nonebot.params import T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_address
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN
+from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -24,10 +22,10 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Matcher):
-    if isinstance(event, GroupMessageEvent):
-        await address_matcher.finish("⚠️为了保护您的隐私，请添加机器人好友后私聊进行地址设置。")
-    user = _conf.users.get(event.user_id)
+async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
+    if isinstance(event, GeneralGroupMessageEvent):
+        await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
+    user = _conf.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await address_matcher.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
@@ -36,7 +34,7 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
             "请跟随指引设置收货地址ID，如果你还没有设置米游社收获地址，请前往官网或App设置。\n🚪过程中发送“退出”即可退出")
     if len(user_account) == 1:
         account = next(iter(user_account.values()))
-        matcher.set_arg('bbs_uid', Message(account.bbs_uid))
+        state["bbs_uid"] = account.bbs_uid
     else:
         msg = "您有多个账号，您要设置以下哪个账号的收货地址？\n"
         msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
@@ -44,16 +42,14 @@ async def _(event: Union[PrivateMessageEvent, GroupMessageEvent], matcher: Match
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
-    if isinstance(uid, Message):
-        uid = uid.extract_plain_text().strip()
-    if uid == '退出':
+async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgStr()):
+    if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
-    user_account = _conf.users[event.user_id].accounts
-    if uid not in user_account:
+    user_account = _conf.users[event.get_user_id()].accounts
+    if bbs_uid not in user_account:
         await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
-    account = user_account[uid]
+    account = user_account[bbs_uid]
     state['account'] = account
 
     address_status, address_list = await get_address(account)
@@ -83,7 +79,7 @@ async def _(event: PrivateMessageEvent, state: T_State, uid=Arg("bbs_uid")):
 
 
 @address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(_: PrivateMessageEvent, state: T_State, address_id=ArgPlainText()):
+async def _(_: GeneralPrivateMessageEvent, state: T_State, address_id=ArgStr()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 

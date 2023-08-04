@@ -1,7 +1,7 @@
 """
 ### 米游社的游戏签到相关API
 """
-from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any
+from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any, Coroutine
 from urllib.parse import urlencode
 
 import httpx
@@ -208,7 +208,10 @@ class BaseGameSign:
                             geetest_result = await get_validate(gt, challenge)
                             if _conf.preference.geetest_url:
                                 if on_geetest_callback and attempt.retry_state.attempt_number == 1:
-                                    on_geetest_callback()
+                                    if isinstance(on_geetest_callback, Coroutine):
+                                        await on_geetest_callback
+                                    else:
+                                        on_geetest_callback()
                                 continue
                             else:
                                 return BaseApiStatus(need_verify=True)
@@ -244,7 +247,7 @@ class HonkaiImpact3Sign(BaseGameSign):
     崩坏3 游戏签到
     """
     NAME = "崩坏3"
-    ACT_ID = "e202207181446311"
+    ACT_ID = "e202306201626331"
     GAME_ID = 1
 
 

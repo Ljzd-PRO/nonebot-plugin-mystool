@@ -12,9 +12,10 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
+from . import user_data
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.1.0"
+VERSION = "v1.2.0"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
@@ -143,15 +144,16 @@ class SaltConfig(BaseSettings):
     """
     生成Headers - DS所用salt值，非必要请勿修改
     """
-    SALT_IOS: str = "ulInCDohgEs557j0VsPDYnQaaz6KJcv5"
-    '''生成Headers iOS DS所需的salt'''
+    SALT_IOS: str = "F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa"
+    '''LK2 - 生成Headers iOS DS所需的salt'''
     SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
     '''生成Headers Android DS所需的salt'''
     SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
-    '''Android 设备传入content生成 DS 所需的 salt'''
+    '''6X - Android 设备传入content生成 DS 所需的 salt'''
     SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
-    '''Android 设备传入url参数生成 DS 所需的 salt'''
+    '''4X - Android 设备传入url参数生成 DS 所需的 salt'''
     SALT_PROD: str = "JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS"
+    '''PROD'''
 
     class Config(Preference.Config):
         pass
@@ -162,13 +164,13 @@ class DeviceConfig(BaseSettings):
     设备信息
     Headers所用的各种数据，非必要请勿修改
     """
-    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.54.1"
+    USER_AGENT_MOBILE: str = "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.55.1"
     '''移动端 User-Agent(Mozilla UA)'''
     USER_AGENT_PC: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
     '''桌面端 User-Agent(Mozilla UA)'''
     USER_AGENT_OTHER: str = "Hyperion/275 CFNetwork/1402.0.8 Darwin/22.2.0"
     '''获取用户 ActionTicket 时Headers所用的 User-Agent'''
-    USER_AGENT_ANDROID: str = "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.54.1"
+    USER_AGENT_ANDROID: str = "Mozilla/5.0 (Linux; Android 11; MI 8 SE Build/RQ3A.211001.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/104.0.5112.97 Mobile Safari/537.36 miHoYoBBS/2.55.1"
     '''安卓端 User-Agent(Mozilla UA)'''
     USER_AGENT_ANDROID_OTHER: str = "okhttp/4.9.3"
     '''安卓端 User-Agent(专用于米游币任务等)'''
@@ -189,7 +191,7 @@ class DeviceConfig(BaseSettings):
     X_RPC_DEVICE_NAME_ANDROID: str = "Xiaomi MI 8 SE"
     '''安卓端 x-rpc-device_name'''
 
-    X_RPC_SYS_VERSION: str = "15.4"
+    X_RPC_SYS_VERSION: str = "16.2"
     '''Headers所用的 x-rpc-sys_version'''
     X_RPC_SYS_VERSION_ANDROID: str = "11"
     '''安卓端 x-rpc-sys_version'''
@@ -199,7 +201,7 @@ class DeviceConfig(BaseSettings):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.54.1"
+    X_RPC_APP_VERSION: str = "2.55.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
@@ -223,8 +225,44 @@ class PluginData(BaseModel):
     """设备信息"""
     good_list_image_config: GoodListImageConfig = GoodListImageConfig()
     """商品列表输出图片设置"""
-    users: Dict[int, UserData] = {}
+    user_bind: Optional[Dict[str, str]] = {}
+    '''不同NoneBot适配器平台的用户数据绑定关系（如QQ聊天和QQ频道）'''
+    users: Dict[str, UserData] = {}
     '''所有用户数据'''
+
+    def do_user_bind(self, src: str = None, dst: str = None, write: bool = False):
+        """
+        执行用户数据绑定同步，将src指向dst的用户数据，即src处的数据将会被dst处的数据对象替换
+
+        :param src: 源用户数据，为空则读取 self.user_bind 并执行全部绑定
+        :param dst: 目标用户数据，为空则读取 self.user_bind 并执行全部绑定
+        :param write: 是否写入插件数据文件
+        :return: 执行是否成功
+        """
+        if None in [src, dst]:
+            for src, dst in self.user_bind.items():
+                try:
+                    self.users[src] = self.users[dst]
+                except KeyError:
+                    logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
+                    return False
+                else:
+                    return True
+        else:
+            try:
+                self.user_bind[src] = dst
+                self.users[src] = self.users[dst]
+            except KeyError:
+                logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
+                return False
+            else:
+                if write:
+                    write_plugin_data()
+                return True
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        self.do_user_bind(write=True)
 
     class Config:
         json_encoders = UserAccount.Config.json_encoders
@@ -232,8 +270,9 @@ class PluginData(BaseModel):
 
 class PluginDataManager:
     plugin_data = PluginData()
-    device_config = DeviceConfig()
     """加载出的插件数据对象"""
+    device_config: DeviceConfig
+    """加载出的设备信息数据对象"""
 
     @classmethod
     def load_plugin_data(cls):
@@ -243,12 +282,21 @@ class PluginDataManager:
         if os.path.exists(PLUGIN_DATA_PATH) and os.path.isfile(PLUGIN_DATA_PATH):
             try:
                 with open(PLUGIN_DATA_PATH, "r") as f:
-                    device_config_dict = json.load(f)["device_config"]
-                device_config_from_file = DeviceConfig.parse_obj(device_config_dict)
-                for attr in device_config_from_file.__fields__:
-                    cls.device_config.__setattr__(attr, device_config_from_file.__getattribute__(attr))
+                    plugin_data_dict = json.load(f)
+                    override_device_and_salt = plugin_data_dict["preference"].get("override_device_and_salt")
+                    # 读取 preference.override_device_and_salt 时，如果没有该配置，则默认为 False
+                    override_device_and_salt = override_device_and_salt \
+                        if override_device_and_salt is not None else False
+                    device_config_dict = plugin_data_dict["device_config"]
 
-                plugin_data_from_file = PluginData.parse_file(PLUGIN_DATA_PATH)
+                # 先读取设备信息配置，因为之后导入其他代码时部分变量如Headers将会使用到，一旦完成导入，再修改设备信息配置将不会生效
+                if override_device_and_salt:
+                    cls.device_config = DeviceConfig.parse_obj(device_config_dict)
+                else:
+                    cls.device_config = DeviceConfig()
+
+                # 读取完整的插件数据
+                plugin_data_from_file = PluginData.parse_obj(plugin_data_dict)
                 for attr in plugin_data_from_file.__fields__:
                     cls.plugin_data.__setattr__(attr, plugin_data_from_file.__getattribute__(attr))
             except (ValidationError, JSONDecodeError):
@@ -283,14 +331,12 @@ class PluginDataManager:
             logger.info(f"插件数据文件 {PLUGIN_DATA_PATH} 不存在，已创建默认插件数据文件。")
 
 
-PluginDataManager.load_plugin_data()
-
-
 def write_plugin_data(data: PluginData = None):
     """
     写入插件数据文件
 
     :param data: 配置对象
+    :return: 是否成功
     """
     if data is None:
         data = PluginDataManager.plugin_data
@@ -302,3 +348,10 @@ def write_plugin_data(data: PluginData = None):
     with open(PLUGIN_DATA_PATH, "w", encoding="utf-8") as f:
         f.write(str_data)
     return True
+
+
+PluginDataManager.load_plugin_data()
+
+# 如果插件数据文件加载后，发现有用户没有UUID密钥，进行了生成，则需要保存写入
+if user_data._new_uuid_in_init:
+    write_plugin_data()

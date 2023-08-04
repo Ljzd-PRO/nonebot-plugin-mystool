@@ -2,6 +2,7 @@
 ### 工具函数
 """
 import hashlib
+import io
 import json
 import random
 import string
@@ -16,8 +17,17 @@ import nonebot
 import nonebot.log
 import nonebot.plugin
 import tenacity
+from nonebot import Adapter, Bot
+from nonebot.adapters import Message
+from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
+    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
+from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
+    Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
+from nonebot.adapters.qqguild.api import DMS
+from nonebot.adapters.qqguild.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
+from qrcode import QRCode
 
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager, Preference
@@ -26,6 +36,13 @@ if TYPE_CHECKING:
     from loguru import Logger
 
 _conf = PluginDataManager.plugin_data
+
+GeneralMessageEvent = Union[OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent]
+"""消息事件类型"""
+GeneralPrivateMessageEvent = Union[PrivateMessageEvent, DirectMessageCreateEvent]
+"""私聊消息事件类型"""
+GeneralGroupMessageEvent = Union[GroupMessageEvent, MessageCreateEvent]
+"""群聊消息事件类型"""
 
 
 class CommandBegin:
@@ -70,12 +87,16 @@ def set_logger(logger: "Logger"):
     """
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
-    logger.add(_conf.preference.log_path, diagnose=False, format=nonebot.log.default_format,
-               filter=lambda record: record["name"] == _conf.preference.plugin_name or
-                                     (_conf.preference.log_head != "" and record["message"].find(
-                                         _conf.preference.log_head) == 0) or
-                                     record["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1,
-               rotation=_conf.preference.log_rotation)
+    logger.add(
+        _conf.preference.log_path,
+        diagnose=False,
+        format=nonebot.log.default_format,
+        rotation=_conf.preference.log_rotation,
+        filter=lambda x: x["name"] == _conf.preference.plugin_name or (
+                _conf.preference.log_head != "" and x["message"].find(_conf.preference.log_head) == 0
+        ) or x["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1
+    )
+
     return logger
 
 
@@ -280,6 +301,105 @@ def blur_phone(phone: Union[str, int]) -> str:
     if isinstance(phone, int):
         phone = str(phone)
     return f"{phone[:3]}****{phone[-4:]}"
+
+
+def generate_qr_img(data: str):
+    """
+    生成二维码图片
+
+    :param data: 二维码数据
+
+    >>> b = generate_qr_img("https://github.com/Ljzd-PRO/nonebot-plugin-mystool")
+    >>> isinstance(b, bytes)
+    """
+    qr_code = QRCode()
+    qr_code.add_data(data)
+    qr_code.make()
+    image = qr_code.make_image()
+    image_bytes = io.BytesIO()
+    image.save(image_bytes)
+    return image_bytes.getvalue()
+
+
+async def send_private_msg(
+        user_id: str,
+        message: Union[str, Message],
+        use: Union[Bot, Adapter] = None,
+        guild_id: int = None
+) -> Union[bool, ActionFailed]:
+    """
+    主动发送私信消息
+
+    :param user_id: 目标用户ID
+    :param message: 消息内容
+    :param use: 使用的Bot或Adapter，为None则使用所有Bot
+    :param guild_id: 用户所在频道ID，为None则从用户数据中获取
+    :return: 是否发送成功
+    :raise ActionFailed
+    """
+    if isinstance(use, (OneBotV11Bot, QQGuildBot)):
+        bots = [use]
+    elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
+        bots = use.bots.values()
+    else:
+        bots = nonebot.get_bots().values()
+    if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
+        for bot in bots:
+            await bot.send_private_msg(user_id=int(user_id), message=message)
+        return True
+    elif isinstance(use, (QQGuildBot, QQGuildAdapter)):
+        message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
+
+        content = message.extract_content() or None
+        if embed := (message["embed"] or None):
+            embed = embed[-1].data["embed"]
+        if ark := (message["ark"] or None):
+            ark = ark[-1].data["ark"]
+        if image := (message["attachment"] or None):
+            image = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            file_image = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
+
+        if guild_id is None:
+            if user := _conf.users.get(user_id):
+                if not (guilds := user.qq_guilds.get(user_id)):
+                    logger.warning(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                    return False
+                guild_ids = iter(guilds)
+            else:
+                logger.warning(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                return False
+        else:
+            guild_ids = iter([guild_id])
+
+        while (guild_id := next(guild_ids, None)) is not None:
+            try:
+                for bot in bots:
+                    dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
+                    await bot.post_dms_messages(
+                        guild_id=dms.guild_id,  # type: ignore
+                        content=content,
+                        embed=embed,  # type: ignore
+                        ark=ark,  # type: ignore
+                        image=image,  # type: ignore
+                        file_image=file_image,  # type: ignore
+                        markdown=markdown,  # type: ignore
+                        message_reference=reference,  # type: ignore
+                    )
+            except ActionFailed as e:
+                logger.exception(
+                    f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
+                    f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
+                    f"{message}"
+                )
+                raise e
+            else:
+                return True
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
