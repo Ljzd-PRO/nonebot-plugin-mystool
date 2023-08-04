@@ -225,7 +225,7 @@ async def _(bot: Bot, event: GeneralGroupMessageEvent):
         ):
             await direct_msg_respond.send("✔已发送私信，请查看私信消息")
         else:
-            await direct_msg_respond.send(f"⚠️发送私信失败，请检查后台日志")
+            await direct_msg_respond.send("⚠️发送私信失败，请检查后台日志")
     except (QQGuildActionFailed, OneBotV11ActionFailed) as e:
         if isinstance(e, QQGuildActionFailed):
             if e.code == 304049:
