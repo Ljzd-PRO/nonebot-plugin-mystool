@@ -169,13 +169,10 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                 if matcher:
                     sign_status = await signer.sign(
                         account.platform,
-                        lambda: matcher.send("⏳正在尝试完成人机验证，请稍后...")
+                        matcher.send("⏳正在尝试完成人机验证，请稍后...")
                     )
                 else:
-                    sign_status = await signer.sign(
-                        account.platform,
-                        lambda: send_private_msg(user_id=user_id, message="⏳正在尝试完成人机验证，请稍后...")
-                    )
+                    sign_status = await signer.sign(account.platform)
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
