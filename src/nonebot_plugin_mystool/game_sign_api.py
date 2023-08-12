@@ -132,7 +132,7 @@ class BaseGameSign:
 
     async def sign(self,
                    platform: Literal["ios", "android"] = "ios",
-                   on_geetest_callback: Union[Callable[[], Any], Coroutine[Any]] = None,
+                   on_geetest_callback: Union[Callable[[], Any], Coroutine] = None,
                    retry: bool = True) -> BaseApiStatus:
         """
         签到
