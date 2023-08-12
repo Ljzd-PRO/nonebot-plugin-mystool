@@ -2,6 +2,8 @@
 ### 帮助相关
 #### 参考了`nonebot-plugin-help`
 """
+from typing import Union
+
 from nonebot import on_command
 from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.internal.params import ArgStr
@@ -27,7 +29,7 @@ helper.usage = "🍺欢迎使用米游社小助手帮助系统！" \
 
 
 @helper.handle()
-async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
+async def _(_: Union[GeneralMessageEvent], matcher: Matcher, args=CommandArg()):
     """
     主命令触发
     """
@@ -49,7 +51,7 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, args=CommandArg()):
 
 
 @helper.got('content')
-async def _(_: GeneralMessageEvent, content=ArgStr()):
+async def _(_: Union[GeneralMessageEvent], content=ArgStr()):
     """
     二级命令触发。功能详细说明查询
     """

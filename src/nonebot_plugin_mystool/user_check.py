@@ -2,6 +2,7 @@
 ### QQ好友相关、用户绑定相关
 """
 import asyncio
+from typing import Union
 from uuid import uuid4
 
 from nonebot import get_driver, on_request, on_command, Bot
@@ -83,7 +84,7 @@ user_binding.extra_usage = """\
 
 @user_binding.handle()
 async def _(
-        event: GeneralMessageEvent,
+        event: Union[GeneralMessageEvent],
         matcher: Matcher,
         command=Command(),
         command_arg=CommandArg()
@@ -211,7 +212,7 @@ direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止�
 
 
 @direct_msg_respond.handle()
-async def _(bot: Bot, event: GeneralGroupMessageEvent):
+async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
     msg_text = f"{PLUGIN.metadata.name}" \
                f"{PLUGIN.metadata.description}\n" \
                "具体用法：\n" \

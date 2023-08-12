@@ -37,11 +37,11 @@ if TYPE_CHECKING:
 
 _conf = PluginDataManager.plugin_data
 
-GeneralMessageEvent = Union[OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent]
+GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent
 """消息事件类型"""
-GeneralPrivateMessageEvent = Union[PrivateMessageEvent, DirectMessageCreateEvent]
+GeneralPrivateMessageEvent = PrivateMessageEvent, DirectMessageCreateEvent
 """私聊消息事件类型"""
-GeneralGroupMessageEvent = Union[GroupMessageEvent, MessageCreateEvent]
+GeneralGroupMessageEvent = GroupMessageEvent, MessageCreateEvent
 """群聊消息事件类型"""
 
 

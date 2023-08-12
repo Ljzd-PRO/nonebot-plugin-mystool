@@ -2,6 +2,7 @@
 ### 米游社收货地址相关
 """
 import asyncio
+from typing import Union
 
 from nonebot import on_command
 from nonebot.internal.params import ArgStr
@@ -22,7 +23,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 
 
 @address_matcher.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GeneralGroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
     user = _conf.users.get(event.get_user_id())
@@ -42,7 +43,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @address_matcher.got('bbs_uid')
-async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgStr()):
+async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, bbs_uid=ArgStr()):
     if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
@@ -79,7 +80,7 @@ async def _(event: GeneralPrivateMessageEvent, state: T_State, bbs_uid=ArgStr())
 
 
 @address_matcher.got('address_id', prompt='请发送你要选择的地址ID')
-async def _(_: GeneralPrivateMessageEvent, state: T_State, address_id=ArgStr()):
+async def _(_: Union[GeneralPrivateMessageEvent], state: T_State, address_id=ArgStr()):
     if address_id == "退出":
         await address_matcher.finish("🚪已成功退出")
 

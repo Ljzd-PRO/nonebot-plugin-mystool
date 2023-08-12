@@ -1,6 +1,7 @@
 """
 ### 用户设置相关
 """
+from typing import Union
 
 from nonebot import on_command
 from nonebot.internal.params import ArgStr
@@ -33,7 +34,7 @@ account_setting.usage = "配置游戏自动签到、米游币任务是否开启�
 
 
 @account_setting.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State):
     """
     账号设置命令触发
     """
@@ -53,7 +54,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State):
 
 
 @account_setting.got('bbs_uid')
-async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_uid=ArgStr()):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State, bbs_uid=ArgStr()):
     """
     根据手机号设置相应的账户
     """
@@ -87,7 +88,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher, state: T_State, bbs_ui
 
 
 @account_setting.got('setting_id')
-async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgStr()):
+async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr()):
     """
     根据所选更改相应账户的相应设置
     """
@@ -150,7 +151,7 @@ async def _(event: GeneralMessageEvent, state: T_State, setting_id=ArgStr()):
 
 
 @account_setting.got('notice_game')
-async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgStr()):
+async def _(_: Union[GeneralMessageEvent], state: T_State, notice_game=ArgStr()):
     if notice_game == '退出':
         await account_setting.finish('🚪已成功退出')
     elif state["setting_item"] == "setting_notice_value":
@@ -173,7 +174,7 @@ async def _(_: GeneralMessageEvent, state: T_State, notice_game=ArgStr()):
 
 
 @account_setting.got('setting_value')
-async def _(_: GeneralMessageEvent, state: T_State, setting_value=ArgStr()):
+async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr()):
     if setting_value == '退出':
         await account_setting.finish('🚪已成功退出')
     account: UserAccount = state['account']
@@ -231,7 +232,7 @@ global_setting.usage = "设置每日签到后是否进行QQ通知"
 
 
 @global_setting.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     通知设置命令触发
     """
@@ -242,7 +243,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
 
 
 @global_setting.got('choice')
-async def _(event: GeneralMessageEvent, matcher: Matcher, choice=ArgStr()):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, choice=ArgStr()):
     """
     根据选择变更通知设置
     """
