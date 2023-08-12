@@ -22,7 +22,7 @@ setting.usage = '如需配置是否开启每日任务、设备平台、频道任
 
 
 @setting.handle()
-async def _(_: GeneralMessageEvent):
+async def _(_: Union[GeneralMessageEvent]):
     msg = f'如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{COMMAND_BEGIN}账号设置』命令' \
           f'\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{COMMAND_BEGIN}通知设置』命令'
     await setting.send(msg)
