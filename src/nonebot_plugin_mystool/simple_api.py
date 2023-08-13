@@ -741,7 +741,7 @@ async def check_registrable(phone_number: int, keep_client: bool = False, retry:
 
 async def create_mmt(client: Optional[httpx.AsyncClient] = None,
                      use_v4: bool = True,
-                     device_id: str = generate_device_id(),
+                     device_id: str = None,
                      retry: bool = True) -> Tuple[
     BaseApiStatus, Optional[MmtData], str, Optional[httpx.AsyncClient]]:
     """
@@ -753,6 +753,8 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
     :param retry: 是否允许重试
     :return: (API返回状态, 人机验证任务数据, 设备ID, httpx.AsyncClient连接对象)
     """
+    if not device_id:
+        device_id = generate_device_id()
     headers = HEADERS_WEBAPI.copy()
     headers["x-rpc-device_id"] = device_id
     if use_v4:
