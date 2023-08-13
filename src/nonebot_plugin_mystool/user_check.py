@@ -8,7 +8,7 @@ from uuid import uuid4
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot, \
     ActionFailed as OneBotV11ActionFailed
-from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent,MessageCreateEvent
+from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
 from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
