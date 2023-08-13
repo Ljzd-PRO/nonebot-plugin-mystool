@@ -11,5 +11,5 @@ adapters = [
     { name = "QQGuild", module_name = "nonebot.adapters.qqguild" }
 ]
 plugins = ["nonebot_plugin_mystool"]
-plugin_dirs = ["src/plugins"]
+plugin_dirs = []
 builtin_plugins = []
