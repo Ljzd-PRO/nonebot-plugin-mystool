@@ -66,9 +66,13 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone
-    account_filter = filter(lambda x: x.phone_number == phone, _conf.users[event.get_user_id()].accounts.values())
-    account = next(account_filter, None)
-    device_id = account.phone_number if account else None
+    user_id = event.get_user_id()
+    if user_id in _conf.users:
+        account_filter = filter(lambda x: x.phone_number == phone, _conf.users[event.get_user_id()].accounts.values())
+        account = next(account_filter, None)
+        device_id = account.phone_number if account else None
+    else:
+        device_id = None
     mmt_status, mmt_data, _, _ = await create_mmt(device_id=device_id)
     if mmt_status and not mmt_data.gt:
         captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
