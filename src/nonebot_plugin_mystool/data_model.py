@@ -294,9 +294,9 @@ class MmtData(BaseModel):
     短信验证码-人机验证任务申请-返回数据
     """
     challenge: Optional[str]
-    gt: str
+    gt: Optional[str]
     mmt_key: str
-    new_captcha: bool
+    new_captcha: Optional[bool]
     risk_type: Optional[str]
     """任务类型，如滑动拼图 slide"""
     success: Optional[int]

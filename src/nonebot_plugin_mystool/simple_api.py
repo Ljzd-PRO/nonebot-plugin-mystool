@@ -792,14 +792,14 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
 
 async def create_mobile_captcha(phone_number: int,
                                 mmt_data: MmtData,
-                                geetest_result: Union[GeetestResult, GeetestResultV4],
+                                geetest_result: Union[GeetestResult, GeetestResultV4] = None,
                                 client: Optional[httpx.AsyncClient] = None,
                                 use_v4: bool = True,
                                 device_id: str = None,
                                 retry: bool = True
                                 ) -> Tuple[CreateMobileCaptchaStatus, Optional[httpx.AsyncClient]]:
     """
-    发送短信验证码
+    发送短信验证码，可尝试不传入 geetest_result，即不进行人机验证
 
     :param phone_number: 手机号
     :param mmt_data: 人机验证任务数据
@@ -820,13 +820,20 @@ async def create_mobile_captcha(phone_number: int,
             "mobile": str(phone_number),
             "t": str(round(time.time() * 1000))
         }
-    else:
+    elif geetest_result:
         content = {
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
             "geetest_challenge": mmt_data.challenge,
             "geetest_validate": geetest_result.validate,
             "geetest_seccode": geetest_result.seccode,
+            "mobile": phone_number,
+            "t": round(time.time() * 1000)
+        }
+    else:
+        content = {
+            "action_type": "login",
+            "mmt_key": mmt_data.mmt_key,
             "mobile": phone_number,
             "t": round(time.time() * 1000)
         }
