@@ -41,7 +41,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        cd test-nonebot-project
         poetry run pytest -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html test-nonebot-project/bot.py
 
     - name: Build package with Poetry
