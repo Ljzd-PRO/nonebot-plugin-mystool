@@ -45,7 +45,7 @@ jobs:
         source $VIRTUALENV_PATH/bin/activate
         cp -r src/nonebot_plugin_mystool test-nonebot-project/src/plugins/
         cd test-nonebot-project
-        pytest -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html test-nonebot-project/bot.py
+        pytest -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html bot.py
         deactivate
 
     - name: Build package with Poetry
