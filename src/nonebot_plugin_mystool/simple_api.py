@@ -860,6 +860,8 @@ async def create_mobile_captcha(phone_number: str,
                     return CreateMobileCaptchaStatus(success=True), client
                 elif api_result.wrong_captcha:
                     return CreateMobileCaptchaStatus(incorrect_geetest=True), client
+                else:
+                    return CreateMobileCaptchaStatus(), client
     except tenacity.RetryError as e:
         if client:
             await client.aclose()
