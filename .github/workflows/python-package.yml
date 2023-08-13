@@ -26,18 +26,28 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
         poetry install --with test
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
     - name: Test with pytest
       run: |
         poetry run pytest -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html src/nonebot_plugin_mystool
+
     - name: Build package with Poetry
       run: poetry build
+
+    - name: Upload pytest HTML result
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-html-${{ matrix.python-version }}
+        path: report-${{ matrix.python-version }}.html
