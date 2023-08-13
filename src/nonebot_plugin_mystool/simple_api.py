@@ -792,7 +792,7 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
             return BaseApiStatus(network_error=True), None, device_id, None
 
 
-async def create_mobile_captcha(phone_number: int,
+async def create_mobile_captcha(phone_number: str,
                                 mmt_data: MmtData,
                                 geetest_result: Union[GeetestResult, GeetestResultV4] = None,
                                 client: Optional[httpx.AsyncClient] = None,
@@ -819,7 +819,7 @@ async def create_mobile_captcha(phone_number: int,
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
             "geetest_v4_data": str(geetest_v4_data).replace("'", '"'),
-            "mobile": str(phone_number),
+            "mobile": phone_number,
             "t": str(round(time.time() * 1000))
         }
     elif geetest_result:
