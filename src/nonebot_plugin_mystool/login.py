@@ -14,7 +14,7 @@ from nonebot.params import ArgPlainText, T_State
 
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
-    get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp
+    get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
     generate_qr_img
@@ -57,7 +57,7 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
 
 
 @get_cookie.got('phone', prompt='1.请发送您的手机号：')
-async def _(_: Union[GeneralPrivateMessageEvent], state: T_State, phone: str = ArgPlainText('phone')):
+async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str = ArgPlainText('phone')):
     if phone == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not phone.isdigit():
@@ -66,10 +66,15 @@ async def _(_: Union[GeneralPrivateMessageEvent], state: T_State, phone: str = A
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone
-
-
-@get_cookie.handle()
-async def _(_: Union[GeneralPrivateMessageEvent]):
+    account_filter = filter(lambda x: x.phone_number == phone, _conf.users[event.get_user_id()].accounts.values())
+    account = next(account_filter, None)
+    device_id = account.phone_number if account else None
+    mmt_status, mmt_data, _, _ = await create_mmt(device_id=device_id)
+    if mmt_status and not mmt_data.gt:
+        captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
+        if captcha_status:
+            await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
+            return
     await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 
