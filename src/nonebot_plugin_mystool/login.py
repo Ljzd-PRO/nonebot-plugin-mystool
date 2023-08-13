@@ -80,6 +80,10 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         if captcha_status:
             await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
             return
+        elif captcha_status.invalid_phone_number:
+            await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
+        elif captcha_status.not_registered:
+            await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
     await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 
