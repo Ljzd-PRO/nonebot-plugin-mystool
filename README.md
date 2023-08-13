@@ -69,7 +69,14 @@
 
 ## 其他
 
-### [📃源码说明](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
+### 贡献
+<a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ljzd-PRO/nonebot-plugin-mystool&max=1000" alt="贡献者"/>
+</a>
+
+### 源码说明
+[📃Source-Structure](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
+
 ### 适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支
 - https://github.com/MWTJC/zhenxun-plugin-mystool
 - https://github.com/ayakasuki/nonebot-plugin-mystool
