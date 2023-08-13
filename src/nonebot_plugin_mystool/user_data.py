@@ -407,3 +407,6 @@ class UserData(BaseModelWithSetter):
             self.uuid = str(new_uuid)
             _new_uuid_in_init = True
         _uuid_set.add(self.uuid)
+
+    def __hash__(self):
+        return hash(self.uuid)
