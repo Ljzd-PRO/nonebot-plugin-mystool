@@ -3,7 +3,7 @@ from nonebot.adapters.onebot.v11 import Adapter as OnebotV11
 
 from nonebot.adapters.qqguild import Adapter as QQGuild
 
-nonebot.init()
+nonebot.init(_env_file=".env.dev")
 
 driver = nonebot.get_driver()
 
