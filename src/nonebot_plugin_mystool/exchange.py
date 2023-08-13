@@ -11,7 +11,7 @@ from datetime import datetime
 from multiprocessing import Manager
 from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
-from typing import List, Callable, Any, Tuple, Optional, Dict
+from typing import List, Callable, Any, Tuple, Optional, Dict, Union
 
 import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
@@ -59,7 +59,7 @@ myb_exchange_plan.extra_usage = """\
 
 @myb_exchange_plan.handle()
 async def _(
-        event: GeneralMessageEvent,
+        event: Union[GeneralMessageEvent],
         matcher: Matcher,
         state: T_State,
         command=Command(),
@@ -125,7 +125,7 @@ async def _(
 
 @myb_exchange_plan.got('bbs_uid')
 async def _(
-        event: GeneralMessageEvent,
+        event: Union[GeneralMessageEvent],
         matcher: Matcher,
         state: T_State,
         bbs_uid=ArgStr()
@@ -144,7 +144,7 @@ async def _(
 
 @myb_exchange_plan.got('good_id')
 async def _(
-        event: GeneralMessageEvent,
+        event: Union[GeneralMessageEvent],
         matcher: Matcher,
         state: T_State,
         good_id=ArgPlainText('good_id')
@@ -229,7 +229,7 @@ async def _(
 
 @myb_exchange_plan.got('game_uid')
 async def _(
-        event: GeneralMessageEvent,
+        event: Union[GeneralMessageEvent],
         matcher: Matcher,
         state: T_State,
         game_uid=ArgStr()
@@ -286,7 +286,7 @@ get_good_image.usage = "获取当日米游币商品信息。添加自动兑换�
 
 
 @get_good_image.handle()
-async def _(_: GeneralMessageEvent, matcher: Matcher, arg=CommandArg()):
+async def _(_: Union[GeneralMessageEvent], matcher: Matcher, arg=CommandArg()):
     # 若有使用二级命令，即传入了想要查看的商品类别，则跳过询问
     if arg:
         matcher.set_arg("content", arg)
@@ -301,7 +301,7 @@ async def _(_: GeneralMessageEvent, matcher: Matcher, arg=CommandArg()):
                                       "\n- 米游社"
                                       "\n若是商品图片与米游社商品不符或报错 请发送“更新”哦~"
                                       "\n—— 🚪发送“退出”以结束")
-async def _(event: GeneralMessageEvent, arg=ArgPlainText("content")):
+async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
     """
     根据传入的商品类别，发送对应的商品列表图片
     """
@@ -447,7 +447,7 @@ async def _():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
-            if good_detail_status.good_not_existed or good.time < time.time():
+            if not good_detail_status or good.time < time.time():
                 # 若商品不存在则删除
                 # 若重启时兑换超时则删除该兑换
                 user.exchange_plans.remove(plan)

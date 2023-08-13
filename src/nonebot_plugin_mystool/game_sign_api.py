@@ -1,7 +1,7 @@
 """
 ### 米游社的游戏签到相关API
 """
-from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any, Coroutine
+from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any, Coroutine, Union
 from urllib.parse import urlencode
 
 import httpx
@@ -132,7 +132,7 @@ class BaseGameSign:
 
     async def sign(self,
                    platform: Literal["ios", "android"] = "ios",
-                   on_geetest_callback: Callable[[], Any] = None,
+                   on_geetest_callback: Union[Callable[[], Any], Coroutine] = None,
                    retry: bool = True) -> BaseApiStatus:
         """
         签到

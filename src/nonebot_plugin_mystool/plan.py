@@ -4,6 +4,7 @@
 import asyncio
 import random
 import threading
+from typing import Union
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -30,7 +31,7 @@ manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励�
 
 
 @manually_game_sign.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动游戏签到函数
     """
@@ -47,7 +48,7 @@ manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米�
 
 
 @manually_bbs_sign.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动米游币任务函数
     """
@@ -79,7 +80,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看原神便笺
     """
@@ -109,7 +110,7 @@ for user in _conf.users.values():
 
 
 @manually_resin_check_sr.handle()
-async def _(event: GeneralMessageEvent, matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看星穹铁道便笺（sr）
     """
@@ -119,7 +120,7 @@ async def _(event: GeneralMessageEvent, matcher: Matcher):
     await resin_check_sr(user_id=event.get_user_id(), matcher=matcher)
 
 
-async def perform_game_sign(user_id: str, matcher: Matcher = None, event: GeneralMessageEvent = None):
+async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Union[GeneralMessageEvent] = None):
     """
     执行游戏签到函数，并发送给用户签到消息。
 
@@ -169,13 +170,10 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Genera
                 if matcher:
                     sign_status = await signer.sign(
                         account.platform,
-                        lambda: matcher.send("⏳正在尝试完成人机验证，请稍后...")
+                        matcher.send("⏳正在尝试完成人机验证，请稍后...")
                     )
                 else:
-                    sign_status = await signer.sign(
-                        account.platform,
-                        lambda: send_private_msg(user_id=user_id, message="⏳正在尝试完成人机验证，请稍后...")
-                    )
+                    sign_status = await signer.sign(account.platform)
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
