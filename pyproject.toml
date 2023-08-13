@@ -33,6 +33,7 @@ nonebot_adapter_onebot = "^2.2.3"
 nonebot-adapter-qqguild = "^0.2.3"
 tenacity = "^8.2.2"
 qrcode = "^7.4.2"
+pydantic = "^1.10.0"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues"
