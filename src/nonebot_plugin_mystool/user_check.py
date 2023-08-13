@@ -8,7 +8,7 @@ from uuid import uuid4
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot, \
     ActionFailed as OneBotV11ActionFailed
-from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent,MessageCreateEvent
+from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
 from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
@@ -99,8 +99,7 @@ async def _(
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥查看。")
 
             await matcher.send(
-                "🔑您的UUID密钥为：\n" if user_id not in _conf.user_bind else
-                "🔑您绑定的用户数据的UUID密钥为：\n"
+                f"{'🔑您的UUID密钥为：' if user_id not in _conf.user_bind else '🔑您绑定的用户数据的UUID密钥为：'}\n"
                 f"{user.uuid.upper()}\n"
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
@@ -149,8 +148,7 @@ async def _(
             write_plugin_data()
 
             await matcher.send(
-                "✔已刷新UUID密钥，原先绑定的用户将无法访问当前用户数据\n" if be_bind else
-                "✔已刷新您绑定的用户数据的UUID密钥，目前您的用户数据已为空，您也可以再次绑定\n"
+                f"{'✔已刷新UUID密钥，原先绑定的用户将无法访问当前用户数据' if be_bind else '✔已刷新您绑定的用户数据的UUID密钥，目前您的用户数据已为空，您也可以再次绑定'}\n"
                 f"🔑新的UUID密钥：{user.uuid.upper()}\n"
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
