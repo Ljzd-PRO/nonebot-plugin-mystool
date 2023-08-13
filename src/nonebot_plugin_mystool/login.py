@@ -30,7 +30,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
-    user_num = len(_conf.users)
+    user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
