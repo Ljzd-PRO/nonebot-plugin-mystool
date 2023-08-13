@@ -41,8 +41,8 @@ jobs:
 
     - name: Test with pytest
       run: |
-        poetry shell
-        cd test-nonebot-project
+        VIRTUALENV_PATH=`poetry run poetry env info --path`
+        source $VIRTUALENV_PATH/bin/activate
         pytest --rootdir=test-nonebot-project -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html test-nonebot-project/bot.py
         exit
 
