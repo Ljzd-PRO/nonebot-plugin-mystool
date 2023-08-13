@@ -6,15 +6,19 @@
   \/_/  \/_/   \/_____/   \/_____/     \/_/   \/_____/   \/_____/   \/_____/
 ```
 
-<div>
-  <img alt="CodeFactor" src="https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool/badge?style=for-the-badge">
-  <img alt="最新发行版" src="https://img.shields.io/github/v/release/Ljzd-PRO/nonebot-plugin-mysTool?logo=python&style=for-the-badge">
-  <img alt="最后提交" src="https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool?style=for-the-badge">
-</div>
+[![CodeFactor](https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool/badge?style=for-the-badge)](https://www.codefactor.io/repository/github/ljzd-pro/nonebot-plugin-mystool)
+[![最新发行版](https://img.shields.io/github/v/release/Ljzd-PRO/nonebot-plugin-mysTool?logo=python&style=for-the-badge)](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/latest)
+[![最后提交](https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool/dev?style=for-the-badge)](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/commits/dev)
 
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.8.14 - v1.2.2
+- 修复新用户无法正常使用登录功能的问题 #162
+- 优化登录操作中DeviceID相关
+- 修复可能存在重复的用户数据对象导致判断当前用户数有误的问题
+- 修复用户数据绑定时QQ频道相关操作Bug
+
 ### 2023.8.13 - v1.2.1
 - 在无需人机验证的情况下，登录操作时将自动发送短信验证码
 - 修复登录功能无法正常使用的问题 #158
@@ -69,7 +73,14 @@
 
 ## 其他
 
-### [📃源码说明](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
+### 贡献
+<a href="https://github.com/Ljzd-PRO/nonebot-plugin-mystool/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Ljzd-PRO/nonebot-plugin-mystool&max=1000" alt="贡献者"/>
+</a>
+
+### 源码说明
+[📃Source-Structure](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Source-Structure)
+
 ### 适配 [绪山真寻Bot](https://github.com/HibiKier/zhenxun_bot) 的分支
 - https://github.com/MWTJC/zhenxun-plugin-mystool
 - https://github.com/ayakasuki/nonebot-plugin-mystool

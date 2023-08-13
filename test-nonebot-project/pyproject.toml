@@ -1,0 +1,15 @@
+[project]
+name = "test-nonebot-project"
+version = "0.1.0"
+description = "test-nonebot-project"
+readme = "README.md"
+requires-python = ">=3.8, <4.0"
+
+[tool.nonebot]
+adapters = [
+    { name = "OneBotV11", module_name = "nonebot.adapters.onebot.v11" },
+    { name = "QQGuild", module_name = "nonebot.adapters.qqguild" }
+]
+plugins = ["nonebot_plugin_mystool"]
+plugin_dirs = []
+builtin_plugins = []

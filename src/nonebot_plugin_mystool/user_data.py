@@ -367,7 +367,8 @@ class UserData(BaseModelWithSetter):
     """
     用户数据类
 
-    >>> _ = UserData()
+    >>> userdata = UserData()
+    >>> hash(userdata)
     """
     enable_notice: bool = True
     """是否开启通知"""
@@ -407,3 +408,6 @@ class UserData(BaseModelWithSetter):
             self.uuid = str(new_uuid)
             _new_uuid_in_init = True
         _uuid_set.add(self.uuid)
+
+    def __hash__(self):
+        return hash(self.uuid)

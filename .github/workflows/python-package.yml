@@ -6,13 +6,7 @@ name: Multiple Python Versions Test
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'src/nonebot_plugin_mystool/**'
-      - '.github/workflows/python-package.yml'
   pull_request:
-    paths:
-      - 'src/nonebot_plugin_mystool/**'
-      - '.github/workflows/python-package.yml'
 
 permissions:
   contents: read
@@ -32,20 +26,32 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
         curl -sSL https://install.python-poetry.org | python3 -
-        poetry install
+        poetry install --with test
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        ## pytest
+        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+#    - name: Test with pytest
+#      run: |
+#        VIRTUALENV_PATH=`poetry run poetry env info --path`
+#        source $VIRTUALENV_PATH/bin/activate
+#        cd test-nonebot-project
+#        pytest -v --doctest-modules --capture=sys --html=report-${{ matrix.python-version }}.html --self-contained-html bot.py
+#        deactivate
+
     - name: Build package with Poetry
       run: poetry build
+
+#    - name: Upload pytest HTML result
+#      uses: actions/upload-artifact@v3
+#      with:
+#        name: pytest-html-${{ matrix.python-version }}
+#        path: report-${{ matrix.python-version }}.html

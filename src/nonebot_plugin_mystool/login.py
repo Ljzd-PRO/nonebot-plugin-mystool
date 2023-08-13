@@ -2,7 +2,7 @@
 ### 米游社登录获取Cookie相关
 """
 import json
-from typing import Union
+from typing import Union, Optional
 
 from nonebot import on_command
 from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
@@ -30,7 +30,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
-    user_num = len(_conf.users)
+    user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
@@ -66,10 +66,15 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone
-    account_filter = filter(lambda x: x.phone_number == phone, _conf.users[event.get_user_id()].accounts.values())
-    account = next(account_filter, None)
-    device_id = account.phone_number if account else None
-    mmt_status, mmt_data, _, _ = await create_mmt(device_id=device_id)
+    user = _conf.users.get(event.get_user_id())
+    if user:
+        account_filter = filter(lambda x: x.phone_number == phone, user.accounts.values())
+        account = next(account_filter, None)
+        device_id = account.phone_number if account else None
+    else:
+        device_id = None
+    mmt_status, mmt_data, device_id, _ = await create_mmt(device_id=device_id)
+    state['device_id'] = device_id
     if mmt_status and not mmt_data.gt:
         captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
         if captcha_status:
@@ -81,6 +86,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
 async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: str = ArgPlainText('captcha')):
     phone_number: str = state['phone']
+    device_id: Optional[str] = state['device_id']
     if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not captcha.isdigit():
@@ -94,22 +100,21 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
             user.qq_guilds.setdefault(user_id, set())
             user.qq_guilds[user_id].add(event.channel_id)
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
-        login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha))
+        login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha), device_id)
         if login_status:
-            # logger.info(f"用户 {phone_number} 成功获取 login_ticket: {cookies.login_ticket}")
+            logger.success(f"用户 {cookies.bbs_uid} 成功获取 login_ticket: {cookies.login_ticket}")
             account = _conf.users[user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
-                    cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies)
+                    cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies, device_id_ios=device_id)
                 })
                 account = user.accounts[cookies.bbs_uid]
             else:
                 account.cookies.update(cookies)
-            if not account.device_id_ios:
-                fp_status, account.device_fp = await get_device_fp(account.device_id_ios)
-                if fp_status:
-                    logger.success(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
+            fp_status, account.device_fp = await get_device_fp(device_id)
+            if fp_status:
+                logger.success(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
             write_plugin_data()
 
             # 2. 通过 login_ticket 获取 stoken 和 ltoken
@@ -121,22 +126,21 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
                     write_plugin_data()
 
                     # 3. 通过 stoken_v1 获取 stoken_v2 和 mid
-                    login_status, cookies = await get_stoken_v2_by_v1(account.cookies, account.device_id_ios)
+                    login_status, cookies = await get_stoken_v2_by_v1(account.cookies, device_id)
                     if login_status:
                         logger.success(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
                         account.cookies.update(cookies)
                         write_plugin_data()
 
                         # 4. 通过 stoken_v2 获取 ltoken
-                        login_status, cookies = await get_ltoken_by_stoken(account.cookies, account.device_id_ios)
+                        login_status, cookies = await get_ltoken_by_stoken(account.cookies, device_id)
                         if login_status:
                             logger.success(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
                             account.cookies.update(cookies)
                             write_plugin_data()
 
                             # 5. 通过 stoken_v2 获取 cookie_token
-                            login_status, cookies = await get_cookie_token_by_stoken(account.cookies,
-                                                                                     account.device_id_ios)
+                            login_status, cookies = await get_cookie_token_by_stoken(account.cookies, device_id)
                             if login_status:
                                 logger.success(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
                                 account.cookies.update(cookies)
