@@ -860,6 +860,12 @@ async def create_mobile_captcha(phone_number: str,
                     return CreateMobileCaptchaStatus(success=True), client
                 elif api_result.wrong_captcha:
                     return CreateMobileCaptchaStatus(incorrect_geetest=True), client
+                elif api_result.retcode == -217:
+                    return CreateMobileCaptchaStatus(not_registered=True), client
+                elif api_result.retcode == -103:
+                    return CreateMobileCaptchaStatus(invalid_phone_number=True), client
+                elif api_result.retcode == -213:
+                    return CreateMobileCaptchaStatus(too_many_requests=True), client
                 else:
                     return CreateMobileCaptchaStatus(), client
     except tenacity.RetryError as e:

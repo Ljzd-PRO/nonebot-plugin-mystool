@@ -481,6 +481,12 @@ class CreateMobileCaptchaStatus(BaseApiStatus):
     """
     incorrect_geetest = False
     """人机验证结果数据无效"""
+    not_registered = False
+    """手机号码未注册"""
+    invalid_phone_number = False
+    """手机号码无效"""
+    too_many_requests = False
+    """发送过于频繁"""
 
 
 class GetCookieStatus(BaseApiStatus):
