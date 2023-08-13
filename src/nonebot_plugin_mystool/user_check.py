@@ -8,7 +8,7 @@ from uuid import uuid4
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot, \
     ActionFailed as OneBotV11ActionFailed
-from nonebot.adapters.qqguild import Bot as QQGuildBot
+from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent,MessageCreateEvent
 from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
@@ -187,12 +187,13 @@ async def _(
             _conf.do_user_bind(user_id, target_id)
             user = _conf.users[user_id]
             user.qq_guilds.setdefault(user_id, set())
-            if isinstance(event, GeneralGroupMessageEvent):
+            if isinstance(event, DirectMessageCreateEvent):
+                user.qq_guilds[user_id].add(event.channel_id)
+            elif isinstance(event, MessageCreateEvent):
                 user.qq_guilds[user_id].add(event.guild_id)
+            if isinstance(event, GeneralGroupMessageEvent):
                 user.uuid = str(uuid4())
                 await matcher.send("🔑由于您在群聊中进行绑定，已刷新您的UUID密钥，但不会影响其他已绑定用户")
-            else:
-                user.qq_guilds[user_id].add(event.channel_id)
             write_plugin_data()
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
 
