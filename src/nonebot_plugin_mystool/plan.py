@@ -4,7 +4,7 @@
 import asyncio
 import random
 import threading
-from typing import Union
+from typing import Union, Optional
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -16,6 +16,7 @@ from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot_plugin_apscheduler import scheduler
 
+from .data_model import MissionStatus
 from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
@@ -286,10 +287,16 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                     await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
                 # 执行任务
-                sign_status, read_status, like_status, share_status = None, None, None, None
+                sign_status, read_status, like_status, share_status = (
+                    MissionStatus(),
+                    MissionStatus(),
+                    MissionStatus(),
+                    MissionStatus()
+                )
+                sign_points: Optional[int] = None
                 for key_name in missions_state.state_dict:
                     if key_name == BaseMission.SIGN:
-                        sign_status = await mission_obj.sign()
+                        sign_status, sign_points = await mission_obj.sign()
                     elif key_name == BaseMission.VIEW:
                         read_status = await mission_obj.read()
                     elif key_name == BaseMission.LIKE:
@@ -300,10 +307,10 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                 if matcher:
                     await matcher.send(
                         f"🆔账户 {account.bbs_uid} 🎮『{class_type.NAME}』米游币任务执行情况：\n"
-                        f"签到：{'✓' if sign_status else '✕'}\n"
-                        f"阅读：{'✓' if read_status else '✕'}\n"
-                        f"点赞：{'✓' if like_status else '✕'}\n"
-                        f"分享：{'✓' if share_status else '✕'}"
+                        f"📅签到：{'✓' if sign_status else '✕'} +{sign_points or '0'} 米游币🪙\n"
+                        f"📰阅读：{'✓' if read_status else '✕'}\n"
+                        f"❤️点赞：{'✓' if like_status else '✕'}\n"
+                        f"↗️分享：{'✓' if share_status else '✕'}"
                     )
 
         # 用户打开通知或手动任务时，进行通知
@@ -343,7 +350,7 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                 else:
                     mission_name = mission.mission_key
                 msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
-            msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}" \
+            msg += f"\n🪙获得米游币: {missions_state.current_myb - myb_before_mission}" \
                    f"\n💰当前米游币: {missions_state.current_myb}"
 
             if matcher:
