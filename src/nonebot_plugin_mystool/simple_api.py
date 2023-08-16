@@ -754,7 +754,8 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
     :return: (API返回状态, 人机验证任务数据, 设备ID, httpx.AsyncClient连接对象)
     """
     headers = HEADERS_WEBAPI.copy()
-    headers["x-rpc-device_id"] = device_id or generate_device_id()
+    device_id = device_id or generate_device_id()
+    headers["x-rpc-device_id"] = device_id
     if use_v4:
         headers.setdefault("x-rpc-source", "accountWebsite")
 

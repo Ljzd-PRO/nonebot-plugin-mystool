@@ -90,7 +90,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
 @get_cookie.got("captcha", prompt='3.请发送验证码：')
 async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: str = ArgPlainText('captcha')):
     phone_number: str = state['phone']
-    device_id: Optional[str] = state['device_id']
+    device_id: str = state['device_id']
     if captcha == '退出':
         await get_cookie.finish("🚪已成功退出")
     if not captcha.isdigit():

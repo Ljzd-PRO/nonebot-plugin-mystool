@@ -459,10 +459,7 @@ class BaseApiStatus(BaseModel):
     """Headers DS无效"""
 
     def __bool__(self):
-        if self.success:
-            return True
-        else:
-            return False
+        return self.success
 
     @property
     def error_type(self):
