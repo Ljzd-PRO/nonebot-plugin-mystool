@@ -281,7 +281,7 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
         finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
         if not finished:
             for class_type in account.mission_games:
-                mission_obj = class_type(account)
+                mission_obj: BaseMission = class_type(account)
                 if matcher:
                     await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
