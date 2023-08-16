@@ -276,68 +276,80 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                                        message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
             continue
         myb_before_mission = missions_state.current_myb
+
         # 在此处进行判断。因为如果在多个分区执行任务，会在完成之前就已经达成米游币任务目标，导致其他分区任务不会执行。
         finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
-        for class_type in account.mission_games:
-            mission_obj = class_type(account)
-            if matcher:
-                await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
+        if not finished:
+            for class_type in account.mission_games:
+                mission_obj = class_type(account)
+                if matcher:
+                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
-            # 执行任务
-            for key_name in missions_state.state_dict:
-                if not finished:
+                # 执行任务
+                sign_status, read_status, like_status, share_status = None, None, None, None
+                for key_name in missions_state.state_dict:
                     if key_name == BaseMission.SIGN:
-                        await mission_obj.sign()
+                        sign_status = await mission_obj.sign()
                     elif key_name == BaseMission.VIEW:
-                        await mission_obj.read()
+                        read_status = await mission_obj.read()
                     elif key_name == BaseMission.LIKE:
-                        await mission_obj.like()
+                        like_status = await mission_obj.like()
                     elif key_name == BaseMission.SHARE:
-                        await mission_obj.share()
-
-            # 用户打开通知或手动任务时，进行通知
-            if user.enable_notice or matcher:
-                missions_state_status, missions_state = await get_missions_state(account)
-                if not missions_state_status:
-                    if missions_state_status.login_expired:
-                        if matcher:
-                            await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                        else:
-                            await send_private_msg(user_id=user_id,
-                                                   message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                        continue
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                    else:
-                        await send_private_msg(user_id=user_id,
-                                               message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                    continue
-                if all(map(lambda x: x[1] >= x[0].threshold, missions_state.state_dict.values())):
-                    notice_string = f"🎉已完成今日米游币任务 - 分区『{class_type.NAME}』"
-                else:
-                    notice_string = f"⚠️今日米游币任务未全部完成 - 分区『{class_type.NAME}』"
-
-                msg = f"{notice_string}" \
-                      f"\n🆔账户 {account.bbs_uid}"
-                for key_name, (mission, current) in missions_state.state_dict.items():
-                    if key_name == BaseMission.SIGN:
-                        mission_name = "签到"
-                    elif key_name == BaseMission.VIEW:
-                        mission_name = "阅读"
-                    elif key_name == BaseMission.LIKE:
-                        mission_name = "点赞"
-                    elif key_name == BaseMission.SHARE:
-                        mission_name = "转发"
-                    else:
-                        mission_name = mission.mission_key
-                    msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
-                msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}" \
-                       f"\n💰当前米游币: {missions_state.current_myb}"
+                        share_status = await mission_obj.share()
 
                 if matcher:
-                    await matcher.send(msg)
+                    await matcher.send(
+                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.NAME}』米游币任务执行情况：\n"
+                        f"签到：{'✓' if sign_status else '✕'}\n"
+                        f"阅读：{'✓' if read_status else '✕'}\n"
+                        f"点赞：{'✓' if like_status else '✕'}\n"
+                        f"分享：{'✓' if share_status else '✕'}"
+                    )
+
+        # 用户打开通知或手动任务时，进行通知
+        if user.enable_notice or matcher:
+            missions_state_status, missions_state = await get_missions_state(account)
+            if not missions_state_status:
+                if missions_state_status.login_expired:
+                    if matcher:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    else:
+                        await send_private_msg(user_id=user_id,
+                                               message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    continue
+                if matcher:
+                    await matcher.send(
+                        f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
                 else:
-                    await send_private_msg(user_id=user_id, message=msg)
+                    await send_private_msg(user_id=user_id,
+                                           message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+                continue
+            if all(current == mission.threshold for mission, current in missions_state.state_dict.values()):
+                notice_string = f"🎉已完成今日米游币任务"
+            else:
+                notice_string = f"⚠️今日米游币任务未全部完成"
+
+            msg = f"{notice_string}" \
+                  f"\n🆔账户 {account.bbs_uid}"
+            for key_name, (mission, current) in missions_state.state_dict.items():
+                if key_name == BaseMission.SIGN:
+                    mission_name = "签到"
+                elif key_name == BaseMission.VIEW:
+                    mission_name = "阅读"
+                elif key_name == BaseMission.LIKE:
+                    mission_name = "点赞"
+                elif key_name == BaseMission.SHARE:
+                    mission_name = "分享"
+                else:
+                    mission_name = mission.mission_key
+                msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
+            msg += f"\n💰获得米游币: {missions_state.current_myb - myb_before_mission}" \
+                   f"\n💰当前米游币: {missions_state.current_myb}"
+
+            if matcher:
+                await matcher.send(msg)
+            else:
+                await send_private_msg(user_id=user_id, message=msg)
 
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
