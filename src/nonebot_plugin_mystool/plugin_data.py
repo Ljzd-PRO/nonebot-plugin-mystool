@@ -73,7 +73,7 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''插件名(为模块名字，或于plugins目录手动加载时的目录名)'''
     encoding: str = "utf-8"
     '''文件读写编码'''
-    max_user: int = 10
+    max_user: int = 0
     '''支持最多用户数'''
     add_friend_accept: bool = True
     '''是否自动同意好友申请'''
@@ -81,7 +81,7 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''用户添加机器人为好友以后，是否发送使用指引信息'''
     command_start: str = ""
     '''插件内部命令头(若为""空字符串则不启用)'''
-    sleep_time: float = 5
+    sleep_time: float = 2
     '''任务操作冷却时间(如米游币任务)'''
     plan_time: str = "00:30"
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
