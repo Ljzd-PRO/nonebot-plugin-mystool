@@ -340,16 +340,16 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
                   f"\n🆔账户 {account.bbs_uid}"
             for key_name, (mission, current) in missions_state.state_dict.items():
                 if key_name == BaseMission.SIGN:
-                    mission_name = "签到"
+                    mission_name = "📅签到"
                 elif key_name == BaseMission.VIEW:
-                    mission_name = "阅读"
+                    mission_name = "📰阅读"
                 elif key_name == BaseMission.LIKE:
-                    mission_name = "点赞"
+                    mission_name = "❤️点赞"
                 elif key_name == BaseMission.SHARE:
-                    mission_name = "分享"
+                    mission_name = "↗️分享"
                 else:
                     mission_name = mission.mission_key
-                msg += f"\n- {mission_name} {'✓' if current >= mission.threshold else '✕'}"
+                msg += f"\n{mission_name}：{'✓' if current >= mission.threshold else '✕'}"
             msg += f"\n🪙获得米游币: {missions_state.current_myb - myb_before_mission}" \
                    f"\n💰当前米游币: {missions_state.current_myb}"
 
