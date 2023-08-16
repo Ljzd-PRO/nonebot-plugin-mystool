@@ -334,7 +334,7 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
             if all(current == mission.threshold for mission, current in missions_state.state_dict.values()):
                 notice_string = "🎉已完成今日米游币任务"
             else:
-                notice_string = f"⚠️今日米游币任务未全部完成"
+                notice_string = "⚠️今日米游币任务未全部完成"
 
             msg = f"{notice_string}" \
                   f"\n🆔账户 {account.bbs_uid}"
