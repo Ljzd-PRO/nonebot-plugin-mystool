@@ -260,31 +260,32 @@ async def perform_bbs_sign(user_id: str, matcher: Matcher = None):
         # 自动执行米游币任务时，要求用户打开了米游币任务功能；手动执行米游币任务时都可以调用执行。
         if not matcher and not account.enable_mission:
             continue
+
+        missions_state_status, missions_state = await get_missions_state(account)
+        if not missions_state_status:
+            if missions_state_status.login_expired:
+                if matcher:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                else:
+                    await send_private_msg(user_id=user_id, message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                continue
+            if matcher:
+                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+            else:
+                await send_private_msg(user_id=user_id,
+                                       message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+            continue
+        myb_before_mission = missions_state.current_myb
+        # 在此处进行判断。因为如果在多个分区执行任务，会在完成之前就已经达成米游币任务目标，导致其他分区任务不会执行。
+        finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
         for class_type in account.mission_games:
             mission_obj = class_type(account)
-            missions_state_status, missions_state = await get_missions_state(account)
-            if not missions_state_status:
-                if missions_state_status.login_expired:
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                    else:
-                        await send_private_msg(user_id=user_id, message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                    continue
-                if matcher:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                else:
-                    await send_private_msg(user_id=user_id,
-                                           message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
-                continue
-
-            myb_before_mission = missions_state.current_myb
-
             if matcher:
                 await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
 
             # 执行任务
-            for key_name, (mission, current) in missions_state.state_dict.items():
-                if current < mission.threshold:
+            for key_name in missions_state.state_dict:
+                if not finished:
                     if key_name == BaseMission.SIGN:
                         await mission_obj.sign()
                     elif key_name == BaseMission.VIEW:
