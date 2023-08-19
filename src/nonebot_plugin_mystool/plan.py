@@ -225,14 +225,11 @@ async def perform_game_sign(user_id: str, matcher: Matcher = None, event: Union[
                         pass
                 else:
                     for adapter in get_adapters().values():
-                        try:
-                            if isinstance(adapter, OneBotV11Adapter):
-                                await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
-                            elif isinstance(adapter, QQGuildAdapter):
-                                await send_private_msg(use=adapter, user_id=user_id, message=msg)
-                                await send_private_msg(use=adapter, user_id=user_id, message=qq_guild_img_msg)
-                        except (ActionFailed, AuditException):
-                            pass
+                        if isinstance(adapter, OneBotV11Adapter):
+                            await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
+                        elif isinstance(adapter, QQGuildAdapter):
+                            await send_private_msg(use=adapter, user_id=user_id, message=msg)
+                            await send_private_msg(use=adapter, user_id=user_id, message=qq_guild_img_msg)
             await asyncio.sleep(_conf.preference.sleep_time)
 
         if not games_has_record:
