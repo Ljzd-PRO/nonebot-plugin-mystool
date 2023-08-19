@@ -8,14 +8,11 @@ import random
 import string
 import time
 import uuid
-from itertools import chain
-
 from typing import (TYPE_CHECKING, Dict, Literal,
                     Union, Optional, Tuple, Iterable)
 from urllib.parse import urlencode
-import itertools
+
 import httpx
-import nonebot
 import nonebot.log
 import nonebot.plugin
 import tenacity

@@ -14,9 +14,8 @@ from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
 from typing import List, Callable, Any, Tuple, Optional, Dict, Union
 
-import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
-from nonebot import on_command
+from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, MessageSegment as OneBotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.internal.params import ArgStr
@@ -34,7 +33,7 @@ from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEv
     get_all_bind
 
 _conf = PluginDataManager.plugin_data
-_driver = nonebot.get_driver()
+_driver = get_driver()
 
 myb_exchange_plan = on_command(
     f"{_conf.preference.command_start}兑换",
