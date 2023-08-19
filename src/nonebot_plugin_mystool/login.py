@@ -2,7 +2,7 @@
 ### 米游社登录获取Cookie相关
 """
 import json
-from typing import Union, Optional
+from typing import Union
 
 from nonebot import on_command
 from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
