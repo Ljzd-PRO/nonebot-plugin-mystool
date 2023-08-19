@@ -340,6 +340,11 @@ async def send_private_msg(
     error_flag = False
     action_failed = None
 
+    if guild_id or ((user := _conf.users.get(user_id)) and user_id in user.qq_guilds):
+        user_type = QQGuildAdapter
+    else:
+        user_type = OneBotV11Adapter
+
     # 整合符合条件的 Bot 对象
     if isinstance(use, (OneBotV11Bot, QQGuildBot)):
         bots = [use]
@@ -349,7 +354,7 @@ async def send_private_msg(
         bots = nonebot.get_bots().values()
 
     # 完成 OneBotV11 消息发送
-    if not use or isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
+    if user_type == OneBotV11Adapter:
         for bot in bots:
             if isinstance(bot, OneBotV11Bot):
                 try:
@@ -364,7 +369,7 @@ async def send_private_msg(
                     action_failed = e
 
     # 完成 QQGuild 消息发送
-    if not use or isinstance(use, (QQGuildBot, QQGuildAdapter)):
+    elif user_type == QQGuildAdapter:
         message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
         message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
 
@@ -420,6 +425,9 @@ async def send_private_msg(
                         )
                         error_flag = True
                         action_failed = e
+
+    else:
+        return False, None
 
     return not error_flag, action_failed
 
