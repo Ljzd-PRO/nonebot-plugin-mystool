@@ -149,7 +149,7 @@ class BaseMission:
                             f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(invalid_ds=True), None
-                    return api_result.data["points"]
+                    return MissionStatus(success=True), api_result.data["points"]
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
                 logger.exception(f"米游币任务 - 讨论区签到: 服务器没有正确返回")
