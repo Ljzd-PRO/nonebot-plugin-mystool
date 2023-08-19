@@ -374,12 +374,12 @@ class UserData(BaseModelWithSetter):
     """是否开启通知"""
     uuid: Optional[str] = None
     """用户UUID密钥，用于不同NoneBot适配器平台之间的数据同步，因此不可泄露"""
+    qq_guilds: Optional[Dict[str, Set[int]]] = {}
+    """储存用户所在的QQ频道ID {用户ID : [频道ID]}"""
     exchange_plans: Union[Set[ExchangePlan], List[ExchangePlan]] = set()
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
     """储存一些已绑定的账号数据"""
-    qq_guilds: Optional[Dict[str, Set[int]]] = {}
-    """储存用户所在的QQ频道ID {用户ID : [频道ID]}"""
 
     @validator("uuid")
     def uuid_validator(cls, v):
