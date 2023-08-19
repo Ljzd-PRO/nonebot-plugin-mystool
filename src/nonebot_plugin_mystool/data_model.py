@@ -543,6 +543,8 @@ class MissionStatus(BaseApiStatus):
     """
     failed_getting_post = False
     """获取文章失败"""
+    already_signed = False
+    """已经完成过签到"""
 
 
 class GetFpStatus(BaseApiStatus):

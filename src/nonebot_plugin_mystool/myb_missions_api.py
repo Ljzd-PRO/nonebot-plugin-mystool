@@ -140,15 +140,20 @@ class BaseMission:
                         )
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
-                        logger.info(
+                        logger.error(
                             f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(login_expired=True), None
                     if api_result.invalid_ds:
-                        logger.info(
+                        logger.error(
                             f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(invalid_ds=True), None
+                    if api_result.retcode == 1008:
+                        logger.warning(
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 今日已经签到过了")
+                        logger.debug(f"网络请求返回: {res.text}")
+                        return MissionStatus(success=True, already_signed=True), 0
                     return MissionStatus(success=True), api_result.data["points"]
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
