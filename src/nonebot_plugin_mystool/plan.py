@@ -22,7 +22,7 @@ from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import genshin_board, get_game_record, StarRail_board
+from .simple_api import genshin_board, get_game_record, star_rail_board
 from .user_data import UserData
 from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, get_all_bind, \
     get_unique_users
@@ -496,7 +496,7 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
                                                            {"stamina": False, "train_score": False,
                                                             "rogue_score": False})
         if account.enable_resin or matcher:
-            starrail_board_status, board = await StarRail_board(account)
+            starrail_board_status, board = await star_rail_board(account)
             if not starrail_board_status:
                 if starrail_board_status.login_expired:
                     if matcher:

@@ -1504,7 +1504,7 @@ async def genshin_board(account: UserAccount) -> Tuple[
         return GenshinBoardStatus(no_genshin_account=True), None
 
 
-async def StarRail_board(account: UserAccount) -> Tuple[
+async def star_rail_board(account: UserAccount) -> Tuple[
     Union[BaseApiStatus, StarRailBoardStatus], Optional[StarRailBoard]]:
     """
     获取崩铁实时便笺
