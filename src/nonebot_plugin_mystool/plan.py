@@ -4,7 +4,7 @@
 import asyncio
 import random
 import threading
-from typing import Union, Optional, List, Type, Sequence
+from typing import Union, Optional, Type, Sequence
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -22,7 +22,7 @@ from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
-from .user_data import UserAccount, UserData
+from .user_data import UserData
 from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg
 
 _conf = PluginDataManager.plugin_data
@@ -88,10 +88,11 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看原神便笺
     """
-    user = _conf.users.get(event.get_user_id())
+    user_id = event.get_user_id()
+    user = _conf.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check(user_id=event.get_user_id(), matcher=matcher)
+    await resin_check(user=user, user_ids=[user_id], matcher=matcher)
 
 
 manually_resin_check_sr = on_command(
@@ -118,10 +119,11 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看星穹铁道便笺（sr）
     """
-    user = _conf.users.get(event.get_user_id())
+    user_id = event.get_user_id()
+    user = _conf.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check_sr(user_id=event.get_user_id(), matcher=matcher)
+    await resin_check_sr(user=user, user_ids=[user_id], matcher=matcher)
 
 
 async def perform_game_sign(
@@ -261,7 +263,7 @@ async def perform_game_sign(
         write_plugin_data()
 
 
-async def perform_bbs_sign(user: UserData, user_ids: List[str], matcher: Matcher = None):
+async def perform_bbs_sign(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
@@ -391,15 +393,15 @@ async def perform_bbs_sign(user: UserData, user_ids: List[str], matcher: Matcher
         write_plugin_data()
 
 
-async def resin_check(user_id: str, matcher: Matcher = None):
+async def resin_check(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
-    :param user_id: 用户QQ号
+    :param user: 用户对象
+    :param user_ids: 用户ID列表
     :param matcher: 事件响应器
     """
     global has_checked
-    user = _conf.users[user_id]
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
@@ -470,20 +472,21 @@ async def resin_check(user_id: str, matcher: Matcher = None):
                 await matcher.send(msg)
             else:
                 if board.current_resin >= account.user_resin_threshold:
-                    await send_private_msg(user_id=user_id, message=msg)
+                    for user_id in user_ids:
+                        await send_private_msg(user_id=user_id, message=msg)
                 else:
                     logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
 
 
-async def resin_check_sr(user_id: str, matcher: Matcher = None):
+async def resin_check_sr(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
-    :param user_id: 用户QQ号
+    :param user: 用户对象
+    :param user_ids: 用户ID列表
     :param matcher: 事件响应器
     """
     global has_checked
-    user = _conf.users[user_id]
     for account in user.accounts.values():
         if account.enable_resin:
             has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
@@ -552,7 +555,8 @@ async def resin_check_sr(user_id: str, matcher: Matcher = None):
                 await matcher.send(msg)
             else:
                 if board.current_stamina >= account.user_stamina_threshold:
-                    await send_private_msg(user_id=user_id, message=msg)
+                    for user_id in user_ids:
+                        await send_private_msg(user_id=user_id, message=msg)
                 else:
                     logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
 
@@ -597,6 +601,13 @@ async def auto_resin_check():
     """
     自动查看实时便笺
     """
-    for qq in _conf.users:
-        await resin_check(user_id=qq)
-        await resin_check_sr(user_id=qq)
+    for user_id in _conf.users:
+        if user_id in _conf.user_bind:
+            continue
+        elif user_id in _conf.user_bind.values():
+            user_id_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
+            user_ids = [user_id] + [x for x in user_id_filter]
+        else:
+            user_ids = [user_id]
+        await resin_check(user=user, user_ids=user_ids)
+        await resin_check_sr(user=user, user_ids=user_ids)
