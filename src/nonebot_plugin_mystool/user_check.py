@@ -211,6 +211,14 @@ direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止�
 
 @direct_msg_respond.handle()
 async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
+    # 附加功能：记录用户所在频道
+    if isinstance(event, MessageCreateEvent):
+        user_id = event.get_user_id()
+        if user := _conf.users.get(user_id):
+            user.qq_guilds.setdefault(user_id, set())
+            user.qq_guilds[user_id].add(event.guild_id)
+            write_plugin_data()
+
     msg_text = f"{PLUGIN.metadata.name}" \
                f"{PLUGIN.metadata.description}\n" \
                "具体用法：\n" \
