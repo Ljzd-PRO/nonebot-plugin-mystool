@@ -463,7 +463,8 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
                         return
                 else:
                     has_checked[account.bbs_uid]['transformer'] = True
-            msg += "❖实时便笺❖" \
+            msg += "❖原神·实时便笺❖" \
+                   f"\n🆔账户 {account.bbs_uid}" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
                    f"\n⏱️树脂{board.resin_recovery_text}" \
                    f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
@@ -546,7 +547,8 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
                 else:
                     has_checked[account.bbs_uid]['rogue_score'] = False
                     return
-            msg += "❖星穹铁道实时便笺❖" \
+            msg += "❖星穹铁道·实时便笺❖" \
+                   f"\n🆔账户 {account.bbs_uid}" \
                    f"\n⏳开拓力数量：{board.current_stamina} / 180" \
                    f"\n⏱开拓力{board.stamina_recover_text}" \
                    f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
