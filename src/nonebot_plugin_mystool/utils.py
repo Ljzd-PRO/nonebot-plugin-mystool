@@ -450,7 +450,7 @@ def get_all_bind(user_id: str) -> Iterable[str]:
 
     :return: 绑定该用户的所有用户ID
     """
-    user_id_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
+    user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
     return user_id_filter
 
 
