@@ -8,10 +8,12 @@ import random
 import string
 import time
 import uuid
-from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional, Tuple)
-from urllib.parse import urlencode
+from itertools import chain
 
+from typing import (TYPE_CHECKING, Dict, Literal,
+                    Union, Optional, Tuple, Iterable)
+from urllib.parse import urlencode
+import itertools
 import httpx
 import nonebot
 import nonebot.log
@@ -32,6 +34,7 @@ from qrcode import QRCode
 
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager, Preference
+from .user_data import UserData
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -430,6 +433,25 @@ async def send_private_msg(
         return False, None
 
     return not error_flag, action_failed
+
+
+def get_unique_users() -> Iterable[Tuple[str, UserData]]:
+    """
+    获取 不包含绑定用户数据 的所有用户数据以及对应的ID，即不会出现值重复项
+
+    :return: dict_items[用户ID, 用户数据]
+    """
+    return filter(lambda x: x[0] not in _conf.user_bind, _conf.users.items())
+
+
+def get_all_bind(user_id: str) -> Iterable[str]:
+    """
+    获取绑定该用户的所有用户ID
+
+    :return: 绑定该用户的所有用户ID
+    """
+    user_id_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
+    return user_id_filter
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
