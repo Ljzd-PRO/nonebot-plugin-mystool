@@ -2,9 +2,10 @@
 ### 计划任务相关
 """
 import asyncio
+import itertools
 import random
 import threading
-from typing import Union, Optional, Type, Sequence
+from typing import Union, Optional, Type, Iterable
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -23,7 +24,8 @@ from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_board, get_game_record, StarRail_board
 from .user_data import UserData
-from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg
+from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, get_all_bind, \
+    get_unique_users
 
 _conf = PluginDataManager.plugin_data
 
@@ -128,7 +130,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
 
 async def perform_game_sign(
         user: UserData,
-        user_ids: Sequence[str],
+        user_ids: Iterable[str],
         matcher: Matcher = None,
         event: Union[GeneralMessageEvent] = None
 ):
@@ -136,7 +138,7 @@ async def perform_game_sign(
     执行游戏签到函数，并发送给用户签到消息。
 
     :param user: 用户数据
-    :param user_ids: 用户QQ号列表
+    :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     :param event: 事件
     """
@@ -263,12 +265,12 @@ async def perform_game_sign(
         write_plugin_data()
 
 
-async def perform_bbs_sign(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
+async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     执行米游币任务函数，并发送给用户任务执行消息。
 
     :param user: 用户数据
-    :param user_ids: 用户QQ号列表
+    :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     """
     failed_accounts = []
@@ -393,12 +395,12 @@ async def perform_bbs_sign(user: UserData, user_ids: Sequence[str], matcher: Mat
         write_plugin_data()
 
 
-async def resin_check(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
+async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
     :param user: 用户对象
-    :param user_ids: 用户ID列表
+    :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     """
     global has_checked
@@ -478,12 +480,12 @@ async def resin_check(user: UserData, user_ids: Sequence[str], matcher: Matcher 
                     logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
 
 
-async def resin_check_sr(user: UserData, user_ids: Sequence[str], matcher: Matcher = None):
+async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
     :param user: 用户对象
-    :param user_ids: 用户ID列表
+    :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     """
     global has_checked
@@ -581,14 +583,8 @@ async def daily_schedule():
     # 随机延迟
     await asyncio.sleep(random.randint(0, 59))
     logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
-    for user_id in _conf.users:
-        if user_id in _conf.user_bind:
-            continue
-        elif user_id in _conf.user_bind.values():
-            user_id_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
-            user_ids = [user_id] + [x for x in user_id_filter]
-        else:
-            user_ids = [user_id]
+    for user_id, user in get_unique_users():
+        user_ids = itertools.chain([user_id], get_all_bind(user_id))
         await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
     logger.info(f"{_conf.preference.log_head}每日自动任务执行完成")
@@ -601,13 +597,7 @@ async def auto_resin_check():
     """
     自动查看实时便笺
     """
-    for user_id in _conf.users:
-        if user_id in _conf.user_bind:
-            continue
-        elif user_id in _conf.user_bind.values():
-            user_id_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
-            user_ids = [user_id] + [x for x in user_id_filter]
-        else:
-            user_ids = [user_id]
+    for user_id, user in get_unique_users():
+        user_ids = itertools.chain([user_id], get_all_bind(user_id))
         await resin_check(user=user, user_ids=user_ids)
         await resin_check_sr(user=user, user_ids=user_ids)
