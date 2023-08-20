@@ -4,7 +4,7 @@
 import asyncio
 import random
 import threading
-from typing import Union, Optional, Type, Iterable
+from typing import Union, Optional, Type, Iterable, Dict
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -15,8 +15,9 @@ from nonebot.adapters.qqguild.exception import AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot_plugin_apscheduler import scheduler
+from pydantic import BaseModel
 
-from .data_model import MissionStatus
+from .data_model import MissionStatus, GenshinBoard, StarRailBoard
 from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
@@ -64,6 +65,35 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
 
 
+class GenshinNoteNotice(GenshinBoard):
+    """
+    原神便笺通知状态
+    """
+    current_resin: bool = False
+    current_home_coin: bool = False
+    transformer: bool = False
+
+
+class StarRailNoteNotice(StarRailBoard):
+    """
+    星穹铁道便笺通知状态
+    """
+    current_stamina: bool = False
+    current_train_score: bool = False
+    current_rogue_score: bool = False
+
+
+class NoteNoticeStatus(BaseModel):
+    """
+    账号便笺通知状态
+    """
+    genshin = GenshinNoteNotice()
+    starrail = StarRailNoteNotice()
+
+
+note_notice_status: Dict[str, NoteNoticeStatus] = {}
+"""记录账号对应的便笺通知状态"""
+
 manually_resin_check = on_command(
     _conf.preference.command_start + '原神便笺',
     aliases={
@@ -76,12 +106,6 @@ manually_resin_check = on_command(
 )
 manually_resin_check.name = '原神便笺'
 manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
-has_checked = {}
-for user in _conf.users.values():
-    for account in user.accounts.values():
-        if account.enable_resin:
-            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"resin": False, "coin": False, "transformer": False})
 
 
 @manually_resin_check.handle()
@@ -107,12 +131,6 @@ manually_resin_check_sr = on_command(
 )
 manually_resin_check_sr.name = '星穹铁道便笺'
 manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息'
-for user in _conf.users.values():
-    for account in user.accounts.values():
-        if account.enable_resin:
-            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"stamina": False, "train_score": False,
-                                                            "rogue_score": False})
 
 
 @manually_resin_check_sr.handle()
@@ -402,11 +420,9 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
     :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     """
-    global has_checked
     for account in user.accounts.values():
-        if account.enable_resin:
-            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"resin": False, "coin": False, "transformer": False})
+        note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
+        genshin_notice = note_notice_status[account.bbs_uid].genshin
         if account.enable_resin or matcher:
             genshin_board_status, board = await genshin_board(account)
             if not genshin_board_status:
@@ -431,37 +447,37 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
                 # 体力溢出提醒
                 if board.current_resin == 160:
                     # 防止重复提醒
-                    if has_checked[account.bbs_uid]['resin']:
+                    if genshin_notice.current_resin:
                         return
                     else:
-                        has_checked[account.bbs_uid]['resin'] = True
+                        genshin_notice.current_resin = True
                         msg += '❕您的树脂已经满啦\n'
                 else:
-                    has_checked[account.bbs_uid]['resin'] = False
+                    genshin_notice.current_resin = False
                 # 洞天财瓮溢出提醒
                 if board.current_home_coin == board.max_home_coin:
                     # 防止重复提醒
-                    if has_checked[account.bbs_uid]['coin']:
+                    if genshin_notice.current_home_coin:
                         return
                     else:
-                        has_checked[account.bbs_uid]['coin'] = True
+                        genshin_notice.current_home_coin = True
                         msg += '❕您的洞天财瓮已经满啦\n'
                 else:
-                    has_checked[account.bbs_uid]['coin'] = False
+                    genshin_notice.current_home_coin = False
                 # 参量质变仪就绪提醒
                 if board.transformer:
                     if board.transformer_text == '已准备就绪':
                         # 防止重复提醒
-                        if has_checked[account.bbs_uid]['transformer']:
+                        if genshin_notice.transformer:
                             return
                         else:
-                            has_checked[account.bbs_uid]['transformer'] = True
+                            genshin_notice.transformer = True
                             msg += '❕您的参量质变仪已准备就绪\n\n'
                     else:
-                        has_checked[account.bbs_uid]['transformer'] = False
+                        genshin_notice.transformer = False
                         return
                 else:
-                    has_checked[account.bbs_uid]['transformer'] = True
+                    genshin_notice.transformer = True
             msg += "❖原神·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
@@ -488,12 +504,9 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
     :param user_ids: 发送通知的所有用户ID
     :param matcher: 事件响应器
     """
-    global has_checked
     for account in user.accounts.values():
-        if account.enable_resin:
-            has_checked[account.bbs_uid] = has_checked.get(account.bbs_uid,
-                                                           {"stamina": False, "train_score": False,
-                                                            "rogue_score": False})
+        note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
+        starrail_notice = note_notice_status[account.bbs_uid].starrail
         if account.enable_resin or matcher:
             starrail_board_status, board = await star_rail_board(account)
             if not starrail_board_status:
@@ -518,33 +531,33 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
                 # 体力溢出提醒
                 if board.current_stamina == 180:
                     # 防止重复提醒
-                    if has_checked[account.bbs_uid]['stamina']:
+                    if starrail_notice.current_stamina:
                         return
                     else:
-                        has_checked[account.bbs_uid]['stamina'] = True
+                        starrail_notice.current_stamina = True
                         msg += '❕您的开拓力已经满啦\n'
                 else:
-                    has_checked[account.bbs_uid]['stamina'] = False
+                    starrail_notice.current_stamina = False
                 # 每日实训状态提醒
                 if board.current_train_score == board.max_train_score:
                     # 防止重复提醒
-                    if has_checked[account.bbs_uid]['train_score']:
+                    if starrail_notice.current_train_score:
                         return
                     else:
-                        has_checked[account.bbs_uid]['train_score'] = True
+                        starrail_notice.current_train_score = True
                         msg += '❕您的每日实训已完成\n'
                 else:
-                    has_checked[account.bbs_uid]['train_score'] = False
+                    starrail_notice.current_train_score = False
                 # 每周模拟宇宙积分提醒
                 if board.current_rogue_score == board.max_rogue_score:
                     # 防止重复提醒
-                    if has_checked[account.bbs_uid]['rogue_score']:
+                    if starrail_notice.current_rogue_score:
                         return
                     else:
-                        has_checked[account.bbs_uid]['rogue_score'] = True
+                        starrail_notice.current_rogue_score = True
                         msg += '❕您的模拟宇宙积分已经打满了\n\n'
                 else:
-                    has_checked[account.bbs_uid]['rogue_score'] = False
+                    starrail_notice.current_rogue_score = False
                     return
             msg += "❖星穹铁道·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
