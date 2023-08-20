@@ -10,10 +10,10 @@ import tenacity
 from .data_model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState
 from .plugin_data import PluginDataManager
-from .simple_api import ApiResultHandler, is_incorrect_return
+from .simple_api import ApiResultHandler, is_incorrect_return, create_verification, verify_verification
 from .user_data import UserAccount
 from .utils import logger, generate_ds, \
-    get_async_retry
+    get_async_retry, get_validate
 
 _conf = PluginDataManager.plugin_data
 device_config = PluginDataManager.device_config
@@ -140,16 +140,37 @@ class BaseMission:
                         )
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
-                        logger.info(
+                        logger.error(
                             f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(login_expired=True), None
-                    if api_result.invalid_ds:
-                        logger.info(
+                    elif api_result.invalid_ds:
+                        logger.error(
                             f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(invalid_ds=True), None
-                    return api_result.data["points"]
+                    elif api_result.retcode == 1034:
+                        logger.error(
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 需要完成人机验证")
+                        logger.debug(f"网络请求返回: {res.text}")
+                        if _conf.preference.geetest_url:
+                            create_status, mmt_data = await create_verification(self.account)
+                            if create_status:
+                                if geetest_result := await get_validate(mmt_data.gt, mmt_data.challenge):
+                                    if await verify_verification(mmt_data, geetest_result, self.account):
+                                        logger.success(
+                                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 人机验证通过")
+                                        continue
+                        else:
+                            logger.info(
+                                f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 未配置极验人机验证打码平台")
+                        return MissionStatus(need_verify=True), None
+                    elif api_result.retcode == 1008:
+                        logger.warning(
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 今日已经签到过了")
+                        logger.debug(f"网络请求返回: {res.text}")
+                        return MissionStatus(success=True, already_signed=True), 0
+                    return MissionStatus(success=True), api_result.data["points"]
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
                 logger.exception(f"米游币任务 - 讨论区签到: 服务器没有正确返回")

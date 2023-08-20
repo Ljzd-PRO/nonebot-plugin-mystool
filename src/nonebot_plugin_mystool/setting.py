@@ -11,7 +11,7 @@ from nonebot.params import T_State
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent, logger
+from .utils import COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
@@ -62,9 +62,8 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
         await matcher.finish('🚪已成功退出')
 
     user_account = _conf.users[event.get_user_id()].accounts
-    if bbs_uid not in user_account:
+    if not (account := user_account.get(bbs_uid)):
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
-    account = user_account[bbs_uid]
     state['account'] = account
     state["prepare_to_delete"] = False
 
@@ -77,7 +76,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
                     "\n- " + "、".join(map(lambda x: f"『{x.NAME}』", account.mission_games))
-    user_setting += f"\n\n5️⃣ 原神树脂恢复提醒：{'开' if account.enable_resin else '关'}"
+    user_setting += f"\n\n5️⃣ 实时便笺体力提醒：{'开' if account.enable_resin else '关'}"
     user_setting += f"\n6️⃣更改便笺体力提醒阈值 \
                       \n   当前原神提醒阈值：{account.user_resin_threshold} \
                       \n   当前崩铁提醒阈值：{account.user_stamina_threshold}"
@@ -92,7 +91,6 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
     """
     根据所选更改相应账户的相应设置
     """
-    logger.debug(f"{type(setting_id)}")
     account: UserAccount = state['account']
     user_account = _conf.users[event.get_user_id()].accounts
     if setting_id == '退出':

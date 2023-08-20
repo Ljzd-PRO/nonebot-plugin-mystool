@@ -343,25 +343,25 @@ class MissionState(BaseModel):
     """所有任务对应的完成进度 {mission_key, (MissionData, 当前进度)}"""
 
 
-class GenshinBoard(BaseModel):
+class GenshinNote(BaseModel):
     """
     原神实时便笺数据 (从米游社内相关页面API的返回数据初始化)
     """
-    current_resin: int
+    current_resin: Optional[int]
     """当前树脂数量"""
-    finished_task_num: int
+    finished_task_num: Optional[int]
     """每日委托完成数"""
-    current_expedition_num: int
+    current_expedition_num: Optional[int]
     """探索派遣 进行中的数量"""
-    max_expedition_num: int
+    max_expedition_num: Optional[int]
     """探索派遣 最多派遣数"""
-    current_home_coin: int
+    current_home_coin: Optional[int]
     """洞天财瓮 未收取的宝钱数"""
-    max_home_coin: int
+    max_home_coin: Optional[int]
     """洞天财瓮 最多可容纳宝钱数"""
     transformer: Optional[Dict[str, Any]]
     """参量质变仪相关数据"""
-    resin_recovery_time: int
+    resin_recovery_time: Optional[int]
     """剩余树脂恢复时间"""
 
     @property
@@ -398,29 +398,29 @@ class GenshinBoard(BaseModel):
             return None
 
 
-class StarRailBoard(BaseModel):
+class StarRailNote(BaseModel):
     """
     崩铁实时便笺数据 (从米游社内相关页面API的返回数据初始化)
     """
-    current_stamina: int
+    current_stamina: Optional[int]
     """当前开拓力"""
-    max_stamina: int
+    max_stamina: Optional[int]
     """最大开拓力"""
-    stamina_recover_time: int
+    stamina_recover_time: Optional[int]
     """剩余体力恢复时间"""
-    current_train_score: int
+    current_train_score: Optional[int]
     """当前每日实训值"""
-    max_train_score: int
+    max_train_score: Optional[int]
     """最大每日实训值"""
-    current_rogue_score: int
+    current_rogue_score: Optional[int]
     """当前模拟宇宙积分"""
-    max_rogue_score: int
+    max_rogue_score: Optional[int]
     """最大模拟宇宙积分"""
-    accepted_expedition_num: int
+    accepted_expedition_num: Optional[int]
     """已接受委托数量"""
-    total_expedition_num: int
+    total_expedition_num: Optional[int]
     """最大委托数量"""
-    has_signed: bool
+    has_signed: Optional[bool]
     """当天是否签到"""
 
     @property
@@ -543,6 +543,8 @@ class MissionStatus(BaseApiStatus):
     """
     failed_getting_post = False
     """获取文章失败"""
+    already_signed = False
+    """已经完成过签到"""
 
 
 class GetFpStatus(BaseApiStatus):
@@ -563,7 +565,7 @@ class BoardStatus(BaseApiStatus):
     """获取游戏列表失败"""
 
 
-class GenshinBoardStatus(BoardStatus):
+class GenshinNoteStatus(BoardStatus):
     """
     原神实时便笺 返回结果
     """
@@ -571,7 +573,7 @@ class GenshinBoardStatus(BoardStatus):
     """用户没有任何原神账户"""
 
 
-class StarRailBoardStatus(BoardStatus):
+class StarRailNoteStatus(BoardStatus):
     """
     星铁实时便笺 返回结果
     """

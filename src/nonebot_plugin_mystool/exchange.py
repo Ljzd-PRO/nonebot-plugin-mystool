@@ -13,9 +13,8 @@ from multiprocessing.pool import Pool
 from multiprocessing.synchronize import Lock
 from typing import List, Callable, Any, Tuple, Optional, Dict, Union
 
-import nonebot
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
-from nonebot import on_command
+from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, MessageSegment as OneBotV11MessageSegment
 from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.internal.params import ArgStr
@@ -29,10 +28,11 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_game_record, get_good_detail, get_good_list, good_exchange_sync, get_device_fp, \
     good_exchange
 from .user_data import UserAccount, ExchangePlan, ExchangeResult
-from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, send_private_msg
+from .utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, send_private_msg, get_unique_users, \
+    get_all_bind
 
 _conf = PluginDataManager.plugin_data
-_driver = nonebot.get_driver()
+_driver = get_driver()
 
 myb_exchange_plan = on_command(
     f"{_conf.preference.command_start}兑换",
@@ -359,54 +359,59 @@ def exchange_notice(event: JobExecutionEvent):
 
         if not exchange_status:
             hash_value = int(event.job_id.split('-')[-2])
-            plans = map(lambda x: x.exchange_plans, _conf.users.values())
-            plan_filter = filter(lambda x: hash(x[0]) == hash_value, zip(plans, _conf.users.keys()))
-            plan_tuple = next(plan_filter)
-            plan, user_id = plan_tuple
+            user_id_filter = filter(lambda x: hash(x[1].exchange_plans) == hash_value, get_unique_users())
+            user_id = next(user_id_filter)
+            user_ids = [user_id] + list(get_all_bind(user_id))
+            plan = _conf.users[user_id].exchange_plans
+
             with lock:
                 finished[plan].append(False)
-                loop.create_task(
-                    send_private_msg(
-                        user_id=user_id,
-                        message=f"⚠️账户 {plan.account.bbs_uid}"
-                                f"\n- {plan.good.general_name}"
-                                f"\n- 线程 {thread_id}"
-                                f"\n- 兑换请求发送失败"
+                for _user_id in user_ids:
+                    loop.create_task(
+                        send_private_msg(
+                            user_id=_user_id,
+                            message=f"⚠️账户 {plan.account.bbs_uid}"
+                                    f"\n- {plan.good.general_name}"
+                                    f"\n- 线程 {thread_id}"
+                                    f"\n- 兑换请求发送失败"
+                        )
                     )
-                )
                 if len(finished[plan]) == _conf.preference.exchange_thread_count:
                     del plan
                     write_plugin_data()
 
         else:
             plan = exchange_result.plan
-            user_filter = filter(lambda x: plan in x[1].exchange_plans, _conf.users.items())
+            user_filter = filter(lambda x: plan in x[1].exchange_plans, get_unique_users())
             user_id, user = next(user_filter)
+            user_ids = [user_id] + list(get_all_bind(user_id))
             with lock:
                 # 如果已经有一个线程兑换成功，就不再接收结果
                 if True not in finished[plan]:
                     if exchange_result.result:
                         finished[plan].append(True)
-                        loop.create_task(
-                            send_private_msg(
-                                user_id=user_id,
-                                message=f"🎉账户 {plan.account.bbs_uid}"
-                                        f"\n- {plan.good.general_name}"
-                                        f"\n- 线程 {thread_id}"
-                                        f"\n- 兑换成功"
+                        for _user_id in user_ids:
+                            loop.create_task(
+                                send_private_msg(
+                                    user_id=_user_id,
+                                    message=f"🎉账户 {plan.account.bbs_uid}"
+                                            f"\n- {plan.good.general_name}"
+                                            f"\n- 线程 {thread_id}"
+                                            f"\n- 兑换成功"
+                                )
                             )
-                        )
                     else:
                         finished[plan].append(False)
-                        loop.create_task(
-                            send_private_msg(
-                                user_id=user_id,
-                                message=f"💦账户 {plan.account.bbs_uid}"
-                                        f"\n- {plan.good.general_name}"
-                                        f"\n- 线程 {thread_id}"
-                                        f"\n- 兑换失败"
+                        for _user_id in user_ids:
+                            loop.create_task(
+                                send_private_msg(
+                                    user_id=_user_id,
+                                    message=f"💦账户 {plan.account.bbs_uid}"
+                                            f"\n- {plan.good.general_name}"
+                                            f"\n- 线程 {thread_id}"
+                                            f"\n- 兑换失败"
+                                )
                             )
-                        )
 
                 if len(finished[plan]) == _conf.preference.exchange_thread_count:
                     try:
@@ -447,7 +452,7 @@ async def _():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
-            if not good_detail_status or good.time < time.time():
+            if not good_detail_status or (good.time and good.time < time.time()):
                 # 若商品不存在则删除
                 # 若重启时兑换超时则删除该兑换
                 user.exchange_plans.remove(plan)

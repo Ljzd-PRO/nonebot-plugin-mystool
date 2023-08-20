@@ -15,7 +15,7 @@ from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 from . import user_data
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.2.4"
+VERSION = "v1.3.0"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
@@ -226,7 +226,7 @@ class PluginData(BaseModel):
     good_list_image_config: GoodListImageConfig = GoodListImageConfig()
     """商品列表输出图片设置"""
     user_bind: Optional[Dict[str, str]] = {}
-    '''不同NoneBot适配器平台的用户数据绑定关系（如QQ聊天和QQ频道）'''
+    '''不同NoneBot适配器平台的用户数据绑定关系（如QQ聊天和QQ频道）(空用户数据:被绑定用户数据)'''
     users: Dict[str, UserData] = {}
     '''所有用户数据'''
 
@@ -237,28 +237,22 @@ class PluginData(BaseModel):
         :param src: 源用户数据，为空则读取 self.user_bind 并执行全部绑定
         :param dst: 目标用户数据，为空则读取 self.user_bind 并执行全部绑定
         :param write: 是否写入插件数据文件
-        :return: 执行是否成功
         """
         if None in [src, dst]:
-            for src, dst in self.user_bind.items():
+            for x, y in self.user_bind.items():
                 try:
-                    self.users[src] = self.users[dst]
+                    self.users[x] = self.users[y]
                 except KeyError:
-                    logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
-                    return False
-                else:
-                    return True
+                    logger.error(f"用户数据绑定失败，目标用户 {y} 不存在")
         else:
             try:
                 self.user_bind[src] = dst
                 self.users[src] = self.users[dst]
             except KeyError:
                 logger.error(f"用户数据绑定失败，目标用户 {dst} 不存在")
-                return False
             else:
                 if write:
                     write_plugin_data()
-                return True
 
     def __init__(self, **data: Any):
         super().__init__(**data)

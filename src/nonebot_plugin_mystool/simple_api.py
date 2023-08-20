@@ -12,8 +12,8 @@ from requests.utils import dict_from_cookiejar
 
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
-    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus, \
-    GetFpStatus, StarRailBoardStatus, StarRailBoard
+    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
+    GetFpStatus, StarRailNoteStatus, StarRailNote
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
@@ -24,12 +24,14 @@ device_config = PluginDataManager.device_config
 
 URL_LOGIN_TICKET_BY_CAPTCHA = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_LOGIN_TICKET_BY_PASSWORD = "https://webapi.account.mihoyo.com/Api/login_by_password"
-URL_MULTI_TOKEN_BY_LOGIN_TICKET = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
+URL_MULTI_TOKEN_BY_LOGIN_TICKET = ("https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}"
+                                   "&token_types=3&uid={1}")
 URL_COOKIE_TOKEN_BY_CAPTCHA = "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile"
 URL_COOKIE_TOKEN_BY_STOKEN = "https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken"
 URL_LTOKEN_BY_STOKEN = "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken"
 URL_STOKEN_V2_BY_V1 = "https://passport-api.mihoyo.com/account/ma-cn-session/app/getTokenBySToken"
-URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
+URL_ACTION_TICKET = ("https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role"
+                     "&stoken={stoken}&uid={bbs_uid}")
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
 URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
@@ -41,15 +43,17 @@ URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=
 URL_EXCHANGE = "https://api-takumi.miyoushe.com/mall/v1/web/goods/exchange"
 URL_ADDRESS = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 URL_REGISTRABLE = "https://webapi.account.mihoyo.com/Api/is_mobile_registrable?mobile={mobile}&t={t}"
-URL_CREATE_MMT = "https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}"
+URL_CREATE_MMT = ("https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}"
+                  "&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}")
 URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile_captcha"
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
 URL_GET_DEVICE_FP = "https://public-data-api.mihoyo.com/device-fp/api/getFp"
-URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
-URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
-URL_GENSHEN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
-URL_STARRAIL_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
-URL_STARRAIL_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
+URL_GENSHEN_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
+URL_GENSHEN_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
+URL_STARRAIL_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
+URL_STARRAIL_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
+URL_CREATE_VERIFICATION = "https://bbs-api.miyoushe.com/misc/api/createVerification?is_high=true"
+URL_VERIFY_VERIFICATION = "https://bbs-api.miyoushe.com/misc/api/verifyVerification"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -135,11 +139,12 @@ HEADERS_GAME_RECORD = {
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
 }
-HEADERS_GAME_LIST = {
+HEADERS_BBS_API = {
     "Host": "bbs-api.mihoyo.com",
     "DS": None,
     "Accept": "*/*",
     "x-rpc-device_id": generate_device_id(),
+    "x-rpc-verify_key": "bll8iq97cem8",
     "x-rpc-client_type": "1",
     "x-rpc-channel": device_config.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
@@ -418,7 +423,7 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
 
     :param retry: 是否允许重试
     """
-    headers = HEADERS_GAME_LIST.copy()
+    headers = HEADERS_BBS_API.copy()
     try:
         async for attempt in get_async_retry(retry):
             with attempt:
@@ -574,8 +579,8 @@ async def get_good_detail(good: Union[Good, str], retry: bool = True) -> Tuple[G
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_CHECK_GOOD.format(good_id), timeout=_conf.preference.timeout)
                 api_result = ApiResultHandler(res.json())
-                # TODO 2023/4/13: 待改成对象方法判断
-                if api_result.message == '商品不存在' or api_result.message == '商品已下架':
+                # -2109 商品不存在；-2105 商品已下架
+                if api_result.retcode == -2109 or api_result.message == -2105:
                     return GetGoodDetailStatus(good_not_existed=True), None
                 if isinstance(good, Good):
                     return GetGoodDetailStatus(success=True), good.update(api_result.data)
@@ -619,7 +624,9 @@ async def get_good_games(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Li
 
 
 async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[List[Good]]]:
+    BaseApiStatus,
+    Optional[List[Good]]
+]:
     """
     获取商品信息列表
 
@@ -693,7 +700,11 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
 
 
 async def check_registrable(phone_number: int, keep_client: bool = False, retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[bool], str, Optional[httpx.AsyncClient]]:
+    BaseApiStatus,
+    Optional[bool],
+    str,
+    Optional[httpx.AsyncClient]
+]:
     """
     检查用户是否可以注册
 
@@ -743,7 +754,11 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
                      use_v4: bool = True,
                      device_id: str = None,
                      retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[MmtData], str, Optional[httpx.AsyncClient]]:
+    BaseApiStatus,
+    Optional[MmtData],
+    str,
+    Optional[httpx.AsyncClient]
+]:
     """
     发送短信验证前所需的人机验证任务申请
 
@@ -958,7 +973,9 @@ async def get_login_ticket_by_captcha(phone_number: str,
 
 
 async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 login_ticket 获取 `stoken 和 ltoken
 
@@ -998,7 +1015,9 @@ async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = Tru
 
 
 async def get_cookie_token_by_captcha(phone_number: str, captcha: int, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过短信验证码获取 cookie_token
 
@@ -1100,7 +1119,9 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
 
 
 async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v2 获取 cookie_token
 
@@ -1149,7 +1170,9 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: str = None,
 
 
 async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v1 获取 stoken_v2 以及 mid
 
@@ -1203,7 +1226,9 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry:
 
 
 async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v2 和 mid 获取 ltoken
 
@@ -1427,8 +1452,10 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             return ExchangeStatus(network_error=True), None
 
 
-async def genshin_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
+async def genshin_note(account: UserAccount) -> Tuple[
+    Union[BaseApiStatus, GenshinNoteStatus],
+    Optional[GenshinNote]
+]:
     """
     获取原神实时便笺
 
@@ -1436,14 +1463,14 @@ async def genshin_board(account: UserAccount) -> Tuple[
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
-        return GenshinBoardStatus(game_record_failed=True), None
+        return GenshinNoteStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return GenshinBoardStatus(game_list_failed=True), None
+        return GenshinNoteStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'ys', game_list)
     game_info = next(game_filter, None)
     if not game_info:
-        return GenshinBoardStatus(no_genshin_account=True), None
+        return GenshinNoteStatus(no_genshin_account=True), None
     else:
         game_id = game_info.id
     flag = True
@@ -1452,23 +1479,27 @@ async def genshin_board(account: UserAccount) -> Tuple[
             try:
                 flag = False
                 params = {"role_id": record.game_role_id, "server": record.region}
-                url = f"{URL_GENSHEN_STATUS_BBS}?{urlencode(params)}"
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
+                headers["x-rpc-device_fp"] = account.device_id_android or generate_fp_locally()
                 async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(
                             params={"role_id": record.game_role_id, "server": record.region})
                         async with httpx.AsyncClient() as client:
-                            res = await client.get(url, headers=headers,
-                                                   cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                                   timeout=_conf.preference.timeout)
+                            res = await client.get(
+                                URL_GENSHEN_NOTE_BBS,
+                                headers=headers,
+                                cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                                params=params,
+                                timeout=_conf.preference.timeout
+                            )
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(
                                 f"原神实时便笺: 用户 {account.bbs_uid} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
-                            return GenshinBoardStatus(login_expired=True), None
+                            return GenshinNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
@@ -1483,29 +1514,31 @@ async def genshin_board(account: UserAccount) -> Tuple[
                             headers["x-rpc-device_id"] = account.device_id_ios
                             async with httpx.AsyncClient() as client:
                                 res = await client.get(
-                                    URL_GENSHEN_STATUS_WIDGET,
+                                    URL_GENSHEN_NOTE_WIDGET,
                                     headers=headers,
                                     cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                     timeout=_conf.preference.timeout
                                 )
                             api_result = ApiResultHandler(res.json())
-                            return GenshinBoardStatus(success=True), \
-                                GenshinBoard.parse_obj(api_result.data)
-                        return GenshinBoardStatus(success=True), GenshinBoard.parse_obj(api_result.data)
+                            return GenshinNoteStatus(success=True), \
+                                GenshinNote.parse_obj(api_result.data)
+                        return GenshinNoteStatus(success=True), GenshinNote.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
                     logger.exception(f"原神实时便笺: 服务器没有正确返回")
                     logger.debug(f"网络请求返回: {res.text}")
-                    return GenshinBoardStatus(incorrect_return=True), None
+                    return GenshinNoteStatus(incorrect_return=True), None
                 else:
                     logger.exception(f"原神实时便笺: 请求失败")
-                    return GenshinBoardStatus(network_error=True), None
+                    return GenshinNoteStatus(network_error=True), None
     if flag:
-        return GenshinBoardStatus(no_genshin_account=True), None
+        return GenshinNoteStatus(no_genshin_account=True), None
 
 
-async def StarRail_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, StarRailBoardStatus], Optional[StarRailBoard]]:
+async def starrail_note(account: UserAccount) -> Tuple[
+    Union[BaseApiStatus, StarRailNoteStatus],
+    Optional[StarRailNote]
+]:
     """
     获取崩铁实时便笺
 
@@ -1513,14 +1546,14 @@ async def StarRail_board(account: UserAccount) -> Tuple[
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
-        return StarRailBoardStatus(game_record_failed=True), None
+        return StarRailNoteStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return StarRailBoardStatus(game_list_failed=True), None
+        return StarRailNoteStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'sr', game_list)
     game_info = next(game_filter, None)
     if not game_info:
-        return StarRailBoardStatus(no_starrail_account=True), None
+        return StarRailNoteStatus(no_starrail_account=True), None
     else:
         game_id = game_info.id
     flag = True
@@ -1529,26 +1562,21 @@ async def StarRail_board(account: UserAccount) -> Tuple[
             try:
                 flag = False
                 headers = HEADERS_STARRAIL_STATUS_WIDGET.copy()
-
-                url = f"{URL_STARRAIL_STATUS_WIDGET}"
+                url = f"{URL_STARRAIL_NOTE_WIDGET}"
                 async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(data={})
                         async with httpx.AsyncClient() as client:
-
                             cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)
-                            logger.info(f"StarRail_board headers :  {headers}")
-                            logger.info(f"StarRail_board cookies :  {cookies}")
                             res = await client.get(url, headers=headers,
                                                    cookies=cookies,
                                                    timeout=_conf.preference.timeout)
                         api_result = ApiResultHandler(res.json())
-                        logger.info(f"simple_api StarRail_board api_result : {api_result}")
                         if api_result.login_expired:
                             logger.info(
                                 f"崩铁实时便笺: 用户 {account.bbs_uid} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
-                            return StarRailBoardStatus(login_expired=True), None
+                            return StarRailNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
@@ -1558,14 +1586,100 @@ async def StarRail_board(account: UserAccount) -> Tuple[
                             logger.info(
                                 f"崩铁实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
-                        return StarRailBoardStatus(success=True), StarRailBoard.parse_obj(api_result.data)
+                        return StarRailNoteStatus(success=True), StarRailNote.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
                     logger.exception("崩铁实时便笺: 服务器没有正确返回")
                     logger.debug(f"网络请求返回: {res.text}")
-                    return StarRailBoardStatus(incorrect_return=True), None
+                    return StarRailNoteStatus(incorrect_return=True), None
                 else:
                     logger.exception("崩铁实时便笺: 请求失败")
-                    return StarRailBoardStatus(network_error=True), None
+                    return StarRailNoteStatus(network_error=True), None
     if flag:
-        return StarRailBoardStatus(no_starrail_account=True), None
+        return StarRailNoteStatus(no_starrail_account=True), None
+
+
+async def create_verification(account: UserAccount = None, retry: bool = True) -> Tuple[
+    BaseApiStatus, Optional[MmtData]]:
+    """
+    创建人机验证任务 - 一般用于米游社讨论区签到
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
+    """
+    headers = HEADERS_BBS_API.copy()
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                device_id = account.device_id_ios if account else generate_device_id()
+                headers["x-rpc-device_id"] = device_id
+                headers["x-rpc-device_fp"] = account.device_fp if account and account.device_fp else \
+                    generate_fp_locally()
+                headers["DS"] = generate_ds()
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(
+                        URL_CREATE_VERIFICATION,
+                        headers=headers,
+                        cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                        timeout=_conf.preference.timeout
+                    )
+                api_result = ApiResultHandler(res.json())
+                return BaseApiStatus(success=True), MmtData.parse_obj(api_result.data)
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception("创建人机验证任务(create_verification) - 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True), None
+        else:
+            logger.exception("创建人机验证任务(create_verification) - 请求失败")
+            return BaseApiStatus(network_error=True), None
+
+
+async def verify_verification(
+        mmt_data: MmtData,
+        geetest_result: GeetestResult,
+        account: UserAccount = None,
+        retry: bool = True
+) -> BaseApiStatus:
+    """
+    提交人机验证结果 - 一般用于米游社讨论区签到
+
+    :param mmt_data: 极验验证任务数据
+    :param geetest_result: 极验验证结果
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
+    """
+    headers = HEADERS_BBS_API.copy()
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                content = {
+                    "geetest_seccode": geetest_result.seccode,
+                    "geetest_challenge": mmt_data.challenge,
+                    "geetest_validate": geetest_result.validate,
+                }
+                device_id = account.device_id_ios if account else generate_device_id()
+                headers["x-rpc-device_id"] = device_id
+                headers["x-rpc-device_fp"] = account.device_fp if account and account.device_fp else \
+                    generate_fp_locally()
+                headers["DS"] = generate_ds()
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(
+                        URL_VERIFY_VERIFICATION,
+                        headers=headers,
+                        cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                        json=content,
+                        timeout=_conf.preference.timeout)
+                api_result = ApiResultHandler(res.json())
+                if api_result.retcode == 0:
+                    return BaseApiStatus(success=True)
+                else:
+                    return BaseApiStatus()
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception("验证人机验证结果(verify_verification) - 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True)
+        else:
+            logger.exception("验证人机验证结果(verify_verification) - 请求失败")
+            return BaseApiStatus(network_error=True)

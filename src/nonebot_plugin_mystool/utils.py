@@ -9,28 +9,29 @@ import string
 import time
 import uuid
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional)
+                    Union, Optional, Tuple, Iterable)
 from urllib.parse import urlencode
 
 import httpx
-import nonebot
 import nonebot.log
 import nonebot.plugin
 import tenacity
 from nonebot import Adapter, Bot
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
-    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
+    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot, ActionFailed as OneBotV11ActionFailed
 from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
 from nonebot.adapters.qqguild.api import DMS
-from nonebot.adapters.qqguild.exception import ActionFailed
+from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed, AuditException
+from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 from qrcode import QRCode
 
 from .data_model import GeetestResult
 from .plugin_data import PluginDataManager, Preference
+from .user_data import UserData
 
 if TYPE_CHECKING:
     from loguru import Logger
@@ -326,7 +327,7 @@ async def send_private_msg(
         message: Union[str, Message],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None
-) -> Union[bool, ActionFailed]:
+) -> Tuple[bool, Optional[ActionFailed]]:
     """
     主动发送私信消息
 
@@ -334,20 +335,41 @@ async def send_private_msg(
     :param message: 消息内容
     :param use: 使用的Bot或Adapter，为None则使用所有Bot
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
-    :return: 是否发送成功
-    :raise ActionFailed
+    :return: (是否发送成功, ActionFailed Exception)
     """
+    error_flag = False
+    action_failed = None
+
+    if guild_id or ((user := _conf.users.get(user_id)) and user_id in user.qq_guilds):
+        user_type = QQGuildAdapter
+    else:
+        user_type = OneBotV11Adapter
+
+    # 整合符合条件的 Bot 对象
     if isinstance(use, (OneBotV11Bot, QQGuildBot)):
         bots = [use]
     elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
         bots = use.bots.values()
     else:
         bots = nonebot.get_bots().values()
-    if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
+
+    # 完成 OneBotV11 消息发送
+    if user_type == OneBotV11Adapter:
         for bot in bots:
-            await bot.send_private_msg(user_id=int(user_id), message=message)
-        return True
-    elif isinstance(use, (QQGuildBot, QQGuildAdapter)):
+            if isinstance(bot, OneBotV11Bot):
+                try:
+                    await bot.send_private_msg(user_id=int(user_id), message=message)
+                except OneBotV11ActionFailed as e:
+                    logger.exception(
+                        f"{_conf.preference.log_head}OneBotV11 尝试主动发送私信消息失败。"
+                        f"用户ID：{user_id}，消息内容：\n"
+                        f"{message}"
+                    )
+                    error_flag = True
+                    action_failed = e
+
+    # 完成 QQGuild 消息发送
+    elif user_type == QQGuildAdapter:
         message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
         message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
 
@@ -368,38 +390,65 @@ async def send_private_msg(
         if guild_id is None:
             if user := _conf.users.get(user_id):
                 if not (guilds := user.qq_guilds.get(user_id)):
-                    logger.warning(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
-                    return False
-                guild_ids = iter(guilds)
+                    logger.error(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                    guild_ids = iter([])
+                    error_flag = True
+                else:
+                    guild_ids = iter(guilds)
             else:
-                logger.warning(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
-                return False
+                logger.error(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                guild_ids = iter([])
+                error_flag = True
         else:
             guild_ids = iter([guild_id])
 
         while (guild_id := next(guild_ids, None)) is not None:
-            try:
-                for bot in bots:
-                    dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
-                    await bot.post_dms_messages(
-                        guild_id=dms.guild_id,  # type: ignore
-                        content=content,
-                        embed=embed,  # type: ignore
-                        ark=ark,  # type: ignore
-                        image=image,  # type: ignore
-                        file_image=file_image,  # type: ignore
-                        markdown=markdown,  # type: ignore
-                        message_reference=reference,  # type: ignore
-                    )
-            except ActionFailed as e:
-                logger.exception(
-                    f"{_conf.preference.log_head}尝试主动发送私信消息失败。"
-                    f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
-                    f"{message}"
-                )
-                raise e
-            else:
-                return True
+            for bot in bots:
+                if isinstance(bot, QQGuildBot):
+                    try:
+                        dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
+                        await bot.post_dms_messages(
+                            guild_id=dms.guild_id,  # type: ignore
+                            content=content,
+                            embed=embed,  # type: ignore
+                            ark=ark,  # type: ignore
+                            image=image,  # type: ignore
+                            file_image=file_image,  # type: ignore
+                            markdown=markdown,  # type: ignore
+                            message_reference=reference,  # type: ignore
+                        )
+                    except (QQGuildActionFailed, AuditException) as e:
+                        logger.exception(
+                            f"{_conf.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
+                            f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
+                            f"{message}"
+                        )
+                        error_flag = True
+                        action_failed = e
+
+    else:
+        return False, None
+
+    return not error_flag, action_failed
+
+
+def get_unique_users() -> Iterable[Tuple[str, UserData]]:
+    """
+    获取 不包含绑定用户数据 的所有用户数据以及对应的ID，即不会出现值重复项
+
+    :return: dict_items[用户ID, 用户数据]
+    """
+    return filter(lambda x: x[0] not in _conf.user_bind, _conf.users.items())
+
+
+def get_all_bind(user_id: str) -> Iterable[str]:
+    """
+    获取绑定该用户的所有用户ID
+
+    :return: 绑定该用户的所有用户ID
+    """
+    user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
+    return user_id_filter
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
