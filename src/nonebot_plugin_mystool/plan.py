@@ -614,7 +614,9 @@ async def auto_note_check():
     """
     自动查看实时便笺
     """
+    logger.info(f"{_conf.preference.log_head}开始执行自动便笺检查")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
         await genshin_note_check(user=user, user_ids=user_ids)
         await starrail_note_check(user=user, user_ids=user_ids)
+    logger.info(f"{_conf.preference.log_head}自动便笺检查执行完成")
