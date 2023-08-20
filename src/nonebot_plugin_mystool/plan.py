@@ -441,43 +441,46 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
             if genshin_board_status.need_verify:
                 if matcher:
                     await matcher.send('⚠️遇到验证码正在尝试绕过')
+
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not matcher:
+                do_notice = False
+                """记录是否需要提醒"""
                 # 体力溢出提醒
                 if board.current_resin == 160:
                     # 防止重复提醒
-                    if genshin_notice.current_resin:
-                        return
-                    else:
+                    if not genshin_notice.current_resin:
                         genshin_notice.current_resin = True
                         msg += '❕您的树脂已经满啦\n'
+                        do_notice = True
                 else:
                     genshin_notice.current_resin = False
                 # 洞天财瓮溢出提醒
                 if board.current_home_coin == board.max_home_coin:
                     # 防止重复提醒
-                    if genshin_notice.current_home_coin:
-                        return
-                    else:
+                    if not genshin_notice.current_home_coin:
                         genshin_notice.current_home_coin = True
                         msg += '❕您的洞天财瓮已经满啦\n'
+                        do_notice = True
                 else:
                     genshin_notice.current_home_coin = False
                 # 参量质变仪就绪提醒
                 if board.transformer:
                     if board.transformer_text == '已准备就绪':
                         # 防止重复提醒
-                        if genshin_notice.transformer:
-                            return
-                        else:
+                        if not genshin_notice.transformer:
                             genshin_notice.transformer = True
                             msg += '❕您的参量质变仪已准备就绪\n\n'
+                            do_notice = True
                     else:
                         genshin_notice.transformer = False
-                        return
                 else:
                     genshin_notice.transformer = True
+
+                if not do_notice:
+                    return
+
             msg += "❖原神·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
                    f"\n⏳树脂数量：{board.current_resin} / 160" \
@@ -525,40 +528,43 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
             if starrail_board_status.need_verify:
                 if matcher:
                     await matcher.send('⚠️遇到验证码正在尝试绕过')
+
             msg = ''
             # 手动查询体力时，无需判断是否溢出
             if not matcher:
+                do_notice = False
+                """记录是否需要提醒"""
                 # 体力溢出提醒
                 if board.current_stamina == 180:
                     # 防止重复提醒
-                    if starrail_notice.current_stamina:
-                        return
-                    else:
+                    if not starrail_notice.current_stamina:
                         starrail_notice.current_stamina = True
                         msg += '❕您的开拓力已经满啦\n'
+                        do_notice = True
                 else:
                     starrail_notice.current_stamina = False
                 # 每日实训状态提醒
                 if board.current_train_score == board.max_train_score:
                     # 防止重复提醒
-                    if starrail_notice.current_train_score:
-                        return
-                    else:
+                    if not starrail_notice.current_train_score:
                         starrail_notice.current_train_score = True
                         msg += '❕您的每日实训已完成\n'
+                        do_notice = True
                 else:
                     starrail_notice.current_train_score = False
                 # 每周模拟宇宙积分提醒
                 if board.current_rogue_score == board.max_rogue_score:
                     # 防止重复提醒
-                    if starrail_notice.current_rogue_score:
-                        return
-                    else:
+                    if not starrail_notice.current_rogue_score:
                         starrail_notice.current_rogue_score = True
                         msg += '❕您的模拟宇宙积分已经打满了\n\n'
+                        do_notice = True
                 else:
                     starrail_notice.current_rogue_score = False
+
+                if not do_notice:
                     return
+
             msg += "❖星穹铁道·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
                    f"\n⏳开拓力数量：{board.current_stamina} / 180" \
