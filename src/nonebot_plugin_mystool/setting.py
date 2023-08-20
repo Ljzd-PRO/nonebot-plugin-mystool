@@ -91,7 +91,6 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
     """
     根据所选更改相应账户的相应设置
     """
-    logger.debug(f"{type(setting_id)}")
     account: UserAccount = state['account']
     user_account = _conf.users[event.get_user_id()].accounts
     if setting_id == '退出':
