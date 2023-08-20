@@ -424,22 +424,15 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
         genshin_notice = note_notice_status[account.bbs_uid].genshin
         if account.enable_resin or matcher:
             genshin_board_status, board = await genshin_note(account)
-            if not genshin_board_status:
+            if not genshin_board_status and matcher:
                 if genshin_board_status.login_expired:
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                if genshin_board_status.no_genshin_account:
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
-                    account.enable_resin = False
-                    write_plugin_data()
-                    continue
-                if matcher:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                elif genshin_board_status.no_genshin_account:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
+                elif genshin_board_status.need_verify:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
+                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
-            if genshin_board_status.need_verify:
-                if matcher:
-                    await matcher.send('⚠️遇到验证码正在尝试绕过')
 
             msg = ''
             # 手动查询体力时，无需判断是否溢出
@@ -508,22 +501,15 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
         starrail_notice = note_notice_status[account.bbs_uid].starrail
         if account.enable_resin or matcher:
             starrail_board_status, board = await starrail_note(account)
-            if not starrail_board_status:
+            if not starrail_board_status and matcher:
                 if starrail_board_status.login_expired:
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                if starrail_board_status.no_starrail_account:
-                    if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
-                    account.enable_resin = False
-                    write_plugin_data()
-                    continue
-                if matcher:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
-                continue
-            if starrail_board_status.need_verify:
-                if matcher:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                elif starrail_board_status.no_starrail_account:
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                elif starrail_board_status.need_verify:
                     await matcher.send('⚠️遇到验证码正在尝试绕过')
+                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                continue
 
             msg = ''
             # 手动查询体力时，无需判断是否溢出
