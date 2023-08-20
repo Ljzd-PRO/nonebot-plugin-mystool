@@ -422,7 +422,6 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
     for account in user.accounts.values():
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         genshin_notice = note_notice_status[account.bbs_uid].genshin
-        logger.debug(f"检查账户 {account.bbs_uid} 是否需要通知 - {account.enable_resin}")
         if account.enable_resin or matcher:
             genshin_board_status, board = await genshin_note(account)
             if not genshin_board_status:
