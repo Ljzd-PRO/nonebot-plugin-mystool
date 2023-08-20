@@ -1476,7 +1476,6 @@ async def genshin_note(account: UserAccount) -> Tuple[
             try:
                 flag = False
                 params = {"role_id": record.game_role_id, "server": record.region}
-                url = f"{URL_GENSHEN_NOTE_BBS}?{urlencode(params)}"
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
                 async for attempt in get_async_retry(False):
@@ -1484,9 +1483,13 @@ async def genshin_note(account: UserAccount) -> Tuple[
                         headers["DS"] = generate_ds(
                             params={"role_id": record.game_role_id, "server": record.region})
                         async with httpx.AsyncClient() as client:
-                            res = await client.get(url, headers=headers,
-                                                   cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                                   timeout=_conf.preference.timeout)
+                            res = await client.get(
+                                URL_GENSHEN_NOTE_BBS,
+                                headers=headers,
+                                cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                                params=params,
+                                timeout=_conf.preference.timeout
+                            )
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(
