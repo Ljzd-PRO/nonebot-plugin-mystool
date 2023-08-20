@@ -226,7 +226,7 @@ class UserAccount(BaseModelWithSetter):
     enable_game_sign: bool = True
     '''是否开启米游社游戏签到计划'''
     enable_resin: bool = True
-    '''是否开启原神树脂提醒'''
+    '''是否开启便笺提醒'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
     mission_games: Set[type] = {}
