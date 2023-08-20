@@ -1561,20 +1561,16 @@ async def starrail_note(account: UserAccount) -> Tuple[
             try:
                 flag = False
                 headers = HEADERS_STARRAIL_STATUS_WIDGET.copy()
-
                 url = f"{URL_STARRAIL_NOTE_WIDGET}"
                 async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(data={})
                         async with httpx.AsyncClient() as client:
                             cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)
-                            logger.info(f"StarRail_board headers :  {headers}")
-                            logger.info(f"StarRail_board cookies :  {cookies}")
                             res = await client.get(url, headers=headers,
                                                    cookies=cookies,
                                                    timeout=_conf.preference.timeout)
                         api_result = ApiResultHandler(res.json())
-                        logger.info(f"simple_api StarRail_board api_result : {api_result}")
                         if api_result.login_expired:
                             logger.info(
                                 f"崩铁实时便笺: 用户 {account.bbs_uid} 登录失效")
