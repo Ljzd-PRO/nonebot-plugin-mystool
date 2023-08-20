@@ -24,12 +24,14 @@ device_config = PluginDataManager.device_config
 
 URL_LOGIN_TICKET_BY_CAPTCHA = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_LOGIN_TICKET_BY_PASSWORD = "https://webapi.account.mihoyo.com/Api/login_by_password"
-URL_MULTI_TOKEN_BY_LOGIN_TICKET = "https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}&token_types=3&uid={1}"
+URL_MULTI_TOKEN_BY_LOGIN_TICKET = ("https://api-takumi.mihoyo.com/auth/api/getMultiTokenByLoginTicket?login_ticket={0}"
+                                   "&token_types=3&uid={1}")
 URL_COOKIE_TOKEN_BY_CAPTCHA = "https://api-takumi.mihoyo.com/account/auth/api/webLoginByMobile"
 URL_COOKIE_TOKEN_BY_STOKEN = "https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken"
 URL_LTOKEN_BY_STOKEN = "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken"
 URL_STOKEN_V2_BY_V1 = "https://passport-api.mihoyo.com/account/ma-cn-session/app/getTokenBySToken"
-URL_ACTION_TICKET = "https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role&stoken={stoken}&uid={bbs_uid}"
+URL_ACTION_TICKET = ("https://api-takumi.mihoyo.com/auth/api/getActionTicketBySToken?action_type=game_role"
+                     "&stoken={stoken}&uid={bbs_uid}")
 URL_GAME_RECORD = "https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={}"
 URL_GAME_LIST = "https://bbs-api.mihoyo.com/apihub/api/getGameList"
 URL_MYB = "https://api-takumi.mihoyo.com/common/homutreasure/v1/web/user/point?app_id=1&point_sn=myb"
@@ -41,7 +43,8 @@ URL_CHECK_GOOD = "https://api-takumi.mihoyo.com/mall/v1/web/goods/detail?app_id=
 URL_EXCHANGE = "https://api-takumi.miyoushe.com/mall/v1/web/goods/exchange"
 URL_ADDRESS = "https://api-takumi.mihoyo.com/account/address/list?t={}"
 URL_REGISTRABLE = "https://webapi.account.mihoyo.com/Api/is_mobile_registrable?mobile={mobile}&t={t}"
-URL_CREATE_MMT = "https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}"
+URL_CREATE_MMT = ("https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1&now={now}"
+                  "&reason=user.mihoyo.com%2523%252Flogin%252Fcaptcha&action_type=login_by_mobile_captcha&t={t}")
 URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile_captcha"
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
 URL_GET_DEVICE_FP = "https://public-data-api.mihoyo.com/device-fp/api/getFp"
@@ -619,7 +622,9 @@ async def get_good_games(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Li
 
 
 async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[List[Good]]]:
+    BaseApiStatus,
+    Optional[List[Good]]
+]:
     """
     获取商品信息列表
 
@@ -693,7 +698,11 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
 
 
 async def check_registrable(phone_number: int, keep_client: bool = False, retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[bool], str, Optional[httpx.AsyncClient]]:
+    BaseApiStatus,
+    Optional[bool],
+    str,
+    Optional[httpx.AsyncClient]
+]:
     """
     检查用户是否可以注册
 
@@ -743,7 +752,11 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
                      use_v4: bool = True,
                      device_id: str = None,
                      retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[MmtData], str, Optional[httpx.AsyncClient]]:
+    BaseApiStatus,
+    Optional[MmtData],
+    str,
+    Optional[httpx.AsyncClient]
+]:
     """
     发送短信验证前所需的人机验证任务申请
 
@@ -958,7 +971,9 @@ async def get_login_ticket_by_captcha(phone_number: str,
 
 
 async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 login_ticket 获取 `stoken 和 ltoken
 
@@ -998,7 +1013,9 @@ async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = Tru
 
 
 async def get_cookie_token_by_captcha(phone_number: str, captcha: int, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过短信验证码获取 cookie_token
 
@@ -1100,7 +1117,9 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
 
 
 async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v2 获取 cookie_token
 
@@ -1149,7 +1168,9 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: str = None,
 
 
 async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v1 获取 stoken_v2 以及 mid
 
@@ -1203,7 +1224,9 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry:
 
 
 async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: str = None, retry: bool = True) -> Tuple[
-    GetCookieStatus, Optional[BBSCookies]]:
+    GetCookieStatus,
+    Optional[BBSCookies]
+]:
     """
     通过 stoken_v2 和 mid 获取 ltoken
 
@@ -1428,7 +1451,9 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
 
 
 async def genshin_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, GenshinBoardStatus], Optional[GenshinBoard]]:
+    Union[BaseApiStatus, GenshinBoardStatus],
+    Optional[GenshinBoard]
+]:
     """
     获取原神实时便笺
 
@@ -1505,7 +1530,9 @@ async def genshin_board(account: UserAccount) -> Tuple[
 
 
 async def starrail_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, StarRailBoardStatus], Optional[StarRailBoard]]:
+    Union[BaseApiStatus, StarRailBoardStatus],
+    Optional[StarRailBoard]
+]:
     """
     获取崩铁实时便笺
 
