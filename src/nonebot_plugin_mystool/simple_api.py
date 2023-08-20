@@ -1681,5 +1681,5 @@ async def verify_verification(
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True)
         else:
-            logger.exception(f"验证人机验证结果(verify_verification) - 请求失败")
+            logger.exception("验证人机验证结果(verify_verification) - 请求失败")
             return BaseApiStatus(network_error=True)
