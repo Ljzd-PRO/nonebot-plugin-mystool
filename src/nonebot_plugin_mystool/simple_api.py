@@ -1481,6 +1481,7 @@ async def genshin_note(account: UserAccount) -> Tuple[
                 params = {"role_id": record.game_role_id, "server": record.region}
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
+                headers["x-rpc-device_fp"] = account.device_id_android or generate_fp_locally()
                 async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(
