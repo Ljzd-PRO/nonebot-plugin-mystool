@@ -52,6 +52,8 @@ URL_GENSHEN_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/gen
 URL_GENSHEN_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
 URL_STARRAIL_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
 URL_STARRAIL_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
+URL_CREATE_VERIFICATION = "https://bbs-api.miyoushe.com/misc/api/createVerification?is_high=true"
+URL_VERIFY_VERIFICATION = "https://bbs-api.miyoushe.com/misc/api/verifyVerification"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -137,11 +139,12 @@ HEADERS_GAME_RECORD = {
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
 }
-HEADERS_GAME_LIST = {
+HEADERS_BBS_API = {
     "Host": "bbs-api.mihoyo.com",
     "DS": None,
     "Accept": "*/*",
     "x-rpc-device_id": generate_device_id(),
+    "x-rpc-verify_key": "bll8iq97cem8",
     "x-rpc-client_type": "1",
     "x-rpc-channel": device_config.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
@@ -420,7 +423,7 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
 
     :param retry: 是否允许重试
     """
-    headers = HEADERS_GAME_LIST.copy()
+    headers = HEADERS_BBS_API.copy()
     try:
         async for attempt in get_async_retry(retry):
             with attempt:
@@ -1564,7 +1567,6 @@ async def starrail_note(account: UserAccount) -> Tuple[
                     with attempt:
                         headers["DS"] = generate_ds(data={})
                         async with httpx.AsyncClient() as client:
-
                             cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)
                             logger.info(f"StarRail_board headers :  {headers}")
                             logger.info(f"StarRail_board cookies :  {cookies}")
@@ -1598,3 +1600,89 @@ async def starrail_note(account: UserAccount) -> Tuple[
                     return StarRailNoteStatus(network_error=True), None
     if flag:
         return StarRailNoteStatus(no_starrail_account=True), None
+
+
+async def create_verification(account: UserAccount = None, retry: bool = True) -> Tuple[
+    BaseApiStatus, Optional[MmtData]]:
+    """
+    创建人机验证任务 - 一般用于米游社讨论区签到
+
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
+    """
+    headers = HEADERS_BBS_API.copy()
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                device_id = account.device_id_ios if account else generate_device_id()
+                headers["x-rpc-device_id"] = device_id
+                headers["x-rpc-device_fp"] = account.device_fp if account and account.device_fp else \
+                    generate_fp_locally()
+                headers["DS"] = generate_ds()
+                async with httpx.AsyncClient() as client:
+                    res = await client.get(
+                        URL_CREATE_VERIFICATION,
+                        headers=headers,
+                        cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                        timeout=_conf.preference.timeout
+                    )
+                api_result = ApiResultHandler(res.json())
+                return BaseApiStatus(success=True), MmtData.parse_obj(api_result.data)
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception("创建人机验证任务(create_verification) - 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True), None
+        else:
+            logger.exception(f"创建人机验证任务(create_verification) - 请求失败")
+            return BaseApiStatus(network_error=True), None
+
+
+async def verify_verification(
+        mmt_data: MmtData,
+        geetest_result: GeetestResult,
+        account: UserAccount = None,
+        retry: bool = True
+) -> BaseApiStatus:
+    """
+    提交人机验证结果 - 一般用于米游社讨论区签到
+
+    :param mmt_data: 极验验证任务数据
+    :param geetest_result: 极验验证结果
+    :param account: 用户账户数据
+    :param retry: 是否允许重试
+    """
+    headers = HEADERS_BBS_API.copy()
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                content = {
+                    "geetest_seccode": geetest_result.seccode,
+                    "geetest_challenge": mmt_data.challenge,
+                    "geetest_validate": geetest_result.validate,
+                }
+                device_id = account.device_id_ios if account else generate_device_id()
+                headers["x-rpc-device_id"] = device_id
+                headers["x-rpc-device_fp"] = account.device_fp if account and account.device_fp else \
+                    generate_fp_locally()
+                headers["DS"] = generate_ds()
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(
+                        URL_VERIFY_VERIFICATION,
+                        headers=headers,
+                        cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
+                        json=content,
+                        timeout=_conf.preference.timeout)
+                api_result = ApiResultHandler(res.json())
+                if api_result.retcode == 0:
+                    return BaseApiStatus(success=True)
+                else:
+                    return BaseApiStatus()
+    except tenacity.RetryError as e:
+        if is_incorrect_return(e):
+            logger.exception("验证人机验证结果(verify_verification) - 服务器没有正确返回")
+            logger.debug(f"网络请求返回: {res.text}")
+            return BaseApiStatus(incorrect_return=True)
+        else:
+            logger.exception(f"验证人机验证结果(verify_verification) - 请求失败")
+            return BaseApiStatus(network_error=True)
