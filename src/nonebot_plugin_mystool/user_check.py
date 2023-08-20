@@ -180,7 +180,6 @@ async def _(
                 target_id, _ = target_users[0]
             else:
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
-                return
             _conf.do_user_bind(user_id, target_id)
             user = _conf.users[user_id]
             user.qq_guilds.setdefault(user_id, set())
