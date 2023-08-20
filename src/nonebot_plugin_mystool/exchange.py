@@ -3,7 +3,6 @@
 """
 import asyncio
 import io
-import itertools
 import os
 import random
 import threading
@@ -362,7 +361,7 @@ def exchange_notice(event: JobExecutionEvent):
             hash_value = int(event.job_id.split('-')[-2])
             user_id_filter = filter(lambda x: hash(x[1].exchange_plans) == hash_value, get_unique_users())
             user_id = next(user_id_filter)
-            user_ids = itertools.chain(user_id_filter, get_all_bind(user_id))
+            user_ids = [user_id] + list(get_all_bind(user_id))
             plan = _conf.users[user_id].exchange_plans
 
             with lock:
@@ -385,7 +384,7 @@ def exchange_notice(event: JobExecutionEvent):
             plan = exchange_result.plan
             user_filter = filter(lambda x: plan in x[1].exchange_plans, get_unique_users())
             user_id, user = next(user_filter)
-            user_ids = itertools.chain([user_id], get_all_bind(user_id))
+            user_ids = [user_id] + list(get_all_bind(user_id))
             with lock:
                 # 如果已经有一个线程兑换成功，就不再接收结果
                 if True not in finished[plan]:

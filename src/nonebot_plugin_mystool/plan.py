@@ -2,7 +2,6 @@
 ### 计划任务相关
 """
 import asyncio
-import itertools
 import random
 import threading
 from typing import Union, Optional, Type, Iterable
@@ -586,7 +585,7 @@ async def daily_schedule():
     await asyncio.sleep(random.randint(0, 59))
     logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
     for user_id, user in get_unique_users():
-        user_ids = itertools.chain([user_id], get_all_bind(user_id))
+        user_ids = [user_id] + list(get_all_bind(user_id))
         await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
     logger.info(f"{_conf.preference.log_head}每日自动任务执行完成")
@@ -600,6 +599,6 @@ async def auto_resin_check():
     自动查看实时便笺
     """
     for user_id, user in get_unique_users():
-        user_ids = itertools.chain([user_id], get_all_bind(user_id))
+        user_ids = [user_id] + list(get_all_bind(user_id))
         await resin_check(user=user, user_ids=user_ids)
         await resin_check_sr(user=user, user_ids=user_ids)
