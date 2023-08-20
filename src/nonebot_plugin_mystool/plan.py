@@ -422,6 +422,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
     for account in user.accounts.values():
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         genshin_notice = note_notice_status[account.bbs_uid].genshin
+        logger.debug(f"检查账户 {account.bbs_uid} 是否需要通知 - {account.enable_resin}")
         if account.enable_resin or matcher:
             genshin_board_status, board = await genshin_note(account)
             if not genshin_board_status:
@@ -447,7 +448,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                 do_notice = False
                 """记录是否需要提醒"""
                 # 体力溢出提醒
-                if board.current_resin == 160:
+                if board.current_resin >= account.user_resin_threshold:
                     # 防止重复提醒
                     if not genshin_notice.current_resin:
                         genshin_notice.current_resin = True
@@ -491,11 +492,8 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
             if matcher:
                 await matcher.send(msg)
             else:
-                if board.current_resin >= account.user_resin_threshold:
-                    for user_id in user_ids:
-                        await send_private_msg(user_id=user_id, message=msg)
-                else:
-                    logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
+                for user_id in user_ids:
+                    await send_private_msg(user_id=user_id, message=msg)
 
 
 async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
@@ -534,7 +532,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 do_notice = False
                 """记录是否需要提醒"""
                 # 体力溢出提醒
-                if board.current_stamina == 180:
+                if board.current_stamina >= account.user_stamina_threshold:
                     # 防止重复提醒
                     if not starrail_notice.current_stamina:
                         starrail_notice.current_stamina = True
@@ -575,11 +573,8 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
             if matcher:
                 await matcher.send(msg)
             else:
-                if board.current_stamina >= account.user_stamina_threshold:
-                    for user_id in user_ids:
-                        await send_private_msg(user_id=user_id, message=msg)
-                else:
-                    logger.info(f"崩铁实时便笺：账户 {account.bbs_uid} 开拓力:{board.current_stamina},未满足推送条件")
+                for user_id in user_ids:
+                    await send_private_msg(user_id=user_id, message=msg)
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
