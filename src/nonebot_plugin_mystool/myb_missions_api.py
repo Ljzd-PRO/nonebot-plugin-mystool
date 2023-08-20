@@ -158,10 +158,12 @@ class BaseMission:
                             if create_status:
                                 if geetest_result := await get_validate(mmt_data.gt, mmt_data.challenge):
                                     if await verify_verification(mmt_data, geetest_result, self.account):
-                                        logger.success(f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 人机验证通过")
+                                        logger.success(
+                                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 人机验证通过")
                                         continue
                         else:
-                            logger.info(f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 未配置极验人机验证打码平台")
+                            logger.info(
+                                f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 未配置极验人机验证打码平台")
                         return MissionStatus(need_verify=True), None
                     elif api_result.retcode == 1008:
                         logger.warning(

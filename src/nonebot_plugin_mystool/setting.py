@@ -11,7 +11,7 @@ from nonebot.params import T_State
 from .myb_missions_api import BaseMission
 from .plugin_data import PluginDataManager, write_plugin_data
 from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent, logger
+from .utils import COMMAND_BEGIN, GeneralMessageEvent
 
 _conf = PluginDataManager.plugin_data
 
