@@ -22,7 +22,7 @@ _driver = get_driver()
 
 
 @_driver.on_bot_connect
-async def check_qqguild_config(bot: QQGuildBot):
+def check_qqguild_config(bot: QQGuildBot):
     """
     检查QQGuild适配器是否开启了私信功能 Intents.direct_message
 
