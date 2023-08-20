@@ -215,6 +215,8 @@ class BaseGameSign:
                                 continue
                             else:
                                 return BaseApiStatus(need_verify=True)
+            logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
+            logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(success=True)
 
         except tenacity.RetryError as e:
