@@ -509,7 +509,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     elif starrail_board_status.no_starrail_account:
                         await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
                     elif starrail_board_status.need_verify:
-                        await matcher.send('⚠️遇到验证码正在尝试绕过')
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
                     await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
 
