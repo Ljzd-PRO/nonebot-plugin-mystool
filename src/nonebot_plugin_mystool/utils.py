@@ -23,7 +23,7 @@ from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, P
 from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
 from nonebot.adapters.qqguild.api import DMS
-from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
+from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed, AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
@@ -417,7 +417,7 @@ async def send_private_msg(
                             markdown=markdown,  # type: ignore
                             message_reference=reference,  # type: ignore
                         )
-                    except QQGuildActionFailed as e:
+                    except (QQGuildActionFailed, AuditException) as e:
                         logger.exception(
                             f"{_conf.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
                             f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
