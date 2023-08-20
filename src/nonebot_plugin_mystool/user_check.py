@@ -8,7 +8,7 @@ from uuid import uuid4
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
 from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
-from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed
+from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed, AuditException
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
@@ -238,5 +238,6 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
                     f"⚠️发送私信失败，达到了机器人每日主动私信次数限制。错误信息：{action_failed!r}")
             elif action_failed.code == 304022:
                 await direct_msg_respond.finish(f"⚠️发送私信失败，请换一个时间再试。错误信息：{action_failed!r}")
-        else:
-            await direct_msg_respond.finish(f"⚠️发送私信失败，错误信息：{action_failed!r}")
+            elif isinstance(action_failed, AuditException):
+                await direct_msg_respond.finish(f"⚠️发送私信失败，消息未通过审查。错误信息：{action_failed!r}")
+        await direct_msg_respond.finish(f"⚠️发送私信失败，错误信息：{action_failed!r}")
