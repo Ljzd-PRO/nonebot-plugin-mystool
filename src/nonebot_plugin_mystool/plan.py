@@ -2,7 +2,6 @@
 ### 计划任务相关
 """
 import asyncio
-import random
 import threading
 from typing import Union, Optional, Type, Iterable, Dict
 
@@ -600,8 +599,6 @@ async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
-    # 随机延迟
-    await asyncio.sleep(random.randint(0, 59))
     logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
