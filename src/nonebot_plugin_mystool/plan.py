@@ -423,15 +423,16 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         genshin_notice = note_notice_status[account.bbs_uid].genshin
         if account.enable_resin or matcher:
-            genshin_board_status, board = await genshin_note(account)
-            if not genshin_board_status and matcher:
-                if genshin_board_status.login_expired:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                elif genshin_board_status.no_genshin_account:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
-                elif genshin_board_status.need_verify:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
-                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+            genshin_board_status, note = await genshin_note(account)
+            if not genshin_board_status:
+                if matcher:
+                    if genshin_board_status.login_expired:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    elif genshin_board_status.no_genshin_account:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
+                    elif genshin_board_status.need_verify:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
 
             msg = ''
@@ -440,7 +441,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                 do_notice = False
                 """记录是否需要提醒"""
                 # 体力溢出提醒
-                if board.current_resin >= account.user_resin_threshold:
+                if note.current_resin >= account.user_resin_threshold:
                     # 防止重复提醒
                     if not genshin_notice.current_resin:
                         genshin_notice.current_resin = True
@@ -449,7 +450,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                 else:
                     genshin_notice.current_resin = False
                 # 洞天财瓮溢出提醒
-                if board.current_home_coin == board.max_home_coin:
+                if note.current_home_coin == note.max_home_coin:
                     # 防止重复提醒
                     if not genshin_notice.current_home_coin:
                         genshin_notice.current_home_coin = True
@@ -458,8 +459,8 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                 else:
                     genshin_notice.current_home_coin = False
                 # 参量质变仪就绪提醒
-                if board.transformer:
-                    if board.transformer_text == '已准备就绪':
+                if note.transformer:
+                    if note.transformer_text == '已准备就绪':
                         # 防止重复提醒
                         if not genshin_notice.transformer:
                             genshin_notice.transformer = True
@@ -475,12 +476,12 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
 
             msg += "❖原神·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
-                   f"\n⏳树脂数量：{board.current_resin} / 160" \
-                   f"\n⏱️树脂{board.resin_recovery_text}" \
-                   f"\n🕰️探索派遣：{board.current_expedition_num} / {board.max_expedition_num}" \
-                   f"\n📅每日委托：{4 - board.finished_task_num} 个任务未完成" \
-                   f"\n💰洞天财瓮：{board.current_home_coin} / {board.max_home_coin}" \
-                   f"\n🎰参量质变仪：{board.transformer_text if board.transformer else 'N/A'}"
+                   f"\n⏳树脂数量：{note.current_resin} / 160" \
+                   f"\n⏱️树脂{note.resin_recovery_text}" \
+                   f"\n🕰️探索派遣：{note.current_expedition_num} / {note.max_expedition_num}" \
+                   f"\n📅每日委托：{4 - note.finished_task_num} 个任务未完成" \
+                   f"\n💰洞天财瓮：{note.current_home_coin} / {note.max_home_coin}" \
+                   f"\n🎰参量质变仪：{note.transformer_text if note.transformer else 'N/A'}"
             if matcher:
                 await matcher.send(msg)
             else:
@@ -500,15 +501,16 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         starrail_notice = note_notice_status[account.bbs_uid].starrail
         if account.enable_resin or matcher:
-            starrail_board_status, board = await starrail_note(account)
-            if not starrail_board_status and matcher:
-                if starrail_board_status.login_expired:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
-                elif starrail_board_status.no_starrail_account:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
-                elif starrail_board_status.need_verify:
-                    await matcher.send('⚠️遇到验证码正在尝试绕过')
-                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+            starrail_board_status, note = await starrail_note(account)
+            if not starrail_board_status:
+                if matcher:
+                    if starrail_board_status.login_expired:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    elif starrail_board_status.no_starrail_account:
+                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                    elif starrail_board_status.need_verify:
+                        await matcher.send('⚠️遇到验证码正在尝试绕过')
+                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
 
             msg = ''
@@ -517,7 +519,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 do_notice = False
                 """记录是否需要提醒"""
                 # 体力溢出提醒
-                if board.current_stamina >= account.user_stamina_threshold:
+                if note.current_stamina >= account.user_stamina_threshold:
                     # 防止重复提醒
                     if not starrail_notice.current_stamina:
                         starrail_notice.current_stamina = True
@@ -526,7 +528,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 else:
                     starrail_notice.current_stamina = False
                 # 每日实训状态提醒
-                if board.current_train_score == board.max_train_score:
+                if note.current_train_score == note.max_train_score:
                     # 防止重复提醒
                     if not starrail_notice.current_train_score:
                         starrail_notice.current_train_score = True
@@ -535,7 +537,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 else:
                     starrail_notice.current_train_score = False
                 # 每周模拟宇宙积分提醒
-                if board.current_rogue_score == board.max_rogue_score:
+                if note.current_rogue_score == note.max_rogue_score:
                     # 防止重复提醒
                     if not starrail_notice.current_rogue_score:
                         starrail_notice.current_rogue_score = True
@@ -549,11 +551,11 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
 
             msg += "❖星穹铁道·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
-                   f"\n⏳开拓力数量：{board.current_stamina} / 180" \
-                   f"\n⏱开拓力{board.stamina_recover_text}" \
-                   f"\n📒每日实训：{board.current_train_score} / {board.max_train_score}" \
-                   f"\n📅每日委托：{board.accepted_expedition_num} / 4" \
-                   f"\n🌌模拟宇宙：{board.current_rogue_score} / {board.max_rogue_score}"
+                   f"\n⏳开拓力数量：{note.current_stamina} / 180" \
+                   f"\n⏱开拓力{note.stamina_recover_text}" \
+                   f"\n📒每日实训：{note.current_train_score} / {note.max_train_score}" \
+                   f"\n📅每日委托：{note.accepted_expedition_num} / 4" \
+                   f"\n🌌模拟宇宙：{note.current_rogue_score} / {note.max_rogue_score}"
 
             if matcher:
                 await matcher.send(msg)
