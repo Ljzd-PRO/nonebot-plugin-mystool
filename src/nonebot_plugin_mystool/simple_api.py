@@ -1631,7 +1631,7 @@ async def create_verification(account: UserAccount = None, retry: bool = True) -
             logger.debug(f"网络请求返回: {res.text}")
             return BaseApiStatus(incorrect_return=True), None
         else:
-            logger.exception(f"创建人机验证任务(create_verification) - 请求失败")
+            logger.exception("创建人机验证任务(create_verification) - 请求失败")
             return BaseApiStatus(network_error=True), None
 
 
