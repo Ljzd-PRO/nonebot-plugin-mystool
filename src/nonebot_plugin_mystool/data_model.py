@@ -343,7 +343,7 @@ class MissionState(BaseModel):
     """所有任务对应的完成进度 {mission_key, (MissionData, 当前进度)}"""
 
 
-class GenshinBoard(BaseModel):
+class GenshinNote(BaseModel):
     """
     原神实时便笺数据 (从米游社内相关页面API的返回数据初始化)
     """
@@ -398,7 +398,7 @@ class GenshinBoard(BaseModel):
             return None
 
 
-class StarRailBoard(BaseModel):
+class StarRailNote(BaseModel):
     """
     崩铁实时便笺数据 (从米游社内相关页面API的返回数据初始化)
     """
@@ -565,7 +565,7 @@ class BoardStatus(BaseApiStatus):
     """获取游戏列表失败"""
 
 
-class GenshinBoardStatus(BoardStatus):
+class GenshinNoteStatus(BoardStatus):
     """
     原神实时便笺 返回结果
     """
@@ -573,7 +573,7 @@ class GenshinBoardStatus(BoardStatus):
     """用户没有任何原神账户"""
 
 
-class StarRailBoardStatus(BoardStatus):
+class StarRailNoteStatus(BoardStatus):
     """
     星铁实时便笺 返回结果
     """

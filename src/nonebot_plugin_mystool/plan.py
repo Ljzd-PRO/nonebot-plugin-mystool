@@ -17,12 +17,12 @@ from nonebot.internal.matcher import Matcher
 from nonebot_plugin_apscheduler import scheduler
 from pydantic import BaseModel
 
-from .data_model import MissionStatus, GenshinBoard, StarRailBoard
+from .data_model import MissionStatus, GenshinNote, StarRailNote
 from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import genshin_board, get_game_record, starrail_board
+from .simple_api import genshin_note, get_game_record, starrail_note
 from .user_data import UserData
 from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, get_all_bind, \
     get_unique_users
@@ -65,7 +65,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
 
 
-class GenshinNoteNotice(GenshinBoard):
+class GenshinNoteNotice(GenshinNote):
     """
     原神便笺通知状态
     """
@@ -74,7 +74,7 @@ class GenshinNoteNotice(GenshinBoard):
     transformer: bool = False
 
 
-class StarRailNoteNotice(StarRailBoard):
+class StarRailNoteNotice(StarRailNote):
     """
     星穹铁道便笺通知状态
     """
@@ -94,7 +94,7 @@ class NoteNoticeStatus(BaseModel):
 note_notice_status: Dict[str, NoteNoticeStatus] = {}
 """记录账号对应的便笺通知状态"""
 
-manually_resin_check = on_command(
+manually_genshin_note_check = on_command(
     _conf.preference.command_start + '原神便笺',
     aliases={
         _conf.preference.command_start + '便笺',
@@ -104,11 +104,11 @@ manually_resin_check = on_command(
     priority=5,
     block=True
 )
-manually_resin_check.name = '原神便笺'
-manually_resin_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
+manually_genshin_note_check.name = '原神便笺'
+manually_genshin_note_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
 
 
-@manually_resin_check.handle()
+@manually_genshin_note_check.handle()
 async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看原神便笺
@@ -117,10 +117,10 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     user = _conf.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check(user=user, user_ids=[user_id], matcher=matcher)
+    await genshin_note_check(user=user, user_ids=[user_id], matcher=matcher)
 
 
-manually_resin_check_sr = on_command(
+manually_starrail_note_check = on_command(
     _conf.preference.command_start + '星穹铁道便笺',
     aliases={
         _conf.preference.command_start + '铁道便笺',
@@ -129,11 +129,11 @@ manually_resin_check_sr = on_command(
     priority=5,
     block=True
 )
-manually_resin_check_sr.name = '星穹铁道便笺'
-manually_resin_check_sr.usage = '手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息'
+manually_starrail_note_check.name = '星穹铁道便笺'
+manually_starrail_note_check.usage = '手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息'
 
 
-@manually_resin_check_sr.handle()
+@manually_starrail_note_check.handle()
 async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     手动查看星穹铁道便笺（sr）
@@ -142,7 +142,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     user = _conf.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await resin_check_sr(user=user, user_ids=[user_id], matcher=matcher)
+    await starrail_note_check(user=user, user_ids=[user_id], matcher=matcher)
 
 
 async def perform_game_sign(
@@ -412,7 +412,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
         write_plugin_data()
 
 
-async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
+async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     查看原神实时便笺函数，并发送给用户任务执行消息。
 
@@ -424,7 +424,7 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         genshin_notice = note_notice_status[account.bbs_uid].genshin
         if account.enable_resin or matcher:
-            genshin_board_status, board = await genshin_board(account)
+            genshin_board_status, board = await genshin_note(account)
             if not genshin_board_status:
                 if genshin_board_status.login_expired:
                     if matcher:
@@ -499,7 +499,7 @@ async def resin_check(user: UserData, user_ids: Iterable[str], matcher: Matcher 
                     logger.info(f"原神实时便笺：账户 {account.bbs_uid} 树脂:{board.current_resin},未满足推送条件")
 
 
-async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
+async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     查看星铁实时便笺函数，并发送给用户任务执行消息。
 
@@ -511,7 +511,7 @@ async def resin_check_sr(user: UserData, user_ids: Iterable[str], matcher: Match
         note_notice_status.setdefault(account.bbs_uid, NoteNoticeStatus())
         starrail_notice = note_notice_status[account.bbs_uid].starrail
         if account.enable_resin or matcher:
-            starrail_board_status, board = await starrail_board(account)
+            starrail_board_status, board = await starrail_note(account)
             if not starrail_board_status:
                 if starrail_board_status.login_expired:
                     if matcher:
@@ -613,11 +613,11 @@ async def daily_schedule():
 @scheduler.scheduled_job("interval",
                          minutes=_conf.preference.resin_interval,
                          id="resin_check")
-async def auto_resin_check():
+async def auto_note_check():
     """
     自动查看实时便笺
     """
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
-        await resin_check(user=user, user_ids=user_ids)
-        await resin_check_sr(user=user, user_ids=user_ids)
+        await genshin_note_check(user=user, user_ids=user_ids)
+        await starrail_note_check(user=user, user_ids=user_ids)

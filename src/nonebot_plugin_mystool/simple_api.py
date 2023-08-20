@@ -12,8 +12,8 @@ from requests.utils import dict_from_cookiejar
 
 from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
-    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinBoard, GenshinBoardStatus, \
-    GetFpStatus, StarRailBoardStatus, StarRailBoard
+    CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
+    GetFpStatus, StarRailNoteStatus, StarRailNote
 from .plugin_data import PluginDataManager
 from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
 from .utils import generate_device_id, logger, generate_ds, \
@@ -48,11 +48,10 @@ URL_CREATE_MMT = ("https://webapi.account.mihoyo.com/Api/create_mmt?scene_type=1
 URL_CREATE_MOBILE_CAPTCHA = "https://webapi.account.mihoyo.com/Api/create_mobile_captcha"
 URL_GET_USER_INFO = "https://bbs-api.miyoushe.com/user/api/getUserFullInfo?uid={uid}"
 URL_GET_DEVICE_FP = "https://public-data-api.mihoyo.com/device-fp/api/getFp"
-URL_GENSHIN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/card/api/getWidgetData?game_id=2"
-URL_GENSHEN_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
-URL_GENSHEN_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
-URL_STARRAIL_STATUS_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
-URL_STARRAIL_STATUS_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
+URL_GENSHEN_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote"
+URL_GENSHEN_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/genshin/aapi/widget/v2"
+URL_STARRAIL_NOTE_BBS = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/api/note"
+URL_STARRAIL_NOTE_WIDGET = "https://api-takumi-record.mihoyo.com/game_record/app/hkrpg/aapi/widget"
 
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
@@ -1450,9 +1449,9 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             return ExchangeStatus(network_error=True), None
 
 
-async def genshin_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, GenshinBoardStatus],
-    Optional[GenshinBoard]
+async def genshin_note(account: UserAccount) -> Tuple[
+    Union[BaseApiStatus, GenshinNoteStatus],
+    Optional[GenshinNote]
 ]:
     """
     获取原神实时便笺
@@ -1461,14 +1460,14 @@ async def genshin_board(account: UserAccount) -> Tuple[
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
-        return GenshinBoardStatus(game_record_failed=True), None
+        return GenshinNoteStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return GenshinBoardStatus(game_list_failed=True), None
+        return GenshinNoteStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'ys', game_list)
     game_info = next(game_filter, None)
     if not game_info:
-        return GenshinBoardStatus(no_genshin_account=True), None
+        return GenshinNoteStatus(no_genshin_account=True), None
     else:
         game_id = game_info.id
     flag = True
@@ -1477,7 +1476,7 @@ async def genshin_board(account: UserAccount) -> Tuple[
             try:
                 flag = False
                 params = {"role_id": record.game_role_id, "server": record.region}
-                url = f"{URL_GENSHEN_STATUS_BBS}?{urlencode(params)}"
+                url = f"{URL_GENSHEN_NOTE_BBS}?{urlencode(params)}"
                 headers = HEADERS_GENSHIN_STATUS_BBS.copy()
                 headers["x-rpc-device_id"] = account.device_id_android
                 async for attempt in get_async_retry(False):
@@ -1493,7 +1492,7 @@ async def genshin_board(account: UserAccount) -> Tuple[
                             logger.info(
                                 f"原神实时便笺: 用户 {account.bbs_uid} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
-                            return GenshinBoardStatus(login_expired=True), None
+                            return GenshinNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
@@ -1508,30 +1507,30 @@ async def genshin_board(account: UserAccount) -> Tuple[
                             headers["x-rpc-device_id"] = account.device_id_ios
                             async with httpx.AsyncClient() as client:
                                 res = await client.get(
-                                    URL_GENSHEN_STATUS_WIDGET,
+                                    URL_GENSHEN_NOTE_WIDGET,
                                     headers=headers,
                                     cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                     timeout=_conf.preference.timeout
                                 )
                             api_result = ApiResultHandler(res.json())
-                            return GenshinBoardStatus(success=True), \
-                                GenshinBoard.parse_obj(api_result.data)
-                        return GenshinBoardStatus(success=True), GenshinBoard.parse_obj(api_result.data)
+                            return GenshinNoteStatus(success=True), \
+                                GenshinNote.parse_obj(api_result.data)
+                        return GenshinNoteStatus(success=True), GenshinNote.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
                     logger.exception(f"原神实时便笺: 服务器没有正确返回")
                     logger.debug(f"网络请求返回: {res.text}")
-                    return GenshinBoardStatus(incorrect_return=True), None
+                    return GenshinNoteStatus(incorrect_return=True), None
                 else:
                     logger.exception(f"原神实时便笺: 请求失败")
-                    return GenshinBoardStatus(network_error=True), None
+                    return GenshinNoteStatus(network_error=True), None
     if flag:
-        return GenshinBoardStatus(no_genshin_account=True), None
+        return GenshinNoteStatus(no_genshin_account=True), None
 
 
-async def starrail_board(account: UserAccount) -> Tuple[
-    Union[BaseApiStatus, StarRailBoardStatus],
-    Optional[StarRailBoard]
+async def starrail_note(account: UserAccount) -> Tuple[
+    Union[BaseApiStatus, StarRailNoteStatus],
+    Optional[StarRailNote]
 ]:
     """
     获取崩铁实时便笺
@@ -1540,14 +1539,14 @@ async def starrail_board(account: UserAccount) -> Tuple[
     """
     game_record_status, records = await get_game_record(account)
     if not game_record_status:
-        return StarRailBoardStatus(game_record_failed=True), None
+        return StarRailNoteStatus(game_record_failed=True), None
     game_list_status, game_list = await get_game_list()
     if not game_list_status:
-        return StarRailBoardStatus(game_list_failed=True), None
+        return StarRailNoteStatus(game_list_failed=True), None
     game_filter = filter(lambda x: x.en_name == 'sr', game_list)
     game_info = next(game_filter, None)
     if not game_info:
-        return StarRailBoardStatus(no_starrail_account=True), None
+        return StarRailNoteStatus(no_starrail_account=True), None
     else:
         game_id = game_info.id
     flag = True
@@ -1557,7 +1556,7 @@ async def starrail_board(account: UserAccount) -> Tuple[
                 flag = False
                 headers = HEADERS_STARRAIL_STATUS_WIDGET.copy()
 
-                url = f"{URL_STARRAIL_STATUS_WIDGET}"
+                url = f"{URL_STARRAIL_NOTE_WIDGET}"
                 async for attempt in get_async_retry(False):
                     with attempt:
                         headers["DS"] = generate_ds(data={})
@@ -1575,7 +1574,7 @@ async def starrail_board(account: UserAccount) -> Tuple[
                             logger.info(
                                 f"崩铁实时便笺: 用户 {account.bbs_uid} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
-                            return StarRailBoardStatus(login_expired=True), None
+                            return StarRailNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
@@ -1585,14 +1584,14 @@ async def starrail_board(account: UserAccount) -> Tuple[
                             logger.info(
                                 f"崩铁实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
-                        return StarRailBoardStatus(success=True), StarRailBoard.parse_obj(api_result.data)
+                        return StarRailNoteStatus(success=True), StarRailNote.parse_obj(api_result.data)
             except tenacity.RetryError as e:
                 if is_incorrect_return(e):
                     logger.exception("崩铁实时便笺: 服务器没有正确返回")
                     logger.debug(f"网络请求返回: {res.text}")
-                    return StarRailBoardStatus(incorrect_return=True), None
+                    return StarRailNoteStatus(incorrect_return=True), None
                 else:
                     logger.exception("崩铁实时便笺: 请求失败")
-                    return StarRailBoardStatus(network_error=True), None
+                    return StarRailNoteStatus(network_error=True), None
     if flag:
-        return StarRailBoardStatus(no_starrail_account=True), None
+        return StarRailNoteStatus(no_starrail_account=True), None
