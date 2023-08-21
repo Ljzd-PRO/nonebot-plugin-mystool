@@ -193,12 +193,12 @@ class BaseGameSign:
                             f"游戏签到 - 用户 {self.account.bbs_uid} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(login_expired=True)
-                    if api_result.invalid_ds:
+                    elif api_result.invalid_ds:
                         logger.info(
                             f"游戏签到 - 用户 {self.account.bbs_uid} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(invalid_ds=True)
-                    if api_result.data.get("risk_code") != 0:
+                    elif api_result.data.get("risk_code") != 0:
                         logger.warning(
                             f"{_conf.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
                         logger.debug(f"{_conf.preference.log_head}网络请求返回: {res.text}")
@@ -215,9 +215,10 @@ class BaseGameSign:
                                 continue
                             else:
                                 return BaseApiStatus(need_verify=True)
-            logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
-            logger.debug(f"网络请求返回: {res.text}")
-            return BaseApiStatus(success=True)
+                    else:
+                        logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
+                        logger.debug(f"网络请求返回: {res.text}")
+                        return BaseApiStatus(success=True)
 
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
