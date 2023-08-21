@@ -177,6 +177,7 @@ class BaseGameSign:
                         headers["x-rpc-validate"] = geetest_result.validate
                         headers["x-rpc-challenge"] = challenge
                         headers["x-rpc-seccode"] = f'{geetest_result.validate}|jordan'
+                        logger.info("游戏签到 - 尝试使用人机验证结果进行签到")
 
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
