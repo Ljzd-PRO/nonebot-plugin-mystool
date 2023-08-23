@@ -153,7 +153,6 @@ class BaseGameSign:
             headers["x-rpc-device_id"] = self.account.device_id_ios
             headers["Sec-Fetch-Dest"] = "empty"
             headers["Sec-Fetch-Site"] = "same-site"
-            headers["DS"] = generate_ds()
         else:
             headers["x-rpc-device_id"] = self.account.device_id_android
             headers["x-rpc-device_model"] = _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
@@ -165,7 +164,6 @@ class BaseGameSign:
             headers.pop("x-rpc-platform")
             await device_login(self.account)
             await device_save(self.account)
-            headers["DS"] = generate_ds(data=content)
 
         challenge = ""
         """人机验证任务 challenge"""
@@ -180,6 +178,11 @@ class BaseGameSign:
                         headers["x-rpc-challenge"] = challenge
                         headers["x-rpc-seccode"] = geetest_result.seccode
                         logger.info("游戏签到 - 尝试使用人机验证结果进行签到")
+
+                    if platform == "ios":
+                        headers["DS"] = generate_ds()
+                    else:
+                        headers["DS"] = generate_ds(data=content)
 
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
