@@ -231,27 +231,25 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
+    if not (gt and challenge) or not _conf.preference.geetest_url:
+        return GeetestResult("", "")
+    url = _conf.preference.geetest_url.format(gt=gt, challenge=challenge)
     content = _conf.preference.geetest_json or Preference().geetest_json
     for key, value in content.items():
         if isinstance(value, str):
             content[key] = value.format(gt=gt, challenge=challenge)
 
-    if gt and challenge and _conf.preference.geetest_url:
-        try:
-            async for attempt in get_async_retry(retry):
-                with attempt:
-                    async with httpx.AsyncClient() as client:
-                        res = await client.post(
-                            _conf.preference.geetest_url,
-                            timeout=60,
-                            json=content)
-                    geetest_data = res.json()
-                    if geetest_data['data']['result'] != 'fail':
-                        return GeetestResult(validate=geetest_data['data']['validate'], seccode="")
-        except tenacity.RetryError:
-            logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
-    else:
-        return GeetestResult("", "")
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(url, timeout=60, json=content)
+                geetest_data = res.json()
+                validate = geetest_data['data']['validate']
+                seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
+                return GeetestResult(validate=validate, seccode=seccode)
+    except tenacity.RetryError:
+        logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
 
 
 def generate_seed_id(length: int = 8) -> str:
