@@ -211,13 +211,13 @@ class BaseGameSign:
                         gt = api_result.data.get("gt", None)
                         challenge = api_result.data.get("challenge", None)
                         if gt and challenge:
-                            geetest_result = await get_validate(gt, challenge)
                             if _conf.preference.geetest_url:
                                 if on_geetest_callback and attempt.retry_state.attempt_number == 1:
                                     if isinstance(on_geetest_callback, Coroutine):
                                         await on_geetest_callback
                                     else:
                                         on_geetest_callback()
+                                geetest_result = await get_validate(gt, challenge)
                                 continue
                             else:
                                 return BaseApiStatus(need_verify=True)
