@@ -151,6 +151,8 @@ class BaseGameSign:
         headers = HEADERS_API_TAKUMI_MOBILE.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.device_id_ios
+            headers["Sec-Fetch-Dest"] = "empty"
+            headers["Sec-Fetch-Site"] = "same-site"
             headers["DS"] = generate_ds()
         else:
             headers["x-rpc-device_id"] = self.account.device_id_android
