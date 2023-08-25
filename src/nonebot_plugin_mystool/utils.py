@@ -234,7 +234,7 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     if not (gt and challenge) or not _conf.preference.geetest_url:
         return GeetestResult("", "")
     geetest_params = _conf.preference.geetest_params
-    print(f'params:{geetest_params}')
+    logger.info(f'params:{geetest_params}')
     url_params = "&".join([f"{key}={value}" for key, value in geetest_params.items() if key not in ("gt", "challenge")])
     url = f"{_conf.preference.geetest_url}&{url_params}&gt={gt}&challenge={challenge}"
     content = _conf.preference.geetest_json or Preference().geetest_json
