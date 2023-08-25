@@ -233,20 +233,21 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     """
     if not (gt and challenge) or not _conf.preference.geetest_url:
         return GeetestResult("", "")
-    geetest_params = _conf.preference.geetest_params
-    logger.info(f'params:{geetest_params}')
-    url_params = "&".join([f"{key}={value}" for key, value in geetest_params.items() if key not in ("gt", "challenge")])
-    url = f"{_conf.preference.geetest_url}&{url_params}&gt={gt}&challenge={challenge}"
-    content = _conf.preference.geetest_json or Preference().geetest_json
+    params = {"gt": gt, "challenge": challenge}.update(_conf.preference.geetest_params)
+    content = _conf.preference.geetest_json or Preference.geetest_json
     for key, value in content.items():
         if isinstance(value, str):
             content[key] = value.format(gt=gt, challenge=challenge)
-
     try:
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.post(url, timeout=60, json=content)
+                    res = await client.post(
+                        _conf.preference.geetest_url,
+                        params=params,
+                        json=content,
+                        timeout=60
+                    )
                 geetest_data = res.json()
                 validate = geetest_data['data']['validate']
                 seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
