@@ -12,12 +12,13 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
 
+from .data_model import CreateMobileCaptchaStatus
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
-    generate_qr_img
+    generate_qr_img, get_validate
 
 _conf = PluginDataManager.plugin_data
 
@@ -75,15 +76,35 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         device_id = None
     mmt_status, mmt_data, device_id, _ = await create_mmt(device_id=device_id)
     state['device_id'] = device_id
-    if mmt_status and not mmt_data.gt:
-        captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
-        if captcha_status:
-            await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
-            return
-        elif captcha_status.invalid_phone_number:
+    if mmt_status:
+        if not mmt_data.gt:
+            captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
+            if captcha_status:
+                await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
+                return
+        elif _conf.preference.geetest_url:
+            await get_cookie.send("⏳正在尝试完成人机验证，请稍后...")
+            # TODO: 人机验证待支持 GT4
+            geetest_result = await get_validate(gt=mmt_data.gt)
+            captcha_status, _ = await create_mobile_captcha(
+                phone_number=phone,
+                mmt_data=mmt_data,
+                geetest_result=geetest_result,
+                use_v4=False,
+                device_id=device_id
+            )
+            if captcha_status:
+                await get_cookie.send("已发送短信验证码，请查收")
+                return
+            elif captcha_status.incorrect_geetest:
+                await get_cookie.send("⚠️尝试进行人机验证失败，请手动获取短信验证码")
+        else:
+            captcha_status = CreateMobileCaptchaStatus()
+        if captcha_status.invalid_phone_number:
             await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
         elif captcha_status.not_registered:
             await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
+
     await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 
