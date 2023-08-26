@@ -89,6 +89,8 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''每次检查原神便笺间隔，单位为分钟'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
+    geetest_params: Optional[Dict[str, Any]] = None
+    '''极验Geetest人机验证打码API发送的参数（除gt，challenge外）'''
     geetest_json: Optional[Dict[str, Any]] = {
         "gt": "{gt}",
         "challenge": "{challenge}"
