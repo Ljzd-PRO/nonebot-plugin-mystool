@@ -18,7 +18,7 @@ from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ti
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
-    generate_qr_img, get_validate
+    generate_qr_img, get_validate, read_blacklist, read_whitelist
 
 _conf = PluginDataManager.plugin_data
 
@@ -32,6 +32,12 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
     user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
+    if _conf.preference.enable_blacklist:
+        if event.get_user_id() in read_blacklist():
+            await get_cookie.finish("⚠️您已被加入黑名单，无法使用本功能")
+    elif _conf.preference.enable_whitelist:
+        if event.get_user_id() not in read_whitelist():
+            await get_cookie.finish("⚠️您不在白名单内，无法使用本功能")
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
