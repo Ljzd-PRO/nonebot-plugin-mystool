@@ -98,6 +98,14 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''极验Geetest人机验证打码API发送的JSON数据 `{gt}`, `{challenge}` 为占位符'''
     override_device_and_salt: bool = False
     """是否读取插件数据文件中的 device_config 设备配置 和 salt_config 配置而不是默认配置（一般情况不建议开启）"""
+    enable_blacklist: bool = False
+    """是否启用用户黑名单"""
+    blacklist_path: Optional[Path] = DATA_PATH / "blacklist.txt"
+    """用户黑名单文件路径"""
+    enable_whitelist: bool = False
+    """是否启用用户白名单"""
+    whitelist_path: Optional[Path] = DATA_PATH / "whitelist.txt"
+    """用户白名单文件路径"""
 
     @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):

@@ -4,12 +4,14 @@
 import hashlib
 import io
 import json
+import os
 import random
 import string
 import time
 import uuid
+from pathlib import Path
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional, Tuple, Iterable)
+                    Union, Optional, Tuple, Iterable, List)
 from urllib.parse import urlencode
 
 import httpx
@@ -453,6 +455,43 @@ def get_all_bind(user_id: str) -> Iterable[str]:
     """
     user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
     return user_id_filter
+
+
+def _read_user_list(path: Path) -> List[str]:
+    """
+    从TEXT读取用户名单
+
+    :return: 名单中的所有用户ID
+    """
+    if not path:
+        return []
+    if os.path.isfile(path):
+        with open(path, "r", encoding=_conf.preference.encoding) as f:
+            lines = f.readlines()
+        lines = map(lambda x: x.strip(), lines)
+        line_filter = filter(lambda x: x and x != "\n", lines)
+        return list(line_filter)
+    else:
+        logger.error(f"{_conf.preference.log_head}黑/白名单文件 {path} 不存在")
+        return []
+
+
+def read_blacklist() -> List[str]:
+    """
+    读取黑名单
+
+    :return: 黑名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.blacklist_path) if _conf.preference.enable_blacklist else []
+
+
+def read_whitelist() -> List[str]:
+    """
+    读取白名单
+
+    :return: 白名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，
