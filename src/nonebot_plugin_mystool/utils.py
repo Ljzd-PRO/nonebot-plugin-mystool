@@ -247,6 +247,7 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
                 geetest_data = res.json()
                 validate = geetest_data['data']['validate']
                 seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
+                logger.debug(f"{_conf.preference.log_head}人机验证结果：{geetest_data}")
                 return GeetestResult(validate=validate, seccode=seccode)
     except tenacity.RetryError:
         logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
