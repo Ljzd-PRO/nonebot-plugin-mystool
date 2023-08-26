@@ -295,7 +295,7 @@ class MmtData(BaseModel):
     """
     challenge: Optional[str]
     gt: Optional[str]
-    mmt_key: str
+    mmt_key: Optional[str]
     new_captcha: Optional[bool]
     risk_type: Optional[str]
     """任务类型，如滑动拼图 slide"""
