@@ -33,7 +33,8 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
     user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
-        login_url = "前往 https://user.mihoyo.com/#/login/captcha，" if not _conf.preference.geetestv4_url else ""
+        login_url = "前往 https://user.mihoyo.com/#/login/captcha，" if _conf.preference.geetestv4_url == "" else ""
+        logger.info(login_url)
         msg_text = "登录过程概览：\n" \
                    "1.发送手机号\n" \
                    "2.{browse_way}输入手机号并获取验证码（不要在网页上登录）\n" \
@@ -42,14 +43,14 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
         try:
             await get_cookie.send(msg_text.format(browse_way=f"{login_url}"))
         except ActionFailed:
-            logger.exception("发送包含URL链接的登录消息失败")
+            logger.error("发送包含URL链接的登录消息失败")
             msg_img = QQGuildMessageSegment.file_image(generate_qr_img(login_url))
             try:
                 await get_cookie.send(msg_img)
                 await get_cookie.send(msg_text.format(browse_way="扫描二维码，进入米哈游官方登录页"))
             except (ActionFailed, AuditException) as e:
                 if isinstance(e, ActionFailed):
-                    logger.exception("发送包含二维码的登录消息失败")
+                    logger.error("发送包含二维码的登录消息失败")
                     await get_cookie.send(msg_text.format(
                         browse_way="前往米哈游官方登录页") + "\n\n⚠️发送二维码失败，请自行搜索米哈游通行证登录页")
     else:
