@@ -562,6 +562,14 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 for user_id in user_ids:
                     await send_private_msg(user_id=user_id, message=msg)
 
+@scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
+def daily_update():
+    """
+    每日图片生成函数
+    """
+    logger.info(f"{_conf.preference.log_head}后台开始生成每日商品图片")
+    threading.Thread(target=generate_image).start()
+
 
 @scheduler.scheduled_job("cron",
                          hour=_conf.preference.plan_time.split(':')[0],
