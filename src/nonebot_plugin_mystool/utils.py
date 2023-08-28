@@ -29,7 +29,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 from qrcode import QRCode
 
-from .data_model import GeetestResult
+from .data_model import GeetestResult, GeetestResultV4
 from .plugin_data import PluginDataManager, Preference
 from .user_data import UserData
 
@@ -253,6 +253,36 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     else:
         return GeetestResult("", "")
 
+async def get_validate_fromv4(captcha_id: str = None, mmt_key: str = None, retry: bool = True):
+    """
+    使用打码平台获取人机验证极验v4验证码
+
+    :param captcha_id: captcha_id
+    :param mmt_key: mmt_key
+    :param retry: 是否允许重试
+    :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
+    """
+    content = _conf.preference.geetestv4_json or Preference().geetestv4_json
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = value.format(captcha_id=captcha_id, mmt_key=mmt_key)
+
+    if captcha_id and mmt_key and _conf.preference.geetest_url:
+        try:
+            async for attempt in get_async_retry(retry):
+                with attempt:
+                    async with httpx.AsyncClient() as client:
+                        res = await client.post(
+                            _conf.preference.geetestv4_url,
+                            timeout=60,
+                            json=content)
+                    geetest_data = res.json()
+                    if geetest_data['data']['result'] != 'fail':
+                        return GeetestResultV4.parse_obj(geetest_data['data']['seccode'])
+        except tenacity.RetryError:
+            logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
+    else:
+        return None
 
 def generate_seed_id(length: int = 8) -> str:
     """

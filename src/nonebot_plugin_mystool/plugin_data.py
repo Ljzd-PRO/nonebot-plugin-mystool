@@ -89,9 +89,15 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''每次检查原神便笺间隔，单位为分钟'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
+    geetestv4_url: Optional[str]
+    '''极验GeetestV4人机验证打码接口URL'''
     geetest_json: Optional[Dict[str, Any]] = {
         "gt": "{gt}",
         "challenge": "{challenge}"
+    }
+    geetestv4_json: Optional[Dict[str, Any]] = {
+        "captcha_id": "{captcha_id}",
+        "mmt_key": "{mmt_key}"
     }
     '''极验Geetest人机验证打码API发送的JSON数据 `{gt}`, `{challenge}` 为占位符'''
     override_device_and_salt: bool = False

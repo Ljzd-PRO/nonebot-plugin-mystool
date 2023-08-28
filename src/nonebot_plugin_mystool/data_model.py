@@ -580,9 +580,10 @@ class StarRailNoteStatus(BoardStatus):
     no_starrail_account = False
     """用户没有任何星铁账户"""
 
-
-GeetestResult = NamedTuple("GeetestResult", validate=str, seccode=str)
-"""人机验证结果数据"""
+class GeetestResult(NamedTuple):
+    """人机验证结果数据"""
+    validate: str
+    seccode: str
 
 
 class GeetestResultV4(BaseModel):

@@ -810,7 +810,6 @@ async def create_mobile_captcha(phone_number: str,
                                 mmt_data: MmtData,
                                 geetest_result: Union[GeetestResult, GeetestResultV4] = None,
                                 client: Optional[httpx.AsyncClient] = None,
-                                use_v4: bool = True,
                                 device_id: str = None,
                                 retry: bool = True
                                 ) -> Tuple[CreateMobileCaptchaStatus, Optional[httpx.AsyncClient]]:
@@ -821,13 +820,12 @@ async def create_mobile_captcha(phone_number: str,
     :param mmt_data: 人机验证任务数据
     :param geetest_result: 人机验证结果数据
     :param client: httpx.AsyncClient 连接
-    :param use_v4: 是否使用极验第四代人机验证
     :param device_id: 设备ID
     :param retry: 是否允许重试
     """
     headers = HEADERS_WEBAPI.copy()
     headers["x-rpc-device_id"] = device_id or generate_device_id()
-    if use_v4 and isinstance(geetest_result, GeetestResultV4):
+    if isinstance(geetest_result, GeetestResultV4):
         geetest_v4_data = geetest_result.dict(skip_defaults=True)
         content = {
             "action_type": "login",
@@ -836,7 +834,7 @@ async def create_mobile_captcha(phone_number: str,
             "mobile": phone_number,
             "t": str(round(time.time() * 1000))
         }
-    elif geetest_result:
+    elif isinstance(geetest_result, GeetestResult):
         content = {
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
@@ -872,6 +870,7 @@ async def create_mobile_captcha(phone_number: str,
                     async with httpx.AsyncClient() as client:
                         res = await request()
                 api_result = ApiResultHandler(res.json())
+                logger.info(api_result)
                 if api_result.success:
                     return CreateMobileCaptchaStatus(success=True), client
                 elif api_result.wrong_captcha:

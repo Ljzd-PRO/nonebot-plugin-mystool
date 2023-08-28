@@ -17,7 +17,7 @@ from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ti
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
-    generate_qr_img
+    generate_qr_img, get_validate_fromv4
 
 _conf = PluginDataManager.plugin_data
 
@@ -33,14 +33,14 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
     user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
-        login_url = "https://user.mihoyo.com/#/login/captcha"
+        login_url = "前往 https://user.mihoyo.com/#/login/captcha，" if not _conf.preference.geetestv4_url else ""
         msg_text = "登录过程概览：\n" \
                    "1.发送手机号\n" \
-                   "2.{browse_way}，输入手机号并获取验证码（不要在网页上登录）\n" \
+                   "2.{browse_way}输入手机号并获取验证码（不要在网页上登录）\n" \
                    "3.发送验证码给QQ机器人，完成登录\n" \
                    "🚪过程中发送“退出”即可退出"
         try:
-            await get_cookie.send(msg_text.format(browse_way=f"前往 {login_url}"))
+            await get_cookie.send(msg_text.format(browse_way=f"{login_url}"))
         except ActionFailed:
             logger.exception("发送包含URL链接的登录消息失败")
             msg_img = QQGuildMessageSegment.file_image(generate_qr_img(login_url))
@@ -73,17 +73,28 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         device_id = account.phone_number if account else None
     else:
         device_id = None
-    mmt_status, mmt_data, device_id, _ = await create_mmt(device_id=device_id)
-    state['device_id'] = device_id
-    if mmt_status and not mmt_data.gt:
-        captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
-        if captcha_status:
-            await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
-            return
-        elif captcha_status.invalid_phone_number:
-            await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
-        elif captcha_status.not_registered:
-            await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
+    for _ in range(2):
+        mmt_status, mmt_data, device_id, _ = await create_mmt(device_id=device_id, use_v4=True)
+        state['device_id'] = device_id
+        if mmt_status and not mmt_data.gt:
+            captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
+            if captcha_status:
+                await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
+                return
+            elif captcha_status.invalid_phone_number:
+                await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
+            elif captcha_status.not_registered:
+                await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
+        elif mmt_status and mmt_data.gt:
+            geetest_result = await get_validate_fromv4(mmt_data.gt, mmt_data.mmt_key)
+            captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id, geetest_result=geetest_result)
+            if captcha_status:
+                await get_cookie.send("成功绕过人机验证，已发送短信验证码，请查收")
+                return
+            elif captcha_status.invalid_phone_number:
+                await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
+            elif captcha_status.not_registered:
+                await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
     await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 

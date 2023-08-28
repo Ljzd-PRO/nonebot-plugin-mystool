@@ -17,7 +17,6 @@ from nonebot_plugin_apscheduler import scheduler
 from pydantic import BaseModel
 
 from .data_model import MissionStatus, GenshinNote, StarRailNote
-from .exchange import generate_image
 from .game_sign_api import BaseGameSign
 from .myb_missions_api import BaseMission, get_missions_state
 from .plugin_data import PluginDataManager, write_plugin_data
@@ -562,15 +561,6 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
             else:
                 for user_id in user_ids:
                     await send_private_msg(user_id=user_id, message=msg)
-
-
-@scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
-def daily_update():
-    """
-    每日图片生成函数
-    """
-    logger.info(f"{_conf.preference.log_head}后台开始生成每日商品图片")
-    threading.Thread(target=generate_image).start()
 
 
 @scheduler.scheduled_job("cron",
