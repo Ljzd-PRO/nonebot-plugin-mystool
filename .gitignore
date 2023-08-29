@@ -143,3 +143,12 @@ dmypy.json
 .env*
 pdm.lock
 data/
+session.token
+device.json
+config.yml.bak
+config.yml
+bot.py.bak
+bot.py
+logs
+src/plugins/
+!src/plugins/nonebot_plugin_mystool

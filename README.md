@@ -1,3 +1,12 @@
+<!--
+ * @Author: Night-stars-1 nujj1042633805@gmail.com
+ * @Date: 2023-08-25 16:54:24
+ * @LastEditors: Night-stars-1 nujj1042633805@gmail.com
+ * @LastEditTime: 2023-08-30 00:34:54
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by Night-stars-1, All Rights Reserved. 
+-->
 ```
  __    __     __  __     ______     ______   ______     ______     __
 /\ "-./  \   /\ \_\ \   /\  ___\   /\__  _\ /\  __ \   /\  __ \   /\ \
@@ -11,6 +20,8 @@
 [![最后提交](https://img.shields.io/github/last-commit/Ljzd-PRO/nonebot-plugin-mysTool/dev?style=for-the-badge)](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/commits/dev)
 
 # mysTool - 米游社辅助工具插件
+
+**适配: 控制台, QQ, QQ频道, TG**
 
 ## 📣 更新内容
 ### 2023.8.21 - v1.3.0
