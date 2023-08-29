@@ -150,5 +150,5 @@ config.yml
 bot.py.bak
 bot.py
 logs
-src/plugins/
-!src/plugins/nonebot_plugin_mystool
+src/plugins/*
+!src/plugins/nonebot_plugin_mystool/
