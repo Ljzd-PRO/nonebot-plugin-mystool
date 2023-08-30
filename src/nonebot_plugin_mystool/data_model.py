@@ -295,10 +295,13 @@ class MmtData(BaseModel):
     """
     challenge: Optional[str]
     gt: Optional[str]
-    mmt_key: str
+    """验证ID，即 极验文档 中的captchaId，极验后台申请得到"""
+    mmt_key: Optional[str]
+    """验证任务"""
     new_captcha: Optional[bool]
+    """宕机情况下使用"""
     risk_type: Optional[str]
-    """任务类型，如滑动拼图 slide"""
+    """结合风控融合，指定验证形式"""
     success: Optional[int]
     use_v4: Optional[bool]
     """是否使用极验第四代 GT4"""

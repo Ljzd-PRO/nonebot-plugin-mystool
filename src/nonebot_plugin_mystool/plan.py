@@ -24,7 +24,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_note, get_game_record, starrail_note
 from .user_data import UserData
 from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, get_all_bind, \
-    get_unique_users
+    get_unique_users, get_validate
 
 _conf = PluginDataManager.plugin_data
 
@@ -69,6 +69,9 @@ class GenshinNoteNotice(GenshinNote):
     原神便笺通知状态
     """
     current_resin: bool = False
+    """是否达到阈值"""
+    current_resin_full: bool = False
+    """是否溢出"""
     current_home_coin: bool = False
     transformer: bool = False
 
@@ -78,6 +81,9 @@ class StarRailNoteNotice(StarRailNote):
     星穹铁道便笺通知状态
     """
     current_stamina: bool = False
+    """是否达到阈值"""
+    current_stamina_full: bool = False
+    """是否溢出"""
     current_train_score: bool = False
     current_rogue_score: bool = False
 
@@ -198,13 +204,14 @@ async def perform_game_sign(
 
             # 若没签到，则进行签到功能；若获取今日签到情况失败，仍可继续
             if (get_info_status and not info.is_sign) or not get_info_status:
-                if matcher:
-                    sign_status = await signer.sign(
-                        account.platform,
-                        matcher.send("⏳正在尝试完成人机验证，请稍后...")
-                    )
-                else:
-                    sign_status = await signer.sign(account.platform)
+                sign_status, mmt_data = await signer.sign(account.platform)
+                if sign_status.need_verify:
+                    if _conf.preference.geetest_url:
+                        if matcher:
+                            await matcher.send("⏳正在尝试完成人机验证，请稍后...")
+                        geetest_result = await get_validate(mmt_data.gt, mmt_data.challenge)
+                        sign_status, _ = await signer.sign(account.platform, mmt_data, geetest_result)
+
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.NAME}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
@@ -443,12 +450,20 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                 # 体力溢出提醒
                 if note.current_resin >= account.user_resin_threshold:
                     # 防止重复提醒
-                    if not genshin_notice.current_resin:
-                        genshin_notice.current_resin = True
-                        msg += '❕您的树脂已经满啦\n'
-                        do_notice = True
+                    if not genshin_notice.current_resin_full:
+                        if note.current_resin == 160:
+                            genshin_notice.current_resin_full = True
+                            msg += '❕您的树脂已经满啦\n'
+                            do_notice = True
+                        elif not genshin_notice.current_resin:
+                            genshin_notice.current_resin_full = False
+                            genshin_notice.current_resin = True
+                            msg += '❕您的树脂已达到提醒阈值\n'
+                            do_notice = True
                 else:
                     genshin_notice.current_resin = False
+                    genshin_notice.current_resin_full = False
+
                 # 洞天财瓮溢出提醒
                 if note.current_home_coin == note.max_home_coin:
                     # 防止重复提醒
@@ -458,6 +473,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                         do_notice = True
                 else:
                     genshin_notice.current_home_coin = False
+
                 # 参量质变仪就绪提醒
                 if note.transformer:
                     if note.transformer_text == '已准备就绪':
@@ -521,12 +537,20 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 # 体力溢出提醒
                 if note.current_stamina >= account.user_stamina_threshold:
                     # 防止重复提醒
-                    if not starrail_notice.current_stamina:
-                        starrail_notice.current_stamina = True
-                        msg += '❕您的开拓力已经满啦\n'
-                        do_notice = True
+                    if not starrail_notice.current_stamina_full:
+                        if note.current_stamina >= 180:
+                            starrail_notice.current_stamina_full = True
+                            msg += '❕您的开拓力已经溢出\n'
+                            do_notice = True
+                        elif not starrail_notice.current_stamina:
+                            starrail_notice.current_stamina_full = False
+                            starrail_notice.current_stamina = True
+                            msg += '❕您的开拓力已达到提醒阈值\n'
+                            do_notice = True
                 else:
                     starrail_notice.current_stamina = False
+                    starrail_notice.current_stamina_full = False
+
                 # 每日实训状态提醒
                 if note.current_train_score == note.max_train_score:
                     # 防止重复提醒
@@ -536,6 +560,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                         do_notice = True
                 else:
                     starrail_notice.current_train_score = False
+
                 # 每周模拟宇宙积分提醒
                 if note.current_rogue_score == note.max_rogue_score:
                     # 防止重复提醒

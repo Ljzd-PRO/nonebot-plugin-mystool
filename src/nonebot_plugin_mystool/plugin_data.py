@@ -15,7 +15,7 @@ from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 from . import user_data
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.3.0"
+VERSION = "v1.3.1"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
@@ -89,6 +89,8 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''每次检查原神便笺间隔，单位为分钟'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
+    geetest_params: Optional[Dict[str, Any]] = None
+    '''极验Geetest人机验证打码API发送的参数（除gt，challenge外）'''
     geetest_json: Optional[Dict[str, Any]] = {
         "gt": "{gt}",
         "challenge": "{challenge}"
@@ -96,6 +98,14 @@ class Preference(BaseSettings, extra=Extra.ignore):
     '''极验Geetest人机验证打码API发送的JSON数据 `{gt}`, `{challenge}` 为占位符'''
     override_device_and_salt: bool = False
     """是否读取插件数据文件中的 device_config 设备配置 和 salt_config 配置而不是默认配置（一般情况不建议开启）"""
+    enable_blacklist: bool = False
+    """是否启用用户黑名单"""
+    blacklist_path: Optional[Path] = DATA_PATH / "blacklist.txt"
+    """用户黑名单文件路径"""
+    enable_whitelist: bool = False
+    """是否启用用户白名单"""
+    whitelist_path: Optional[Path] = DATA_PATH / "whitelist.txt"
+    """用户白名单文件路径"""
 
     @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):
@@ -146,14 +156,14 @@ class SaltConfig(BaseSettings):
     """
     SALT_IOS: str = "F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa"
     '''LK2 - 生成Headers iOS DS所需的salt'''
-    SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
-    '''生成Headers Android DS所需的salt'''
+    SALT_ANDROID: str = "xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA"
+    '''K2 - 生成Headers Android DS所需的salt'''
     SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
     '''6X - Android 设备传入content生成 DS 所需的 salt'''
     SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
     '''4X - Android 设备传入url参数生成 DS 所需的 salt'''
     SALT_PROD: str = "JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS"
-    '''PROD'''
+    '''PROD - 账号相关'''
 
     class Config(Preference.Config):
         pass

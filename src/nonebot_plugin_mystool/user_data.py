@@ -231,9 +231,9 @@ class UserAccount(BaseModelWithSetter):
     '''设备平台'''
     mission_games: Set[type] = {}
     '''在哪些板块执行米游币任务计划'''
-    user_stamina_threshold: Optional[int] = 180
+    user_stamina_threshold: int = 180
     '''崩铁便笺体力提醒阈值，0为一直提醒'''
-    user_resin_threshold: Optional[int] = 160
+    user_resin_threshold: int = 160
     '''原神便笺树脂提醒阈值，0为一直提醒'''
 
     def __init__(self, **data: Any):

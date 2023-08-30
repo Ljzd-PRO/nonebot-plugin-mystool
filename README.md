@@ -13,6 +13,15 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.8.30 - v1.3.1
+- 登录功能增加黑名单/白名单功能 #178
+  > [插件偏好设置 - enable_blacklist](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#enable_blacklist)
+- 登录功能支持使用第三方打码平台进行人机验证（暂不支持GT4）
+- 修复游戏签到人机验证无效的问题 #163
+- 便笺体力除了达到阈值以外，体力已满也会提醒 #163
+- 增加 `geetest_params`，用于填写人机验证打码平台API需要传入的URL参数 by @Joseandluue
+  > [插件偏好设置 - geetest_params](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#geetest_params)
+
 ### 2023.8.21 - v1.3.0
 - 修复米游币任务中**讨论区签到失败**的问题 #173
 - **讨论区签到**增加通过打码平台自动完成**人机验证**的支持 #157
@@ -48,7 +57,8 @@
 - 可支持多个 QQ 账号，每个 QQ 账号可绑定多个米哈游账户
 - QQ 推送执行结果通知
 - 原神、崩坏：星穹铁道状态便笺通知
-- 可为每日米游币任务、游戏签到配置人机验证打码平台
+- 可为登录、每日米游币任务、游戏签到配置人机验证打码平台
+- 可配置用户黑名单/白名单
 
 ## 📖 使用说明
 

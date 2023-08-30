@@ -4,12 +4,14 @@
 import hashlib
 import io
 import json
+import os
 import random
 import string
 import time
 import uuid
+from pathlib import Path
 from typing import (TYPE_CHECKING, Dict, Literal,
-                    Union, Optional, Tuple, Iterable)
+                    Union, Optional, Tuple, Iterable, List)
 from urllib.parse import urlencode
 
 import httpx
@@ -231,27 +233,31 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
-    content = _conf.preference.geetest_json or Preference().geetest_json
+    if not (gt and challenge) or not _conf.preference.geetest_url:
+        return GeetestResult("", "")
+    params = {"gt": gt, "challenge": challenge}
+    params.update(_conf.preference.geetest_params)
+    content = _conf.preference.geetest_json or Preference.geetest_json
     for key, value in content.items():
         if isinstance(value, str):
             content[key] = value.format(gt=gt, challenge=challenge)
-
-    if gt and challenge and _conf.preference.geetest_url:
-        try:
-            async for attempt in get_async_retry(retry):
-                with attempt:
-                    async with httpx.AsyncClient() as client:
-                        res = await client.post(
-                            _conf.preference.geetest_url,
-                            timeout=60,
-                            json=content)
-                    geetest_data = res.json()
-                    if geetest_data['data']['result'] != 'fail':
-                        return GeetestResult(validate=geetest_data['data']['validate'], seccode="")
-        except tenacity.RetryError:
-            logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
-    else:
-        return GeetestResult("", "")
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(
+                        _conf.preference.geetest_url,
+                        params=params,
+                        json=content,
+                        timeout=60
+                    )
+                geetest_data = res.json()
+                validate = geetest_data['data']['validate']
+                seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
+                logger.debug(f"{_conf.preference.log_head}人机验证结果：{geetest_data}")
+                return GeetestResult(validate=validate, seccode=seccode)
+    except tenacity.RetryError:
+        logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
 
 
 def generate_seed_id(length: int = 8) -> str:
@@ -449,6 +455,43 @@ def get_all_bind(user_id: str) -> Iterable[str]:
     """
     user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
     return user_id_filter
+
+
+def _read_user_list(path: Path) -> List[str]:
+    """
+    从TEXT读取用户名单
+
+    :return: 名单中的所有用户ID
+    """
+    if not path:
+        return []
+    if os.path.isfile(path):
+        with open(path, "r", encoding=_conf.preference.encoding) as f:
+            lines = f.readlines()
+        lines = map(lambda x: x.strip(), lines)
+        line_filter = filter(lambda x: x and x != "\n", lines)
+        return list(line_filter)
+    else:
+        logger.error(f"{_conf.preference.log_head}黑/白名单文件 {path} 不存在")
+        return []
+
+
+def read_blacklist() -> List[str]:
+    """
+    读取黑名单
+
+    :return: 黑名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.blacklist_path) if _conf.preference.enable_blacklist else []
+
+
+def read_whitelist() -> List[str]:
+    """
+    读取白名单
+
+    :return: 白名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
 
 
 # TODO: 一个用于构建on_command事件相应器的函数，

@@ -828,11 +828,10 @@ async def create_mobile_captcha(phone_number: str,
     headers = HEADERS_WEBAPI.copy()
     headers["x-rpc-device_id"] = device_id or generate_device_id()
     if use_v4 and isinstance(geetest_result, GeetestResultV4):
-        geetest_v4_data = geetest_result.dict(skip_defaults=True)
         content = {
             "action_type": "login",
             "mmt_key": mmt_data.mmt_key,
-            "geetest_v4_data": str(geetest_v4_data).replace("'", '"'),
+            "geetest_v4_data": geetest_result.dict(skip_defaults=True),
             "mobile": phone_number,
             "t": str(round(time.time() * 1000))
         }
@@ -859,7 +858,7 @@ async def create_mobile_captcha(phone_number: str,
         发送请求的闭包函数
         """
         return await client.post(URL_CREATE_MOBILE_CAPTCHA,
-                                 data=content,
+                                 params=content,
                                  headers=headers,
                                  timeout=_conf.preference.timeout)
 

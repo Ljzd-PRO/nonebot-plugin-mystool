@@ -1,18 +1,18 @@
 """
 ### 米游社的游戏签到相关API
 """
-from typing import List, Optional, Tuple, Literal, Set, Type, Callable, Any, Coroutine, Union
+from typing import List, Optional, Tuple, Literal, Set, Type
 from urllib.parse import urlencode
 
 import httpx
 import tenacity
 
-from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult
+from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData
 from .plugin_data import PluginDataManager
 from .simple_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
 from .user_data import UserAccount
 from .utils import logger, generate_ds, \
-    get_async_retry, get_validate
+    get_async_retry
 
 _conf = PluginDataManager.plugin_data
 
@@ -132,17 +132,19 @@ class BaseGameSign:
 
     async def sign(self,
                    platform: Literal["ios", "android"] = "ios",
-                   on_geetest_callback: Union[Callable[[], Any], Coroutine] = None,
-                   retry: bool = True) -> BaseApiStatus:
+                   mmt_data: MmtData = None,
+                   geetest_result: GeetestResult = None,
+                   retry: bool = True) -> Tuple[BaseApiStatus, Optional[MmtData]]:
         """
         签到
 
         :param platform: 设备平台
-        :param on_geetest_callback: 开始尝试进行人机验证时调用的回调函数
+        :param mmt_data: 人机验证任务
+        :param geetest_result: 用于执行签到的人机验证结果
         :param retry: 是否允许重试
         """
         if not self.record:
-            return BaseApiStatus(success=True)
+            return BaseApiStatus(success=True), None
         content = {
             "act_id": self.ACT_ID,
             "region": self.record.region,
@@ -151,8 +153,12 @@ class BaseGameSign:
         headers = HEADERS_API_TAKUMI_MOBILE.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.device_id_ios
+            headers["Sec-Fetch-Dest"] = "empty"
+            headers["Sec-Fetch-Site"] = "same-site"
             headers["DS"] = generate_ds()
         else:
+            await device_login(self.account)
+            await device_save(self.account)
             headers["x-rpc-device_id"] = self.account.device_id_android
             headers["x-rpc-device_model"] = _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
             headers["User-Agent"] = _conf.device_config.USER_AGENT_ANDROID
@@ -160,23 +166,17 @@ class BaseGameSign:
             headers["x-rpc-channel"] = _conf.device_config.X_RPC_CHANNEL_ANDROID
             headers["x-rpc-sys_version"] = _conf.device_config.X_RPC_SYS_VERSION_ANDROID
             headers["x-rpc-client_type"] = "2"
-            headers.pop("x-rpc-platform")
-            await device_login(self.account)
-            await device_save(self.account)
             headers["DS"] = generate_ds(data=content)
-
-        challenge = ""
-        """人机验证任务 challenge"""
-        geetest_result = GeetestResult("", "")
-        """人机验证结果"""
+            headers.pop("x-rpc-platform")
 
         try:
             async for attempt in get_async_retry(retry):
                 with attempt:
-                    if geetest_result.validate:
+                    if geetest_result:
                         headers["x-rpc-validate"] = geetest_result.validate
-                        headers["x-rpc-challenge"] = challenge
-                        headers["x-rpc-seccode"] = f'{geetest_result.validate}|jordan'
+                        headers["x-rpc-challenge"] = mmt_data.challenge
+                        headers["x-rpc-seccode"] = geetest_result.seccode
+                        logger.info("游戏签到 - 尝试使用人机验证结果进行签到")
 
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
@@ -192,44 +192,30 @@ class BaseGameSign:
                         logger.info(
                             f"游戏签到 - 用户 {self.account.bbs_uid} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
-                        return BaseApiStatus(login_expired=True)
-                    if api_result.invalid_ds:
+                        return BaseApiStatus(login_expired=True), None
+                    elif api_result.invalid_ds:
                         logger.info(
                             f"游戏签到 - 用户 {self.account.bbs_uid} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
-                        return BaseApiStatus(invalid_ds=True)
-                    if api_result.data.get("risk_code") != 0:
+                        return BaseApiStatus(invalid_ds=True), None
+                    elif api_result.data.get("risk_code") != 0:
                         logger.warning(
                             f"{_conf.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
                         logger.debug(f"{_conf.preference.log_head}网络请求返回: {res.text}")
-                        gt = api_result.data.get("gt", None)
-                        challenge = api_result.data.get("challenge", None)
-                        if gt and challenge:
-                            geetest_result = await get_validate(gt, challenge)
-                            if _conf.preference.geetest_url:
-                                if on_geetest_callback and attempt.retry_state.attempt_number == 1:
-                                    if isinstance(on_geetest_callback, Coroutine):
-                                        await on_geetest_callback
-                                    else:
-                                        on_geetest_callback()
-                                continue
-                            else:
-                                return BaseApiStatus(need_verify=True)
-            logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
-            logger.debug(f"网络请求返回: {res.text}")
-            return BaseApiStatus(success=True)
+                        return BaseApiStatus(need_verify=True), MmtData.parse_obj(api_result.data)
+                    else:
+                        logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
+                        logger.debug(f"网络请求返回: {res.text}")
+                        return BaseApiStatus(success=True), None
 
         except tenacity.RetryError as e:
             if is_incorrect_return(e):
                 logger.exception(f"游戏签到 - 服务器没有正确返回")
                 logger.debug(f"网络请求返回: {res.text}")
-                return BaseApiStatus(incorrect_return=True)
-            elif _conf.preference.geetest_url and gt and challenge:
-                logger.error(f"游戏签到 - 进行人机验证失败")
-                return BaseApiStatus(need_verify=True)
+                return BaseApiStatus(incorrect_return=True), None
             else:
                 logger.exception(f"游戏签到 - 请求失败")
-                return BaseApiStatus(network_error=True)
+                return BaseApiStatus(network_error=True), None
 
 
 class GenshinImpactSign(BaseGameSign):

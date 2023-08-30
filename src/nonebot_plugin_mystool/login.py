@@ -12,12 +12,13 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
 
+from .data_model import CreateMobileCaptchaStatus
 from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
-    generate_qr_img
+    generate_qr_img, get_validate, read_blacklist, read_whitelist
 
 _conf = PluginDataManager.plugin_data
 
@@ -31,6 +32,12 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
     user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
+    if _conf.preference.enable_blacklist:
+        if event.get_user_id() in read_blacklist():
+            await get_cookie.finish("⚠️您已被加入黑名单，无法使用本功能")
+    elif _conf.preference.enable_whitelist:
+        if event.get_user_id() not in read_whitelist():
+            await get_cookie.finish("⚠️您不在白名单内，无法使用本功能")
     if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
@@ -75,15 +82,35 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         device_id = None
     mmt_status, mmt_data, device_id, _ = await create_mmt(device_id=device_id)
     state['device_id'] = device_id
-    if mmt_status and not mmt_data.gt:
-        captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
-        if captcha_status:
-            await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
-            return
-        elif captcha_status.invalid_phone_number:
+    if mmt_status:
+        if not mmt_data.gt:
+            captcha_status, _ = await create_mobile_captcha(phone_number=phone, mmt_data=mmt_data, device_id=device_id)
+            if captcha_status:
+                await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
+                return
+        elif _conf.preference.geetest_url:
+            await get_cookie.send("⏳正在尝试完成人机验证，请稍后...")
+            # TODO: 人机验证待支持 GT4
+            geetest_result = await get_validate(gt=mmt_data.gt)
+            captcha_status, _ = await create_mobile_captcha(
+                phone_number=phone,
+                mmt_data=mmt_data,
+                geetest_result=geetest_result,
+                use_v4=False,
+                device_id=device_id
+            )
+            if captcha_status:
+                await get_cookie.send("已发送短信验证码，请查收")
+                return
+            elif captcha_status.incorrect_geetest:
+                await get_cookie.send("⚠️尝试进行人机验证失败，请手动获取短信验证码")
+        else:
+            captcha_status = CreateMobileCaptchaStatus()
+        if captcha_status.invalid_phone_number:
             await get_cookie.reject("⚠️手机号无效，请重新发送手机号")
         elif captcha_status.not_registered:
             await get_cookie.reject("⚠️手机号未注册，请注册后重新发送手机号")
+
     await get_cookie.send('2.前往米哈游官方登录页，获取验证码（不要登录！）')
 
 
