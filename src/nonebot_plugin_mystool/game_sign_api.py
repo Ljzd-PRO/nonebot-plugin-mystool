@@ -155,7 +155,10 @@ class BaseGameSign:
             headers["x-rpc-device_id"] = self.account.device_id_ios
             headers["Sec-Fetch-Dest"] = "empty"
             headers["Sec-Fetch-Site"] = "same-site"
+            headers["DS"] = generate_ds()
         else:
+            await device_login(self.account)
+            await device_save(self.account)
             headers["x-rpc-device_id"] = self.account.device_id_android
             headers["x-rpc-device_model"] = _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
             headers["User-Agent"] = _conf.device_config.USER_AGENT_ANDROID
@@ -163,9 +166,8 @@ class BaseGameSign:
             headers["x-rpc-channel"] = _conf.device_config.X_RPC_CHANNEL_ANDROID
             headers["x-rpc-sys_version"] = _conf.device_config.X_RPC_SYS_VERSION_ANDROID
             headers["x-rpc-client_type"] = "2"
+            headers["DS"] = generate_ds(data=content)
             headers.pop("x-rpc-platform")
-            await device_login(self.account)
-            await device_save(self.account)
 
         try:
             async for attempt in get_async_retry(retry):
