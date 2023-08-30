@@ -156,14 +156,14 @@ class SaltConfig(BaseSettings):
     """
     SALT_IOS: str = "F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa"
     '''LK2 - 生成Headers iOS DS所需的salt'''
-    SALT_ANDROID: str = "n0KjuIrKgLHh08LWSCYP0WXlVXaYvV64"
-    '''生成Headers Android DS所需的salt'''
+    SALT_ANDROID: str = "xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA"
+    '''K2 - 生成Headers Android DS所需的salt'''
     SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
     '''6X - Android 设备传入content生成 DS 所需的 salt'''
     SALT_PARAMS: str = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
     '''4X - Android 设备传入url参数生成 DS 所需的 salt'''
     SALT_PROD: str = "JwYDpKvLj6MrMqqYU6jTKF17KNO2PXoS"
-    '''PROD'''
+    '''PROD - 账号相关'''
 
     class Config(Preference.Config):
         pass
