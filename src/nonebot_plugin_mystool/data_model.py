@@ -119,10 +119,10 @@ class Good(BaseModelWithUpdate):
         # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
         if self.next_time == 0:
             return None
-        elif self.status == "not_in_sell" and self.sale_start_time is not None:
-            return int(self.sale_start_time)
-        elif self.status == "online":
+        elif self.status == "not_in_sell":
             return self.next_time
+        elif self.status == "online":
+            return int(self.sale_start_time)
         else:
             return 0
 

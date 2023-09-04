@@ -72,7 +72,7 @@ HEADERS_OLD = {
     "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
     'User-Agent': device_config.USER_AGENT_ANDROID_OTHER,
-    "x-rpc-app_version": "2.36.1",
+    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
     "x-rpc-channel": device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-client_type": "2",
     "x-rpc-device_id": None,
