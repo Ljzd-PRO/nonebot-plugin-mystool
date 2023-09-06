@@ -66,7 +66,7 @@ class Good(BaseModelWithUpdate):
     next_time: Optional[int]
     """为 0 表示任何时间均可兑换或兑换已结束"""
     status: Optional[Literal["online", "not_in_sell"]]
-    sale_start_time: Optional[str]
+    sale_start_time: Optional[int]
     time_by_detail: Optional[int]
     next_num: Optional[int]
     account_exchange_num: int
@@ -112,19 +112,16 @@ class Good(BaseModelWithUpdate):
         """
         兑换时间
 
-        :return:
-        如果返回`None`，说明任何时间均可兑换或兑换已结束。
-        如果返回`0`，说明该商品需要调用获取详细信息的API才能获取兑换时间
+        :return: 如果返回`None`，说明任何时间均可兑换或兑换已结束。
         """
         # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
         if self.next_time == 0:
             return None
-        elif self.status == "not_in_sell":
-            return self.next_time
-        elif self.status == "online":
-            return int(self.sale_start_time)
+
+        if self.sale_start_time and time.time() < self.sale_start_time < self.next_time:
+            return self.sale_start_time
         else:
-            return 0
+            return self.next_time
 
     @property
     def time_text(self):
