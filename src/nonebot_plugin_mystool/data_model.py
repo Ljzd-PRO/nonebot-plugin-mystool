@@ -117,9 +117,10 @@ class Good(BaseModelWithUpdate):
         # "next_time" 为 0 表示任何时间均可兑换或兑换已结束
         if self.next_time == 0:
             return None
-
-        if self.sale_start_time and time.time() < self.sale_start_time < self.next_time:
-            return self.sale_start_time
+        # TODO: 暂时不知道为何 self.sale_start_time 是 str 类型而不是 int 类型
+        sale_start_time = int(self.sale_start_time)
+        if sale_start_time and time.time() < sale_start_time < self.next_time:
+            return sale_start_time
         else:
             return self.next_time
 
