@@ -118,7 +118,7 @@ class Good(BaseModelWithUpdate):
         if self.next_time == 0:
             return None
         # TODO: 暂时不知道为何 self.sale_start_time 是 str 类型而不是 int 类型
-        sale_start_time = int(self.sale_start_time)
+        sale_start_time = int(self.sale_start_time) if self.sale_start_time else 0
         if sale_start_time and time.time() < sale_start_time < self.next_time:
             return sale_start_time
         else:
