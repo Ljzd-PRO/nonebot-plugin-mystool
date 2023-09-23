@@ -9,6 +9,7 @@ import random
 import string
 import time
 import uuid
+from copy import deepcopy
 from pathlib import Path
 from typing import (TYPE_CHECKING, Dict, Literal,
                     Union, Optional, Tuple, Iterable, List)
@@ -237,7 +238,7 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
         return GeetestResult("", "")
     params = {"gt": gt, "challenge": challenge}
     params.update(_conf.preference.geetest_params)
-    content = _conf.preference.geetest_json.copy() or Preference().geetest_json
+    content = deepcopy(_conf.preference.geetest_json or Preference().geetest_json)
     for key, value in content.items():
         if isinstance(value, str):
             content[key] = value.format(gt=gt, challenge=challenge)
