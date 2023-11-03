@@ -13,13 +13,15 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.11.3 - v1.3.5
+- 修复兑换计划商品不存在导致插件启动失败的问题 #205 #206
+- 支持自定义时区 #201
+  > [插件偏好设置 - timezone](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#enable_timezone)  
+  > 默认为上海时区 `Asia/Shanghai`
+
 ### 2023.9.23 - v1.3.4
 - 修复人机验证 gt 和 challenge 固定不变的问题 #196 by @Sakamakiiizayoi
 - 修复插件数据文件中 `geetest_json` 被改变的问题
-
-### 2023.9.10 - v1.3.3
-- 修复无法添加兑换计划的问题
-- 修复商品兑换时间不正确的问题
 
 ### 2023.8.30 - v1.3.1
 - 登录功能增加黑名单/白名单功能 #178

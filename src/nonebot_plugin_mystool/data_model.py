@@ -7,6 +7,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple
 
+import pytz
 from pydantic import BaseModel
 
 
@@ -137,7 +138,13 @@ class Good(BaseModelWithUpdate):
         elif self.time == 0:
             return None
         elif self.time_limited:
-            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.time))
+            from .plugin_data import PluginDataManager
+            if zone := PluginDataManager.plugin_data.preference.timezone:
+                tz_info = pytz.timezone(zone)
+                date_time = datetime.fromtimestamp(self.time, tz_info)
+            else:
+                date_time = datetime.fromtimestamp(self.time)
+            return date_time.strftime("%Y-%m-%d %H:%M:%S")
         else:
             return "任何时间"
 
