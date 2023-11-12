@@ -23,10 +23,11 @@ from nonebot import Adapter, Bot
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
     Adapter as OneBotV11Adapter, Bot as OneBotV11Bot, ActionFailed as OneBotV11ActionFailed
-from nonebot.adapters.qqguild import DirectMessageCreateEvent, MessageCreateEvent, \
+from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage
-from nonebot.adapters.qqguild.api import DMS
-from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed, AuditException
+
+from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
+from nonebot.adapters.qq.models import DMS
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.log import logger

@@ -5,8 +5,8 @@ import json
 from typing import Union
 
 from nonebot import on_command
-from nonebot.adapters.qqguild import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
-from nonebot.adapters.qqguild.exception import AuditException
+from nonebot.adapters.qq import MessageSegment as QQGuildMessageSegment, DirectMessageCreateEvent
+from nonebot.adapters.qq.exception import AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
