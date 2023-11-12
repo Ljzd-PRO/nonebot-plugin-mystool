@@ -29,7 +29,7 @@
 ### 2023.11.3 - v1.3.5
 - 修复兑换计划商品不存在导致插件启动失败的问题 #205 #206
 - 支持自定义时区 #201
-  > [插件偏好设置 - timezone](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#enable_timezone)  
+  > [插件偏好设置 - timezone](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#timezone)  
   > 默认为上海时区 `Asia/Shanghai`
 
 ### 2023.8.30 - v1.3.1
