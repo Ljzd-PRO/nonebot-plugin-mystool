@@ -16,7 +16,7 @@ from typing import List, Callable, Any, Tuple, Optional, Dict, Union
 from apscheduler.events import JobExecutionEvent, EVENT_JOB_EXECUTED
 from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, MessageSegment as OneBotV11MessageSegment
-from nonebot.adapters.qqguild import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
+from nonebot.adapters.qq import MessageEvent as QQGuildMessageEvent, MessageSegment as QQGuildMessageSegment
 from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import ArgPlainText, T_State, CommandArg, Command

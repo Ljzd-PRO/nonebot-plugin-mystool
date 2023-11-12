@@ -7,8 +7,8 @@ from uuid import uuid4
 
 from nonebot import get_driver, on_request, on_command, Bot
 from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent, RequestEvent, Bot as OneBotV11Bot
-from nonebot.adapters.qqguild import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
-from nonebot.adapters.qqguild.exception import ActionFailed as QQGuildActionFailed, AuditException
+from nonebot.adapters.qq import Bot as QQGuildBot, DirectMessageCreateEvent, MessageCreateEvent
+from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
@@ -22,7 +22,7 @@ _driver = get_driver()
 
 
 @_driver.on_bot_connect
-def check_qqguild_config(bot: QQGuildBot):
+def check_qq_config(bot: QQGuildBot):
     """
     检查QQGuild适配器是否开启了私信功能 Intents.direct_message
 

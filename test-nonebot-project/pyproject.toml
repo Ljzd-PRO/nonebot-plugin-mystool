@@ -8,7 +8,7 @@ requires-python = ">=3.8, <4.0"
 [tool.nonebot]
 adapters = [
     { name = "OneBotV11", module_name = "nonebot.adapters.onebot.v11" },
-    { name = "QQGuild", module_name = "nonebot.adapters.qqguild" }
+    { name = "QQGuild", module_name = "nonebot.adapters.qq" }
 ]
 plugins = ["nonebot_plugin_mystool"]
 plugin_dirs = []
