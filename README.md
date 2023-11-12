@@ -13,15 +13,24 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.11.13 - v1.4.0
+- 跟进QQ频道适配器的变更，已更换停止维护的 `nonebot-adapter-qqguild` 适配器为 `nonebot-adapter-qq`
+
+> **Warning**
+> 对于之前使用QQ频道适配器的机器人项目，进行本次更新的同时，还需要修改之前的QQ频道适配器配置 \
+> 大致只需要修改**配置选项名**即可，可参考适配器的说明：
+> https://github.com/nonebot/adapter-qq \
+> 例如：`QQGUILD_BOTS` -> `QQ_BOTS`
+
+> 在QQ频道适配器**变更之前安装的**用户仍可正常使用 \
+> 但现在 nonebot 各类文档指向的适配器都是新的 `nonebot-adapter-qq`，因此现在按照文档指引，如果安装本插件之前的版本，将无法正常支持QQ频道
+
+
 ### 2023.11.3 - v1.3.5
 - 修复兑换计划商品不存在导致插件启动失败的问题 #205 #206
 - 支持自定义时区 #201
   > [插件偏好设置 - timezone](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#enable_timezone)  
   > 默认为上海时区 `Asia/Shanghai`
-
-### 2023.9.23 - v1.3.4
-- 修复人机验证 gt 和 challenge 固定不变的问题 #196 by @Sakamakiiizayoi
-- 修复插件数据文件中 `geetest_json` 被改变的问题
 
 ### 2023.8.30 - v1.3.1
 - 登录功能增加黑名单/白名单功能 #178
