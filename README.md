@@ -16,7 +16,7 @@
 ### 2023.11.13 - v1.4.0
 - 跟进QQ频道适配器的变更，已更换停止维护的 `nonebot-adapter-qqguild` 适配器为 `nonebot-adapter-qq`
 
-> **Warning**
+> [!Warning]
 > 对于之前使用QQ频道适配器的机器人项目，进行本次更新的同时，还需要修改之前的QQ频道适配器配置 \
 > 大致只需要修改**配置选项名**即可，可参考适配器的说明：
 > https://github.com/nonebot/adapter-qq \
