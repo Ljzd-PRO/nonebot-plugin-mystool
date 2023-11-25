@@ -1508,7 +1508,7 @@ async def genshin_note(account: UserAccount) -> Tuple[
                             logger.info(
                                 f"原神实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
-                        if api_result.invalid_ds or api_result.retcode == 1034:
+                        if not api_result.success:
                             headers["DS"] = generate_ds()
                             headers["x-rpc-device_id"] = account.device_id_ios
                             async with httpx.AsyncClient() as client:
