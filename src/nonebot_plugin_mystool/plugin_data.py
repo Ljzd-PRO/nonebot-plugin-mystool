@@ -154,9 +154,9 @@ class SaltConfig(BaseSettings):
     """
     生成Headers - DS所用salt值，非必要请勿修改
     """
-    SALT_IOS: str = "F6tsiCZEIcL9Mor64OXVJEKRRQ6BpOZa"
+    SALT_IOS: str = "9ttJY72HxbjwWRNHJvn0n2AYue47nYsK"
     '''LK2 - 生成Headers iOS DS所需的salt'''
-    SALT_ANDROID: str = "xc1lzZFOBGU0lz8ZkPgcrWZArZzEVMbA"
+    SALT_ANDROID: str = "BIPaooxbWZW02fGHZL1If26mYCljPgst"
     '''K2 - 生成Headers Android DS所需的salt'''
     SALT_DATA: str = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
     '''6X - Android 设备传入content生成 DS 所需的 salt'''
@@ -211,7 +211,7 @@ class DeviceConfig(BaseSettings):
     X_RPC_CHANNEL_ANDROID: str = "miyousheluodi"
     '''安卓端 x-rpc-channel'''
 
-    X_RPC_APP_VERSION: str = "2.55.1"
+    X_RPC_APP_VERSION: str = "2.63.1"
     '''Headers所用的 x-rpc-app_version'''
     X_RPC_PLATFORM: str = "ios"
     '''Headers所用的 x-rpc-platform'''
