@@ -278,7 +278,9 @@ HEADERS_GENSHIN_STATUS_BBS = {
     "Referer": "https://webstatic.mihoyo.com/",
     "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
     "X-Requested-With": "com.mihoyo.hyperion",
-    "x-rpc-client_type": "5"
+    "x-rpc-client_type": "5",
+    "x-rpc-tool_version": "v4.2.2-ys",
+    "x-rpc-page": "v4.2.2-ys_#/ys/daily"
 }
 
 HEADERS_STARRAIL_STATUS_WIDGET = {
