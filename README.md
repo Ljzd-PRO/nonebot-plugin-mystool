@@ -13,6 +13,10 @@
 # mysTool - 米游社辅助工具插件
 
 ## 📣 更新内容
+### 2023.11.26 - v1.4.1
+- 更新App版本号以及DS Salt值
+- 修复原神便笺获取失败的问题（米游社App内API）#216
+
 ### 2023.11.13 - v1.4.0
 - 跟进QQ频道适配器的变更，已更换停止维护的 `nonebot-adapter-qqguild` 适配器为 `nonebot-adapter-qq`
 
