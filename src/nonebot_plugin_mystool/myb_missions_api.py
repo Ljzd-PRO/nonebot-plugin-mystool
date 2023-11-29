@@ -422,7 +422,7 @@ class StarRailMission(BaseMission):
     崩坏：星穹铁道 米游币任务
     """
     NAME = "崩坏：星穹铁道"
-    GIDS = 5
+    GIDS = 6
     FID = 52
 
 
