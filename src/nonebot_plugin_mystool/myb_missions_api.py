@@ -430,7 +430,7 @@ class BBSMission(BaseMission):
     """
     大别野 米游币任务
     """
-    NAME = "大别野"
+    NAME = "综合"
     GIDS = 5
     # TODO: bbs fid暂时未知
 
