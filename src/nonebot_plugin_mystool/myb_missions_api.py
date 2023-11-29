@@ -435,12 +435,22 @@ class BBSMission(BaseMission):
     # TODO: bbs fid暂时未知
 
 
+class ZenlessZoneZero(BaseMission):
+    """
+    绝区零 米游币任务
+    """
+    NAME = "绝区零"
+    GIDS = 8
+    # TODO: fid暂时未知
+
+
 BaseMission.AVAILABLE_GAMES.add(GenshinImpactMission)
 BaseMission.AVAILABLE_GAMES.add(HonkaiImpact3Mission)
 BaseMission.AVAILABLE_GAMES.add(HoukaiGakuen2Mission)
 BaseMission.AVAILABLE_GAMES.add(TearsOfThemisMission)
 BaseMission.AVAILABLE_GAMES.add(StarRailMission)
 BaseMission.AVAILABLE_GAMES.add(BBSMission)
+BaseMission.AVAILABLE_GAMES.add(ZenlessZoneZero)
 
 
 async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[MissionData]]]:
