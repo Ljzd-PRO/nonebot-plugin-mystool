@@ -331,7 +331,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
                 class_type: Type[BaseMission]
                 mission_obj: BaseMission = class_type(account)
                 if matcher:
-                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
+                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.name}』执行米游币任务...')
 
                 # 执行任务
                 sign_status, read_status, like_status, share_status = (
@@ -342,18 +342,18 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
                 )
                 sign_points: Optional[int] = None
                 for key_name in missions_state.state_dict:
-                    if key_name == BaseMission.SIGN:
+                    if key_name == BaseMission.sign:
                         sign_status, sign_points = await mission_obj.sign()
-                    elif key_name == BaseMission.VIEW:
+                    elif key_name == BaseMission.view:
                         read_status = await mission_obj.read()
-                    elif key_name == BaseMission.LIKE:
+                    elif key_name == BaseMission.like:
                         like_status = await mission_obj.like()
-                    elif key_name == BaseMission.SHARE:
+                    elif key_name == BaseMission.share:
                         share_status = await mission_obj.share()
 
                 if matcher:
                     await matcher.send(
-                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.NAME}』米游币任务执行情况：\n"
+                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.name}』米游币任务执行情况：\n"
                         f"📅签到：{'✓' if sign_status else '✕'} +{sign_points or '0'} 米游币🪙\n"
                         f"📰阅读：{'✓' if read_status else '✕'}\n"
                         f"❤️点赞：{'✓' if like_status else '✕'}\n"
@@ -392,13 +392,13 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
             msg = f"{notice_string}" \
                   f"\n🆔账户 {account.bbs_uid}"
             for key_name, (mission, current) in missions_state.state_dict.items():
-                if key_name == BaseMission.SIGN:
+                if key_name == BaseMission.sign:
                     mission_name = "📅签到"
-                elif key_name == BaseMission.VIEW:
+                elif key_name == BaseMission.view:
                     mission_name = "📰阅读"
-                elif key_name == BaseMission.LIKE:
+                elif key_name == BaseMission.like:
                     mission_name = "❤️点赞"
-                elif key_name == BaseMission.SHARE:
+                elif key_name == BaseMission.share:
                     mission_name = "↗️分享"
                 else:
                     mission_name = mission.mission_key
