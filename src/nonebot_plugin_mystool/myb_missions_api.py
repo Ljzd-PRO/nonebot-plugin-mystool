@@ -89,18 +89,18 @@ class BaseMission:
     """
     米游币任务基类
     """
-    NAME = ""
+    name = ""
     """米游社分区名字"""
-    GIDS = 0
-    FID = 0
+    gids = 0
+    fid = 0
 
-    SIGN = "continuous_sign"
+    sign = "continuous_sign"
     '''签到任务的 mission_key'''
-    VIEW = "view_post_0"
+    view = "view_post_0"
     '''阅读任务的 mission_key'''
-    LIKE = "post_up_0"
+    like = "post_up_0"
     '''点赞任务的 mission_key'''
-    SHARE = "share_post_0"
+    share = "share_post_0"
     '''分享任务的 mission_key'''
 
     AVAILABLE_GAMES: Set[Type["BaseMission"]] = set()
@@ -123,7 +123,7 @@ class BaseMission:
         :param retry: 是否允许重试
         :return: (BaseApiStatus, 签到获得的米游币数量)
         """
-        content = {"gids": self.GIDS}
+        content = {"gids": self.gids}
         try:
             async for attempt in get_async_retry(retry):
                 with attempt:
@@ -195,7 +195,7 @@ class BaseMission:
                     headers["x-rpc-device_id"] = self.account.device_id_ios
                     async with httpx.AsyncClient() as client:
                         res = await client.get(
-                            URL_GET_POST.format(self.GIDS),
+                            URL_GET_POST.format(self.gids),
                             headers=headers,
                             timeout=_conf.preference.timeout
                         )
@@ -385,53 +385,53 @@ class GenshinImpactMission(BaseMission):
     """
     原神 米游币任务
     """
-    NAME = "原神"
-    GIDS = 2
-    FID = 26
+    name = "原神"
+    gids = 2
+    fid = 26
 
 
 class HonkaiImpact3Mission(BaseMission):
     """
     崩坏3 米游币任务
     """
-    NAME = "崩坏3"
-    GIDS = 1
-    FID = 1
+    name = "崩坏3"
+    gids = 1
+    fid = 1
 
 
 class HoukaiGakuen2Mission(BaseMission):
     """
     崩坏学园2 米游币任务
     """
-    NAME = "崩坏学园2"
-    GIDS = 3
-    FID = 30
+    name = "崩坏学园2"
+    gids = 3
+    fid = 30
 
 
 class TearsOfThemisMission(BaseMission):
     """
     未定事件簿 米游币任务
     """
-    NAME = "未定事件簿"
-    GIDS = 4
-    FID = 37
+    name = "未定事件簿"
+    gids = 4
+    fid = 37
 
 
 class StarRailMission(BaseMission):
     """
     崩坏：星穹铁道 米游币任务
     """
-    NAME = "崩坏：星穹铁道"
-    GIDS = 6
-    FID = 52
+    name = "崩坏：星穹铁道"
+    gids = 6
+    fid = 52
 
 
 class BBSMission(BaseMission):
     """
     大别野 米游币任务
     """
-    NAME = "综合"
-    GIDS = 5
+    name = "综合"
+    gids = 5
     # TODO: bbs fid暂时未知
 
 
@@ -439,8 +439,8 @@ class ZenlessZoneZero(BaseMission):
     """
     绝区零 米游币任务
     """
-    NAME = "绝区零"
-    GIDS = 8
+    name = "绝区零"
+    gids = 8
     # TODO: fid暂时未知
 
 
