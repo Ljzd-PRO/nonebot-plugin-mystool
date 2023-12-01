@@ -317,7 +317,7 @@ async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
         arg = ('hkrpg', '崩坏：星穹铁道')
     elif arg in ['未定', '未定事件簿', 'wd']:
         arg = ('nxx', '未定事件簿')
-    elif arg in ['大别野', '米游社']:
+    elif arg in ['大别野', '米游社', '综合']:
         arg = ('bbs', '米游社')
     elif arg == '更新':
         threading.Thread(target=generate_image, kwargs={"is_auto": False}).start()

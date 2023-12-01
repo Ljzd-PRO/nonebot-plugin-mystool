@@ -422,7 +422,7 @@ class StarRailMission(BaseMission):
     崩坏：星穹铁道 米游币任务
     """
     NAME = "崩坏：星穹铁道"
-    GIDS = 5
+    GIDS = 6
     FID = 52
 
 
@@ -430,9 +430,18 @@ class BBSMission(BaseMission):
     """
     大别野 米游币任务
     """
-    NAME = "大别野"
+    NAME = "综合"
     GIDS = 5
     # TODO: bbs fid暂时未知
+
+
+class ZenlessZoneZero(BaseMission):
+    """
+    绝区零 米游币任务
+    """
+    NAME = "绝区零"
+    GIDS = 8
+    # TODO: fid暂时未知
 
 
 BaseMission.AVAILABLE_GAMES.add(GenshinImpactMission)
@@ -441,6 +450,7 @@ BaseMission.AVAILABLE_GAMES.add(HoukaiGakuen2Mission)
 BaseMission.AVAILABLE_GAMES.add(TearsOfThemisMission)
 BaseMission.AVAILABLE_GAMES.add(StarRailMission)
 BaseMission.AVAILABLE_GAMES.add(BBSMission)
+BaseMission.AVAILABLE_GAMES.add(ZenlessZoneZero)
 
 
 async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[MissionData]]]:
