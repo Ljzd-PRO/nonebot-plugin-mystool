@@ -223,11 +223,12 @@ class GenshinImpactSign(BaseGameSign):
     原神 游戏签到
     """
     NAME = "原神"
-    ACT_ID = "e202009291139501"
+    ACT_ID = "e202311201442471"
     GAME_ID = 2
-    URL_REWARD = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home"
-    URL_INFO = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info"
-    URL_SIGN = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign"
+    HEADERS_REWARD = BaseGameSign.HEADERS_REWARD
+    HEADERS_REWARD["x-rpc-signgame"] = "hk4e"
+    HEADERS_REWARD["Origin"] = "https://act.mihoyo.com"
+    HEADERS_REWARD["Referer"] = "https://act.mihoyo.com/"
 
 
 class HonkaiImpact3Sign(BaseGameSign):
