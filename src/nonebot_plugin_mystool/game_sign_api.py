@@ -28,6 +28,7 @@ class BaseGameSign:
     URL_REWARD = "https://api-takumi.mihoyo.com/event/luna/home"
     URL_INFO = "https://api-takumi.mihoyo.com/event/luna/info"
     URL_SIGN = "https://api-takumi.mihoyo.com/event/luna/sign"
+    HEADERS_GENERAL = HEADERS_API_TAKUMI_MOBILE.copy()
     HEADERS_REWARD = {
         "Host": "api-takumi.mihoyo.com",
         "Origin": "https://webstatic.mihoyo.com",
@@ -99,7 +100,7 @@ class BaseGameSign:
         :param platform: 使用的设备平台
         :param retry: 是否允许重试
         """
-        headers = HEADERS_API_TAKUMI_MOBILE.copy()
+        headers = self.HEADERS_GENERAL.copy()
         headers["x-rpc-device_id"] = self.account.device_id_ios if platform == "ios" else self.account.device_id_android
 
         try:
@@ -150,7 +151,7 @@ class BaseGameSign:
             "region": self.record.region,
             "uid": self.record.game_role_id
         }
-        headers = HEADERS_API_TAKUMI_MOBILE.copy()
+        headers = self.HEADERS_GENERAL.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.device_id_ios
             headers["Sec-Fetch-Dest"] = "empty"
@@ -225,10 +226,12 @@ class GenshinImpactSign(BaseGameSign):
     NAME = "原神"
     ACT_ID = "e202311201442471"
     GAME_ID = 2
+    HEADERS_GENERAL = BaseGameSign.HEADERS_GENERAL.copy()
     HEADERS_REWARD = BaseGameSign.HEADERS_REWARD.copy()
-    HEADERS_REWARD["x-rpc-signgame"] = "hk4e"
-    HEADERS_REWARD["Origin"] = "https://act.mihoyo.com"
-    HEADERS_REWARD["Referer"] = "https://act.mihoyo.com/"
+    for headers in HEADERS_GENERAL, HEADERS_REWARD:
+        headers["x-rpc-signgame"] = "hk4e"
+        headers["Origin"] = "https://act.mihoyo.com"
+        headers["Referer"] = "https://act.mihoyo.com/"
 
 
 class HonkaiImpact3Sign(BaseGameSign):
