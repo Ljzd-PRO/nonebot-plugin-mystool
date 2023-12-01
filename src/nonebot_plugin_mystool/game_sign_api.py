@@ -21,15 +21,15 @@ class BaseGameSign:
     """
     游戏签到基类
     """
-    NAME = ""
+    name = ""
     """游戏名字"""
 
-    ACT_ID = ""
-    URL_REWARD = "https://api-takumi.mihoyo.com/event/luna/home"
-    URL_INFO = "https://api-takumi.mihoyo.com/event/luna/info"
-    URL_SIGN = "https://api-takumi.mihoyo.com/event/luna/sign"
-    HEADERS_GENERAL = HEADERS_API_TAKUMI_MOBILE.copy()
-    HEADERS_REWARD = {
+    act_id = ""
+    url_reward = "https://api-takumi.mihoyo.com/event/luna/home"
+    url_info = "https://api-takumi.mihoyo.com/event/luna/info"
+    url_sign = "https://api-takumi.mihoyo.com/event/luna/sign"
+    headers_general = HEADERS_API_TAKUMI_MOBILE.copy()
+    headers_reward = {
         "Host": "api-takumi.mihoyo.com",
         "Origin": "https://webstatic.mihoyo.com",
         "Connection": "keep-alive",
@@ -39,26 +39,26 @@ class BaseGameSign:
         "Referer": "https://webstatic.mihoyo.com/",
         "Accept-Encoding": "gzip, deflate, br"
     }
-    GAME_ID = 0
+    game_id = 0
 
-    AVAILABLE_GAME_SIGNS: Set[Type["BaseGameSign"]] = set()
+    available_game_signs: Set[Type["BaseGameSign"]] = set()
     """可用的子类"""
 
     def __init__(self, account: UserAccount, records: List[GameRecord]):
         self.account = account
-        self.record = next(filter(lambda x: x.game_id == self.GAME_ID, records), None)
+        self.record = next(filter(lambda x: x.game_id == self.game_id, records), None)
         reward_params = {
             "lang": "zh-cn",
-            "act_id": self.ACT_ID
+            "act_id": self.act_id
         }
-        self.URL_REWARD = f"{self.URL_REWARD}?{urlencode(reward_params)}"
+        self.url_reward = f"{self.url_reward}?{urlencode(reward_params)}"
         info_params = {
             "lang": "zh-cn",
-            "act_id": self.ACT_ID,
+            "act_id": self.act_id,
             "region": self.record.region if self.record else None,
             "uid": self.record.game_role_id if self.record else None
         }
-        self.URL_INFO = f"{self.URL_INFO}?{urlencode(info_params)}"
+        self.url_info = f"{self.url_info}?{urlencode(info_params)}"
 
     @property
     def has_record(self) -> bool:
@@ -77,7 +77,7 @@ class BaseGameSign:
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(self.URL_REWARD, headers=self.HEADERS_REWARD,
+                        res = await client.get(self.url_reward, headers=self.headers_reward,
                                                timeout=_conf.preference.timeout)
                     award_list = []
                     for award in res.json()["data"]["awards"]:
@@ -100,7 +100,7 @@ class BaseGameSign:
         :param platform: 使用的设备平台
         :param retry: 是否允许重试
         """
-        headers = self.HEADERS_GENERAL.copy()
+        headers = self.headers_general.copy()
         headers["x-rpc-device_id"] = self.account.device_id_ios if platform == "ios" else self.account.device_id_android
 
         try:
@@ -108,7 +108,7 @@ class BaseGameSign:
                 with attempt:
                     headers["DS"] = generate_ds() if platform == "ios" else generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
-                        res = await client.get(self.URL_INFO, headers=headers,
+                        res = await client.get(self.url_info, headers=headers,
                                                cookies=self.account.cookies.dict(), timeout=_conf.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
@@ -147,11 +147,11 @@ class BaseGameSign:
         if not self.record:
             return BaseApiStatus(success=True), None
         content = {
-            "act_id": self.ACT_ID,
+            "act_id": self.act_id,
             "region": self.record.region,
             "uid": self.record.game_role_id
         }
-        headers = self.HEADERS_GENERAL.copy()
+        headers = self.headers_general.copy()
         if platform == "ios":
             headers["x-rpc-device_id"] = self.account.device_id_ios
             headers["Sec-Fetch-Dest"] = "empty"
@@ -181,7 +181,7 @@ class BaseGameSign:
 
                     async with httpx.AsyncClient() as client:
                         res = await client.post(
-                            self.URL_SIGN,
+                            self.url_sign,
                             headers=headers,
                             cookies=self.account.cookies.dict(),
                             timeout=_conf.preference.timeout,
@@ -223,12 +223,12 @@ class GenshinImpactSign(BaseGameSign):
     """
     原神 游戏签到
     """
-    NAME = "原神"
-    ACT_ID = "e202311201442471"
-    GAME_ID = 2
-    HEADERS_GENERAL = BaseGameSign.HEADERS_GENERAL.copy()
-    HEADERS_REWARD = BaseGameSign.HEADERS_REWARD.copy()
-    for headers in HEADERS_GENERAL, HEADERS_REWARD:
+    name = "原神"
+    act_id = "e202311201442471"
+    game_id = 2
+    headers_general = BaseGameSign.headers_general.copy()
+    headers_reward = BaseGameSign.headers_reward.copy()
+    for headers in headers_general, headers_reward:
         headers["x-rpc-signgame"] = "hk4e"
         headers["Origin"] = "https://act.mihoyo.com"
         headers["Referer"] = "https://act.mihoyo.com/"
@@ -238,40 +238,40 @@ class HonkaiImpact3Sign(BaseGameSign):
     """
     崩坏3 游戏签到
     """
-    NAME = "崩坏3"
-    ACT_ID = "e202306201626331"
-    GAME_ID = 1
+    name = "崩坏3"
+    act_id = "e202306201626331"
+    game_id = 1
 
 
 class HoukaiGakuen2Sign(BaseGameSign):
     """
     崩坏学园2 游戏签到
     """
-    NAME = "崩坏学园2"
-    ACT_ID = "e202203291431091"
-    GAME_ID = 3
+    name = "崩坏学园2"
+    act_id = "e202203291431091"
+    game_id = 3
 
 
 class TearsOfThemisSign(BaseGameSign):
     """
     未定事件簿 游戏签到
     """
-    NAME = "未定事件簿"
-    ACT_ID = "e202202251749321"
-    GAME_ID = 4
+    name = "未定事件簿"
+    act_id = "e202202251749321"
+    game_id = 4
 
 
 class StarRailSign(BaseGameSign):
     """
     崩坏：星穹铁道 游戏签到
     """
-    NAME = "崩坏：星穹铁道"
-    ACT_ID = "e202304121516551"
-    GAME_ID = 6
+    name = "崩坏：星穹铁道"
+    act_id = "e202304121516551"
+    game_id = 6
 
 
-BaseGameSign.AVAILABLE_GAME_SIGNS.add(GenshinImpactSign)
-BaseGameSign.AVAILABLE_GAME_SIGNS.add(HonkaiImpact3Sign)
-BaseGameSign.AVAILABLE_GAME_SIGNS.add(HoukaiGakuen2Sign)
-BaseGameSign.AVAILABLE_GAME_SIGNS.add(TearsOfThemisSign)
-BaseGameSign.AVAILABLE_GAME_SIGNS.add(StarRailSign)
+BaseGameSign.available_game_signs.add(GenshinImpactSign)
+BaseGameSign.available_game_signs.add(HonkaiImpact3Sign)
+BaseGameSign.available_game_signs.add(HoukaiGakuen2Sign)
+BaseGameSign.available_game_signs.add(TearsOfThemisSign)
+BaseGameSign.available_game_signs.add(StarRailSign)
