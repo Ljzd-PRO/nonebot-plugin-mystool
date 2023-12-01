@@ -225,7 +225,7 @@ class GenshinImpactSign(BaseGameSign):
     NAME = "原神"
     ACT_ID = "e202311201442471"
     GAME_ID = 2
-    HEADERS_REWARD = BaseGameSign.HEADERS_REWARD
+    HEADERS_REWARD = BaseGameSign.HEADERS_REWARD.copy()
     HEADERS_REWARD["x-rpc-signgame"] = "hk4e"
     HEADERS_REWARD["Origin"] = "https://act.mihoyo.com"
     HEADERS_REWARD["Referer"] = "https://act.mihoyo.com/"
