@@ -26,11 +26,9 @@ from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, P
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage, \
     MessageEvent
-
 from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
 from nonebot.adapters.qq.models import DMS
 from nonebot.exception import ActionFailed
-from nonebot.internal.matcher import Matcher
 from nonebot.log import logger
 from qrcode import QRCode
 
@@ -495,20 +493,3 @@ def read_whitelist() -> List[str]:
     :return: 白名单中的所有用户ID
     """
     return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
-
-
-# TODO: 一个用于构建on_command事件相应器的函数，
-#  将使用偏好设置里的priority优先级和block设置，
-#  可能可以作为装饰器使用
-#   （需要先等用户数据改用Pydantic作为数据模型）
-def command_matcher(command: str, priority: int = None, block: bool = None) -> Matcher:
-    """
-    用于构建on_command事件相应器的函数，
-    将使用偏好设置里的priority优先级和block设置
-
-    :param command: 指令名
-    :param priority: 优先级，为 None 则读取偏好设置
-    :param block: 是否阻塞，为 None 则读取偏好设置
-    :return: 事件响应器
-    """
-    ...
