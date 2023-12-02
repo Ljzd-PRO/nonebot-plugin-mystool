@@ -9,7 +9,6 @@ from httpx import Cookies
 from pydantic import BaseModel, validator
 
 from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
-from .utils import generate_device_id
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -205,8 +204,8 @@ class UserAccount(BaseModelWithSetter):
 
     >>> user_account = UserAccount(
     >>>     cookies=BBSCookies(),
-    >>>     device_id_ios=generate_device_id(),
-    >>>     device_id_android=generate_device_id()
+    >>>     device_id_ios="DBB8886C-C88A-4E12-A407-BE295E95E084",
+    >>>     device_id_android="64561CE4-5F43-41D7-B92F-41CEFABC7ABF"
     >>> )
     >>> assert isinstance(user_account, UserAccount)
     >>> user_account.bbs_uid = "123"
