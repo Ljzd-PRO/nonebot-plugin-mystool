@@ -103,7 +103,7 @@ class BaseMission:
     SHARE = "share_post_0"
     '''分享任务的 mission_key'''
 
-    AVAILABLE_GAMES: Set[Type["BaseMission"]] = set()
+    available_games: Set[Type["BaseMission"]] = set()
     """可用的子类"""
 
     def __init__(self, account: UserAccount) -> None:
@@ -444,13 +444,13 @@ class ZenlessZoneZero(BaseMission):
     # TODO: fid暂时未知
 
 
-BaseMission.AVAILABLE_GAMES.add(GenshinImpactMission)
-BaseMission.AVAILABLE_GAMES.add(HonkaiImpact3Mission)
-BaseMission.AVAILABLE_GAMES.add(HoukaiGakuen2Mission)
-BaseMission.AVAILABLE_GAMES.add(TearsOfThemisMission)
-BaseMission.AVAILABLE_GAMES.add(StarRailMission)
-BaseMission.AVAILABLE_GAMES.add(BBSMission)
-BaseMission.AVAILABLE_GAMES.add(ZenlessZoneZero)
+BaseMission.available_games.add(GenshinImpactMission)
+BaseMission.available_games.add(HonkaiImpact3Mission)
+BaseMission.available_games.add(HoukaiGakuen2Mission)
+BaseMission.available_games.add(TearsOfThemisMission)
+BaseMission.available_games.add(StarRailMission)
+BaseMission.available_games.add(BBSMission)
+BaseMission.available_games.add(ZenlessZoneZero)
 
 
 async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[MissionData]]]:
