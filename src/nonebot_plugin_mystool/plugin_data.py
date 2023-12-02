@@ -3,7 +3,7 @@
 """
 import json
 import os
-from datetime import time, timedelta
+from datetime import time, timedelta, datetime
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
@@ -119,6 +119,14 @@ class Preference(BaseSettings, extra=Extra.ignore):
         elif not os.access(absolute_path, os.W_OK):
             logger.warning(f"程序没有写入日志文件 {absolute_path} 的权限")
         return v
+    
+    @property
+    def notice_time(self) -> bool:
+        now_time = datetime.now().time()
+        note_time = datetime.strptime(self.plan_time, "%H:%M")
+        note_time = note_time + timedelta(hours=1)
+        return now_time > note_time.time()
+
 
 
 class GoodListImageConfig(BaseModel):
