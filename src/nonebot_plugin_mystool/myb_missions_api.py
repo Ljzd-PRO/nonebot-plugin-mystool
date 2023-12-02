@@ -89,7 +89,7 @@ class BaseMission:
     """
     米游币任务基类
     """
-    NAME = ""
+    name = ""
     """米游社分区名字"""
     GIDS = 0
     FID = 0
@@ -385,7 +385,7 @@ class GenshinImpactMission(BaseMission):
     """
     原神 米游币任务
     """
-    NAME = "原神"
+    name = "原神"
     GIDS = 2
     FID = 26
 
@@ -394,7 +394,7 @@ class HonkaiImpact3Mission(BaseMission):
     """
     崩坏3 米游币任务
     """
-    NAME = "崩坏3"
+    name = "崩坏3"
     GIDS = 1
     FID = 1
 
@@ -403,7 +403,7 @@ class HoukaiGakuen2Mission(BaseMission):
     """
     崩坏学园2 米游币任务
     """
-    NAME = "崩坏学园2"
+    name = "崩坏学园2"
     GIDS = 3
     FID = 30
 
@@ -412,7 +412,7 @@ class TearsOfThemisMission(BaseMission):
     """
     未定事件簿 米游币任务
     """
-    NAME = "未定事件簿"
+    name = "未定事件簿"
     GIDS = 4
     FID = 37
 
@@ -421,7 +421,7 @@ class StarRailMission(BaseMission):
     """
     崩坏：星穹铁道 米游币任务
     """
-    NAME = "崩坏：星穹铁道"
+    name = "崩坏：星穹铁道"
     GIDS = 6
     FID = 52
 
@@ -430,7 +430,7 @@ class BBSMission(BaseMission):
     """
     大别野 米游币任务
     """
-    NAME = "综合"
+    name = "综合"
     GIDS = 5
     # TODO: bbs fid暂时未知
 
@@ -439,7 +439,7 @@ class ZenlessZoneZero(BaseMission):
     """
     绝区零 米游币任务
     """
-    NAME = "绝区零"
+    name = "绝区零"
     GIDS = 8
     # TODO: fid暂时未知
 
