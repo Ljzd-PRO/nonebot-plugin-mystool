@@ -331,7 +331,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
                 class_type: Type[BaseMission]
                 mission_obj: BaseMission = class_type(account)
                 if matcher:
-                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.NAME}』执行米游币任务...')
+                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.name}』执行米游币任务...')
 
                 # 执行任务
                 sign_status, read_status, like_status, share_status = (
@@ -353,7 +353,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
 
                 if matcher:
                     await matcher.send(
-                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.NAME}』米游币任务执行情况：\n"
+                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.name}』米游币任务执行情况：\n"
                         f"📅签到：{'✓' if sign_status else '✕'} +{sign_points or '0'} 米游币🪙\n"
                         f"📰阅读：{'✓' if read_status else '✕'}\n"
                         f"❤️点赞：{'✓' if like_status else '✕'}\n"
