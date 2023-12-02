@@ -1,66 +1,42 @@
-"""
- __    __     __  __     ______     ______   ______     ______     __
-/\ "-./  \   /\ \_\ \   /\  ___\   /\__  _\ /\  __ \   /\  __ \   /\ \
-\ \ \-./\ \  \ \____ \  \ \___  \  \/_/\ \/ \ \ \/\ \  \ \ \/\ \  \ \ \____
- \ \_\ \ \_\  \/\_____\  \/\_____\    \ \_\  \ \_____\  \ \_____\  \ \_____\
-  \/_/  \/_/   \/_____/   \/_____/     \/_/   \/_____/   \/_____/   \/_____/
-
-# mysTool - 米游社辅助工具插件
-
-米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录
-
-## 功能和特性
-
-- 短信验证登录，免抓包获取 Cookie
-- 自动完成每日米游币任务
-- 自动进行游戏签到
-- 可制定米游币商品兑换计划，到点兑换
-- 可支持多个 QQ 账号，每个 QQ 账号可绑定多个米哈游账户
-- QQ 推送执行结果通知
-
-## 使用说明
-
-### 🛠️ NoneBot2 机器人部署和插件安装
-请查看 -> [🔗Installation](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Installation)
-
-### 📖 插件具体使用说明
-请查看 -> [🔗Wiki 文档](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki)
-
-### ❓ 获取插件帮助信息
-#### 插件命令
-```
-/帮助
-```
-> ⚠️ 注意 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#command_start)
-"""
-
 import pkgutil
 from pathlib import Path
 
 from nonebot.plugin import PluginMetadata
 
-VERSION = "v0.1.5"
-'''插件版本号'''
-
+from .plugin_data import VERSION
 
 __plugin_meta__ = PluginMetadata(
-    name="❖米游社小助手插件❖\n版本 - {}\n".format(VERSION),
+    name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
-    usage="""
-    \n🔐 {HEAD}登录 ➢ 登录绑定米游社账户\
-    \n📦 {HEAD}地址 ➢ 设置收货地址ID\
-    \n🗓️ {HEAD}签到 ➢ 手动进行游戏签到\
-    \n📅 {HEAD}任务 ➢ 手动执行米游币任务\
-    \n🛒 {HEAD}兑换 ➢ 米游币商品兑换相关\
-    \n🎁 {HEAD}商品 ➢ 查看米游币商品信息(商品ID)\
-    \n⚙️ {HEAD}设置 ➢ 设置是否开启通知、每日任务等相关选项\
-    \n🔑 {HEAD}账号设置 ➢ 设置设备平台、是否开启每日计划任务、频道任务\
-    \n🔔 {HEAD}通知设置 ➢ 设置是否开启每日米游币任务、游戏签到的结果通知\
-    \n📖 {HEAD}帮助 ➢ 查看帮助信息\
-    \n🔍 {HEAD}帮助 <功能名> ➢ 查看目标功能详细说明
-    """.strip(),
-    extra="⚠️你的数据将经过机器人服务器，请确定你信任服务器所有者再使用。\n\n🔗项目地址：https://github.com/Ljzd-PRO/nonebot-plugin-mystool\n欢迎提出建议和意见！"
+    usage=
+    "\n🔐 {HEAD}登录 ➢ 登录绑定米游社账户"
+    "\n📦 {HEAD}地址 ➢ 设置收货地址ID"
+    "\n🗓️ {HEAD}签到 ➢ 手动进行游戏签到"
+    "\n📅 {HEAD}任务 ➢ 手动执行米游币任务"
+    "\n🛒 {HEAD}兑换 ➢ 米游币商品兑换相关"
+    "\n🎁 {HEAD}商品 ➢ 查看米游币商品信息(商品ID)"
+    "\n📊 {HEAD}原神便笺 ➢ 查看原神实时便笺(原神树脂、洞天财瓮等)"
+    "\n📊 {HEAD}铁道便笺 ➢ 查看星穹铁道实时便笺(开拓力、每日实训等)"
+    "\n⚙️ {HEAD}设置 ➢ 设置是否开启通知、每日任务等相关选项"
+    "\n🔑 {HEAD}账号设置 ➢ 设置设备平台、是否开启每日计划任务、频道任务"
+    "\n🔔 {HEAD}通知设置 ➢ 设置是否开启每日米游币任务、游戏签到的结果通知"
+    "\n🖨️ {HEAD}导出Cookies ➢ 导出绑定的米游社账号的Cookies数据"
+    "\n🖇️ {HEAD}用户绑定 ➢ 绑定关联其他聊天平台或其他账号的用户数据"
+    "\n📨 {HEAD}私信响应 ➢ 让机器人发送一条私信给你，主要用于QQ频道"
+    "\n📖 {HEAD}帮助 ➢ 查看帮助信息"
+    "\n🔍 {HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
+    "\n\n⚠️你的数据将经过机器人服务器，请确定你信任服务器所有者再使用。",
+    extra={"version": VERSION}
 )
+
+# 在此处使用 get_driver() 防止多进程生成图片时反复调用
+
+from .utils import CommandBegin
+from nonebot import init
+from nonebot import get_driver
+
+init()  # 初始化Driver对象
+get_driver().on_startup(CommandBegin.set_command_begin)
 
 # 加载其它代码
 

@@ -139,7 +139,3 @@ dmypy.json
 .pytype/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
-
-.env*
-pdm.lock
-data/

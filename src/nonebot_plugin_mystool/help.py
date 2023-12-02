@@ -2,31 +2,34 @@
 ### 帮助相关
 #### 参考了`nonebot-plugin-help`
 """
-import nonebot.plugin
-from nonebot import get_driver, on_command
-from nonebot.adapters.onebot.v11 import MessageEvent
-from nonebot.adapters.onebot.v11.message import Message
+from typing import Union
+
+from nonebot import on_command
+from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed
+from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
-from nonebot.params import Arg, CommandArg
+from nonebot.params import CommandArg
 
-from .config import mysTool_config as conf
+from .plugin_data import PluginDataManager
+from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
-PLUGIN = nonebot.plugin.get_plugin(conf.PLUGIN_NAME)
-COMMAND = list(get_driver().config.command_start)[0] + conf.COMMAND_START
+_conf = PluginDataManager.plugin_data
 
-helper = on_command(conf.COMMAND_START+"help", priority=1,
-                    aliases={conf.COMMAND_START+"帮助"})
+helper = on_command(
+    f"{_conf.preference.command_start}帮助",
+    priority=1,
+    aliases={f"{_conf.preference.command_start}help"},
+    block=True
+)
 
-helper.__help_name__ = '帮助'
-helper.__help_info__ = f'''\
-    🍺欢迎使用米游社小助手帮助系统！\
-    \n{COMMAND}帮助 ➢ 查看米游社小助手使用说明\
-    \n{COMMAND}帮助 <功能名> ➢ 查看目标功能详细说明\
-'''.strip()
+helper.name = '帮助'
+helper.usage = "🍺欢迎使用米游社小助手帮助系统！" \
+               "\n{HEAD}帮助 ➢ 查看米游社小助手使用说明" \
+               "\n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
 
 
 @helper.handle()
-async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Message = CommandArg()):
+async def _(_: Union[GeneralMessageEvent], matcher: Matcher, args=CommandArg()):
     """
     主命令触发
     """
@@ -35,31 +38,33 @@ async def handle_first_receive(event: MessageEvent, matcher: Matcher, args: Mess
         matcher.set_arg("content", args)
     # 只有主命令“帮助”
     else:
-        await matcher.finish(
-            PLUGIN.metadata.name +
-            PLUGIN.metadata.description +
-            "\n具体用法：\n" +
-            PLUGIN.metadata.usage.format(HEAD=COMMAND) +
-            '\n\n' +
-            PLUGIN.metadata.extra)
+        try:
+            await matcher.finish(
+                f"{PLUGIN.metadata.name}"
+                f"{PLUGIN.metadata.description}\n"
+                "具体用法：\n"
+                f"{PLUGIN.metadata.usage.format(HEAD=COMMAND_BEGIN)}"
+            )
+        except QQGuildActionFailed as e:
+            if e.code == 304003:
+                logger.exception(f"{_conf.preference.log_head}帮助命令的文本发送失败，原因是频道禁止发送URL")
 
 
 @helper.got('content')
-async def get_result(event: MessageEvent, content: Message = Arg()):
+async def _(_: Union[GeneralMessageEvent], content=ArgStr()):
     """
     二级命令触发。功能详细说明查询
     """
-    arg = content.extract_plain_text().strip()
-
     # 相似词
-    if arg == '登陆':
-        arg == '登录'
+    if content == '登陆':
+        content = '登录'
 
     matchers = PLUGIN.matcher
     for matcher in matchers:
         try:
-            if arg.lower() == matcher.__help_name__:
-                await helper.finish(f"『{COMMAND}{matcher.__help_name__}』- 使用说明\n{matcher.__help_info__}")
+            if content.lower() == matcher.name:
+                await helper.finish(
+                    f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n{matcher.usage}")
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")

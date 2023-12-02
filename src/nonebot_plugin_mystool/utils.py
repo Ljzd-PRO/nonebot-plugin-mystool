@@ -2,28 +2,89 @@
 ### 工具函数
 """
 import hashlib
+import io
 import json
+import os
 import random
 import string
 import time
-import traceback
 import uuid
-from typing import TYPE_CHECKING, Dict, Literal, Union
+from copy import deepcopy
+from pathlib import Path
+from typing import (TYPE_CHECKING, Dict, Literal,
+                    Union, Optional, Tuple, Iterable, List)
 from urllib.parse import urlencode
 
 import httpx
-import nonebot
 import nonebot.log
-import ntplib
+import nonebot.plugin
 import tenacity
-from nonebot.log import logger
+from nonebot import Adapter, Bot
+from nonebot.adapters import Message
+from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
+    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot, ActionFailed as OneBotV11ActionFailed
+from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
+    Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage, \
+    MessageEvent
 
-from .config import mysTool_config as conf
+from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
+from nonebot.adapters.qq.models import DMS
+from nonebot.exception import ActionFailed
+from nonebot.internal.matcher import Matcher
+from nonebot.log import logger
+from qrcode import QRCode
+
+from .data_model import GeetestResult
+from .plugin_data import PluginDataManager, Preference
+from .user_data import UserData
 
 if TYPE_CHECKING:
     from loguru import Logger
 
-driver = nonebot.get_driver()
+_conf = PluginDataManager.plugin_data
+
+GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent, MessageEvent
+"""消息事件类型"""
+GeneralPrivateMessageEvent = PrivateMessageEvent, DirectMessageCreateEvent
+"""私聊消息事件类型"""
+GeneralGroupMessageEvent = GroupMessageEvent, MessageCreateEvent
+"""群聊消息事件类型"""
+
+
+class CommandBegin:
+    """
+    命令开头字段
+    （包括例如'/'和插件命令起始字段例如'mystool'）
+    已重写__str__方法
+    """
+    string = ""
+    '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
+
+    @classmethod
+    def set_command_begin(cls):
+        """
+        机器人启动时设置命令开头字段
+        """
+        if nonebot.get_driver().config.command_start:
+            cls.string = list(nonebot.get_driver().config.command_start)[0] + _conf.preference.command_start
+        else:
+            cls.string = _conf.preference.command_start
+
+    @classmethod
+    def __str__(cls):
+        return cls.string
+
+
+def get_last_command_sep():
+    """
+    获取第最后一个命令分隔符
+    """
+    if nonebot.get_driver().config.command_sep:
+        return list(nonebot.get_driver().config.command_sep)[-1]
+
+
+COMMAND_BEGIN = CommandBegin()
+'''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
 
 def set_logger(logger: "Logger"):
@@ -32,71 +93,57 @@ def set_logger(logger: "Logger"):
     """
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
-    logger.add(conf.LOG_PATH, diagnose=False, format=nonebot.log.default_format,
-               filter=lambda record: record["name"] == conf.PLUGIN_NAME or
-                (conf.LOG_HEAD != "" and record["message"].find(conf.LOG_HEAD) == 0) or
-                    record["message"].find(f"plugins.{conf.PLUGIN_NAME}") != -1, rotation=conf.LOG_ROTATION)
+    logger.add(
+        _conf.preference.log_path,
+        diagnose=False,
+        format=nonebot.log.default_format,
+        rotation=_conf.preference.log_rotation,
+        filter=lambda x: x["name"] == _conf.preference.plugin_name or (
+                _conf.preference.log_head != "" and x["message"].find(_conf.preference.log_head) == 0
+        ) or x["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1
+    )
+
     return logger
 
 
 logger = set_logger(logger)
+"""本插件所用日志记录器对象（包含输出到文件）"""
 
+PLUGIN = nonebot.plugin.get_plugin(_conf.preference.plugin_name)
+'''本插件数据'''
 
-class NtpTime:
-    """
-    >>> NtpTime.time() #获取校准后的时间（如果校准成功）
-    """
-    time_offset = 0
-
-    @classmethod
-    def time(cls) -> float:
-        """
-        获取校准后的时间（如果校准成功）
-        """
-        return time.time() + cls.time_offset
+if not PLUGIN:
+    logger.warning(
+        "插件数据(Plugin)获取失败，如果插件是从本地加载的，需要修改配置文件中 PLUGIN_NAME 为插件目录，否则将导致无法获取插件帮助信息等")
 
 
 def custom_attempt_times(retry: bool):
     """
     自定义的重试机制停止条件\n
     根据是否要重试的bool值，给出相应的`tenacity.stop_after_attempt`对象
-    >>> retry == True #重试次数达到配置中 MAX_RETRY_TIMES 时停止
-    >>> retry == False #执行次数达到1时停止，即不进行重试
+
+    :param retry True - 重试次数达到配置中 MAX_RETRY_TIMES 时停止; False - 执行次数达到1时停止，即不进行重试
     """
     if retry:
-        return tenacity.stop_after_attempt(conf.MAX_RETRY_TIMES + 1)
+        return tenacity.stop_after_attempt(_conf.preference.max_retry_times + 1)
     else:
         return tenacity.stop_after_attempt(1)
 
 
-@driver.on_startup
-def ntp_time_sync():
+def get_async_retry(retry: bool):
     """
-    启动时校对互联网时间
+    获取异步重试装饰器
+
+    :param retry: True - 重试次数达到偏好设置中 max_retry_times 时停止; False - 执行次数达到1时停止，即不进行重试
     """
-    NtpTime.time_offset = 0
-    try:
-        for attempt in tenacity.Retrying(stop=custom_attempt_times(True)):
-            with attempt:
-                logger.info(conf.LOG_HEAD + "正在校对互联网时间")
-                try:
-                    NtpTime.time_offset = ntplib.NTPClient().request(
-                        conf.NTP_SERVER).tx_time - time.time()
-                    format_offset = "%.2f" % NtpTime.time_offset
-                    logger.info(
-                        f"{conf.LOG_HEAD}系统时间与网络时间的误差为 {format_offset} 秒")
-                    if abs(NtpTime.time_offset) > 0.2:
-                        logger.warning(
-                            f"{conf.LOG_HEAD}系统时间与网络时间误差偏大，可能影响商品兑换成功概率，建议同步系统时间")
-                except:
-                    logger.warning(conf.LOG_HEAD +
-                                   "校对互联网时间失败，正在重试")
-                    raise
-    except tenacity.RetryError:
-        logger.warning(conf.LOG_HEAD + "校对互联网时间失败，改为使用本地时间")
+    return tenacity.AsyncRetrying(
+        stop=custom_attempt_times(retry),
+        retry=tenacity.retry_if_exception_type(BaseException),
+        wait=tenacity.wait_fixed(_conf.preference.retry_interval),
+    )
 
 
-def generateDeviceID() -> str:
+def generate_device_id() -> str:
     """
     生成随机的x-rpc-device_id
     """
@@ -132,73 +179,336 @@ def cookie_dict_to_str(cookie_dict: Dict[str, str]) -> str:
     return cookie_str
 
 
-def generateDS(data: Union[str, dict, list] = "", params: Union[str, dict] = "", platform: Literal["ios", "android"] = "ios"):
+def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, dict, None] = None,
+                platform: Literal["ios", "android"] = "ios", salt: Optional[str] = None):
     """
     获取Headers中所需DS
 
-    参数:
-        `data`: 可选，网络请求中需要发送的数据
-        `params`: 可选，URL参数
+    :param data: 可选，网络请求中需要发送的数据
+    :param params: 可选，URL参数
+    :param platform: 可选，平台，ios或android
+    :param salt: 可选，自定义salt
     """
-    # DS 加密算法:
-    # https://github.com/y1ndan/genshinhelper2/pull/34/commits/fd58f253a86d13dc24aaaefc4d52dd8e27aaead1
-    if data == "" and params == "":
+    if data is None and params is None or \
+            salt is not None and salt != _conf.salt_config.SALT_PROD:
         if platform == "ios":
-            salt = conf.SALT_IOS
+            salt = salt or _conf.salt_config.SALT_IOS
         else:
-            salt = conf.SALT_ANDROID
-        t = str(int(NtpTime.time()))
+            salt = salt or _conf.salt_config.SALT_ANDROID
+        t = str(int(time.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
         re = hashlib.md5(
             f"salt={salt}&t={t}&r={a}".encode()).hexdigest()
         return f"{t},{a},{re}"
     else:
+        if params:
+            salt = _conf.salt_config.SALT_PARAMS if not salt else salt
+        else:
+            salt = _conf.salt_config.SALT_DATA if not salt else salt
+
+        if not data:
+            if salt == _conf.salt_config.SALT_PROD:
+                data = {}
+            else:
+                data = ""
+        if not params:
+            params = ""
+
         if not isinstance(data, str):
             data = json.dumps(data)
         if not isinstance(params, str):
             params = urlencode(params)
-        t = str(int(NtpTime.time()))
-        r = str(random.randint(100001, 200000))
-        add = f'&b={data}&q={params}'
-        c = hashlib.md5((f"salt={conf.SALT_ANDROID_NEW}&t=" +
-                        t + "&r=" + r + add).encode()).hexdigest()
+
+        t = str(int(time.time()))
+        r = str(random.randint(100000, 200000))
+        c = hashlib.md5(
+            f"salt={salt}&t={t}&r={r}&b={data}&q={params}".encode()).hexdigest()
         return f"{t},{r},{c}"
+
+
+async def get_validate(gt: str = None, challenge: str = None, retry: bool = True):
+    """
+    使用打码平台获取人机验证validate
+
+    :param gt: 验证码gt
+    :param challenge: challenge
+    :param retry: 是否允许重试
+    :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
+    """
+    if not (gt and challenge) or not _conf.preference.geetest_url:
+        return GeetestResult("", "")
+    params = {"gt": gt, "challenge": challenge}
+    params.update(_conf.preference.geetest_params)
+    content = deepcopy(_conf.preference.geetest_json or Preference().geetest_json)
+    for key, value in content.items():
+        if isinstance(value, str):
+            content[key] = value.format(gt=gt, challenge=challenge)
+    try:
+        async for attempt in get_async_retry(retry):
+            with attempt:
+                async with httpx.AsyncClient() as client:
+                    res = await client.post(
+                        _conf.preference.geetest_url,
+                        params=params,
+                        json=content,
+                        timeout=60
+                    )
+                geetest_data = res.json()
+                validate = geetest_data['data']['validate']
+                seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
+                logger.debug(f"{_conf.preference.log_head}人机验证结果：{geetest_data}")
+                return GeetestResult(validate=validate, seccode=seccode)
+    except tenacity.RetryError:
+        logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
+
+
+def generate_seed_id(length: int = 8) -> str:
+    """
+    生成随机的 seed_id（即长度为8的十六进制数）
+
+    :param length: 16进制数长度
+    """
+    max_num = int("FF" * length, 16)
+    return hex(random.randint(0, max_num))[2:]
+
+
+def generate_fp_locally(length: int = 13):
+    """
+    于本地生成 device_fp
+
+    :param length: device_fp 长度
+    """
+    characters = string.digits + "abcdef"
+    return ''.join(random.choices(characters, k=length))
 
 
 async def get_file(url: str, retry: bool = True):
     """
     下载文件
 
-    参数:
-        `retry`: 是否允许重试
+    :param url: 文件URL
+    :param retry: 是否允许重试
+    :return: 文件数据
     """
     try:
-        async for attempt in tenacity.AsyncRetrying(stop=custom_attempt_times(retry), wait=tenacity.wait_fixed(conf.SLEEP_TIME_RETRY)):
+        async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(url, timeout=conf.TIME_OUT, follow_redirects=True)
+                    res = await client.get(url, timeout=_conf.preference.timeout, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.error(conf.LOG_HEAD + "下载文件 - {} 失败".format(url))
-        logger.debug(conf.LOG_HEAD + traceback.format_exc())
+        logger.exception(f"{_conf.preference.log_head}下载文件 - {url} 失败")
 
 
-def check_login(response: str):
+def blur_phone(phone: Union[str, int]) -> str:
     """
-    通过网络请求返回的数据，检查是否登录失效
+    模糊手机号
 
-    如果返回数据为`None`，返回`True`
+    :param phone: 手机号
+    :return: 模糊后的手机号
     """
-    try:
-        if response is None:
-            return True
-        res_dict = json.loads(response)
-        if "message" in res_dict:
-            response: str = res_dict["message"]
-            for string in ("Please login", "登录失效", "尚未登录"):
-                if response.find(string) != -1:
-                    return False
-            return True
-    except json.JSONDecodeError and KeyError:
-        return True
+    if isinstance(phone, int):
+        phone = str(phone)
+    return f"{phone[:3]}****{phone[-4:]}"
+
+
+def generate_qr_img(data: str):
+    """
+    生成二维码图片
+
+    :param data: 二维码数据
+
+    >>> b = generate_qr_img("https://github.com/Ljzd-PRO/nonebot-plugin-mystool")
+    >>> isinstance(b, bytes)
+    """
+    qr_code = QRCode(border=2)
+    qr_code.add_data(data)
+    qr_code.make()
+    image = qr_code.make_image()
+    image_bytes = io.BytesIO()
+    image.save(image_bytes)
+    return image_bytes.getvalue()
+
+
+async def send_private_msg(
+        user_id: str,
+        message: Union[str, Message],
+        use: Union[Bot, Adapter] = None,
+        guild_id: int = None
+) -> Tuple[bool, Optional[ActionFailed]]:
+    """
+    主动发送私信消息
+
+    :param user_id: 目标用户ID
+    :param message: 消息内容
+    :param use: 使用的Bot或Adapter，为None则使用所有Bot
+    :param guild_id: 用户所在频道ID，为None则从用户数据中获取
+    :return: (是否发送成功, ActionFailed Exception)
+    """
+    error_flag = False
+    action_failed = None
+
+    if guild_id or ((user := _conf.users.get(user_id)) and user_id in user.qq_guilds):
+        user_type = QQGuildAdapter
+    else:
+        user_type = OneBotV11Adapter
+
+    # 整合符合条件的 Bot 对象
+    if isinstance(use, (OneBotV11Bot, QQGuildBot)):
+        bots = [use]
+    elif isinstance(use, (OneBotV11Adapter, QQGuildAdapter)):
+        bots = use.bots.values()
+    else:
+        bots = nonebot.get_bots().values()
+
+    # 完成 OneBotV11 消息发送
+    if user_type == OneBotV11Adapter:
+        for bot in bots:
+            if isinstance(bot, OneBotV11Bot):
+                try:
+                    await bot.send_private_msg(user_id=int(user_id), message=message)
+                except OneBotV11ActionFailed as e:
+                    logger.exception(
+                        f"{_conf.preference.log_head}OneBotV11 尝试主动发送私信消息失败。"
+                        f"用户ID：{user_id}，消息内容：\n"
+                        f"{message}"
+                    )
+                    error_flag = True
+                    action_failed = e
+
+    # 完成 QQGuild 消息发送
+    elif user_type == QQGuildAdapter:
+        message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
+        message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
+
+        content = message.extract_content() or None
+        if embed := (message["embed"] or None):
+            embed = embed[-1].data["embed"]
+        if ark := (message["ark"] or None):
+            ark = ark[-1].data["ark"]
+        if image := (message["attachment"] or None):
+            image = image[-1].data["url"]
+        if file_image := (message["file_image"] or None):
+            file_image = file_image[-1].data["content"]
+        if markdown := (message["markdown"] or None):
+            markdown = markdown[-1].data["markdown"]
+        if reference := (message["reference"] or None):
+            reference = reference[-1].data["reference"]
+
+        if guild_id is None:
+            if user := _conf.users.get(user_id):
+                if not (guilds := user.qq_guilds.get(user_id)):
+                    logger.error(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                    guild_ids = iter([])
+                    error_flag = True
+                else:
+                    guild_ids = iter(guilds)
+            else:
+                logger.error(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                guild_ids = iter([])
+                error_flag = True
+        else:
+            guild_ids = iter([guild_id])
+
+        while (guild_id := next(guild_ids, None)) is not None:
+            for bot in bots:
+                if isinstance(bot, QQGuildBot):
+                    try:
+                        dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
+                        await bot.post_dms_messages(
+                            guild_id=dms.guild_id,  # type: ignore
+                            content=content,
+                            embed=embed,  # type: ignore
+                            ark=ark,  # type: ignore
+                            image=image,  # type: ignore
+                            file_image=file_image,  # type: ignore
+                            markdown=markdown,  # type: ignore
+                            message_reference=reference,  # type: ignore
+                        )
+                    except (QQGuildActionFailed, AuditException) as e:
+                        logger.exception(
+                            f"{_conf.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
+                            f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
+                            f"{message}"
+                        )
+                        error_flag = True
+                        action_failed = e
+
+    else:
+        return False, None
+
+    return not error_flag, action_failed
+
+
+def get_unique_users() -> Iterable[Tuple[str, UserData]]:
+    """
+    获取 不包含绑定用户数据 的所有用户数据以及对应的ID，即不会出现值重复项
+
+    :return: dict_items[用户ID, 用户数据]
+    """
+    return filter(lambda x: x[0] not in _conf.user_bind, _conf.users.items())
+
+
+def get_all_bind(user_id: str) -> Iterable[str]:
+    """
+    获取绑定该用户的所有用户ID
+
+    :return: 绑定该用户的所有用户ID
+    """
+    user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
+    return user_id_filter
+
+
+def _read_user_list(path: Path) -> List[str]:
+    """
+    从TEXT读取用户名单
+
+    :return: 名单中的所有用户ID
+    """
+    if not path:
+        return []
+    if os.path.isfile(path):
+        with open(path, "r", encoding=_conf.preference.encoding) as f:
+            lines = f.readlines()
+        lines = map(lambda x: x.strip(), lines)
+        line_filter = filter(lambda x: x and x != "\n", lines)
+        return list(line_filter)
+    else:
+        logger.error(f"{_conf.preference.log_head}黑/白名单文件 {path} 不存在")
+        return []
+
+
+def read_blacklist() -> List[str]:
+    """
+    读取黑名单
+
+    :return: 黑名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.blacklist_path) if _conf.preference.enable_blacklist else []
+
+
+def read_whitelist() -> List[str]:
+    """
+    读取白名单
+
+    :return: 白名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
+
+
+# TODO: 一个用于构建on_command事件相应器的函数，
+#  将使用偏好设置里的priority优先级和block设置，
+#  可能可以作为装饰器使用
+#   （需要先等用户数据改用Pydantic作为数据模型）
+def command_matcher(command: str, priority: int = None, block: bool = None) -> Matcher:
+    """
+    用于构建on_command事件相应器的函数，
+    将使用偏好设置里的priority优先级和block设置
+
+    :param command: 指令名
+    :param priority: 优先级，为 None 则读取偏好设置
+    :param block: 是否阻塞，为 None 则读取偏好设置
+    :return: 事件响应器
+    """
+    ...
