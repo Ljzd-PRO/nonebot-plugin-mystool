@@ -202,7 +202,11 @@ class UserAccount(BaseModelWithSetter):
     """
     米游社账户数据
 
-    >>> user_account = UserAccount(cookies=BBSCookies())
+    >>> user_account = UserAccount(
+    >>>     cookies=BBSCookies(),
+    >>>     device_id_ios="DBB8886C-C88A-4E12-A407-BE295E95E084",
+    >>>     device_id_android="64561CE4-5F43-41D7-B92F-41CEFABC7ABF"
+    >>> )
     >>> assert isinstance(user_account, UserAccount)
     >>> user_account.bbs_uid = "123"
     >>> assert user_account.bbs_uid == "123"
@@ -231,7 +235,7 @@ class UserAccount(BaseModelWithSetter):
     '''设备平台'''
     mission_games: Set[type] = {}
     '''在哪些板块执行米游币任务计划'''
-    user_stamina_threshold: int = 180
+    user_stamina_threshold: int = 240
     '''崩铁便笺体力提醒阈值，0为一直提醒'''
     user_resin_threshold: int = 160
     '''原神便笺树脂提醒阈值，0为一直提醒'''

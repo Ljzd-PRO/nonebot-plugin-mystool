@@ -18,7 +18,7 @@ from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ti
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from .user_data import UserAccount, UserData
 from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
-    generate_qr_img, get_validate, read_blacklist, read_whitelist
+    generate_qr_img, get_validate, read_blacklist, read_whitelist, generate_device_id
 
 _conf = PluginDataManager.plugin_data
 
@@ -138,7 +138,11 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
-                    cookies.bbs_uid: UserAccount(phone_number=phone_number, cookies=cookies, device_id_ios=device_id)
+                    cookies.bbs_uid: UserAccount(
+                        phone_number=phone_number,
+                        cookies=cookies,
+                        device_id_ios=device_id,
+                        device_id_android=generate_device_id())
                 })
                 account = user.accounts[cookies.bbs_uid]
             else:
