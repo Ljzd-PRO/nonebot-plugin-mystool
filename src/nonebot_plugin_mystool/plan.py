@@ -4,6 +4,7 @@
 import asyncio
 import threading
 from typing import Union, Optional, Type, Iterable, Dict
+from datetime import datetime, time
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -538,7 +539,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 if note.current_stamina >= account.user_stamina_threshold:
                     # 防止重复提醒
                     if not starrail_notice.current_stamina_full:
-                        if note.current_stamina >= 180:
+                        if note.current_stamina >= note.max_stamina:
                             starrail_notice.current_stamina_full = True
                             msg += '❕您的开拓力已经溢出\n'
                             do_notice = True
@@ -552,21 +553,24 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     starrail_notice.current_stamina_full = False
 
                 # 每日实训状态提醒
-                if note.current_train_score == note.max_train_score:
+                if note.current_train_score != note.max_train_score:
                     # 防止重复提醒
-                    if not starrail_notice.current_train_score:
-                        starrail_notice.current_train_score = True
-                        msg += '❕您的每日实训已完成\n'
+                    #if not starrail_notice.current_train_score:
+                    if not starrail_notice.current_train_score \
+                        and _conf.preference.notice_time:               #注意此处添加notice_time是为了防止每日首次推送通知在4:00后一段时间
+                        starrail_notice.current_train_score = True      #notice_time = plan_time +1h
+                        msg += '❕您的每日实训未完成\n'                  #通知逻辑变动后，如不添加notice_time，便笺检查在xx:20,便笺检查间隔1h，则每日首次通知在04:20
                         do_notice = True
                 else:
                     starrail_notice.current_train_score = False
 
                 # 每周模拟宇宙积分提醒
-                if note.current_rogue_score == note.max_rogue_score:
+                if note.current_rogue_score != note.max_rogue_score:
                     # 防止重复提醒
-                    if not starrail_notice.current_rogue_score:
+                    if not starrail_notice.current_rogue_score \
+                        and _conf.preference.notice_time:                #notice_time同理
                         starrail_notice.current_rogue_score = True
-                        msg += '❕您的模拟宇宙积分已经打满了\n\n'
+                        msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
                 else:
                     starrail_notice.current_rogue_score = False
@@ -576,7 +580,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
 
             msg += "❖星穹铁道·实时便笺❖" \
                    f"\n🆔账户 {account.bbs_uid}" \
-                   f"\n⏳开拓力数量：{note.current_stamina} / 180" \
+                   f"\n⏳开拓力数量：{note.current_stamina} / {note.max_stamina}" \
                    f"\n⏱开拓力{note.stamina_recover_text}" \
                    f"\n📒每日实训：{note.current_train_score} / {note.max_train_score}" \
                    f"\n📅每日委托：{note.accepted_expedition_num} / 4" \
