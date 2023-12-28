@@ -44,30 +44,30 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
-        if user_id not in read_admin_list():
-            await manually_game_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
-        else:
-            specified_user_id = str(command_arg)
-            if specified_user_id == "*":
-                await manually_game_sign.send(f"⏳开始为所有用户执行游戏签到...")
-                for user_id_ in _conf.users.keys():
+        if (specified_user_id := str(command_arg)) == "*" or specified_user_id.isdigit():
+            if user_id not in read_admin_list():
+                await manually_game_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
+            else:
+                if specified_user_id == "*":
+                    await manually_game_sign.send(f"⏳开始为所有用户执行游戏签到...")
+                    for user_id_ in _conf.users.keys():
+                        await perform_game_sign(
+                            user=user_id_,
+                            user_ids=[],
+                            matcher=matcher,
+                            event=event
+                        )
+                else:
+                    specified_user = _conf.users.get(specified_user_id)
+                    if not specified_user:
+                        await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
+                    await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
                     await perform_game_sign(
-                        user=user_id_,
+                        user=specified_user,
                         user_ids=[],
                         matcher=matcher,
                         event=event
                     )
-            else:
-                specified_user = _conf.users.get(specified_user_id)
-                if not specified_user:
-                    await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
-                await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
-                await perform_game_sign(
-                    user=specified_user,
-                    user_ids=[],
-                    matcher=matcher,
-                    event=event
-                )
     else:
         await manually_game_sign.send("⏳开始游戏签到...")
         await perform_game_sign(user=user, user_ids=[user_id], matcher=matcher, event=event)
@@ -88,28 +88,28 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     if not user or not user.accounts:
         await manually_bbs_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
-        if user_id not in read_admin_list():
-            await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
-        else:
-            specified_user_id = str(command_arg)
-            if specified_user_id == "*":
-                await manually_bbs_sign.send(f"⏳开始为所有用户执行米游币任务...")
-                for user_id_ in _conf.users.keys():
+        if (specified_user_id := str(command_arg)) == "*" or specified_user_id.isdigit():
+            if user_id not in read_admin_list():
+                await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
+            else:
+                if specified_user_id == "*":
+                    await manually_bbs_sign.send(f"⏳开始为所有用户执行米游币任务...")
+                    for user_id_ in _conf.users.keys():
+                        await perform_bbs_sign(
+                            user=user_id_,
+                            user_ids=[],
+                            matcher=matcher
+                        )
+                else:
+                    specified_user = _conf.users.get(specified_user_id)
+                    if not specified_user:
+                        await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
+                    await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
                     await perform_bbs_sign(
-                        user=user_id_,
+                        user=specified_user,
                         user_ids=[],
                         matcher=matcher
                     )
-            else:
-                specified_user = _conf.users.get(specified_user_id)
-                if not specified_user:
-                    await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
-                await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
-                await perform_bbs_sign(
-                    user=specified_user,
-                    user_ids=[],
-                    matcher=matcher
-                )
     await manually_bbs_sign.send("⏳开始执行米游币任务...")
     await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
 
