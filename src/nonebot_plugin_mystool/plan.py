@@ -58,9 +58,12 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                         event=event
                     )
             else:
+                specified_user = _conf.users.get(specified_user_id)
+                if not specified_user:
+                    await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                 await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
                 await perform_game_sign(
-                    user=_conf.users.get(specified_user_id),
+                    user=specified_user,
                     user_ids=[],
                     matcher=matcher,
                     event=event
@@ -98,9 +101,12 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                         matcher=matcher
                     )
             else:
+                specified_user = _conf.users.get(specified_user_id)
+                if not specified_user:
+                    await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                 await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
                 await perform_bbs_sign(
-                    user=_conf.users.get(specified_user_id),
+                    user=specified_user,
                     user_ids=[],
                     matcher=matcher
                 )
