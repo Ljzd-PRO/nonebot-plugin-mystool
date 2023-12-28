@@ -50,9 +50,9 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
             else:
                 if specified_user_id == "*":
                     await manually_game_sign.send(f"⏳开始为所有用户执行游戏签到...")
-                    for user_id_ in _conf.users.keys():
+                    for user_ in _conf.users.values():
                         await perform_game_sign(
-                            user=user_id_,
+                            user=user_,
                             user_ids=[],
                             matcher=matcher,
                             event=event
@@ -94,9 +94,9 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
             else:
                 if specified_user_id == "*":
                     await manually_bbs_sign.send(f"⏳开始为所有用户执行米游币任务...")
-                    for user_id_ in _conf.users.keys():
+                    for user_ in _conf.users.values():
                         await perform_bbs_sign(
-                            user=user_id_,
+                            user=user_,
                             user_ids=[],
                             matcher=matcher
                         )
