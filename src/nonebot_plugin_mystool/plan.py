@@ -110,8 +110,9 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                         user_ids=[],
                         matcher=matcher
                     )
-    await manually_bbs_sign.send("⏳开始执行米游币任务...")
-    await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
+    else:
+        await manually_bbs_sign.send("⏳开始执行米游币任务...")
+        await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
 
 
 class GenshinNoteNotice(GenshinNote):
