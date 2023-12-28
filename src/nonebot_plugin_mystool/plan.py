@@ -13,6 +13,7 @@ from nonebot.adapters.qq import MessageSegment as QQGuildMessageSegment, Adapter
 from nonebot.adapters.qq.exception import AuditException
 from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
+from nonebot.params import CommandArg
 from nonebot_plugin_apscheduler import scheduler
 from pydantic import BaseModel
 
@@ -24,7 +25,7 @@ from .plugin_data import PluginDataManager, write_plugin_data
 from .simple_api import genshin_note, get_game_record, starrail_note
 from .user_data import UserData
 from .utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, get_all_bind, \
-    get_unique_users, get_validate
+    get_unique_users, get_validate, read_admin_list
 
 _conf = PluginDataManager.plugin_data
 
@@ -34,7 +35,7 @@ manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励�
 
 
 @manually_game_sign.handle()
-async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=CommandArg()):
     """
     手动游戏签到函数
     """
@@ -42,8 +43,35 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     user = _conf.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await manually_game_sign.send("⏳开始游戏签到...")
-    await perform_game_sign(user=user, user_ids=[user_id], matcher=matcher, event=event)
+    if command_arg:
+        if (specified_user_id := str(command_arg)) == "*" or specified_user_id.isdigit():
+            if user_id not in read_admin_list():
+                await manually_game_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
+            else:
+                if specified_user_id == "*":
+                    await manually_game_sign.send("⏳开始为所有用户执行游戏签到...")
+                    for user_id_, user_ in get_unique_users():
+                        await manually_game_sign.send(f"⏳开始为用户 {user_id_} 执行游戏签到...")
+                        await perform_game_sign(
+                            user=user_,
+                            user_ids=[],
+                            matcher=matcher,
+                            event=event
+                        )
+                else:
+                    specified_user = _conf.users.get(specified_user_id)
+                    if not specified_user:
+                        await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
+                    await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
+                    await perform_game_sign(
+                        user=specified_user,
+                        user_ids=[],
+                        matcher=matcher,
+                        event=event
+                    )
+    else:
+        await manually_game_sign.send("⏳开始游戏签到...")
+        await perform_game_sign(user=user, user_ids=[user_id], matcher=matcher, event=event)
 
 
 manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
@@ -52,16 +80,41 @@ manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米�
 
 
 @manually_bbs_sign.handle()
-async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
+async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=CommandArg()):
     """
     手动米游币任务函数
     """
     user_id = event.get_user_id()
     user = _conf.users.get(user_id)
     if not user or not user.accounts:
-        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
-    await manually_game_sign.send("⏳开始执行米游币任务...")
-    await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
+        await manually_bbs_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+    if command_arg:
+        if (specified_user_id := str(command_arg)) == "*" or specified_user_id.isdigit():
+            if user_id not in read_admin_list():
+                await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
+            else:
+                if specified_user_id == "*":
+                    await manually_bbs_sign.send("⏳开始为所有用户执行米游币任务...")
+                    for user_id_, user_ in get_unique_users():
+                        await manually_bbs_sign.send(f"⏳开始为用户 {user_id_} 执行米游币任务...")
+                        await perform_bbs_sign(
+                            user=user_,
+                            user_ids=[],
+                            matcher=matcher
+                        )
+                else:
+                    specified_user = _conf.users.get(specified_user_id)
+                    if not specified_user:
+                        await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
+                    await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
+                    await perform_bbs_sign(
+                        user=specified_user,
+                        user_ids=[],
+                        matcher=matcher
+                    )
+    else:
+        await manually_bbs_sign.send("⏳开始执行米游币任务...")
+        await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
 
 
 class GenshinNoteNotice(GenshinNote):

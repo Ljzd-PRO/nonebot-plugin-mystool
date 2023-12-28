@@ -15,7 +15,7 @@ from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 from . import user_data
 from .user_data import UserData, UserAccount
 
-VERSION = "v1.4.3"
+VERSION = "v1.4.4"
 """程序当前版本"""
 
 ROOT_PATH = Path(__name__).parent.absolute()
@@ -106,6 +106,10 @@ class Preference(BaseSettings, extra=Extra.ignore):
     """是否启用用户白名单"""
     whitelist_path: Optional[Path] = DATA_PATH / "whitelist.txt"
     """用户白名单文件路径"""
+    enable_admin_list: bool = False
+    """是否启用管理员名单"""
+    admin_list_path: Optional[Path] = DATA_PATH / "admin_list.txt"
+    """管理员名单文件路径"""
 
     @validator("log_path", allow_reuse=True)
     def _(cls, v: Optional[Path]):

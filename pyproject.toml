@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "v1.4.3"
+version = "v1.4.4"
 description = "QQ聊天、频道机器人插件 | 米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录、原神崩铁便笺提醒"
 license = "MIT"
 authors = [
@@ -24,7 +24,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-httpx = ">=0.24.1,<0.26.0"
+httpx = ">=0.24.1,<0.27.0"
 nonebot_plugin_apscheduler = ">=0.2.0"
 ntplib = "^0.4.0"
 Pillow = ">=9.5,<11.0"
@@ -42,7 +42,7 @@ nonebot2 = { version = "^2.0.1", extras = ["fastapi", "httpx", "websockets"] }
 nonebug = "^0.3.4"
 pytest = "^7.4.0"
 pytest-html = ">=3.2,<5.0"
-pytest-asyncio = "^0.21.0"
+pytest-asyncio = ">=0.21,<0.24"
 flake8 = "^6.1.0"
 
 [tool.poetry.group.test]

@@ -493,3 +493,12 @@ def read_whitelist() -> List[str]:
     :return: 白名单中的所有用户ID
     """
     return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
+
+
+def read_admin_list() -> List[str]:
+    """
+    读取白名单
+
+    :return: 管理员名单中的所有用户ID
+    """
+    return _read_user_list(_conf.preference.admin_list_path) if _conf.preference.enable_admin_list else []
