@@ -83,7 +83,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     user_id = event.get_user_id()
     user = _conf.users.get(user_id)
     if not user or not user.accounts:
-        await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
+        await manually_bbs_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
         if user_id not in read_admin_list():
             await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
