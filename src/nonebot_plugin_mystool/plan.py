@@ -93,7 +93,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                 await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
             else:
                 if specified_user_id == "*":
-                    await manually_bbs_sign.send(f"⏳开始为所有用户执行米游币任务...")
+                    await manually_bbs_sign.send("⏳开始为所有用户执行米游币任务...")
                     for user_ in _conf.users.values():
                         await perform_bbs_sign(
                             user=user_,
