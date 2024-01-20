@@ -9,7 +9,7 @@ from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, A
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
-from ..model import PluginDataManager, write_plugin_data
+from ..model import PluginDataManager, plugin_config
 from ..model import uuid4_validate
 from ..util import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
     GeneralGroupMessageEvent, PLUGIN, \
@@ -30,7 +30,7 @@ def check_qq_config(bot: QQGuildBot):
     if isinstance(bot, QQGuildBot):
         if not bot.bot_info.intent.direct_message:
             logger.warning(
-                f'{_conf.preference.log_head}QQGuild适配器未开启私信功能 Intents.direct_message，将无法响应私信消息')
+                f'{plugin_config.preference.log_head}QQGuild适配器未开启私信功能 Intents.direct_message，将无法响应私信消息')
 
 
 friendRequest = on_request(priority=1, block=True)
@@ -41,28 +41,28 @@ async def _(bot: OneBotV11Bot, event: RequestEvent):
     command_start = list(get_driver().config.command_start)[0]
     # 判断为加好友事件
     if isinstance(event, FriendRequestEvent):
-        if _conf.preference.add_friend_accept:
-            logger.info(f'{_conf.preference.log_head}已添加好友{event.user_id}')
+        if plugin_config.preference.add_friend_accept:
+            logger.info(f'{plugin_config.preference.log_head}已添加好友{event.user_id}')
             await bot.set_friend_add_request(flag=event.flag, approve=True)
-            if _conf.preference.add_friend_welcome:
+            if plugin_config.preference.add_friend_welcome:
                 # 等待腾讯服务器响应
                 await asyncio.sleep(1.5)
                 await bot.send_private_msg(user_id=event.user_id,
                                            message=f'欢迎使用米游社小助手，请发送『{command_start}帮助』查看更多用法哦~')
     # 判断为邀请进群事件
     elif isinstance(event, GroupRequestEvent):
-        logger.info(f'{_conf.preference.log_head}已加入群聊 {event.group_id}')
+        logger.info(f'{plugin_config.preference.log_head}已加入群聊 {event.group_id}')
 
 
 user_binding = on_command(
-    f"{_conf.preference.command_start}用户绑定",
+    f"{plugin_config.preference.command_start}用户绑定",
     aliases={
-        (f"{_conf.preference.command_start}用户绑定", "UUID"),
-        (f"{_conf.preference.command_start}用户绑定", "uuid"),
-        (f"{_conf.preference.command_start}用户绑定", "查询"),
-        (f"{_conf.preference.command_start}用户绑定", "还原"),
-        (f"{_conf.preference.command_start}用户绑定", "刷新UUID"),
-        (f"{_conf.preference.command_start}用户绑定", "刷新uuid")
+        (f"{plugin_config.preference.command_start}用户绑定", "UUID"),
+        (f"{plugin_config.preference.command_start}用户绑定", "uuid"),
+        (f"{plugin_config.preference.command_start}用户绑定", "查询"),
+        (f"{plugin_config.preference.command_start}用户绑定", "还原"),
+        (f"{plugin_config.preference.command_start}用户绑定", "刷新UUID"),
+        (f"{plugin_config.preference.command_start}用户绑定", "刷新uuid")
     },
     priority=5,
     block=True
@@ -88,7 +88,7 @@ async def _(
         command_arg=CommandArg()
 ):
     user_id = event.get_user_id()
-    user = _conf.users.get(user_id)
+    user = plugin_config.users.get(user_id)
     if len(command) > 1:
         if user is None:
             await matcher.finish("⚠️您的用户数据不存在，只有进行登录操作以后才会生成用户数据")
@@ -97,20 +97,20 @@ async def _(
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥查看。")
 
             await matcher.send(
-                f"{'🔑您的UUID密钥为：' if user_id not in _conf.user_bind else '🔑您绑定的用户数据的UUID密钥为：'}\n"
+                f"{'🔑您的UUID密钥为：' if user_id not in plugin_config.user_bind else '🔑您绑定的用户数据的UUID密钥为：'}\n"
                 f"{user.uuid.upper()}\n"
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
 
         elif command[1] == "查询":
-            if user_id in _conf.user_bind:
+            if user_id in plugin_config.user_bind:
                 await matcher.send(
                     "🖇️目前您绑定关联了用户：\n"
-                    f"{_conf.user_bind[user_id]}\n"
+                    f"{plugin_config.user_bind[user_id]}\n"
                     "您的任何操作都将会影响到目标用户的数据"
                 )
-            elif user_id in _conf.user_bind.values():
-                user_filter = filter(lambda x: _conf.user_bind[x] == user_id, _conf.user_bind)
+            elif user_id in plugin_config.user_bind.values():
+                user_filter = filter(lambda x: plugin_config.user_bind[x] == user_id, plugin_config.user_bind)
                 await matcher.send(
                     "🖇️目前有以下用户绑定了您的数据：\n"
                     "\n".join(user_filter)
@@ -119,31 +119,31 @@ async def _(
                 await matcher.send("⚠️您当前没有绑定任何用户数据，也没有任何用户绑定您的数据")
 
         elif command[1] == "还原":
-            if user_id not in _conf.user_bind:
+            if user_id not in plugin_config.user_bind:
                 await matcher.finish("⚠️您当前没有绑定任何用户数据")
             else:
-                del _conf.user_bind[user_id]
-                del _conf.users[user_id]
-                write_plugin_data()
+                del plugin_config.user_bind[user_id]
+                del plugin_config.users[user_id]
+                PluginDataManager.write_plugin_data()
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
 
         elif command[1] in ["刷新UUID", "刷新uuid"]:
             if isinstance(event, GeneralGroupMessageEvent):
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥刷新。")
 
-            if user_id in _conf.user_bind:
-                target_id = _conf.user_bind[user_id]
+            if user_id in plugin_config.user_bind:
+                target_id = plugin_config.user_bind[user_id]
                 be_bind = False
             else:
                 target_id = user_id
                 be_bind = True
 
-            src_users = list(filter(lambda x: _conf.user_bind[x] == target_id, _conf.user_bind))
+            src_users = list(filter(lambda x: plugin_config.user_bind[x] == target_id, plugin_config.user_bind))
             for key in src_users:
-                del _conf.user_bind[key]
-                del _conf.users[key]
-            _conf.users[target_id].uuid = str(uuid4())
-            write_plugin_data()
+                del plugin_config.user_bind[key]
+                del plugin_config.users[key]
+            plugin_config.users[target_id].uuid = str(uuid4())
+            PluginDataManager.write_plugin_data()
 
             await matcher.send(
                 f"{'✔已刷新UUID密钥，原先绑定的用户将无法访问当前用户数据' if be_bind else '✔已刷新您绑定的用户数据的UUID密钥，目前您的用户数据已为空，您也可以再次绑定'}\n"
@@ -170,17 +170,17 @@ async def _(
             await matcher.finish("⚠️您不能绑定自己的UUID密钥")
         else:
             # 筛选UUID密钥对应的用户
-            target_users = list(filter(lambda x: x[1].uuid == uuid and x[0] != user_id, _conf.users.items()))
+            target_users = list(filter(lambda x: x[1].uuid == uuid and x[0] != user_id, plugin_config.users.items()))
             # 如果有多个用户使用了此UUID密钥，即目标用户被多个用户绑定，需要进一步筛选，防止形成循环绑定的关系链
             if len(target_users) > 1:
-                user_filter = filter(lambda x: x[0] not in _conf.user_bind, target_users)
+                user_filter = filter(lambda x: x[0] not in plugin_config.user_bind, target_users)
                 target_id, _ = next(user_filter)
             elif len(target_users) == 1:
                 target_id, _ = target_users[0]
             else:
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
-            _conf.do_user_bind(user_id, target_id)
-            user = _conf.users[user_id]
+            plugin_config.do_user_bind(user_id, target_id)
+            user = plugin_config.users[user_id]
             user.qq_guilds.setdefault(user_id, set())
             if isinstance(event, DirectMessageCreateEvent):
                 user.qq_guilds[user_id].add(event.channel_id)
@@ -189,15 +189,15 @@ async def _(
             if isinstance(event, GeneralGroupMessageEvent):
                 user.uuid = str(uuid4())
                 await matcher.send("🔑由于您在群聊中进行绑定，已刷新您的UUID密钥，但不会影响其他已绑定用户")
-            write_plugin_data()
+            PluginDataManager.write_plugin_data()
             await matcher.send(f"✔已绑定用户 {target_id} 的用户数据")
 
 
 direct_msg_respond = on_command(
-    f"{_conf.preference.command_start}私信响应",
+    f"{plugin_config.preference.command_start}私信响应",
     aliases={
-        f"{_conf.preference.command_start}私聊响应",
-        f"{_conf.preference.command_start}请求响应"
+        f"{plugin_config.preference.command_start}私聊响应",
+        f"{plugin_config.preference.command_start}请求响应"
     },
     priority=5,
     block=True
@@ -212,10 +212,10 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
     # 附加功能：记录用户所在频道
     if isinstance(event, MessageCreateEvent):
         user_id = event.get_user_id()
-        if user := _conf.users.get(user_id):
+        if user := plugin_config.users.get(user_id):
             user.qq_guilds.setdefault(user_id, set())
             user.qq_guilds[user_id].add(event.guild_id)
-            write_plugin_data()
+            PluginDataManager.write_plugin_data()
 
     msg_text = f"{PLUGIN.metadata.name}" \
                f"{PLUGIN.metadata.description}\n" \

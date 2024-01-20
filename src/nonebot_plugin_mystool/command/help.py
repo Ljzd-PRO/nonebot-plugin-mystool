@@ -6,16 +6,15 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
-from ..model import PluginDataManager
+from ..model import plugin_config
 from ..util.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
 __all__ = ["helper"]
-_conf = PluginDataManager.plugin_data
 
 helper = on_command(
-    f"{_conf.preference.command_start}帮助",
+    f"{plugin_config.preference.command_start}帮助",
     priority=1,
-    aliases={f"{_conf.preference.command_start}help"},
+    aliases={f"{plugin_config.preference.command_start}help"},
     block=True
 )
 
@@ -44,7 +43,7 @@ async def _(_: Union[GeneralMessageEvent], matcher: Matcher, args=CommandArg()):
             )
         except QQGuildActionFailed as e:
             if e.code == 304003:
-                logger.exception(f"{_conf.preference.log_head}帮助命令的文本发送失败，原因是频道禁止发送URL")
+                logger.exception(f"{plugin_config.preference.log_head}帮助命令的文本发送失败，原因是频道禁止发送URL")
 
 
 @helper.got('content')

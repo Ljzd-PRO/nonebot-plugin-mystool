@@ -19,7 +19,7 @@ from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
 from ..command.exchange import generate_image
 from ..model import MissionStatus, GenshinNote, StarRailNote
-from ..model import PluginDataManager, write_plugin_data
+from ..model import PluginDataManager, plugin_config
 from ..model import UserData
 from ..util import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
     get_all_bind, \
@@ -28,9 +28,8 @@ from ..util import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_pr
 __all__ = [
     "manually_game_sign", "manually_bbs_sign", "manually_genshin_note_check", "manually_starrail_note_check"
 ]
-_conf = PluginDataManager.plugin_data
 
-manually_game_sign = on_command(_conf.preference.command_start + '签到', priority=5, block=True)
+manually_game_sign = on_command(plugin_config.preference.command_start + '签到', priority=5, block=True)
 manually_game_sign.name = '签到'
 manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
 
@@ -41,7 +40,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     手动游戏签到函数
     """
     user_id = event.get_user_id()
-    user = _conf.users.get(user_id)
+    user = plugin_config.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
@@ -60,7 +59,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                             event=event
                         )
                 else:
-                    specified_user = _conf.users.get(specified_user_id)
+                    specified_user = plugin_config.users.get(specified_user_id)
                     if not specified_user:
                         await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                     await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
@@ -75,7 +74,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
         await perform_game_sign(user=user, user_ids=[user_id], matcher=matcher, event=event)
 
 
-manually_bbs_sign = on_command(_conf.preference.command_start + '任务', priority=5, block=True)
+manually_bbs_sign = on_command(plugin_config.preference.command_start + '任务', priority=5, block=True)
 manually_bbs_sign.name = '任务'
 manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米游币任务完成情况'
 
@@ -86,7 +85,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     手动米游币任务函数
     """
     user_id = event.get_user_id()
-    user = _conf.users.get(user_id)
+    user = plugin_config.users.get(user_id)
     if not user or not user.accounts:
         await manually_bbs_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
@@ -104,7 +103,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                             matcher=matcher
                         )
                 else:
-                    specified_user = _conf.users.get(specified_user_id)
+                    specified_user = plugin_config.users.get(specified_user_id)
                     if not specified_user:
                         await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                     await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
@@ -154,11 +153,11 @@ note_notice_status: Dict[str, NoteNoticeStatus] = {}
 """记录账号对应的便笺通知状态"""
 
 manually_genshin_note_check = on_command(
-    _conf.preference.command_start + '原神便笺',
+    plugin_config.preference.command_start + '原神便笺',
     aliases={
-        _conf.preference.command_start + '便笺',
-        _conf.preference.command_start + '便签',
-        _conf.preference.command_start + '原神便签',
+        plugin_config.preference.command_start + '便笺',
+        plugin_config.preference.command_start + '便签',
+        plugin_config.preference.command_start + '原神便签',
     },
     priority=5,
     block=True
@@ -173,17 +172,17 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     手动查看原神便笺
     """
     user_id = event.get_user_id()
-    user = _conf.users.get(user_id)
+    user = plugin_config.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await genshin_note_check(user=user, user_ids=[user_id], matcher=matcher)
 
 
 manually_starrail_note_check = on_command(
-    _conf.preference.command_start + '星穹铁道便笺',
+    plugin_config.preference.command_start + '星穹铁道便笺',
     aliases={
-        _conf.preference.command_start + '铁道便笺',
-        _conf.preference.command_start + '铁道便签',
+        plugin_config.preference.command_start + '铁道便笺',
+        plugin_config.preference.command_start + '铁道便签',
     },
     priority=5,
     block=True
@@ -198,7 +197,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     手动查看星穹铁道便笺（sr）
     """
     user_id = event.get_user_id()
-    user = _conf.users.get(user_id)
+    user = plugin_config.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await starrail_note_check(user=user, user_ids=[user_id], matcher=matcher)
@@ -260,7 +259,7 @@ async def perform_game_sign(
             if (get_info_status and not info.is_sign) or not get_info_status:
                 sign_status, mmt_data = await signer.sign(account.platform)
                 if sign_status.need_verify:
-                    if _conf.preference.geetest_url:
+                    if plugin_config.preference.geetest_url:
                         if matcher:
                             await matcher.send("⏳正在尝试完成人机验证，请稍后...")
                         geetest_result = await get_validate(mmt_data.gt, mmt_data.challenge)
@@ -278,10 +277,10 @@ async def perform_game_sign(
                     elif user.enable_notice:
                         for user_id in user_ids:
                             await send_private_msg(user_id=user_id, message=message)
-                    await asyncio.sleep(_conf.preference.sleep_time)
+                    await asyncio.sleep(plugin_config.preference.sleep_time)
                     continue
 
-                await asyncio.sleep(_conf.preference.sleep_time)
+                await asyncio.sleep(plugin_config.preference.sleep_time)
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or matcher:
@@ -324,7 +323,7 @@ async def perform_game_sign(
                             for user_id in user_ids:
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg)
                                 await send_private_msg(use=adapter, user_id=user_id, message=qq_guild_img_msg)
-            await asyncio.sleep(_conf.preference.sleep_time)
+            await asyncio.sleep(plugin_config.preference.sleep_time)
 
         if not games_has_record:
             if matcher:
@@ -339,7 +338,7 @@ async def perform_game_sign(
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
         user.enable_notice = False
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
 
 
 async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
@@ -469,7 +468,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
     # 如果全部登录失效，则关闭通知
     if len(failed_accounts) == len(user.accounts):
         user.enable_notice = False
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
 
 
 async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
@@ -610,7 +609,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     # 防止重复提醒
                     # if not starrail_notice.current_train_score:
                     if not starrail_notice.current_train_score \
-                            and _conf.preference.notice_time:  # 注意此处添加notice_time是为了防止每日首次推送通知在4:00后一段时间
+                            and plugin_config.preference.notice_time:  # 注意此处添加notice_time是为了防止每日首次推送通知在4:00后一段时间
                         starrail_notice.current_train_score = True  # notice_time = plan_time +1h
                         msg += '❕您的每日实训未完成\n'  # 通知逻辑变动后，如不添加notice_time，便笺检查在xx:20,便笺检查间隔1h，则每日首次通知在04:20
                         do_notice = True
@@ -621,7 +620,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                 if note.current_rogue_score != note.max_rogue_score:
                     # 防止重复提醒
                     if not starrail_notice.current_rogue_score \
-                            and _conf.preference.notice_time:  # notice_time同理
+                            and plugin_config.preference.notice_time:  # notice_time同理
                         starrail_notice.current_rogue_score = True
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
@@ -651,36 +650,36 @@ def daily_update():
     """
     每日图片生成函数
     """
-    logger.info(f"{_conf.preference.log_head}后台开始生成每日商品图片")
+    logger.info(f"{plugin_config.preference.log_head}后台开始生成每日商品图片")
     threading.Thread(target=generate_image).start()
 
 
 @scheduler.scheduled_job("cron",
-                         hour=_conf.preference.plan_time.split(':')[0],
-                         minute=_conf.preference.plan_time.split(':')[1],
+                         hour=plugin_config.preference.plan_time.split(':')[0],
+                         minute=plugin_config.preference.plan_time.split(':')[1],
                          id="daily_schedule")
 async def daily_schedule():
     """
     自动米游币任务、游戏签到函数
     """
-    logger.info(f"{_conf.preference.log_head}开始执行每日自动任务")
+    logger.info(f"{plugin_config.preference.log_head}开始执行每日自动任务")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
         await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
-    logger.info(f"{_conf.preference.log_head}每日自动任务执行完成")
+    logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
 
 
 @scheduler.scheduled_job("interval",
-                         minutes=_conf.preference.resin_interval,
+                         minutes=plugin_config.preference.resin_interval,
                          id="resin_check")
 async def auto_note_check():
     """
     自动查看实时便笺
     """
-    logger.info(f"{_conf.preference.log_head}开始执行自动便笺检查")
+    logger.info(f"{plugin_config.preference.log_head}开始执行自动便笺检查")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
         await genshin_note_check(user=user, user_ids=user_ids)
         await starrail_note_check(user=user, user_ids=user_ids)
-    logger.info(f"{_conf.preference.log_head}自动便笺检查执行完成")
+    logger.info(f"{plugin_config.preference.log_head}自动便笺检查执行完成")

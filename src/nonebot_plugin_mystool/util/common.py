@@ -30,7 +30,7 @@ from nonebot.log import logger
 from qrcode import QRCode
 
 from ..model import GeetestResult
-from ..model import PluginDataManager, Preference
+from ..model import Preference, plugin_config
 from ..model import UserData
 
 if TYPE_CHECKING:
@@ -42,8 +42,6 @@ __all__ = ["GeneralMessageEvent", "GeneralPrivateMessageEvent", "GeneralGroupMes
            "get_validate", "generate_seed_id", "generate_fp_locally", "get_file", "blur_phone", "generate_qr_img",
            "send_private_msg", "get_unique_users", "get_all_bind", "read_blacklist", "read_whitelist",
            "read_admin_list"]
-
-_conf = PluginDataManager.plugin_data
 
 GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent, MessageEvent
 """消息事件类型"""
@@ -68,9 +66,9 @@ class CommandBegin:
         机器人启动时设置命令开头字段
         """
         if nonebot.get_driver().config.command_start:
-            cls.string = list(nonebot.get_driver().config.command_start)[0] + _conf.preference.command_start
+            cls.string = list(nonebot.get_driver().config.command_start)[0] + plugin_config.preference.command_start
         else:
-            cls.string = _conf.preference.command_start
+            cls.string = plugin_config.preference.command_start
 
     @classmethod
     def __str__(cls):
@@ -96,13 +94,13 @@ def set_logger(logger: "Logger"):
     # 根据"name"筛选日志，如果在 plugins 目录加载，则通过 LOG_HEAD 识别
     # 如果不是插件输出的日志，但是与插件有关，则也进行保存
     logger.add(
-        _conf.preference.log_path,
+        plugin_config.preference.log_path,
         diagnose=False,
         format=nonebot.log.default_format,
-        rotation=_conf.preference.log_rotation,
-        filter=lambda x: x["name"] == _conf.preference.plugin_name or (
-                _conf.preference.log_head != "" and x["message"].find(_conf.preference.log_head) == 0
-        ) or x["message"].find(f"plugins.{_conf.preference.plugin_name}") != -1
+        rotation=plugin_config.preference.log_rotation,
+        filter=lambda x: x["name"] == plugin_config.preference.plugin_name or (
+                plugin_config.preference.log_head != "" and x["message"].find(plugin_config.preference.log_head) == 0
+        ) or x["message"].find(f"plugins.{plugin_config.preference.plugin_name}") != -1
     )
 
     return logger
@@ -111,7 +109,7 @@ def set_logger(logger: "Logger"):
 logger = set_logger(logger)
 """本插件所用日志记录器对象（包含输出到文件）"""
 
-PLUGIN = nonebot.plugin.get_plugin(_conf.preference.plugin_name)
+PLUGIN = nonebot.plugin.get_plugin(plugin_config.preference.plugin_name)
 '''本插件数据'''
 
 if not PLUGIN:
@@ -127,7 +125,7 @@ def custom_attempt_times(retry: bool):
     :param retry True - 重试次数达到配置中 MAX_RETRY_TIMES 时停止; False - 执行次数达到1时停止，即不进行重试
     """
     if retry:
-        return tenacity.stop_after_attempt(_conf.preference.max_retry_times + 1)
+        return tenacity.stop_after_attempt(plugin_config.preference.max_retry_times + 1)
     else:
         return tenacity.stop_after_attempt(1)
 
@@ -141,7 +139,7 @@ def get_async_retry(retry: bool):
     return tenacity.AsyncRetrying(
         stop=custom_attempt_times(retry),
         retry=tenacity.retry_if_exception_type(BaseException),
-        wait=tenacity.wait_fixed(_conf.preference.retry_interval),
+        wait=tenacity.wait_fixed(plugin_config.preference.retry_interval),
     )
 
 
@@ -192,11 +190,11 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
     :param salt: 可选，自定义salt
     """
     if data is None and params is None or \
-            salt is not None and salt != _conf.salt_config.SALT_PROD:
+            salt is not None and salt != plugin_config.salt_config.SALT_PROD:
         if platform == "ios":
-            salt = salt or _conf.salt_config.SALT_IOS
+            salt = salt or plugin_config.salt_config.SALT_IOS
         else:
-            salt = salt or _conf.salt_config.SALT_ANDROID
+            salt = salt or plugin_config.salt_config.SALT_ANDROID
         t = str(int(time.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -205,12 +203,12 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{a},{re}"
     else:
         if params:
-            salt = _conf.salt_config.SALT_PARAMS if not salt else salt
+            salt = plugin_config.salt_config.SALT_PARAMS if not salt else salt
         else:
-            salt = _conf.salt_config.SALT_DATA if not salt else salt
+            salt = plugin_config.salt_config.SALT_DATA if not salt else salt
 
         if not data:
-            if salt == _conf.salt_config.SALT_PROD:
+            if salt == plugin_config.salt_config.SALT_PROD:
                 data = {}
             else:
                 data = ""
@@ -238,11 +236,11 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
     :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
-    if not (gt and challenge) or not _conf.preference.geetest_url:
+    if not (gt and challenge) or not plugin_config.preference.geetest_url:
         return GeetestResult("", "")
     params = {"gt": gt, "challenge": challenge}
-    params.update(_conf.preference.geetest_params)
-    content = deepcopy(_conf.preference.geetest_json or Preference().geetest_json)
+    params.update(plugin_config.preference.geetest_params)
+    content = deepcopy(plugin_config.preference.geetest_json or Preference().geetest_json)
     for key, value in content.items():
         if isinstance(value, str):
             content[key] = value.format(gt=gt, challenge=challenge)
@@ -251,7 +249,7 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
             with attempt:
                 async with httpx.AsyncClient() as client:
                     res = await client.post(
-                        _conf.preference.geetest_url,
+                        plugin_config.preference.geetest_url,
                         params=params,
                         json=content,
                         timeout=60
@@ -259,10 +257,10 @@ async def get_validate(gt: str = None, challenge: str = None, retry: bool = True
                 geetest_data = res.json()
                 validate = geetest_data['data']['validate']
                 seccode = geetest_data['data'].get('seccode') or f"{validate}|jordan"
-                logger.debug(f"{_conf.preference.log_head}人机验证结果：{geetest_data}")
+                logger.debug(f"{plugin_config.preference.log_head}人机验证结果：{geetest_data}")
                 return GeetestResult(validate=validate, seccode=seccode)
     except tenacity.RetryError:
-        logger.exception(f"{_conf.preference.log_head}获取人机验证validate失败")
+        logger.exception(f"{plugin_config.preference.log_head}获取人机验证validate失败")
 
 
 def generate_seed_id(length: int = 8) -> str:
@@ -297,10 +295,10 @@ async def get_file(url: str, retry: bool = True):
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(url, timeout=_conf.preference.timeout, follow_redirects=True)
+                    res = await client.get(url, timeout=plugin_config.preference.timeout, follow_redirects=True)
                 return res.content
     except tenacity.RetryError:
-        logger.exception(f"{_conf.preference.log_head}下载文件 - {url} 失败")
+        logger.exception(f"{plugin_config.preference.log_head}下载文件 - {url} 失败")
 
 
 def blur_phone(phone: Union[str, int]) -> str:
@@ -351,7 +349,7 @@ async def send_private_msg(
     error_flag = False
     action_failed = None
 
-    if guild_id or ((user := _conf.users.get(user_id)) and user_id in user.qq_guilds):
+    if guild_id or ((user := plugin_config.users.get(user_id)) and user_id in user.qq_guilds):
         user_type = QQGuildAdapter
     else:
         user_type = OneBotV11Adapter
@@ -372,7 +370,7 @@ async def send_private_msg(
                     await bot.send_private_msg(user_id=int(user_id), message=message)
                 except OneBotV11ActionFailed as e:
                     logger.exception(
-                        f"{_conf.preference.log_head}OneBotV11 尝试主动发送私信消息失败。"
+                        f"{plugin_config.preference.log_head}OneBotV11 尝试主动发送私信消息失败。"
                         f"用户ID：{user_id}，消息内容：\n"
                         f"{message}"
                     )
@@ -399,15 +397,15 @@ async def send_private_msg(
             reference = reference[-1].data["reference"]
 
         if guild_id is None:
-            if user := _conf.users.get(user_id):
+            if user := plugin_config.users.get(user_id):
                 if not (guilds := user.qq_guilds.get(user_id)):
-                    logger.error(f"{_conf.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                    logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
                     guild_ids = iter([])
                     error_flag = True
                 else:
                     guild_ids = iter(guilds)
             else:
-                logger.error(f"{_conf.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                logger.error(f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
                 guild_ids = iter([])
                 error_flag = True
         else:
@@ -430,7 +428,7 @@ async def send_private_msg(
                         )
                     except (QQGuildActionFailed, AuditException) as e:
                         logger.exception(
-                            f"{_conf.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
+                            f"{plugin_config.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
                             f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
                             f"{message}"
                         )
@@ -449,7 +447,7 @@ def get_unique_users() -> Iterable[Tuple[str, UserData]]:
 
     :return: dict_items[用户ID, 用户数据]
     """
-    return filter(lambda x: x[0] not in _conf.user_bind, _conf.users.items())
+    return filter(lambda x: x[0] not in plugin_config.user_bind, plugin_config.users.items())
 
 
 def get_all_bind(user_id: str) -> Iterable[str]:
@@ -458,7 +456,7 @@ def get_all_bind(user_id: str) -> Iterable[str]:
 
     :return: 绑定该用户的所有用户ID
     """
-    user_id_filter = filter(lambda x: _conf.user_bind.get(x) == user_id, _conf.user_bind)
+    user_id_filter = filter(lambda x: plugin_config.user_bind.get(x) == user_id, plugin_config.user_bind)
     return user_id_filter
 
 
@@ -471,13 +469,13 @@ def _read_user_list(path: Path) -> List[str]:
     if not path:
         return []
     if os.path.isfile(path):
-        with open(path, "r", encoding=_conf.preference.encoding) as f:
+        with open(path, "r", encoding=plugin_config.preference.encoding) as f:
             lines = f.readlines()
         lines = map(lambda x: x.strip(), lines)
         line_filter = filter(lambda x: x and x != "\n", lines)
         return list(line_filter)
     else:
-        logger.error(f"{_conf.preference.log_head}黑/白名单文件 {path} 不存在")
+        logger.error(f"{plugin_config.preference.log_head}黑/白名单文件 {path} 不存在")
         return []
 
 
@@ -487,7 +485,7 @@ def read_blacklist() -> List[str]:
 
     :return: 黑名单中的所有用户ID
     """
-    return _read_user_list(_conf.preference.blacklist_path) if _conf.preference.enable_blacklist else []
+    return _read_user_list(plugin_config.preference.blacklist_path) if plugin_config.preference.enable_blacklist else []
 
 
 def read_whitelist() -> List[str]:
@@ -496,7 +494,7 @@ def read_whitelist() -> List[str]:
 
     :return: 白名单中的所有用户ID
     """
-    return _read_user_list(_conf.preference.whitelist_path) if _conf.preference.enable_whitelist else []
+    return _read_user_list(plugin_config.preference.whitelist_path) if plugin_config.preference.enable_whitelist else []
 
 
 def read_admin_list() -> List[str]:
@@ -505,4 +503,5 @@ def read_admin_list() -> List[str]:
 
     :return: 管理员名单中的所有用户ID
     """
-    return _read_user_list(_conf.preference.admin_list_path) if _conf.preference.enable_admin_list else []
+    return _read_user_list(
+        plugin_config.preference.admin_list_path) if plugin_config.preference.enable_admin_list else []

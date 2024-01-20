@@ -2,15 +2,23 @@ import inspect
 import time
 from abc import abstractmethod
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple
 
 import pytz
 from pydantic import BaseModel
 
-__all__ = ["BaseModelWithSetter", "BaseModelWithUpdate", "Good", "GameRecord", "GameInfo", "Address", "MmtData",
+__all__ = ["root_path", "data_path", "BaseModelWithSetter", "BaseModelWithUpdate", "Good", "GameRecord", "GameInfo",
+           "Address", "MmtData",
            "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "BaseApiStatus",
            "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus", "ExchangeStatus", "MissionStatus",
            "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus", "GeetestResult", "GeetestResultV4"]
+
+root_path = Path(__name__).parent.absolute()
+'''NoneBot2 机器人根目录'''
+
+data_path = root_path / "data" / "nonebot-plugin-mystool"
+'''插件数据保存目录'''
 
 
 class BaseModelWithSetter(BaseModel):
@@ -140,8 +148,8 @@ class Good(BaseModelWithUpdate):
         elif self.time == 0:
             return None
         elif self.time_limited:
-            from .plugin_data import PluginDataManager
-            if zone := PluginDataManager.plugin_data.preference.timezone:
+            from .config import plugin_config
+            if zone := plugin_config.preference.timezone:
                 tz_info = pytz.timezone(zone)
                 date_time = datetime.fromtimestamp(self.time, tz_info)
             else:

@@ -9,17 +9,16 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..api.common import get_good_detail
 from ..model import Good
-from ..model import PluginDataManager, DATA_PATH
+from ..model import data_path, plugin_config
 from ..util import (get_file, logger, get_async_retry)
 
 __all__ = ["game_list_to_image"]
-_conf = PluginDataManager.plugin_data
 
 FONT_URL = os.path.join(
-    _conf.preference.github_proxy,
+    plugin_config.preference.github_proxy,
     "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansHWSC.zip")
-TEMP_FONT_PATH = DATA_PATH / "temp" / "font.zip"
-FONT_SAVE_PATH = DATA_PATH / "SourceHanSansHWSC-Regular.otf"
+TEMP_FONT_PATH = data_path / "temp" / "font.zip"
+FONT_SAVE_PATH = data_path / "SourceHanSansHWSC-Regular.otf"
 
 
 async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bool = True):
@@ -37,13 +36,13 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         if lock is not None:
             lock.acquire()
 
-        font_path = _conf.good_list_image_config.FONT_PATH
+        font_path = plugin_config.good_list_image_config.FONT_PATH
         if font_path is None or not os.path.isfile(font_path):
             if os.path.isfile(FONT_SAVE_PATH):
                 font_path = FONT_SAVE_PATH
             else:
                 logger.warning(
-                    f"{_conf.preference.log_head}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release "
+                    f"{plugin_config.preference.log_head}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release "
                     f"下载字体...")
                 try:
                     os.makedirs(os.path.dirname(TEMP_FONT_PATH))
@@ -53,7 +52,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
                     content = await get_file(FONT_URL)
                     if content is None:
                         logger.error(
-                            f"{_conf.preference.log_head}商品列表图片生成 - 字体下载失败，无法继续生成图片")
+                            f"{plugin_config.preference.log_head}商品列表图片生成 - 字体下载失败，无法继续生成图片")
                         return None
                     f.write(content)
                 with open(TEMP_FONT_PATH, "rb") as f:
@@ -62,19 +61,19 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
                             with open(FONT_SAVE_PATH, "wb") as fp_font:
                                 fp_font.write(zip_font.read())
                 logger.info(
-                    f"{_conf.preference.log_head}商品列表图片生成 - 已完成字体下载 -> {FONT_SAVE_PATH}")
+                    f"{plugin_config.preference.log_head}商品列表图片生成 - 已完成字体下载 -> {FONT_SAVE_PATH}")
                 try:
                     os.remove(TEMP_FONT_PATH)
                 except:
                     logger.exception(
-                        f"{_conf.preference.log_head}商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
+                        f"{plugin_config.preference.log_head}商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
                 font_path = FONT_SAVE_PATH
 
         if lock is not None:
             lock.release()
 
         font = ImageFont.truetype(
-            str(font_path), _conf.good_list_image_config.FONT_SIZE, encoding=_conf.preference.encoding)
+            str(font_path), plugin_config.good_list_image_config.FONT_SIZE, encoding=plugin_config.preference.encoding)
 
         size_y = 0
         '''起始粘贴位置 高'''
@@ -88,40 +87,41 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
             async for attempt in get_async_retry(retry):
                 with attempt:
                     async with httpx.AsyncClient() as client:
-                        icon = await client.get(good.icon, timeout=_conf.preference.timeout)
+                        icon = await client.get(good.icon, timeout=plugin_config.preference.timeout)
             img = Image.open(io.BytesIO(icon.content))
             # 调整预览图大小
-            img = img.resize(_conf.good_list_image_config.ICON_SIZE)
+            img = img.resize(plugin_config.good_list_image_config.ICON_SIZE)
             # 记录预览图粘贴位置
             position.append((0, size_y))
             # 调整下一个粘贴的位置
-            size_y += _conf.good_list_image_config.ICON_SIZE[1] + \
-                      _conf.good_list_image_config.PADDING_ICON
+            size_y += plugin_config.good_list_image_config.ICON_SIZE[1] + \
+                      plugin_config.good_list_image_config.PADDING_ICON
             imgs.append(img)
 
         preview = Image.new(
-            'RGB', (_conf.good_list_image_config.WIDTH, size_y), (255, 255, 255))
+            'RGB', (plugin_config.good_list_image_config.WIDTH, size_y), (255, 255, 255))
 
         i = 0
         for img in imgs:
             preview.paste(img, position[i])
             i += 1
 
-        draw_y = _conf.good_list_image_config.PADDING_TEXT_AND_ICON_Y
+        draw_y = plugin_config.good_list_image_config.PADDING_TEXT_AND_ICON_Y
         '''写入文字的起始位置 高'''
         for good in good_list:
             draw = ImageDraw.Draw(preview)
             # 根据预览图高度来确定写入文字的位置，并调整空间
-            draw.text((_conf.good_list_image_config.ICON_SIZE[0] + _conf.good_list_image_config.PADDING_TEXT_AND_ICON_X,
+            draw.text((plugin_config.good_list_image_config.ICON_SIZE[
+                           0] + plugin_config.good_list_image_config.PADDING_TEXT_AND_ICON_X,
                        draw_y),
                       f"{good.general_name}\n商品ID: {good.goods_id}\n兑换时间: {good.time_text}\n价格: {good.price} 米游币",
                       (0, 0, 0), font)
-            draw_y += (_conf.good_list_image_config.ICON_SIZE[1] +
-                       _conf.good_list_image_config.PADDING_ICON)
+            draw_y += (plugin_config.good_list_image_config.ICON_SIZE[1] +
+                       plugin_config.good_list_image_config.PADDING_ICON)
 
         # 导出
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
         return image_bytes.getvalue()
     except:
-        logger.exception(f"{_conf.preference.log_head}商品列表图片生成 - 无法完成图片生成")
+        logger.exception(f"{plugin_config.preference.log_head}商品列表图片生成 - 无法完成图片生成")

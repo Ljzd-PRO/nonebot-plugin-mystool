@@ -1,9 +1,10 @@
 from nonebot.plugin import PluginMetadata
 
-from .model import VERSION
+from . import _version as version
 
+__version__ = version.__version__
 __plugin_meta__ = PluginMetadata(
-    name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
+    name=f"❖米游社小助手插件❖\n版本 - {__version__}\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage=
     "\n🔐 {HEAD}登录 ➢ 登录绑定米游社账户"
@@ -23,7 +24,7 @@ __plugin_meta__ = PluginMetadata(
     "\n📖 {HEAD}帮助 ➢ 查看帮助信息"
     "\n🔍 {HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
     "\n\n⚠️你的数据将经过机器人服务器，请确定你信任服务器所有者再使用。",
-    extra={"version": VERSION}
+    extra={"version": __version__}
 )
 
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
