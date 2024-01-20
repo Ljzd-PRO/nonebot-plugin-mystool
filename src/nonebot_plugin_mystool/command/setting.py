@@ -1,6 +1,3 @@
-"""
-### 用户设置相关
-"""
 from typing import Union
 
 from nonebot import on_command
@@ -8,11 +5,12 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from .myb_missions_api import BaseMission
-from .plugin_data import PluginDataManager, write_plugin_data
-from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent
+from nonebot_plugin_mystool.api import BaseMission
+from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
+from nonebot_plugin_mystool.model import UserAccount
+from nonebot_plugin_mystool.util import COMMAND_BEGIN, GeneralMessageEvent
 
+__all__ = ["setting", "account_setting", "global_setting"]
 _conf = PluginDataManager.plugin_data
 
 setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)

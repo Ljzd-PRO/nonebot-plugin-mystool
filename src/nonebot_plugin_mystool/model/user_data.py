@@ -1,6 +1,3 @@
-"""
-### 用户数据相关
-"""
 from typing import List, Union, Optional, Any, Dict, Set, TYPE_CHECKING, AbstractSet, \
     Mapping, Literal
 from uuid import uuid4, UUID
@@ -8,13 +5,15 @@ from uuid import uuid4, UUID
 from httpx import Cookies
 from pydantic import BaseModel, validator
 
-from .data_model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
+from nonebot_plugin_mystool.model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
     DictStrAny = Dict[str, Any]
     AbstractSetIntStr = AbstractSet[IntStr]
     MappingIntStrAny = Mapping[IntStr, Any]
+
+__all__ = ["BBSCookies", "UserAccount", "ExchangePlan", "ExchangeResult", "uuid4_validate", "UserData"]
 
 
 class BBSCookies(BaseModelWithSetter, BaseModelWithUpdate):
@@ -242,13 +241,13 @@ class UserAccount(BaseModelWithSetter):
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
-            from .utils import generate_device_id
+            from nonebot_plugin_mystool.util.common import generate_device_id
             if not data.get("device_id_ios"):
                 data.setdefault("device_id_ios", generate_device_id())
             if not data.get("device_id_android"):
                 data.setdefault("device_id_android", generate_device_id())
 
-        from . import myb_missions_api
+        from nonebot_plugin_mystool.api import myb_missions_api
 
         mission_games_param: Union[List[str], Set[type], None] = data.pop(
             "mission_games") if "mission_games" in data else None
@@ -266,7 +265,7 @@ class UserAccount(BaseModelWithSetter):
 
     @validator("mission_games")
     def mission_games_validator(cls, v):
-        from .myb_missions_api import BaseMission
+        from nonebot_plugin_mystool.api.myb_missions_api import BaseMission
         if not all(issubclass(game, BaseMission) for game in v):
             raise ValueError("UserAccount.mission_games 必须是 BaseMission 的子类")
 

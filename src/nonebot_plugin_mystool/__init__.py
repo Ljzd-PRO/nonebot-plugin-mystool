@@ -1,9 +1,6 @@
-import pkgutil
-from pathlib import Path
-
 from nonebot.plugin import PluginMetadata
 
-from .plugin_data import VERSION
+from nonebot_plugin_mystool.model import VERSION
 
 __plugin_meta__ = PluginMetadata(
     name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
@@ -31,16 +28,13 @@ __plugin_meta__ = PluginMetadata(
 
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
-from .utils import CommandBegin
+from nonebot_plugin_mystool.util import CommandBegin
 from nonebot import init
 from nonebot import get_driver
 
 init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
 
-# 加载其它代码
+# 加载命令
 
-FILE_PATH = Path(__file__).parent.absolute()
-
-for _, file, _ in pkgutil.iter_modules([str(FILE_PATH)]):
-    __import__(file, globals(), level=1)
+from nonebot_plugin_mystool.command import *

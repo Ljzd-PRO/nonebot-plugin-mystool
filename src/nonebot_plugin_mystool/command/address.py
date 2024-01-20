@@ -1,6 +1,3 @@
-"""
-### 米游社收货地址相关
-"""
 import asyncio
 from typing import Union
 
@@ -9,10 +6,15 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_address
-from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
+from nonebot_plugin_mystool.api.common import get_address
+from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
+from nonebot_plugin_mystool.model import UserAccount
+from nonebot_plugin_mystool.util import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+    GeneralGroupMessageEvent
+
+__all__ = [
+    "address_matcher"
+]
 
 _conf = PluginDataManager.plugin_data
 

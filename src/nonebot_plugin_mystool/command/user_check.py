@@ -1,6 +1,3 @@
-"""
-### QQ好友相关、用户绑定相关
-"""
 import asyncio
 from typing import Union
 from uuid import uuid4
@@ -12,11 +9,13 @@ from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, A
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
-from .plugin_data import PluginDataManager, write_plugin_data
-from .user_data import uuid4_validate
-from .utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, GeneralGroupMessageEvent, PLUGIN, \
+from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
+from nonebot_plugin_mystool.model import uuid4_validate
+from nonebot_plugin_mystool.util import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
+    GeneralGroupMessageEvent, PLUGIN, \
     send_private_msg
 
+__all__ = ["friendRequest", "user_binding", "direct_msg_respond"]
 _conf = PluginDataManager.plugin_data
 _driver = get_driver()
 

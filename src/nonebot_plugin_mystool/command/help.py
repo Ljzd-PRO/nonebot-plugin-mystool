@@ -1,7 +1,3 @@
-"""
-### 帮助相关
-#### 参考了`nonebot-plugin-help`
-"""
 from typing import Union
 
 from nonebot import on_command
@@ -10,9 +6,10 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
-from .plugin_data import PluginDataManager
-from .utils import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
+from nonebot_plugin_mystool.model import PluginDataManager
+from nonebot_plugin_mystool.util.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
+__all__ = ["helper"]
 _conf = PluginDataManager.plugin_data
 
 helper = on_command(

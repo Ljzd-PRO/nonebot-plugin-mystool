@@ -1,6 +1,3 @@
-"""
-### 米游社一些简单API相关
-"""
 import time
 from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
@@ -10,13 +7,13 @@ import tenacity
 from pydantic import ValidationError, BaseModel
 from requests.utils import dict_from_cookiejar
 
-from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
+from nonebot_plugin_mystool.model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
     GetFpStatus, StarRailNoteStatus, StarRailNote
-from .plugin_data import PluginDataManager
-from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
-from .utils import generate_device_id, logger, generate_ds, \
+from nonebot_plugin_mystool.model import PluginDataManager
+from nonebot_plugin_mystool.model import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
+from nonebot_plugin_mystool.util import generate_device_id, logger, generate_ds, \
     get_async_retry, generate_seed_id, generate_fp_locally
 
 _conf = PluginDataManager.plugin_data

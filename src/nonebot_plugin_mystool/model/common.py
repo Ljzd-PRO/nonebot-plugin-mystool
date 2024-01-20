@@ -1,6 +1,3 @@
-"""
-### 米游社API的客户端调用所用的数据模型
-"""
 import inspect
 import time
 from abc import abstractmethod
@@ -9,6 +6,11 @@ from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, An
 
 import pytz
 from pydantic import BaseModel
+
+__all__ = ["BaseModelWithSetter", "BaseModelWithUpdate", "Good", "GameRecord", "GameInfo", "Address", "MmtData",
+           "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "BaseApiStatus",
+           "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus", "ExchangeStatus", "MissionStatus",
+           "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus", "GeetestResult", "GeetestResultV4"]
 
 
 class BaseModelWithSetter(BaseModel):
