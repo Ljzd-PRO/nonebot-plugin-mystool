@@ -221,12 +221,12 @@ class DeviceConfig(BaseModel):
         pass
 
 
-class PluginConfig(BaseSettings, extra=Extra.ignore):
+class PluginConfig(BaseSettings):
     preference = Preference()
     good_list_image_config = GoodListImageConfig()
 
 
-class PluginEnv(BaseSettings, extra=Extra.ignore):
+class PluginEnv(BaseSettings):
     salt_config = SaltConfig()
     device_config = DeviceConfig()
 
@@ -235,5 +235,18 @@ class PluginEnv(BaseSettings, extra=Extra.ignore):
         env_file = '.env'
 
 
-plugin_config = PluginConfig.parse_file(plugin_config_path)
+if plugin_config_path.exists() and plugin_config_path.is_file():
+    plugin_config = PluginConfig.parse_file(plugin_config_path)
+else:
+    plugin_config = PluginConfig()
+    try:
+        str_data = plugin_config.json(indent=4)
+        with open(plugin_config_path, "w", encoding="utf-8") as f:
+            f.write(str_data)
+    except (AttributeError, TypeError, ValueError, PermissionError):
+        logger.exception(f"创建插件配置文件失败，请检查是否有权限读取和写入 {plugin_config_path}")
+        raise
+    else:
+        logger.info(f"插件配置文件 {plugin_config_path} 不存在，已创建默认插件配置文件。")
+
 plugin_env = PluginEnv()
