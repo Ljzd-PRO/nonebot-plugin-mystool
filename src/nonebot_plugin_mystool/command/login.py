@@ -9,13 +9,13 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
 
-from nonebot_plugin_mystool.api.common import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, \
+from ..api.common import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, \
     get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
-from nonebot_plugin_mystool.model import CreateMobileCaptchaStatus
-from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
-from nonebot_plugin_mystool.model import UserAccount, UserData
-from nonebot_plugin_mystool.util import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+from ..model import CreateMobileCaptchaStatus
+from ..model import PluginDataManager, write_plugin_data
+from ..model import UserAccount, UserData
+from ..util import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent, \
     generate_qr_img, get_validate, read_blacklist, read_whitelist, generate_device_id
 

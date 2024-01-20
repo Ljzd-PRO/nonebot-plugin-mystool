@@ -5,10 +5,10 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from nonebot_plugin_mystool.api import BaseMission
-from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
-from nonebot_plugin_mystool.model import UserAccount
-from nonebot_plugin_mystool.util import COMMAND_BEGIN, GeneralMessageEvent
+from ..api import BaseMission
+from ..model import PluginDataManager, write_plugin_data
+from ..model import UserAccount
+from ..util import COMMAND_BEGIN, GeneralMessageEvent
 
 __all__ = ["setting", "account_setting", "global_setting"]
 _conf = PluginDataManager.plugin_data

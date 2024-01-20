@@ -7,10 +7,10 @@ from typing import List
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 
-from nonebot_plugin_mystool.api.common import get_good_detail
-from nonebot_plugin_mystool.model import Good
-from nonebot_plugin_mystool.model import PluginDataManager, DATA_PATH
-from nonebot_plugin_mystool.util import (get_file, logger, get_async_retry)
+from ..api.common import get_good_detail
+from ..model import Good
+from ..model import PluginDataManager, DATA_PATH
+from ..util import (get_file, logger, get_async_retry)
 
 __all__ = ["game_list_to_image"]
 _conf = PluginDataManager.plugin_data

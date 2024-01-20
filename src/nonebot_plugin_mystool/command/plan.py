@@ -14,14 +14,14 @@ from nonebot.params import CommandArg
 from nonebot_plugin_apscheduler import scheduler
 from pydantic import BaseModel
 
-from nonebot_plugin_mystool.api import BaseGameSign
-from nonebot_plugin_mystool.api import BaseMission, get_missions_state
-from nonebot_plugin_mystool.api.common import genshin_note, get_game_record, starrail_note
-from nonebot_plugin_mystool.command.exchange import generate_image
-from nonebot_plugin_mystool.model import MissionStatus, GenshinNote, StarRailNote
-from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
-from nonebot_plugin_mystool.model import UserData
-from nonebot_plugin_mystool.util import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
+from ..api import BaseGameSign
+from ..api import BaseMission, get_missions_state
+from ..api.common import genshin_note, get_game_record, starrail_note
+from ..command.exchange import generate_image
+from ..model import MissionStatus, GenshinNote, StarRailNote
+from ..model import PluginDataManager, write_plugin_data
+from ..model import UserData
+from ..util import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
     get_all_bind, \
     get_unique_users, get_validate, read_admin_list
 

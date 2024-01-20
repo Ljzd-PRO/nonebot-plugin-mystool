@@ -6,8 +6,8 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
-from nonebot_plugin_mystool.model import PluginDataManager
-from nonebot_plugin_mystool.util.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
+from ..model import PluginDataManager
+from ..util.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
 __all__ = ["helper"]
 _conf = PluginDataManager.plugin_data

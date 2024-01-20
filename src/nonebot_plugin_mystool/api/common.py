@@ -7,13 +7,13 @@ import tenacity
 from pydantic import ValidationError, BaseModel
 from requests.utils import dict_from_cookiejar
 
-from nonebot_plugin_mystool.model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
+from ..model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
     GetFpStatus, StarRailNoteStatus, StarRailNote
-from nonebot_plugin_mystool.model import PluginDataManager
-from nonebot_plugin_mystool.model import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
-from nonebot_plugin_mystool.util import generate_device_id, logger, generate_ds, \
+from ..model import PluginDataManager
+from ..model import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
+from ..util import generate_device_id, logger, generate_ds, \
     get_async_retry, generate_seed_id, generate_fp_locally
 
 _conf = PluginDataManager.plugin_data

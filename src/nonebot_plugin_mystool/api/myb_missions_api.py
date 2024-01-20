@@ -4,13 +4,13 @@ from typing import List, Optional, Tuple, Set, Type
 import httpx
 import tenacity
 
-from nonebot_plugin_mystool.api.common import ApiResultHandler, is_incorrect_return, create_verification, \
+from ..api.common import ApiResultHandler, is_incorrect_return, create_verification, \
     verify_verification
-from nonebot_plugin_mystool.model import BaseApiStatus, MissionStatus, MissionData, \
+from ..model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState
-from nonebot_plugin_mystool.model import PluginDataManager
-from nonebot_plugin_mystool.model import UserAccount
-from nonebot_plugin_mystool.util import logger, generate_ds, \
+from ..model import PluginDataManager
+from ..model import UserAccount
+from ..util import logger, generate_ds, \
     get_async_retry, get_validate
 
 _conf = PluginDataManager.plugin_data

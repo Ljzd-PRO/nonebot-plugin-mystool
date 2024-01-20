@@ -4,12 +4,12 @@ from urllib.parse import urlencode
 import httpx
 import tenacity
 
-from nonebot_plugin_mystool.api.common import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, \
+from ..api.common import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, \
     device_login, device_save
-from nonebot_plugin_mystool.model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData
-from nonebot_plugin_mystool.model import PluginDataManager
-from nonebot_plugin_mystool.model import UserAccount
-from nonebot_plugin_mystool.util import logger, generate_ds, \
+from ..model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData
+from ..model import PluginDataManager
+from ..model import UserAccount
+from ..util import logger, generate_ds, \
     get_async_retry
 
 __all__ = ["BaseGameSign", "GenshinImpactSign", "HonkaiImpact3Sign", "HoukaiGakuen2Sign", "TearsOfThemisSign",

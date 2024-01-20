@@ -9,8 +9,8 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
 from loguru import logger
 from pydantic import BaseModel, ValidationError, BaseSettings, validator, Extra
 
-from nonebot_plugin_mystool.model import user_data
-from nonebot_plugin_mystool.model.user_data import UserData, UserAccount
+from . import user_data
+from ..model.user_data import UserData, UserAccount
 
 __all__ = ["VERSION", "ROOT_PATH", "DATA_PATH", "PLUGIN_DATA_PATH", "DELETED_USERS_PATH", "Preference",
            "GoodListImageConfig", "SaltConfig", "DeviceConfig", "PluginData", "PluginDataManager", "write_plugin_data"]

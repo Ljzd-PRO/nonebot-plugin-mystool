@@ -5,7 +5,7 @@ from uuid import uuid4, UUID
 from httpx import Cookies
 from pydantic import BaseModel, validator
 
-from nonebot_plugin_mystool.model import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
+from ..model.common import BaseModelWithSetter, Good, Address, GameRecord, BaseModelWithUpdate
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
@@ -241,13 +241,13 @@ class UserAccount(BaseModelWithSetter):
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
-            from nonebot_plugin_mystool.util.common import generate_device_id
+            from ..util.common import generate_device_id
             if not data.get("device_id_ios"):
                 data.setdefault("device_id_ios", generate_device_id())
             if not data.get("device_id_android"):
                 data.setdefault("device_id_android", generate_device_id())
 
-        from nonebot_plugin_mystool.api import myb_missions_api
+        from ..api import myb_missions_api
 
         mission_games_param: Union[List[str], Set[type], None] = data.pop(
             "mission_games") if "mission_games" in data else None
@@ -265,7 +265,7 @@ class UserAccount(BaseModelWithSetter):
 
     @validator("mission_games")
     def mission_games_validator(cls, v):
-        from nonebot_plugin_mystool.api.myb_missions_api import BaseMission
+        from ..api.myb_missions_api import BaseMission
         if not all(issubclass(game, BaseMission) for game in v):
             raise ValueError("UserAccount.mission_games 必须是 BaseMission 的子类")
 

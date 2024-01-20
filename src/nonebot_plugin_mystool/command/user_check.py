@@ -9,9 +9,9 @@ from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, A
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
-from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
-from nonebot_plugin_mystool.model import uuid4_validate
-from nonebot_plugin_mystool.util import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
+from ..model import PluginDataManager, write_plugin_data
+from ..model import uuid4_validate
+from ..util import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
     GeneralGroupMessageEvent, PLUGIN, \
     send_private_msg
 

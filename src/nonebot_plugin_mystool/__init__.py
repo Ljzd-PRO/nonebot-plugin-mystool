@@ -1,6 +1,6 @@
 from nonebot.plugin import PluginMetadata
 
-from nonebot_plugin_mystool.model import VERSION
+from .model import VERSION
 
 __plugin_meta__ = PluginMetadata(
     name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
@@ -28,7 +28,7 @@ __plugin_meta__ = PluginMetadata(
 
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
-from nonebot_plugin_mystool.util import CommandBegin
+from .util import CommandBegin
 from nonebot import init
 from nonebot import get_driver
 
@@ -37,4 +37,4 @@ get_driver().on_startup(CommandBegin.set_command_begin)
 
 # 加载命令
 
-from nonebot_plugin_mystool.command import *
+from .command import *

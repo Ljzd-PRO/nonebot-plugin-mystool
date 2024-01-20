@@ -6,10 +6,10 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from nonebot_plugin_mystool.api.common import get_address
-from nonebot_plugin_mystool.model import PluginDataManager, write_plugin_data
-from nonebot_plugin_mystool.model import UserAccount
-from nonebot_plugin_mystool.util import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+from ..api.common import get_address
+from ..model import PluginDataManager, write_plugin_data
+from ..model import UserAccount
+from ..util import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent
 
 __all__ = [
