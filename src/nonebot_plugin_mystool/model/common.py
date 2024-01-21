@@ -148,7 +148,7 @@ class Good(BaseModelWithUpdate):
         elif self.time == 0:
             return None
         elif self.time_limited:
-            from .config import plugin_config
+            from ..model.config import plugin_config
             if zone := plugin_config.preference.timezone:
                 tz_info = pytz.timezone(zone)
                 date_time = datetime.fromtimestamp(self.time, tz_info)

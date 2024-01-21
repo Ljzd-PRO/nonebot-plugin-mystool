@@ -29,7 +29,7 @@ from ..util import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEv
     get_all_bind, game_list_to_image
 
 __all__ = [
-    "myb_exchange_plan", "get_good_image"
+    "myb_exchange_plan", "get_good_image", "generate_image"
 ]
 
 _driver = get_driver()

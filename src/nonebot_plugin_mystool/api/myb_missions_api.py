@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional, Tuple, Set, Type
+from typing import List, Optional, Tuple, Type, Dict
 
 import httpx
 import tenacity
@@ -96,7 +96,7 @@ class BaseMission:
     SHARE = "share_post_0"
     '''分享任务的 mission_key'''
 
-    available_games: Set[Type["BaseMission"]] = set()
+    available_games: Dict[str, Type["BaseMission"]] = {}
     """可用的子类"""
 
     def __init__(self, account: UserAccount) -> None:
@@ -437,13 +437,16 @@ class ZenlessZoneZero(BaseMission):
     # TODO: fid暂时未知
 
 
-BaseMission.available_games.add(GenshinImpactMission)
-BaseMission.available_games.add(HonkaiImpact3Mission)
-BaseMission.available_games.add(HoukaiGakuen2Mission)
-BaseMission.available_games.add(TearsOfThemisMission)
-BaseMission.available_games.add(StarRailMission)
-BaseMission.available_games.add(BBSMission)
-BaseMission.available_games.add(ZenlessZoneZero)
+for subclass in [
+    GenshinImpactMission,
+    HonkaiImpact3Mission,
+    HoukaiGakuen2Mission,
+    TearsOfThemisMission,
+    StarRailMission,
+    BBSMission,
+    ZenlessZoneZero
+]:
+    BaseMission.available_games[subclass.__name__] = subclass
 
 
 async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseApiStatus, Optional[List[MissionData]]]:

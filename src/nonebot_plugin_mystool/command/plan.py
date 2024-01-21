@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from typing import Union, Optional, Type, Iterable, Dict
+from typing import Union, Optional, Iterable, Dict
 
 from nonebot import on_command, get_adapters
 from nonebot.adapters.onebot.v11 import MessageSegment as OneBotV11MessageSegment, Adapter as OneBotV11Adapter, \
@@ -378,9 +378,14 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
         # 在此处进行判断。因为如果在多个分区执行任务，会在完成之前就已经达成米游币任务目标，导致其他分区任务不会执行。
         finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
         if not finished:
-            for class_type in account.mission_games:
-                class_type: Type[BaseMission]
-                mission_obj: BaseMission = class_type(account)
+            for class_name in account.mission_games:
+                class_type = BaseMission.available_games.get(class_name)
+                if not class_type:
+                    if matcher:
+                        await matcher.send(
+                            f'⚠️🆔账户 {account.bbs_uid} 米游币任务目标分区『{class_name}』未找到，将跳过该分区')
+                    continue
+                mission_obj = class_type(account)
                 if matcher:
                     await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.name}』执行米游币任务...')
 

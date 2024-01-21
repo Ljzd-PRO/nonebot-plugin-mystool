@@ -38,4 +38,7 @@ get_driver().on_startup(CommandBegin.set_command_begin)
 
 # 加载命令
 
+from .api import *
 from .command import *
+from .model import *
+from .util import *

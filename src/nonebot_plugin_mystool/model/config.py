@@ -1,19 +1,15 @@
 import os
 from datetime import time, timedelta, datetime
 from pathlib import Path
-from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet, \
-    Mapping
+from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 
 from loguru import logger
 from pydantic import BaseModel, BaseSettings, validator
 
-from .common import data_path
+from ..model.common import data_path
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]
-    DictStrAny = Dict[str, Any]
-    AbstractSetIntStr = AbstractSet[IntStr]
-    MappingIntStrAny = Mapping[IntStr, Any]
 
 __all__ = ["plugin_config_path", "Preference",
            "GoodListImageConfig", "SaltConfig", "DeviceConfig", "PluginConfig", "PluginEnv", "plugin_config",

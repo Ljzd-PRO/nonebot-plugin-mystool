@@ -71,7 +71,15 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
-                    "\n- " + "、".join(map(lambda x: f"『{x.name}』", account.mission_games))
+                    "\n- " + "、".join(
+        map(
+            lambda x: f"『{x.name}』" if x else "『N/A』",
+            map(
+                BaseMission.available_games.get,
+                account.mission_games
+            )
+        )
+    )
     user_setting += f"\n\n5️⃣ 实时便笺体力提醒：{'开' if account.enable_resin else '关'}"
     user_setting += f"\n6️⃣更改便笺体力提醒阈值 \
                       \n   当前原神提醒阈值：{account.user_resin_threshold} \
@@ -109,7 +117,7 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
         PluginDataManager.write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif setting_id == '4':
-        games_show = "、".join(map(lambda x: f"『{x.name}』", BaseMission.available_games))
+        games_show = "、".join(map(lambda x: f"『{x.name}』", BaseMission.available_games.values()))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道："
             "\n❕多个频道请用空格分隔，如 “原神 崩坏3 综合”"
@@ -205,14 +213,15 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
 
     elif state["setting_item"] == "mission_games":
         games_input = setting_value.split()
-        mission_games = set()
+        mission_games = []
         for game in games_input:
-            game_filter = filter(lambda x: x.name == game, BaseMission.available_games)
-            game_obj = next(game_filter, None)
-            if game_obj is None:
+            subclass_filter = filter(lambda x: x[1].name == game, BaseMission.available_games.items())
+            subclass_pair = next(subclass_filter, None)
+            if subclass_pair is None:
                 await account_setting.reject("⚠️您的输入有误，请重新输入")
             else:
-                mission_games.add(game_obj)
+                game_name, _ = subclass_pair
+                mission_games.append(game_name)
 
         account.mission_games = mission_games
         PluginDataManager.write_plugin_data()
