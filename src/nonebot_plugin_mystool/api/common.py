@@ -1190,7 +1190,7 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry:
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    headers.setdefault("DS", generate_ds(salt=plugin_config.salt_config.SALT_PROD))
+                    headers.setdefault("DS", generate_ds(salt=plugin_env.salt_config.SALT_PROD))
                     res = await client.post(
                         URL_STOKEN_V2_BY_V1,
                         cookies={"stoken": cookies.stoken_v1, "stuid": cookies.bbs_uid},

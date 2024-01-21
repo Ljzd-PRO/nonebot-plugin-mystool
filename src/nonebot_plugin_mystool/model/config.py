@@ -5,7 +5,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING, AbstractSet
     Mapping
 
 from loguru import logger
-from pydantic import BaseModel, BaseSettings, validator, Extra
+from pydantic import BaseModel, BaseSettings, validator
 
 from .common import data_path
 

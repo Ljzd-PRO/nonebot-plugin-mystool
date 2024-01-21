@@ -30,7 +30,7 @@ get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社
 async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
-    user_num = len(set(plugin_config.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
+    user_num = len(set(PluginDataManager.plugin_data.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
     if plugin_config.preference.enable_blacklist:
         if event.get_user_id() in read_blacklist():
             await get_cookie.finish("⚠️您已被加入黑名单，无法使用本功能")
@@ -72,7 +72,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone
-    user = plugin_config.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     if user:
         account_filter = filter(lambda x: x.phone_number == phone, user.accounts.values())
         account = next(account_filter, None)
@@ -123,8 +123,8 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
         user_id = event.get_user_id()
-        plugin_config.users.setdefault(user_id, UserData())
-        user = plugin_config.users[user_id]
+        PluginDataManager.plugin_data.users.setdefault(user_id, UserData())
+        user = PluginDataManager.plugin_data.users[user_id]
         # 如果是QQ频道，需要记录频道ID
         if isinstance(event, DirectMessageCreateEvent):
             user.qq_guilds.setdefault(user_id, set())
@@ -133,7 +133,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha), device_id)
         if login_status:
             logger.success(f"用户 {cookies.bbs_uid} 成功获取 login_ticket: {cookies.login_ticket}")
-            account = plugin_config.users[user_id].accounts.get(cookies.bbs_uid)
+            account = PluginDataManager.plugin_data.users[user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
@@ -230,7 +230,7 @@ async def handle_first_receive(event: Union[GeneralMessageEvent], state: T_State
     """
     if isinstance(event, GeneralGroupMessageEvent):
         await output_cookies.finish("⚠️为了保护您的隐私，请私聊进行Cookies导出。")
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     elif len(user_account) == 1:
@@ -250,7 +250,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], matcher: Matcher, bbs_uid=
     """
     if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if bbs_uid in user_account:
         await output_cookies.finish(json.dumps(user_account[bbs_uid].cookies.dict(cookie_type=True), indent=4))
     else:

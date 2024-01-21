@@ -29,8 +29,8 @@ from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from qrcode import QRCode
 
-from ..model import GeetestResult
-from ..model import Preference, plugin_config
+from ..model import GeetestResult, PluginDataManager
+from ..model import Preference, plugin_config, plugin_env
 from ..model import UserData
 
 if TYPE_CHECKING:
@@ -190,11 +190,11 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
     :param salt: 可选，自定义salt
     """
     if data is None and params is None or \
-            salt is not None and salt != plugin_config.salt_config.SALT_PROD:
+            salt is not None and salt != plugin_env.salt_config.SALT_PROD:
         if platform == "ios":
-            salt = salt or plugin_config.salt_config.SALT_IOS
+            salt = salt or plugin_env.salt_config.SALT_IOS
         else:
-            salt = salt or plugin_config.salt_config.SALT_ANDROID
+            salt = salt or plugin_env.salt_config.SALT_ANDROID
         t = str(int(time.time()))
         a = "".join(random.sample(
             string.ascii_lowercase + string.digits, 6))
@@ -203,12 +203,12 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{a},{re}"
     else:
         if params:
-            salt = plugin_config.salt_config.SALT_PARAMS if not salt else salt
+            salt = plugin_env.salt_config.SALT_PARAMS if not salt else salt
         else:
-            salt = plugin_config.salt_config.SALT_DATA if not salt else salt
+            salt = plugin_env.salt_config.SALT_DATA if not salt else salt
 
         if not data:
-            if salt == plugin_config.salt_config.SALT_PROD:
+            if salt == plugin_env.salt_config.SALT_PROD:
                 data = {}
             else:
                 data = ""
@@ -349,7 +349,7 @@ async def send_private_msg(
     error_flag = False
     action_failed = None
 
-    if guild_id or ((user := plugin_config.users.get(user_id)) and user_id in user.qq_guilds):
+    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guilds):
         user_type = QQGuildAdapter
     else:
         user_type = OneBotV11Adapter
@@ -397,7 +397,7 @@ async def send_private_msg(
             reference = reference[-1].data["reference"]
 
         if guild_id is None:
-            if user := plugin_config.users.get(user_id):
+            if user := PluginDataManager.plugin_data.users.get(user_id):
                 if not (guilds := user.qq_guilds.get(user_id)):
                     logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
                     guild_ids = iter([])
@@ -447,7 +447,7 @@ def get_unique_users() -> Iterable[Tuple[str, UserData]]:
 
     :return: dict_items[用户ID, 用户数据]
     """
-    return filter(lambda x: x[0] not in plugin_config.user_bind, plugin_config.users.items())
+    return filter(lambda x: x[0] not in plugin_config.user_bind, PluginDataManager.plugin_data.users.items())
 
 
 def get_all_bind(user_id: str) -> Iterable[str]:

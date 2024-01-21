@@ -22,7 +22,7 @@ from nonebot_plugin_apscheduler import scheduler
 from ..api.common import get_game_record, get_good_detail, get_good_list, good_exchange_sync, \
     get_device_fp, \
     good_exchange
-from ..model import Good, GameRecord, ExchangeStatus
+from ..model import Good, GameRecord, ExchangeStatus, plugin_env
 from ..model import PluginDataManager, plugin_config
 from ..model import UserAccount, ExchangePlan, ExchangeResult
 from ..util import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, \
@@ -89,7 +89,7 @@ async def _(
                 f'{myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
             )
 
-    user = plugin_config.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await matcher.finish(
@@ -137,7 +137,7 @@ async def _(
     """
     if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if bbs_uid in user_account:
         state["account"] = user_account[bbs_uid]
     else:
@@ -210,7 +210,7 @@ async def _(
             await matcher.finish(f'⚠️该商品暂时不可以兑换，请重新设置')
 
     elif command_2 == '-':
-        plans = plugin_config.users[event.get_user_id()].exchange_plans
+        plans = PluginDataManager.plugin_data.users[event.get_user_id()].exchange_plans
         if plans:
             for plan in plans:
                 if plan.good.goods_id == good_id:
@@ -239,7 +239,7 @@ async def _(
     """
     初始化商品兑换任务，如果传入UID为None则为实物商品，仍可继续
     """
-    user = plugin_config.users[event.get_user_id()]
+    user = PluginDataManager.plugin_data.users[event.get_user_id()]
     account: UserAccount = state['account']
     good: Good = state['good']
     if good.is_virtual:
@@ -328,7 +328,7 @@ async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
 
     img_path = time.strftime(
-        f'{plugin_config.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+        f'{plugin_env.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
     if os.path.exists(img_path):
         with open(img_path, 'rb') as f:
             image_bytes = io.BytesIO(f.read())
@@ -364,7 +364,7 @@ def exchange_notice(event: JobExecutionEvent):
             user_id_filter = filter(lambda x: hash(x[1].exchange_plans) == hash_value, get_unique_users())
             user_id = next(user_id_filter)
             user_ids = [user_id] + list(get_all_bind(user_id))
-            plan = plugin_config.users[user_id].exchange_plans
+            plan = PluginDataManager.plugin_data.users[user_id].exchange_plans
 
             with lock:
                 finished[plan].append(False)
@@ -450,7 +450,7 @@ async def _():
     """
     启动机器人时自动初始化兑换任务
     """
-    for user_id, user in plugin_config.users.items():
+    for user_id, user in PluginDataManager.plugin_data.users.items():
         plans = user.exchange_plans
         for plan in plans:
             good_detail_status, good = await get_good_detail(plan.good)
@@ -494,7 +494,7 @@ def image_process(game: str, lock: Lock = None):
         if not image_bytes:
             return False
         date = time.strftime('%m-%d', time.localtime())
-        path = plugin_config.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
+        path = plugin_env.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
         with open(path, 'wb') as f:
             f.write(image_bytes)
         logger.info(f"{plugin_config.preference.log_head}已完成 {game} 分区的商品列表图片生成")
@@ -510,7 +510,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
     :param is_auto: True为每日自动生成，False为用户手动更新
     :param callback: 回调函数，参数为生成成功与否
     """
-    for root, _, files in os.walk(plugin_config.good_list_image_config.SAVE_PATH, topdown=False):
+    for root, _, files in os.walk(plugin_env.good_list_image_config.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
             # 若图片开头为当日日期，则退出函数不执行
@@ -521,7 +521,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
 
-    if plugin_config.good_list_image_config.MULTI_PROCESS:
+    if plugin_env.good_list_image_config.MULTI_PROCESS:
         lock: Lock = Manager().Lock()
         with Pool() as pool:
             for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":

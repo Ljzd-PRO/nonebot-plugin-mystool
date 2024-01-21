@@ -88,7 +88,7 @@ async def _(
         command_arg=CommandArg()
 ):
     user_id = event.get_user_id()
-    user = plugin_config.users.get(user_id)
+    user = PluginDataManager.plugin_data.users.get(user_id)
     if len(command) > 1:
         if user is None:
             await matcher.finish("⚠️您的用户数据不存在，只有进行登录操作以后才会生成用户数据")
@@ -123,7 +123,7 @@ async def _(
                 await matcher.finish("⚠️您当前没有绑定任何用户数据")
             else:
                 del plugin_config.user_bind[user_id]
-                del plugin_config.users[user_id]
+                del PluginDataManager.plugin_data.users[user_id]
                 PluginDataManager.write_plugin_data()
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
 
@@ -141,8 +141,8 @@ async def _(
             src_users = list(filter(lambda x: plugin_config.user_bind[x] == target_id, plugin_config.user_bind))
             for key in src_users:
                 del plugin_config.user_bind[key]
-                del plugin_config.users[key]
-            plugin_config.users[target_id].uuid = str(uuid4())
+                del PluginDataManager.plugin_data.users[key]
+            PluginDataManager.plugin_data.users[target_id].uuid = str(uuid4())
             PluginDataManager.write_plugin_data()
 
             await matcher.send(
@@ -170,7 +170,8 @@ async def _(
             await matcher.finish("⚠️您不能绑定自己的UUID密钥")
         else:
             # 筛选UUID密钥对应的用户
-            target_users = list(filter(lambda x: x[1].uuid == uuid and x[0] != user_id, plugin_config.users.items()))
+            target_users = list(
+                filter(lambda x: x[1].uuid == uuid and x[0] != user_id, PluginDataManager.plugin_data.users.items()))
             # 如果有多个用户使用了此UUID密钥，即目标用户被多个用户绑定，需要进一步筛选，防止形成循环绑定的关系链
             if len(target_users) > 1:
                 user_filter = filter(lambda x: x[0] not in plugin_config.user_bind, target_users)
@@ -179,8 +180,8 @@ async def _(
                 target_id, _ = target_users[0]
             else:
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
-            plugin_config.do_user_bind(user_id, target_id)
-            user = plugin_config.users[user_id]
+            PluginDataManager.plugin_data.do_user_bind(user_id, target_id)
+            user = PluginDataManager.plugin_data.users[user_id]
             user.qq_guilds.setdefault(user_id, set())
             if isinstance(event, DirectMessageCreateEvent):
                 user.qq_guilds[user_id].add(event.channel_id)
@@ -212,7 +213,7 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
     # 附加功能：记录用户所在频道
     if isinstance(event, MessageCreateEvent):
         user_id = event.get_user_id()
-        if user := plugin_config.users.get(user_id):
+        if user := PluginDataManager.plugin_data.users.get(user_id):
             user.qq_guilds.setdefault(user_id, set())
             user.qq_guilds[user_id].add(event.guild_id)
             PluginDataManager.write_plugin_data()

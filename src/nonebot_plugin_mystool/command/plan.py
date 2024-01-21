@@ -40,7 +40,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     手动游戏签到函数
     """
     user_id = event.get_user_id()
-    user = plugin_config.users.get(user_id)
+    user = PluginDataManager.plugin_data.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
@@ -59,7 +59,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                             event=event
                         )
                 else:
-                    specified_user = plugin_config.users.get(specified_user_id)
+                    specified_user = PluginDataManager.plugin_data.users.get(specified_user_id)
                     if not specified_user:
                         await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                     await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
@@ -85,7 +85,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     手动米游币任务函数
     """
     user_id = event.get_user_id()
-    user = plugin_config.users.get(user_id)
+    user = PluginDataManager.plugin_data.users.get(user_id)
     if not user or not user.accounts:
         await manually_bbs_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     if command_arg:
@@ -103,7 +103,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                             matcher=matcher
                         )
                 else:
-                    specified_user = plugin_config.users.get(specified_user_id)
+                    specified_user = PluginDataManager.plugin_data.users.get(specified_user_id)
                     if not specified_user:
                         await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
                     await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
@@ -172,7 +172,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     手动查看原神便笺
     """
     user_id = event.get_user_id()
-    user = plugin_config.users.get(user_id)
+    user = PluginDataManager.plugin_data.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await genshin_note_check(user=user, user_ids=[user_id], matcher=matcher)
@@ -197,7 +197,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     手动查看星穹铁道便笺（sr）
     """
     user_id = event.get_user_id()
-    user = plugin_config.users.get(user_id)
+    user = PluginDataManager.plugin_data.users.get(user_id)
     if not user or not user.accounts:
         await manually_game_sign.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     await starrail_note_check(user=user, user_ids=[user_id], matcher=matcher)

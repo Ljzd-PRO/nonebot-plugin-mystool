@@ -8,7 +8,7 @@ import httpx
 from PIL import Image, ImageDraw, ImageFont
 
 from ..api.common import get_good_detail
-from ..model import Good
+from ..model import Good, plugin_env
 from ..model import data_path, plugin_config
 from ..util import (get_file, logger, get_async_retry)
 
@@ -36,7 +36,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         if lock is not None:
             lock.acquire()
 
-        font_path = plugin_config.good_list_image_config.FONT_PATH
+        font_path = plugin_env.good_list_image_config.FONT_PATH
         if font_path is None or not os.path.isfile(font_path):
             if os.path.isfile(FONT_SAVE_PATH):
                 font_path = FONT_SAVE_PATH
@@ -73,7 +73,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
             lock.release()
 
         font = ImageFont.truetype(
-            str(font_path), plugin_config.good_list_image_config.FONT_SIZE, encoding=plugin_config.preference.encoding)
+            str(font_path), plugin_env.good_list_image_config.FONT_SIZE, encoding=plugin_config.preference.encoding)
 
         size_y = 0
         '''起始粘贴位置 高'''
@@ -90,34 +90,34 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
                         icon = await client.get(good.icon, timeout=plugin_config.preference.timeout)
             img = Image.open(io.BytesIO(icon.content))
             # 调整预览图大小
-            img = img.resize(plugin_config.good_list_image_config.ICON_SIZE)
+            img = img.resize(plugin_env.good_list_image_config.ICON_SIZE)
             # 记录预览图粘贴位置
             position.append((0, size_y))
             # 调整下一个粘贴的位置
-            size_y += plugin_config.good_list_image_config.ICON_SIZE[1] + \
-                      plugin_config.good_list_image_config.PADDING_ICON
+            size_y += plugin_env.good_list_image_config.ICON_SIZE[1] + \
+                      plugin_env.good_list_image_config.PADDING_ICON
             imgs.append(img)
 
         preview = Image.new(
-            'RGB', (plugin_config.good_list_image_config.WIDTH, size_y), (255, 255, 255))
+            'RGB', (plugin_env.good_list_image_config.WIDTH, size_y), (255, 255, 255))
 
         i = 0
         for img in imgs:
             preview.paste(img, position[i])
             i += 1
 
-        draw_y = plugin_config.good_list_image_config.PADDING_TEXT_AND_ICON_Y
+        draw_y = plugin_env.good_list_image_config.PADDING_TEXT_AND_ICON_Y
         '''写入文字的起始位置 高'''
         for good in good_list:
             draw = ImageDraw.Draw(preview)
             # 根据预览图高度来确定写入文字的位置，并调整空间
-            draw.text((plugin_config.good_list_image_config.ICON_SIZE[
-                           0] + plugin_config.good_list_image_config.PADDING_TEXT_AND_ICON_X,
+            draw.text((plugin_env.good_list_image_config.ICON_SIZE[
+                           0] + plugin_env.good_list_image_config.PADDING_TEXT_AND_ICON_X,
                        draw_y),
                       f"{good.general_name}\n商品ID: {good.goods_id}\n兑换时间: {good.time_text}\n价格: {good.price} 米游币",
                       (0, 0, 0), font)
-            draw_y += (plugin_config.good_list_image_config.ICON_SIZE[1] +
-                       plugin_config.good_list_image_config.PADDING_ICON)
+            draw_y += (plugin_env.good_list_image_config.ICON_SIZE[1] +
+                       plugin_env.good_list_image_config.PADDING_ICON)
 
         # 导出
         image_bytes = io.BytesIO()

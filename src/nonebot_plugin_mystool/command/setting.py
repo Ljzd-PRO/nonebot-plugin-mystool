@@ -35,7 +35,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State)
     """
     账号设置命令触发
     """
-    user = plugin_config.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await account_setting.finish(
@@ -58,7 +58,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
     if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
 
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if not (account := user_account.get(bbs_uid)):
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
@@ -89,7 +89,7 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
     根据所选更改相应账户的相应设置
     """
     account: UserAccount = state['account']
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if setting_id == '退出':
         await account_setting.finish('🚪已成功退出')
     elif setting_id == '1':
@@ -231,7 +231,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     通知设置命令触发
     """
-    user = plugin_config.users[event.get_user_id()]
+    user = PluginDataManager.plugin_data.users[event.get_user_id()]
     await matcher.send(
         f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}"
         "\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
@@ -242,7 +242,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, choice=ArgStr()
     """
     根据选择变更通知设置
     """
-    user = plugin_config.users[event.get_user_id()]
+    user = PluginDataManager.plugin_data.users[event.get_user_id()]
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':

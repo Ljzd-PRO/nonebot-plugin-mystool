@@ -26,7 +26,7 @@ address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币�
 async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GeneralGroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
-    user = plugin_config.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await address_matcher.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
@@ -47,7 +47,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, bbs_uid=Ar
     if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
-    user_account = plugin_config.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if bbs_uid not in user_account:
         await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     account = user_account[bbs_uid]
