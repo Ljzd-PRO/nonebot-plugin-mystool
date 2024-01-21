@@ -445,7 +445,8 @@ def get_unique_users() -> Iterable[Tuple[str, UserData]]:
 
     :return: dict_items[用户ID, 用户数据]
     """
-    return filter(lambda x: x[0] not in plugin_config.user_bind, PluginDataManager.plugin_data.users.items())
+    return filter(lambda x: x[0] not in PluginDataManager.plugin_data.user_bind,
+                  PluginDataManager.plugin_data.users.items())
 
 
 def get_all_bind(user_id: str) -> Iterable[str]:
@@ -454,7 +455,8 @@ def get_all_bind(user_id: str) -> Iterable[str]:
 
     :return: 绑定该用户的所有用户ID
     """
-    user_id_filter = filter(lambda x: plugin_config.user_bind.get(x) == user_id, plugin_config.user_bind)
+    user_id_filter = filter(lambda x: PluginDataManager.plugin_data.user_bind.get(x) == user_id,
+                            PluginDataManager.plugin_data.user_bind)
     return user_id_filter
 
 

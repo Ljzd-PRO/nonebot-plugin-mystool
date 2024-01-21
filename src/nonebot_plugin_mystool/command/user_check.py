@@ -96,20 +96,21 @@ async def _(
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥查看。")
 
             await matcher.send(
-                f"{'🔑您的UUID密钥为：' if user_id not in plugin_config.user_bind else '🔑您绑定的用户数据的UUID密钥为：'}\n"
+                f"{'🔑您的UUID密钥为：' if user_id not in PluginDataManager.plugin_data.user_bind else '🔑您绑定的用户数据的UUID密钥为：'}\n"
                 f"{user.uuid.upper()}\n"
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
 
         elif command[1] == "查询":
-            if user_id in plugin_config.user_bind:
+            if user_id in PluginDataManager.plugin_data.user_bind:
                 await matcher.send(
                     "🖇️目前您绑定关联了用户：\n"
-                    f"{plugin_config.user_bind[user_id]}\n"
+                    f"{PluginDataManager.plugin_data.user_bind[user_id]}\n"
                     "您的任何操作都将会影响到目标用户的数据"
                 )
-            elif user_id in plugin_config.user_bind.values():
-                user_filter = filter(lambda x: plugin_config.user_bind[x] == user_id, plugin_config.user_bind)
+            elif user_id in PluginDataManager.plugin_data.user_bind.values():
+                user_filter = filter(lambda x: PluginDataManager.plugin_data.user_bind[x] == user_id,
+                                     PluginDataManager.plugin_data.user_bind)
                 await matcher.send(
                     "🖇️目前有以下用户绑定了您的数据：\n"
                     "\n".join(user_filter)
@@ -118,10 +119,10 @@ async def _(
                 await matcher.send("⚠️您当前没有绑定任何用户数据，也没有任何用户绑定您的数据")
 
         elif command[1] == "还原":
-            if user_id not in plugin_config.user_bind:
+            if user_id not in PluginDataManager.plugin_data.user_bind:
                 await matcher.finish("⚠️您当前没有绑定任何用户数据")
             else:
-                del plugin_config.user_bind[user_id]
+                del PluginDataManager.plugin_data.user_bind[user_id]
                 del PluginDataManager.plugin_data.users[user_id]
                 PluginDataManager.write_plugin_data()
                 await matcher.send("✔已清除当前用户的绑定关系，当前用户数据已是空白数据")
@@ -130,16 +131,17 @@ async def _(
             if isinstance(event, GeneralGroupMessageEvent):
                 await matcher.finish("⚠️为了保护您的隐私，请私聊进行UUID密钥刷新。")
 
-            if user_id in plugin_config.user_bind:
-                target_id = plugin_config.user_bind[user_id]
+            if user_id in PluginDataManager.plugin_data.user_bind:
+                target_id = PluginDataManager.plugin_data.user_bind[user_id]
                 be_bind = False
             else:
                 target_id = user_id
                 be_bind = True
 
-            src_users = list(filter(lambda x: plugin_config.user_bind[x] == target_id, plugin_config.user_bind))
+            src_users = list(filter(lambda x: PluginDataManager.plugin_data.user_bind[x] == target_id,
+                                    PluginDataManager.plugin_data.user_bind))
             for key in src_users:
-                del plugin_config.user_bind[key]
+                del PluginDataManager.plugin_data.user_bind[key]
                 del PluginDataManager.plugin_data.users[key]
             PluginDataManager.plugin_data.users[target_id].uuid = str(uuid4())
             PluginDataManager.write_plugin_data()
@@ -173,7 +175,7 @@ async def _(
                 filter(lambda x: x[1].uuid == uuid and x[0] != user_id, PluginDataManager.plugin_data.users.items()))
             # 如果有多个用户使用了此UUID密钥，即目标用户被多个用户绑定，需要进一步筛选，防止形成循环绑定的关系链
             if len(target_users) > 1:
-                user_filter = filter(lambda x: x[0] not in plugin_config.user_bind, target_users)
+                user_filter = filter(lambda x: x[0] not in PluginDataManager.plugin_data.user_bind, target_users)
                 target_id, _ = next(user_filter)
             elif len(target_users) == 1:
                 target_id, _ = target_users[0]
