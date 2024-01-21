@@ -24,7 +24,7 @@ from ..api.common import get_game_record, get_good_detail, get_good_list, good_e
     good_exchange
 from ..model import Good, GameRecord, ExchangeStatus, plugin_env, PluginDataManager, plugin_config, UserAccount, \
     ExchangePlan, ExchangeResult
-from ..util import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, \
+from ..utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, \
     send_private_msg, get_unique_users, \
     get_all_bind, game_list_to_image
 

@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..api.common import get_good_detail
 from ..model import Good, plugin_env, data_path, plugin_config
-from ..util.common import get_file, logger, get_async_retry
+from ..utils.common import get_file, logger, get_async_retry
 
 __all__ = ["game_list_to_image"]
 

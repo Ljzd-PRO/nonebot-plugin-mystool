@@ -256,7 +256,7 @@ class UserAccount(BaseModelWithSetter):
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
-            from ...util import generate_device_id
+            from ...utils import generate_device_id
             if not data.get("device_id_ios"):
                 data.setdefault("device_id_ios", generate_device_id())
             if not data.get("device_id_android"):

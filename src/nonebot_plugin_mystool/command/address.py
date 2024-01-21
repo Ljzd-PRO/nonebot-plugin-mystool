@@ -8,7 +8,7 @@ from nonebot.params import T_State
 
 from ..api.common import get_address
 from ..model import PluginDataManager, plugin_config, UserAccount
-from ..util import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+from ..utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent
 
 __all__ = [

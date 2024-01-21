@@ -35,7 +35,7 @@ upgrade_plugin_data()
 
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
-from .util import CommandBegin
+from .utils import CommandBegin
 from nonebot import init
 from nonebot import get_driver
 
@@ -47,4 +47,4 @@ get_driver().on_startup(CommandBegin.set_command_begin)
 from .api import *
 from .command import *
 from .model import *
-from .util import *
+from .utils import *

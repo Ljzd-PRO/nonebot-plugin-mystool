@@ -10,7 +10,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
 from ..model import PluginDataManager, plugin_config, uuid4_validate
-from ..util import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
+from ..utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
     GeneralGroupMessageEvent, PLUGIN, \
     send_private_msg
 

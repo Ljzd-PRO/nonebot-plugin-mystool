@@ -8,7 +8,7 @@ from ..api.common import ApiResultHandler, is_incorrect_return, create_verificat
     verify_verification
 from ..model import BaseApiStatus, MissionStatus, MissionData, \
     MissionState, UserAccount, plugin_config, plugin_env
-from ..util import logger, generate_ds, \
+from ..utils import logger, generate_ds, \
     get_async_retry, get_validate
 
 URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"

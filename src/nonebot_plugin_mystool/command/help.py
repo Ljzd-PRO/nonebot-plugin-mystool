@@ -7,7 +7,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
 from ..model import plugin_config
-from ..util.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
+from ..utils.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
 __all__ = ["helper"]
 

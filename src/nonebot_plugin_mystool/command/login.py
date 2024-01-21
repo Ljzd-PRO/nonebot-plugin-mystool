@@ -13,7 +13,7 @@ from ..api.common import get_login_ticket_by_captcha, get_multi_token_by_login_t
     get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
 from ..model import CreateMobileCaptchaStatus, PluginDataManager, plugin_config, UserAccount, UserData
-from ..util import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+from ..utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent, \
     generate_qr_img, get_validate, read_blacklist, read_whitelist, generate_device_id
 
