@@ -10,9 +10,8 @@ from requests.utils import dict_from_cookiejar
 from ..model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
-    GetFpStatus, StarRailNoteStatus, StarRailNote
-from ..model import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
-from ..model import plugin_env, plugin_config
+    GetFpStatus, StarRailNoteStatus, StarRailNote, UserAccount, BBSCookies, ExchangePlan, ExchangeResult, plugin_env, \
+    plugin_config
 from ..util import generate_device_id, logger, generate_ds, \
     get_async_retry, generate_seed_id, generate_fp_locally
 

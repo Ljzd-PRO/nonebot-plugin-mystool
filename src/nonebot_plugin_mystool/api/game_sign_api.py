@@ -6,8 +6,8 @@ import tenacity
 
 from ..api.common import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, \
     device_login, device_save
-from ..model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData, plugin_config, plugin_env
-from ..model import UserAccount
+from ..model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData, plugin_config, plugin_env, \
+    UserAccount
 from ..util import logger, generate_ds, \
     get_async_retry
 

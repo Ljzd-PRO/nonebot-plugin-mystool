@@ -6,8 +6,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
 from ..api import BaseMission
-from ..model import PluginDataManager, plugin_config
-from ..model import UserAccount
+from ..model import PluginDataManager, plugin_config, UserAccount
 from ..util import COMMAND_BEGIN, GeneralMessageEvent
 
 __all__ = ["setting", "account_setting", "global_setting"]

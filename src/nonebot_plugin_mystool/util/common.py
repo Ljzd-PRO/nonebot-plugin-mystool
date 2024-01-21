@@ -29,9 +29,7 @@ from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from qrcode import QRCode
 
-from ..model import GeetestResult, PluginDataManager
-from ..model import Preference, plugin_config, plugin_env
-from ..model import UserData
+from ..model import GeetestResult, PluginDataManager, Preference, plugin_config, plugin_env, UserData
 
 if TYPE_CHECKING:
     from loguru import Logger

@@ -7,8 +7,7 @@ from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
 from ..api.common import get_address
-from ..model import PluginDataManager, plugin_config
-from ..model import UserAccount
+from ..model import PluginDataManager, plugin_config, UserAccount
 from ..util import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent
 

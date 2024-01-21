@@ -7,9 +7,7 @@ import tenacity
 from ..api.common import ApiResultHandler, is_incorrect_return, create_verification, \
     verify_verification
 from ..model import BaseApiStatus, MissionStatus, MissionData, \
-    MissionState
-from ..model import UserAccount
-from ..model import plugin_config, plugin_env
+    MissionState, UserAccount, plugin_config, plugin_env
 from ..util import logger, generate_ds, \
     get_async_retry, get_validate
 
