@@ -27,6 +27,12 @@ __plugin_meta__ = PluginMetadata(
     extra={"version": __version__}
 )
 
+# 升级 V1 版本插件数据文件
+
+from .model._upgrade import upgrade_plugin_data
+
+upgrade_plugin_data()
+
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
 from .util import CommandBegin
