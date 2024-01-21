@@ -85,7 +85,7 @@ COMMAND_BEGIN = CommandBegin()
 '''命令开头字段（包括例如'/'和插件命令起始字段例如'mystool'）'''
 
 
-def set_logger(logger: "Logger"):
+def set_logger(_logger: "Logger"):
     """
     给日志记录器对象增加输出到文件的Handler
     """
