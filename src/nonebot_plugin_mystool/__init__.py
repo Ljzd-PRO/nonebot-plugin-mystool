@@ -29,7 +29,7 @@ __plugin_meta__ = PluginMetadata(
 
 # 升级 V1 版本插件数据文件
 
-from .model._upgrade import upgrade_plugin_data
+from .model.upgrade import upgrade_plugin_data
 
 upgrade_plugin_data()
 
