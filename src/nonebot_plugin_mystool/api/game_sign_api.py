@@ -90,8 +90,11 @@ class BaseGameSign:
                 logger.exception(f"获取签到奖励信息 - 请求失败")
                 return BaseApiStatus(network_error=True), None
 
-    async def get_info(self, platform: Literal["ios", "android"] = "ios", retry: bool = True) -> Tuple[
-        BaseApiStatus, Optional[GameSignInfo]]:
+    async def get_info(
+            self,
+            platform: Literal["ios", "android"] = "ios",
+            retry: bool = True
+    ) -> Tuple[BaseApiStatus, Optional[GameSignInfo]]:
         """
         获取签到记录
 

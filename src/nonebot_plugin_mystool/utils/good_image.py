@@ -64,7 +64,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
                     f"{plugin_config.preference.log_head}商品列表图片生成 - 已完成字体下载 -> {FONT_SAVE_PATH}")
                 try:
                     os.remove(TEMP_FONT_PATH)
-                except:
+                except Exception:
                     logger.exception(
                         f"{plugin_config.preference.log_head}商品列表图片生成 - 无法清理下载的字体压缩包临时文件")
                 font_path = FONT_SAVE_PATH
@@ -94,8 +94,7 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
             # 记录预览图粘贴位置
             position.append((0, size_y))
             # 调整下一个粘贴的位置
-            size_y += plugin_env.good_list_image_config.ICON_SIZE[1] + \
-                      plugin_env.good_list_image_config.PADDING_ICON
+            size_y += plugin_env.good_list_image_config.ICON_SIZE[1] + plugin_env.good_list_image_config.PADDING_ICON
             imgs.append(img)
 
         preview = Image.new(
@@ -123,5 +122,5 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
         image_bytes = io.BytesIO()
         preview.save(image_bytes, format="JPEG")
         return image_bytes.getvalue()
-    except:
+    except Exception:
         logger.exception(f"{plugin_config.preference.log_head}商品列表图片生成 - 无法完成图片生成")

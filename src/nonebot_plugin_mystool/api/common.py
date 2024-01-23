@@ -1593,8 +1593,10 @@ async def starrail_note(account: UserAccount) -> Tuple[
         return StarRailNoteStatus(no_starrail_account=True), None
 
 
-async def create_verification(account: UserAccount = None, retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[MmtData]]:
+async def create_verification(
+        account: UserAccount = None,
+        retry: bool = True
+) -> Tuple[BaseApiStatus, Optional[MmtData]]:
     """
     创建人机验证任务 - 一般用于米游社讨论区签到
 
