@@ -505,12 +505,12 @@ async def _():
                     )
 
 
-def image_process(game: str, lock: Lock = None):
+def image_process(game: str, _lock: Lock = None):
     """
     生成并保存图片的进程函数
 
     :param game: 游戏名
-    :param lock: 进程锁
+    :param _lock: 进程锁
     :return: 生成成功或无商品返回True，否则返回False
     """
     loop = asyncio.new_event_loop()
@@ -521,7 +521,7 @@ def image_process(game: str, lock: Lock = None):
     good_list = list(filter(lambda x: not x.time_end and x.time_limited, good_list))
     if good_list:
         logger.info(f"{plugin_config.preference.log_head}正在生成 {game} 分区的商品列表图片")
-        image_bytes = loop.run_until_complete(game_list_to_image(good_list, lock))
+        image_bytes = loop.run_until_complete(game_list_to_image(good_list, _lock))
         if not image_bytes:
             return False
         date = time.strftime('%m-%d', time.localtime())
@@ -553,11 +553,11 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
                 os.remove(os.path.join(root, name))
 
     if plugin_env.good_list_image_config.MULTI_PROCESS:
-        lock: Lock = Manager().Lock()
+        _lock: Lock = Manager().Lock()
         with Pool() as pool:
             for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
                 pool.apply_async(image_process,
-                                 args=(game, lock),
+                                 args=(game, _lock),
                                  callback=callback)
             pool.close()
             pool.join()
