@@ -8,7 +8,7 @@ __all__ = ["CommandRegistry"]
 
 
 class CommandRegistry:
-    _command_to_usage: Dict[Type[Matcher], CommandUsage]
+    _command_to_usage: Dict[Type[Matcher], CommandUsage] = {}
 
     @classmethod
     def get_commands_usage_mapping(cls) -> Dict[Type[Matcher], CommandUsage]:
