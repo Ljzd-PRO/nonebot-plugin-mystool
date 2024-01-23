@@ -16,7 +16,6 @@ from ..utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command
     send_private_msg
 
 __all__ = ["friendRequest", "user_binding", "direct_msg_respond"]
-_conf = PluginDataManager.plugin_data
 _driver = get_driver()
 
 
