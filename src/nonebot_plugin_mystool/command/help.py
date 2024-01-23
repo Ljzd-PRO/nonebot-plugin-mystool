@@ -66,8 +66,10 @@ async def _(_: Union[GeneralMessageEvent], content=ArgStr()):
         try:
             command_usage = CommandRegistry.get_usage(matcher)
             if command_usage and content.lower() == command_usage.name:
+                description_text = command_usage.description or ""
+                usage_text = f"\n\n{command_usage.usage}" if command_usage.usage else ""
                 await helper.finish(
-                    f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n{command_usage.usage}"
+                    f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n{description_text}{usage_text}"
                 )
         except AttributeError:
             continue
