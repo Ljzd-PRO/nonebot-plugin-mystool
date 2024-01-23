@@ -25,7 +25,7 @@ class Preference(BaseModel):
     """
     偏好设置
     """
-    github_proxy: Optional[str] = "https://ghproxy.com/"
+    github_proxy: Optional[str] = "https://mirror.ghproxy.com/"
     """GitHub加速代理 最终会拼接在原GitHub链接前面"""
     enable_connection_test: bool = True
     """是否开启连接测试"""
