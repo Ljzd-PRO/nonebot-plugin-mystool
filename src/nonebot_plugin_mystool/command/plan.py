@@ -306,7 +306,7 @@ async def perform_game_sign(
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = (f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到失败！请尝试重新签到，"
-                               f"若多次失败请尝试重新登录绑定账户")
+                               "若多次失败请尝试重新登录绑定账户")
                 if matcher:
                     try:
                         if isinstance(event, OneBotV11MessageEvent):
