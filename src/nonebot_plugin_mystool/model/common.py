@@ -395,7 +395,8 @@ class GenshinNote(BaseModel):
                 return '已准备就绪'
             else:
                 return f"{self.transformer['recovery_time']['Day']} 天" \
-                       f"{self.transformer['recovery_time']['Hour']} 小时 {self.transformer['recovery_time']['Minute']} 分钟"
+                       f"{self.transformer['recovery_time']['Hour']} 小时 " \
+                       f"{self.transformer['recovery_time']['Minute']} 分钟"
         except KeyError:
             return None
 

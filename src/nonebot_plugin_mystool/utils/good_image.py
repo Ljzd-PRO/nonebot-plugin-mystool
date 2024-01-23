@@ -41,7 +41,8 @@ async def game_list_to_image(good_list: List[Good], lock: Lock = None, retry: bo
                 font_path = FONT_SAVE_PATH
             else:
                 logger.warning(
-                    f"{plugin_config.preference.log_head}商品列表图片生成 - 缺少字体，正在从 https://github.com/adobe-fonts/source-han-sans/tree/release "
+                    f"{plugin_config.preference.log_head}商品列表图片生成 - 缺少字体，正在从 "
+                    f"https://github.com/adobe-fonts/source-han-sans/tree/release "
                     f"下载字体...")
                 try:
                     os.makedirs(os.path.dirname(TEMP_FONT_PATH))
