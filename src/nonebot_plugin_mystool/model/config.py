@@ -6,6 +6,7 @@ from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 from loguru import logger
 from pydantic import BaseModel, BaseSettings, validator
 
+from .. import PLUGIN
 from ..model.common import data_path
 
 if TYPE_CHECKING:
@@ -249,4 +250,5 @@ else:
     else:
         logger.info(f"插件配置文件 {plugin_config_path} 不存在，已创建默认插件配置文件。")
 
+PLUGIN.metadata.config = plugin_config
 plugin_env = PluginEnv()
