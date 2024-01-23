@@ -19,7 +19,8 @@ from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
 from ..command.common import CommandRegistry
 from ..command.exchange import generate_image
-from ..model import MissionStatus, GenshinNote, StarRailNote, PluginDataManager, plugin_config, UserData, CommandUsage
+from ..model import (MissionStatus, PluginDataManager, plugin_config, UserData, CommandUsage, GenshinNoteNotice,
+                     StarRailNoteNotice)
 from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
     get_all_bind, \
     get_unique_users, get_validate, read_admin_list
@@ -126,30 +127,6 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
     else:
         await manually_bbs_sign.send("⏳开始执行米游币任务...")
         await perform_bbs_sign(user=user, user_ids=[user_id], matcher=matcher)
-
-
-class GenshinNoteNotice(GenshinNote):
-    """
-    原神便笺通知状态
-    """
-    current_resin: bool = False
-    """是否达到阈值"""
-    current_resin_full: bool = False
-    """是否溢出"""
-    current_home_coin: bool = False
-    transformer: bool = False
-
-
-class StarRailNoteNotice(StarRailNote):
-    """
-    星穹铁道便笺通知状态
-    """
-    current_stamina: bool = False
-    """是否达到阈值"""
-    current_stamina_full: bool = False
-    """是否溢出"""
-    current_train_score: bool = False
-    current_rogue_score: bool = False
 
 
 class NoteNoticeStatus(BaseModel):

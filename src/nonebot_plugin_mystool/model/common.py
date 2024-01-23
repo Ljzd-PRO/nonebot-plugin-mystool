@@ -10,10 +10,10 @@ from pydantic import BaseModel
 
 __all__ = ["root_path", "data_path", "BaseModelWithSetter", "BaseModelWithUpdate", "Good", "GameRecord", "GameInfo",
            "Address", "MmtData",
-           "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "BaseApiStatus",
-           "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus", "ExchangeStatus", "MissionStatus",
-           "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus", "GeetestResult", "GeetestResultV4",
-           "CommandUsage"]
+           "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "GenshinNoteNotice",
+           "StarRailNoteNotice", "BaseApiStatus", "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus",
+           "ExchangeStatus", "MissionStatus", "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus",
+           "GeetestResult", "GeetestResultV4", "CommandUsage"]
 
 root_path = Path(__name__).parent.absolute()
 '''NoneBot2 机器人根目录'''
@@ -459,6 +459,30 @@ class StarRailNote(BaseModel):
                 return f"将在{recovery_datetime.strftime('%m-%d %H:%M')}回满"
         except KeyError:
             return None
+
+
+class GenshinNoteNotice(GenshinNote):
+    """
+    原神便笺通知状态
+    """
+    current_resin: bool = False
+    """是否达到阈值"""
+    current_resin_full: bool = False
+    """是否溢出"""
+    current_home_coin: bool = False
+    transformer: bool = False
+
+
+class StarRailNoteNotice(StarRailNote):
+    """
+    星穹铁道便笺通知状态
+    """
+    current_stamina: bool = False
+    """是否达到阈值"""
+    current_stamina_full: bool = False
+    """是否溢出"""
+    current_train_score: bool = False
+    current_rogue_score: bool = False
 
 
 class BaseApiStatus(BaseModel):
