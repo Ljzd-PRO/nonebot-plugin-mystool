@@ -12,7 +12,8 @@ from nonebot.params import ArgPlainText, T_State
 from ..api.common import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, \
     get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
-from ..model import CreateMobileCaptchaStatus, PluginDataManager, plugin_config, UserAccount, UserData
+from ..command.common import CommandRegistry
+from ..model import CreateMobileCaptchaStatus, PluginDataManager, plugin_config, UserAccount, UserData, CommandUsage
 from ..utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent, \
     generate_qr_img, get_validate, read_blacklist, read_whitelist, generate_device_id
@@ -20,8 +21,14 @@ from ..utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMe
 __all__ = ["get_cookie", "output_cookies"]
 
 get_cookie = on_command(plugin_config.preference.command_start + '登录', priority=4, block=True)
-get_cookie.name = '登录'
-get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
+
+CommandRegistry.set_usage(
+    get_cookie,
+    CommandUsage(
+        name="登录",
+        description="跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。"
+    )
+)
 
 
 @get_cookie.handle()
@@ -217,8 +224,14 @@ output_cookies = on_command(
              plugin_config.preference.command_start + '导出cookie',
              plugin_config.preference.command_start + '导出cookies'}, priority=4,
     block=True)
-output_cookies.name = '导出Cookies'
-output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
+
+CommandRegistry.set_usage(
+    output_cookies,
+    CommandUsage(
+        name="导出Cookies",
+        description="导出绑定的米游社账号的Cookies数据"
+    )
+)
 
 
 @output_cookies.handle()

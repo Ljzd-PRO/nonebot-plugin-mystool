@@ -6,7 +6,8 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 
-from ..model import plugin_config
+from ..command.common import CommandRegistry
+from ..model import plugin_config, CommandUsage
 from ..utils.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
 
 __all__ = ["helper"]
@@ -18,10 +19,15 @@ helper = on_command(
     block=True
 )
 
-helper.name = '帮助'
-helper.usage = "🍺欢迎使用米游社小助手帮助系统！" \
-               "\n{HEAD}帮助 ➢ 查看米游社小助手使用说明" \
-               "\n{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
+CommandRegistry.set_usage(
+    helper,
+    CommandUsage(
+        name="帮助",
+        description="🍺欢迎使用米游社小助手帮助系统！\n"
+                    "{HEAD}帮助 ➢ 查看米游社小助手使用说明\n"
+                    "{HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
+    )
+)
 
 
 @helper.handle()
@@ -58,9 +64,11 @@ async def _(_: Union[GeneralMessageEvent], content=ArgStr()):
     matchers = PLUGIN.matcher
     for matcher in matchers:
         try:
-            if content.lower() == matcher.name:
+            command_usage = CommandRegistry.get_usage(matcher)
+            if command_usage and content.lower() == command_usage.name:
                 await helper.finish(
-                    f"『{COMMAND_BEGIN}{matcher.name}』- 使用说明\n{matcher.usage}")
+                    f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n{command_usage.usage}"
+                )
         except AttributeError:
             continue
     await helper.finish("⚠️未查询到相关功能，请重新尝试")

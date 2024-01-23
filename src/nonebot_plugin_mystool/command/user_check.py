@@ -9,7 +9,8 @@ from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, A
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg, Command
 
-from ..model import PluginDataManager, plugin_config, uuid4_validate
+from ..command.common import CommandRegistry
+from ..model import PluginDataManager, plugin_config, uuid4_validate, CommandUsage
 from ..utils import logger, GeneralMessageEvent, COMMAND_BEGIN, get_last_command_sep, \
     GeneralGroupMessageEvent, PLUGIN, \
     send_private_msg
@@ -66,17 +67,21 @@ user_binding = on_command(
     priority=5,
     block=True
 )
-user_binding.name = '用户绑定'
-user_binding.usage = '通过UUID绑定关联其他聊天平台或者其他账号的用户数据，以免去重新登录等操作'
-user_binding.extra_usage = """\
-具体用法：
-🔑 {HEAD}用户绑定{SEP}UUID ➢ 查看用于绑定的当前用户数据的UUID密钥
-🔍 {HEAD}用户绑定{SEP}查询 ➢ 查看当前用户的绑定情况
-↩️ {HEAD}用户绑定{SEP}还原 ➢ 清除当前用户的绑定关系，使当前用户数据成为空白数据
-🔄️ {HEAD}用户绑定{SEP}刷新UUID ➢ 重新生成当前用户的UUID密钥，同时原先与您绑定的用户将无法访问您当前的用户数据
-🖇️ {HEAD}用户绑定 <UUID> ➢ 绑定目标UUID的用户数据，当前用户的所有数据将被目标用户覆盖
-『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可\
-"""
+
+CommandRegistry.set_usage(
+    user_binding,
+    CommandUsage(
+        name="用户绑定",
+        description="通过UUID绑定关联其他聊天平台或者其他账号的用户数据，以免去重新登录等操作",
+        usage="具体用法：\n"
+              "🔑 {HEAD}用户绑定{SEP}UUID ➢ 查看用于绑定的当前用户数据的UUID密钥\n"
+              "🔍 {HEAD}用户绑定{SEP}查询 ➢ 查看当前用户的绑定情况\n"
+              "↩️ {HEAD}用户绑定{SEP}还原 ➢ 清除当前用户的绑定关系，使当前用户数据成为空白数据\n"
+              "🔄️ {HEAD}用户绑定{SEP}刷新UUID ➢ 重新生成当前用户的UUID密钥，同时原先与您绑定的用户将无法访问您当前的用户数据\n"
+              "🖇️ {HEAD}用户绑定 <UUID> ➢ 绑定目标UUID的用户数据，当前用户的所有数据将被目标用户覆盖\n"
+              "『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可"
+    )
+)
 
 
 @user_binding.handle()
@@ -155,13 +160,20 @@ async def _(
         else:
             await matcher.reject(
                 '⚠️您的输入有误，二级命令不正确\n\n'
-                f'{user_binding.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{CommandRegistry.get_usage(user_binding).usage.format(
+                    HEAD=COMMAND_BEGIN,
+                    SEP=get_last_command_sep()
+                )}'
             )
     elif not command_arg:
+        command_usage = CommandRegistry.get_usage(user_binding)
         await matcher.send(
-            f"『{COMMAND_BEGIN}{user_binding.name}』- 使用说明\n"
-            f"{user_binding.usage.format(HEAD=COMMAND_BEGIN)}\n"
-            f'{user_binding.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+            f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n"
+            f"{command_usage.description.format(HEAD=COMMAND_BEGIN)}\n"
+            f'{command_usage.usage.format(
+                HEAD=COMMAND_BEGIN,
+                SEP=get_last_command_sep()
+            )}'
         )
     else:
         uuid = str(command_arg).lower()
@@ -204,9 +216,14 @@ direct_msg_respond = on_command(
     priority=5,
     block=True
 )
-direct_msg_respond.name = '私信响应'
-direct_msg_respond.usage = '让机器人私信发送给您一条消息，防止因为发送了三条私信消息而机器人未回复导致无法继续私信。' \
-                           '需要注意每个机器人每天只能对一个用户发2条主动消息。'
+
+CommandRegistry.set_usage(
+    direct_msg_respond,
+    CommandUsage(
+        name="私信响应",
+        description="让机器人私信发送给您一条消息，防止因为发送了三条私信消息而机器人未回复导致无法继续私信。"
+    )
+)
 
 
 @direct_msg_respond.handle()

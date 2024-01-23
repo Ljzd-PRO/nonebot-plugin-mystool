@@ -7,6 +7,8 @@ from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
 from ..api.common import get_address
+from ..command.common import CommandRegistry
+from ..model import CommandUsage
 from ..model import PluginDataManager, plugin_config, UserAccount
 from ..utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
     GeneralGroupMessageEvent
@@ -17,8 +19,13 @@ __all__ = [
 
 address_matcher = on_command(plugin_config.preference.command_start + '地址', priority=4, block=True)
 
-address_matcher.name = '地址'
-address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
+CommandRegistry.set_usage(
+    address_matcher,
+    CommandUsage(
+        name="地址",
+        description="跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置"
+    )
+)
 
 
 @address_matcher.handle()

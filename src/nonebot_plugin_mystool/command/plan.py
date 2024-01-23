@@ -17,8 +17,9 @@ from pydantic import BaseModel
 from ..api import BaseGameSign
 from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
+from ..command.common import CommandRegistry
 from ..command.exchange import generate_image
-from ..model import MissionStatus, GenshinNote, StarRailNote, PluginDataManager, plugin_config, UserData
+from ..model import MissionStatus, GenshinNote, StarRailNote, PluginDataManager, plugin_config, UserData, CommandUsage
 from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
     get_all_bind, \
     get_unique_users, get_validate, read_admin_list
@@ -28,8 +29,14 @@ __all__ = [
 ]
 
 manually_game_sign = on_command(plugin_config.preference.command_start + '签到', priority=5, block=True)
-manually_game_sign.name = '签到'
-manually_game_sign.usage = '手动进行游戏签到，查看本次签到奖励及本月签到天数'
+
+CommandRegistry.set_usage(
+    manually_game_sign,
+    CommandUsage(
+        name="签到",
+        description="手动进行游戏签到，查看本次签到奖励及本月签到天数"
+    )
+)
 
 
 @manually_game_sign.handle()
@@ -73,8 +80,14 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
 
 
 manually_bbs_sign = on_command(plugin_config.preference.command_start + '任务', priority=5, block=True)
-manually_bbs_sign.name = '任务'
-manually_bbs_sign.usage = '手动执行米游币每日任务，可以查看米游币任务完成情况'
+
+CommandRegistry.set_usage(
+    manually_bbs_sign,
+    CommandUsage(
+        name="任务",
+        description="手动执行米游币每日任务，可以查看米游币任务完成情况"
+    )
+)
 
 
 @manually_bbs_sign.handle()
@@ -160,8 +173,14 @@ manually_genshin_note_check = on_command(
     priority=5,
     block=True
 )
-manually_genshin_note_check.name = '原神便笺'
-manually_genshin_note_check.usage = '手动查看原神实时便笺，即原神树脂、洞天财瓮等信息'
+
+CommandRegistry.set_usage(
+    manually_genshin_note_check,
+    CommandUsage(
+        name="原神便笺",
+        description="手动查看原神实时便笺，即原神树脂、洞天财瓮等信息"
+    )
+)
 
 
 @manually_genshin_note_check.handle()
@@ -185,8 +204,14 @@ manually_starrail_note_check = on_command(
     priority=5,
     block=True
 )
-manually_starrail_note_check.name = '星穹铁道便笺'
-manually_starrail_note_check.usage = '手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息'
+
+CommandRegistry.set_usage(
+    manually_starrail_note_check,
+    CommandUsage(
+        name="星穹铁道便笺",
+        description="手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息"
+    )
+)
 
 
 @manually_starrail_note_check.handle()

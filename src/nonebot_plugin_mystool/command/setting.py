@@ -6,15 +6,22 @@ from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
 from ..api import BaseMission
-from ..model import PluginDataManager, plugin_config, UserAccount
+from ..command.common import CommandRegistry
+from ..model import PluginDataManager, plugin_config, UserAccount, CommandUsage
 from ..utils import COMMAND_BEGIN, GeneralMessageEvent
 
 __all__ = ["setting", "account_setting", "global_setting"]
 
 setting = on_command(plugin_config.preference.command_start + '设置', priority=4, block=True)
-setting.name = "设置"
-setting.usage = '如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{HEAD}账号设置』命令。' \
-                '\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{HEAD}通知设置』命令。'
+
+CommandRegistry.set_usage(
+    setting,
+    CommandUsage(
+        name="设置",
+        description="如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{HEAD}账号设置』命令。\n"
+                    "如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{HEAD}通知设置』命令。"
+    )
+)
 
 
 @setting.handle()
@@ -25,8 +32,14 @@ async def _(_: Union[GeneralMessageEvent]):
 
 
 account_setting = on_command(plugin_config.preference.command_start + '账号设置', priority=5, block=True)
-account_setting.name = "账号设置"
-account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
+
+CommandRegistry.set_usage(
+    account_setting,
+    CommandUsage(
+        name="账号设置",
+        description="配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
+    )
+)
 
 
 @account_setting.handle()
@@ -230,8 +243,14 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
 
 
 global_setting = on_command(plugin_config.preference.command_start + '通知设置', priority=5, block=True)
-global_setting.name = "通知设置"
-global_setting.usage = "设置每日签到后是否进行QQ通知"
+
+CommandRegistry.set_usage(
+    global_setting,
+    CommandUsage(
+        name="通知设置",
+        description="设置每日签到后是否进行QQ通知"
+    )
+)
 
 
 @global_setting.handle()

@@ -22,8 +22,9 @@ from nonebot_plugin_apscheduler import scheduler
 from ..api.common import get_game_record, get_good_detail, get_good_list, good_exchange_sync, \
     get_device_fp, \
     good_exchange
+from ..command.common import CommandRegistry
 from ..model import Good, GameRecord, ExchangeStatus, plugin_env, PluginDataManager, plugin_config, UserAccount, \
-    ExchangePlan, ExchangeResult
+    ExchangePlan, ExchangeResult, CommandUsage
 from ..utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, \
     send_private_msg, get_unique_users, \
     get_all_bind, game_list_to_image
@@ -43,18 +44,22 @@ myb_exchange_plan = on_command(
     priority=5,
     block=True
 )
-myb_exchange_plan.name = "兑换"
-myb_exchange_plan.usage = "跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，" \
-                          "并使用『{HEAD}地址』选择你要使用的地址。" \
-                          "所需的商品ID可通过命令『{HEAD}商品』获取。" \
-                          "注意，不限兑换时间的商品将不会在此处显示。 "
-myb_exchange_plan.extra_usage = """\
-具体用法：
-🛒 {HEAD}兑换{SEP}+ <商品ID> ➢ 新增兑换计划
-🗑️ {HEAD}兑换{SEP}- <商品ID> ➢ 删除兑换计划
-🎁 {HEAD}商品 ➢ 查看米游社商品
-『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可\
-"""
+
+CommandRegistry.set_usage(
+    myb_exchange_plan,
+    CommandUsage(
+        name="兑换",
+        description="跟随指引，配置米游币商品自动兑换计划。添加计划之前，请先前往米游社设置好收货地址，"
+                    "并使用『{HEAD}地址』选择你要使用的地址。"
+                    "所需的商品ID可通过命令『{HEAD}商品』获取。"
+                    "注意，不限兑换时间的商品将不会在此处显示。",
+        usage="具体用法：\n"
+              "🛒 {HEAD}兑换{SEP}+ <商品ID> ➢ 新增兑换计划\n"
+              "🗑️ {HEAD}兑换{SEP}- <商品ID> ➢ 删除兑换计划\n"
+              "🎁 {HEAD}商品 ➢ 查看米游社商品\n"
+              "『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可"
+    )
+)
 
 
 @myb_exchange_plan.handle()
@@ -79,12 +84,22 @@ async def _(
         if not command_arg:
             await matcher.reject(
                 '⚠️您的输入有误，缺少商品ID，请重新输入\n\n'
-                f'{myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{
+                CommandRegistry.get_usage(myb_exchange_plan).usage.format(
+                    HEAD=COMMAND_BEGIN,
+                    SEP=get_last_command_sep()
+                )
+                }'
             )
         elif not str(command_arg).isdigit():
             await matcher.reject(
                 '⚠️商品ID必须为数字，请重新输入\n\n'
-                f'{myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}'
+                f'{
+                CommandRegistry.get_usage(myb_exchange_plan).usage.format(
+                    HEAD=COMMAND_BEGIN,
+                    SEP=get_last_command_sep()
+                )
+                }'
             )
 
     user = PluginDataManager.plugin_data.users.get(event.get_user_id())
@@ -120,7 +135,14 @@ async def _(
             msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
-        await matcher.finish(msg + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep()))
+        await matcher.finish(
+            f'{msg}{
+            CommandRegistry.get_usage(myb_exchange_plan).usage.format(
+                HEAD=COMMAND_BEGIN,
+                SEP=get_last_command_sep()
+            )
+            }'
+        )
 
 
 @myb_exchange_plan.got('bbs_uid')
@@ -223,8 +245,13 @@ async def _(
 
     else:
         await matcher.reject(
-            '⚠️您的输入有误，请重新输入\n\n' + myb_exchange_plan.extra_usage.format(HEAD=COMMAND_BEGIN,
-                                                                                   SEP=get_last_command_sep()))
+            f'⚠️您的输入有误，请重新输入\n\n{
+            CommandRegistry.get_usage(myb_exchange_plan).usage.format(
+                HEAD=COMMAND_BEGIN,
+                SEP=get_last_command_sep()
+            )
+            }'
+        )
 
 
 @myb_exchange_plan.got('game_uid')
@@ -281,8 +308,14 @@ async def _(
 
 
 get_good_image = on_command(plugin_config.preference.command_start + '商品', priority=5, block=True)
-get_good_image.name = "商品"
-get_good_image.usage = "获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
+
+CommandRegistry.set_usage(
+    get_good_image,
+    CommandUsage(
+        name="商品",
+        description="获取当日米游币商品信息。添加自动兑换计划需要商品ID，请记下您要兑换的商品的ID。"
+    )
+)
 
 
 @get_good_image.handle()

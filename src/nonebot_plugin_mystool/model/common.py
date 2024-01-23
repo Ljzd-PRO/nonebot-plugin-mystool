@@ -12,7 +12,8 @@ __all__ = ["root_path", "data_path", "BaseModelWithSetter", "BaseModelWithUpdate
            "Address", "MmtData",
            "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "BaseApiStatus",
            "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus", "ExchangeStatus", "MissionStatus",
-           "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus", "GeetestResult", "GeetestResultV4"]
+           "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus", "GeetestResult", "GeetestResultV4",
+           "CommandUsage"]
 
 root_path = Path(__name__).parent.absolute()
 '''NoneBot2 机器人根目录'''
@@ -612,3 +613,12 @@ class GeetestResultV4(BaseModel):
     pass_token: str
     gen_time: str
     captcha_output: str
+
+
+class CommandUsage(BaseModel):
+    """
+    插件命令用法信息
+    """
+    name: Optional[str]
+    description: Optional[str]
+    usage: Optional[str]
