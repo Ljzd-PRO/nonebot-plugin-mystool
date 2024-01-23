@@ -270,7 +270,7 @@ async def perform_game_sign(
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
                     elif sign_status.need_verify:
                         message = (f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到时可能遇到验证码拦截，"
-                                   f"请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到")
+                                   "请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到")
                     else:
                         message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到失败，请稍后再试"
                     if matcher:
@@ -306,7 +306,7 @@ async def perform_game_sign(
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = (f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到失败！请尝试重新签到，"
-                               f"若多次失败请尝试重新登录绑定账户")
+                               "若多次失败请尝试重新登录绑定账户")
                 if matcher:
                     try:
                         if isinstance(event, OneBotV11MessageEvent):
