@@ -3,10 +3,10 @@ from datetime import time, timedelta, datetime
 from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 
+import nonebot
 from loguru import logger
 from pydantic import BaseModel, BaseSettings, validator
 
-from .. import PLUGIN
 from ..model.common import data_path
 
 if TYPE_CHECKING:
@@ -250,5 +250,6 @@ else:
     else:
         logger.info(f"插件配置文件 {plugin_config_path} 不存在，已创建默认插件配置文件。")
 
-PLUGIN.metadata.config = plugin_config
+_plugin = nonebot.plugin.get_plugin(plugin_config.preference.plugin_name)
+_plugin.metadata.config = plugin_config
 plugin_env = PluginEnv()
