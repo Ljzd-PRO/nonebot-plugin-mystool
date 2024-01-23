@@ -395,23 +395,24 @@ def exchange_notice(event: JobExecutionEvent):
             user_id_filter = filter(lambda x: hash(x[1].exchange_plans) == hash_value, get_unique_users())
             user_id = next(user_id_filter)
             user_ids = [user_id] + list(get_all_bind(user_id))
-            plan = PluginDataManager.plugin_data.users[user_id].exchange_plans
+            plans = PluginDataManager.plugin_data.users[user_id].exchange_plans
 
             with lock:
-                finished[plan].append(False)
-                for _user_id in user_ids:
-                    loop.create_task(
-                        send_private_msg(
-                            user_id=_user_id,
-                            message=f"⚠️账户 {plan.account.bbs_uid}"
-                                    f"\n- {plan.good.general_name}"
-                                    f"\n- 线程 {thread_id}"
-                                    f"\n- 兑换请求发送失败"
+                for plan in plans:
+                    finished[plan].append(False)
+                    for _user_id in user_ids:
+                        loop.create_task(
+                            send_private_msg(
+                                user_id=_user_id,
+                                message=f"⚠️账户 {plan.account.bbs_uid}"
+                                        f"\n- {plan.good.general_name}"
+                                        f"\n- 线程 {thread_id}"
+                                        f"\n- 兑换请求发送失败"
+                            )
                         )
-                    )
-                if len(finished[plan]) == plugin_config.preference.exchange_thread_count:
-                    del plan
-                    PluginDataManager.write_plugin_data()
+                    if len(finished[plan]) == plugin_config.preference.exchange_thread_count:
+                        del plan
+                        PluginDataManager.write_plugin_data()
 
         else:
             plan = exchange_result.plan
