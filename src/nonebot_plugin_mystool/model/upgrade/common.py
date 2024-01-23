@@ -4,11 +4,11 @@ from loguru import logger
 from pydantic import BaseSettings
 
 from ..._version import __version__
+from ...model.common import data_path
 from ...model.upgrade.configV2 import Preference, SaltConfig, DeviceConfig, GoodListImageConfig, PluginConfig, \
     plugin_config_path, \
     PluginEnv
 from ...model.upgrade.dataV2 import UserData, UserAccount, PluginData, plugin_data_path
-from ...model.common import data_path
 
 if TYPE_CHECKING:
     IntStr = Union[int, str]

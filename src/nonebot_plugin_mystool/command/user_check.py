@@ -81,6 +81,7 @@ CommandRegistry.set_usage(
               "『{SEP}』为分隔符，使用NoneBot配置中的其他分隔符亦可"
     )
 )
+user_binding_usage = CommandRegistry.get_usage(user_binding)
 
 
 @user_binding.handle()
@@ -155,24 +156,16 @@ async def _(
                 f"🔑新的UUID密钥：{user.uuid.upper()}\n"
                 "可用于其他聊天平台进行数据绑定，请不要泄露给他人"
             )
-
         else:
             await matcher.reject(
                 '⚠️您的输入有误，二级命令不正确\n\n'
-                f'{CommandRegistry.get_usage(user_binding).usage.format(
-                    HEAD=COMMAND_BEGIN,
-                    SEP=get_last_command_sep()
-                )}'
+                f"{user_binding_usage.usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}"
             )
     elif not command_arg:
-        command_usage = CommandRegistry.get_usage(user_binding)
         await matcher.send(
-            f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n"
-            f"{command_usage.description.format(HEAD=COMMAND_BEGIN)}\n"
-            f'{command_usage.usage.format(
-                HEAD=COMMAND_BEGIN,
-                SEP=get_last_command_sep()
-            )}'
+            f"『{COMMAND_BEGIN}{user_binding_usage.name}』- 使用说明\n"
+            f"{user_binding_usage.description.format(HEAD=COMMAND_BEGIN)}\n"
+            f"{user_binding_usage.usage.format(HEAD=COMMAND_BEGIN, SEP=get_last_command_sep())}"
         )
     else:
         uuid = str(command_arg).lower()
