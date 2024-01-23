@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 
 import nonebot
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseModel, BaseSettings, validator
 
 from ..model.common import data_path

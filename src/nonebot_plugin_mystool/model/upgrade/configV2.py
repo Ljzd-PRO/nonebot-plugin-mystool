@@ -7,7 +7,7 @@ from datetime import time, timedelta, datetime
 from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseModel, BaseSettings, validator
 
 from ...model.common import data_path

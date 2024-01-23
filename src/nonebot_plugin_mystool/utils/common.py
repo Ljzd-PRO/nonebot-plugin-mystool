@@ -32,7 +32,7 @@ from qrcode import QRCode
 from ..model import GeetestResult, PluginDataManager, Preference, plugin_config, plugin_env, UserData
 
 if TYPE_CHECKING:
-    from loguru import Logger
+    from nonebot.log import logger
 
 __all__ = ["GeneralMessageEvent", "GeneralPrivateMessageEvent", "GeneralGroupMessageEvent", "CommandBegin",
            "get_last_command_sep", "COMMAND_BEGIN", "set_logger", "logger", "PLUGIN", "custom_attempt_times",
