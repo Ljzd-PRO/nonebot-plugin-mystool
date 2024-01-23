@@ -8,7 +8,7 @@ from nonebot.params import CommandArg
 
 from ..command.common import CommandRegistry
 from ..model import plugin_config, CommandUsage
-from ..utils.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger
+from ..utils.common import PLUGIN, COMMAND_BEGIN, GeneralMessageEvent, logger, get_last_command_sep
 
 __all__ = ["helper"]
 
@@ -68,8 +68,12 @@ async def _(_: Union[GeneralMessageEvent], content=ArgStr()):
             if command_usage and content.lower() == command_usage.name:
                 description_text = command_usage.description or ""
                 usage_text = f"\n\n{command_usage.usage}" if command_usage.usage else ""
+                finish_text = f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n{description_text}{usage_text}"
                 await helper.finish(
-                    f"『{COMMAND_BEGIN}{command_usage.name}』- 使用说明\n{description_text}{usage_text}"
+                    finish_text.format(
+                        HEAD=COMMAND_BEGIN,
+                        SEP=get_last_command_sep()
+                    )
                 )
         except AttributeError:
             continue
