@@ -24,7 +24,7 @@
 - 显示米游社账号时除了显示米游社UID，还会显示登录时获取到的手机尾号4位，方便辨识账号 (#242)
 > [!IMPORTANT]
 > 目前还在考虑是否需要通过一个用户设置选项，来控制是否显示手机尾号，并默认关闭，以保护用户隐私 \
-> 如果觉得有必要可以在 Discussion 讨论页面 的对应话题提出。
+> 如果觉得有必要可以在 [Discussion 讨论页面](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/discussions/247) 的对应话题提出或投票。
 
 ### 2024.1.23 - [v2.0.0-beta.1](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.0-beta.1)
 
