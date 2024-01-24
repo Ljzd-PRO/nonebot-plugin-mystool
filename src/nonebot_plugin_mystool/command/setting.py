@@ -57,7 +57,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State)
         state["bbs_uid"] = uid
     else:
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
-        msg += "\n".join(map(lambda x: f"🆔{x}", user_account))
+        msg += "\n".join(map(lambda x: f"🆔{x.display_name}", user_account))
         msg += "\n🚪发送“退出”即可退出"
         await matcher.send(msg)
 
@@ -154,11 +154,11 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
         return
     elif setting_id == '7':
         state["prepare_to_delete"] = True
-        await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
+        await account_setting.reject(f"⚠️确认删除账号 {account.display_name} ？发送 \"确认删除\" 以确定。")
     elif setting_id == '确认删除' and state["prepare_to_delete"]:
         user_account.pop(account.bbs_uid)
         PluginDataManager.write_plugin_data()
-        await account_setting.finish(f"已删除账号 {account.phone_number} 的数据")
+        await account_setting.finish(f"已删除账号 {account.display_name} 的数据")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
 
