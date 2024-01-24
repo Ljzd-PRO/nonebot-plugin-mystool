@@ -307,7 +307,7 @@ def blur_phone(phone: Union[str, int]) -> str:
     """
     if isinstance(phone, int):
         phone = str(phone)
-    return f"{phone[:3]}****{phone[-4:]}"
+    return f"☎️{phone[-4:]}"
 
 
 def generate_qr_img(data: str):
