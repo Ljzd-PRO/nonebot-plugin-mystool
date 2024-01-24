@@ -57,7 +57,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State)
         state["bbs_uid"] = uid
     else:
         msg = "您有多个账号，您要更改以下哪个账号的设置？\n"
-        msg += "\n".join(map(lambda x: f"🆔{x.display_name}", user_account))
+        msg += "\n".join(map(lambda x: f"🆔{x.display_name}", user_account.values()))
         msg += "\n🚪发送“退出”即可退出"
         await matcher.send(msg)
 
