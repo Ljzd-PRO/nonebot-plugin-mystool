@@ -8,6 +8,7 @@ from httpx import Cookies
 from nonebot.log import logger
 from pydantic import BaseModel, ValidationError, validator
 
+from ..utils import blur_phone
 from .._version import __version__
 from ..model.common import data_path, BaseModelWithSetter, Address, BaseModelWithUpdate, Good, GameRecord
 
@@ -270,6 +271,13 @@ class UserAccount(BaseModelWithSetter):
     @bbs_uid.setter
     def bbs_uid(self, value: str):
         self.cookies.bbs_uid = value
+
+    @property
+    def display_name(self):
+        """
+        显示名称
+        """
+        return f"{self.bbs_uid}({blur_phone(self.phone_number)})"
 
 
 class ExchangePlan(BaseModel):
