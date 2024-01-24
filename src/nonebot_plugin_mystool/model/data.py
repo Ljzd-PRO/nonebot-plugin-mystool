@@ -8,7 +8,6 @@ from httpx import Cookies
 from nonebot.log import logger
 from pydantic import BaseModel, ValidationError, validator
 
-from ..utils import blur_phone
 from .._version import __version__
 from ..model.common import data_path, BaseModelWithSetter, Address, BaseModelWithUpdate, Good, GameRecord
 
@@ -277,6 +276,7 @@ class UserAccount(BaseModelWithSetter):
         """
         显示名称
         """
+        from ..utils.common import blur_phone
         return f"{self.bbs_uid}({blur_phone(self.phone_number)})"
 
 
