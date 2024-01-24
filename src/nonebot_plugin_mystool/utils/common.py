@@ -16,16 +16,23 @@ import httpx
 import nonebot.log
 import nonebot.plugin
 import tenacity
-from loguru import Logger
-from nonebot import Adapter, Bot
-from nonebot.adapters import Message
+
+try:
+    from loguru import Logger
+except ImportError:
+    Logger = None
+    pass
+
+from nonebot import Adapter, Bot, require
+
+require("nonebot_plugin_saa")
+from nonebot_plugin_saa import MessageSegmentFactory, Text, AggregatedMessageFactory, TargetQQPrivate, \
+    TargetQQGuildDirect, enable_auto_select_bot
+
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
-    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot, ActionFailed as OneBotV11ActionFailed
+    Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
-    Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageSegment as QQGuildMessageSegment, Message as QQGuildMessage, \
-    MessageEvent
-from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, AuditException
-from nonebot.adapters.qq.models import DMS
+    Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageEvent
 from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from nonebot.log import logger
@@ -39,6 +46,9 @@ __all__ = ["GeneralMessageEvent", "GeneralPrivateMessageEvent", "GeneralGroupMes
            "get_validate", "generate_seed_id", "generate_fp_locally", "get_file", "blur_phone", "generate_qr_img",
            "send_private_msg", "get_unique_users", "get_all_bind", "read_blacklist", "read_whitelist",
            "read_admin_list"]
+
+# 启用 nonebot-plugin-send-anything-anywhere 的自动选择 Bot 功能
+enable_auto_select_bot()
 
 GeneralMessageEvent = OneBotV11MessageEvent, MessageCreateEvent, DirectMessageCreateEvent, MessageEvent
 """消息事件类型"""
@@ -330,7 +340,7 @@ def generate_qr_img(data: str):
 
 async def send_private_msg(
         user_id: str,
-        message: Union[str, Message],
+        message: Union[str, MessageSegmentFactory, AggregatedMessageFactory],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None
 ) -> Tuple[bool, Optional[ActionFailed]]:
@@ -343,13 +353,9 @@ async def send_private_msg(
     :param guild_id: 用户所在频道ID，为None则从用户数据中获取
     :return: (是否发送成功, ActionFailed Exception)
     """
-    error_flag = False
-    action_failed = None
-
-    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guilds):
-        user_type = QQGuildAdapter
-    else:
-        user_type = OneBotV11Adapter
+    user_id_int = int(user_id)
+    if isinstance(message, str):
+        message = Text(message)
 
     # 整合符合条件的 Bot 对象
     if isinstance(use, (OneBotV11Bot, QQGuildBot)):
@@ -359,83 +365,44 @@ async def send_private_msg(
     else:
         bots = nonebot.get_bots().values()
 
-    # 完成 OneBotV11 消息发送
-    if user_type == OneBotV11Adapter:
-        for bot in bots:
-            if isinstance(bot, OneBotV11Bot):
-                try:
-                    await bot.send_private_msg(user_id=int(user_id), message=message)
-                except OneBotV11ActionFailed as e:
-                    logger.exception(
-                        f"{plugin_config.preference.log_head}OneBotV11 尝试主动发送私信消息失败。"
-                        f"用户ID：{user_id}，消息内容：\n"
-                        f"{message}"
-                    )
-                    error_flag = True
-                    action_failed = e
-
-    # 完成 QQGuild 消息发送
-    elif user_type == QQGuildAdapter:
-        message = QQGuildMessageSegment.text(message) if isinstance(message, str) else message
-        message = message if isinstance(message, QQGuildMessage) else QQGuildMessage(message)
-
-        content = message.extract_content() or None
-        if embed := (message["embed"] or None):
-            embed = embed[-1].data["embed"]
-        if ark := (message["ark"] or None):
-            ark = ark[-1].data["ark"]
-        if image := (message["attachment"] or None):
-            image = image[-1].data["url"]
-        if file_image := (message["file_image"] or None):
-            file_image = file_image[-1].data["content"]
-        if markdown := (message["markdown"] or None):
-            markdown = markdown[-1].data["markdown"]
-        if reference := (message["reference"] or None):
-            reference = reference[-1].data["reference"]
-
+    # 获取 PlatformTarget 对象
+    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guilds):
         if guild_id is None:
             if user := PluginDataManager.plugin_data.users.get(user_id):
                 if not (guilds := user.qq_guilds.get(user_id)):
                     logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
-                    guild_ids = iter([])
-                    error_flag = True
+                    return False, None
                 else:
-                    guild_ids = iter(guilds)
+                    guild_id = list(guilds)[0]
             else:
                 logger.error(f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
-                guild_ids = iter([])
-                error_flag = True
-        else:
-            guild_ids = iter([guild_id])
-
-        while (guild_id := next(guild_ids, None)) is not None:
-            for bot in bots:
-                if isinstance(bot, QQGuildBot):
-                    try:
-                        dms: DMS = await bot.post_dms(recipient_id=user_id, source_guild_id=guild_id)
-                        await bot.post_dms_messages(
-                            guild_id=dms.guild_id,  # type: ignore
-                            content=content,
-                            embed=embed,  # type: ignore
-                            ark=ark,  # type: ignore
-                            image=image,  # type: ignore
-                            file_image=file_image,  # type: ignore
-                            markdown=markdown,  # type: ignore
-                            message_reference=reference,  # type: ignore
-                        )
-                    except (QQGuildActionFailed, AuditException) as e:
-                        logger.exception(
-                            f"{plugin_config.preference.log_head}QQGuild 尝试主动发送私信消息失败。"
-                            f"频道ID：{guild_id}，用户ID：{user_id}，消息内容：\n"
-                            f"{message}"
-                        )
-                        error_flag = True
-                        action_failed = e
-
+                return False, None
+        target = TargetQQGuildDirect(recipient_id=user_id_int, source_guild_id=guild_id)
     else:
-        return False, None
+        target = TargetQQPrivate(user_id=user_id_int)
 
-    return not error_flag, action_failed
+    # 发送
+
+    exception = None
+    error_flag = True
+
+    for bot in bots:
+        try:
+            await message.send_to(target=target, bot=bot)
+        except Exception as e:
+            exception = e
+        else:
+            error_flag = False
+
+    if error_flag:
+        try:
+            await message.send_to(target=target)
+        except Exception as e:
+            exception = e
+        else:
+            error_flag = False
+
+    return not error_flag, exception
 
 
 def get_unique_users() -> Iterable[Tuple[str, UserData]]:
