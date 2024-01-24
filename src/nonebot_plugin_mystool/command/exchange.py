@@ -122,7 +122,7 @@ async def _(
                    f"\n- 🔢商品ID：{good.goods_id}" \
                    f"\n- 💰商品价格：{good.price} 米游币" \
                    f"\n- 📅兑换时间：{good.time_text}" \
-                   f"\n- 🆔账户：{plan.account.bbs_uid}"
+                   f"\n- 🆔账户：{plan.account.display_name}"
             msg += "\n\n"
         if not msg:
             msg = '您还没有兑换计划哦~\n\n'
@@ -264,7 +264,7 @@ async def _(
     else:
         user.exchange_plans.add(plan)
         if not plan.account.device_fp:
-            logger.info(f"账号 {plan.account.bbs_uid} 未设置 device_fp，正在获取...")
+            logger.info(f"账号 {plan.account.display_name} 未设置 device_fp，正在获取...")
             fp_status, plan.account.device_fp = await get_device_fp(plan.account.device_id_ios)
             if not fp_status:
                 await matcher.send(
@@ -385,7 +385,7 @@ def exchange_notice(event: JobExecutionEvent):
                         loop.create_task(
                             send_private_msg(
                                 user_id=_user_id,
-                                message=f"⚠️账户 {plan.account.bbs_uid}"
+                                message=f"⚠️账户 {plan.account.display_name}"
                                         f"\n- {plan.good.general_name}"
                                         f"\n- 线程 {thread_id}"
                                         f"\n- 兑换请求发送失败"
@@ -409,7 +409,7 @@ def exchange_notice(event: JobExecutionEvent):
                             loop.create_task(
                                 send_private_msg(
                                     user_id=_user_id,
-                                    message=f"🎉账户 {plan.account.bbs_uid}"
+                                    message=f"🎉账户 {plan.account.display_name}"
                                             f"\n- {plan.good.general_name}"
                                             f"\n- 线程 {thread_id}"
                                             f"\n- 兑换成功"
@@ -421,7 +421,7 @@ def exchange_notice(event: JobExecutionEvent):
                             loop.create_task(
                                 send_private_msg(
                                     user_id=_user_id,
-                                    message=f"💦账户 {plan.account.bbs_uid}"
+                                    message=f"💦账户 {plan.account.display_name}"
                                             f"\n- {plan.good.general_name}"
                                             f"\n- 线程 {thread_id}"
                                             f"\n- 兑换失败"

@@ -115,12 +115,12 @@ class BaseGameSign:
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
-                            f"获取签到数据 - 用户 {self.account.bbs_uid} 登录失效")
+                            f"获取签到数据 - 用户 {self.account.display_name} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(login_expired=True), None
                     if api_result.invalid_ds:
                         logger.info(
-                            f"获取签到数据 - 用户 {self.account.bbs_uid} DS 校验失败")
+                            f"获取签到数据 - 用户 {self.account.display_name} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(invalid_ds=True), None
                     return BaseApiStatus(success=True), GameSignInfo.parse_obj(api_result.data)
@@ -193,21 +193,21 @@ class BaseGameSign:
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
-                            f"游戏签到 - 用户 {self.account.bbs_uid} 登录失效")
+                            f"游戏签到 - 用户 {self.account.display_name} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(login_expired=True), None
                     elif api_result.invalid_ds:
                         logger.info(
-                            f"游戏签到 - 用户 {self.account.bbs_uid} DS 校验失败")
+                            f"游戏签到 - 用户 {self.account.display_name} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(invalid_ds=True), None
                     elif api_result.data.get("risk_code") != 0:
                         logger.warning(
-                            f"{plugin_config.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
+                            f"{plugin_config.preference.log_head}游戏签到 - 用户 {self.account.display_name} 可能被人机验证阻拦")
                         logger.debug(f"{plugin_config.preference.log_head}网络请求返回: {res.text}")
                         return BaseApiStatus(need_verify=True), MmtData.parse_obj(api_result.data)
                     else:
-                        logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")
+                        logger.success(f"游戏签到 - 用户 {self.account.display_name} 签到成功")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(success=True), None
 
