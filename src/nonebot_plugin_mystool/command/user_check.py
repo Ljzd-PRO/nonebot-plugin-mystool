@@ -187,11 +187,10 @@ async def _(
                 await matcher.finish("⚠️找不到此UUID密钥对应的用户数据")
             PluginDataManager.plugin_data.do_user_bind(user_id, target_id)
             user = PluginDataManager.plugin_data.users[user_id]
-            user.qq_guilds.setdefault(user_id, set())
             if isinstance(event, DirectMessageCreateEvent):
-                user.qq_guilds[user_id].add(event.channel_id)
+                user.qq_guild[user_id] = event.channel_id
             elif isinstance(event, MessageCreateEvent):
-                user.qq_guilds[user_id].add(event.guild_id)
+                user.qq_guild[user_id] = event.guild_id
             if isinstance(event, GeneralGroupMessageEvent):
                 user.uuid = str(uuid4())
                 await matcher.send("🔑由于您在群聊中进行绑定，已刷新您的UUID密钥，但不会影响其他已绑定用户")
@@ -224,8 +223,7 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
     if isinstance(event, MessageCreateEvent):
         user_id = event.get_user_id()
         if user := PluginDataManager.plugin_data.users.get(user_id):
-            user.qq_guilds.setdefault(user_id, set())
-            user.qq_guilds[user_id].add(event.guild_id)
+            user.qq_guild[user_id] = event.guild_id
             PluginDataManager.write_plugin_data()
 
     msg_text = f"{PLUGIN.metadata.name}" \

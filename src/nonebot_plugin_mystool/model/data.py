@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 
 from httpx import Cookies
 from nonebot.log import logger
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, validator, Field
 
 from .._version import __version__
 from ..model.common import data_path, BaseModelWithSetter, Address, BaseModelWithUpdate, Good, GameRecord
@@ -370,8 +370,10 @@ class UserData(BaseModelWithSetter):
     """是否开启通知"""
     uuid: Optional[str] = None
     """用户UUID密钥，用于不同NoneBot适配器平台之间的数据同步，因此不可泄露"""
-    qq_guilds: Optional[Dict[str, Set[int]]] = {}
-    """储存用户所在的QQ频道ID {用户ID : [频道ID]}"""
+    qq_guild: Optional[Dict[str, int]] = {}
+    """储存用户所在的QQ频道ID {用户ID : 频道ID}"""
+    qq_guilds: Optional[Dict[str, List[int]]] = Field(default={}, exclude=True)
+    """旧版（v2.1.0 之前）储存用户所在的QQ频道ID {用户ID : [频道ID]}"""
     exchange_plans: Union[Set[ExchangePlan], List[ExchangePlan]] = set()
     """兑换计划列表"""
     accounts: Dict[str, UserAccount] = {}
@@ -404,6 +406,10 @@ class UserData(BaseModelWithSetter):
             self.uuid = str(new_uuid)
             _new_uuid_in_init = True
         _uuid_set.add(self.uuid)
+
+        # 读取旧版配置中的 qq_guilds 信息，对每个账号取第一个 GuildID 值以生成新的 qq_guild Dict
+        if not self.qq_guild:
+            self.qq_guild = {k: v[0] for k, v in filter(lambda x: x[1], self.qq_guilds.items())}
 
     def __hash__(self):
         return hash(self.uuid)

@@ -132,8 +132,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
         user = PluginDataManager.plugin_data.users[user_id]
         # 如果是QQ频道，需要记录频道ID
         if isinstance(event, DirectMessageCreateEvent):
-            user.qq_guilds.setdefault(user_id, set())
-            user.qq_guilds[user_id].add(event.channel_id)
+            user.qq_guild[user_id] = event.channel_id
         # 1. 通过短信验证码获取 login_ticket / 使用已有 login_ticket
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha), device_id)
         if login_status:

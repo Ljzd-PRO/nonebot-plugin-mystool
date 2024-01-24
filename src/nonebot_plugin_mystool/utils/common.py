@@ -366,14 +366,12 @@ async def send_private_msg(
         bots = nonebot.get_bots().values()
 
     # 获取 PlatformTarget 对象
-    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guilds):
+    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guild.keys()):
         if guild_id is None:
             if user := PluginDataManager.plugin_data.users.get(user_id):
-                if not (guilds := user.qq_guilds.get(user_id)):
+                if not (guild_id := user.qq_guild.get(user_id)):
                     logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
                     return False, None
-                else:
-                    guild_id = list(guilds)[0]
             else:
                 logger.error(f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
                 return False, None
