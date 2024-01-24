@@ -14,7 +14,7 @@
 
 ## 📣 更新内容
 
-### 2024.1.24 - v2.0.1-beta.1
+### 2024.1.24 - [v2.0.1-beta.1](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.1-beta.1)
 
 - 更新插件配置的 `preference.github_proxy` 默认值为 `https://mirror.ghproxy.com/`
 > [!NOTE]
@@ -26,7 +26,7 @@
 > 目前还在考虑是否需要通过一个用户设置选项，来控制是否显示手机尾号，并默认关闭，以保护用户隐私 \
 > 如果觉得有必要可以在 Discussion 讨论页面 的对应话题提出。
 
-### 2024.1.23 - v2.0.0-beta.1
+### 2024.1.23 - [v2.0.0-beta.1](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.0-beta.1)
 
 - 项目结构重构，解决了开发时容易出现循环导入 (circular import) 之类的问题，结束了之前的混乱。~~虽然可能还是很乱（~~ :octocat:
 - 命令帮助信息相关代码重构
