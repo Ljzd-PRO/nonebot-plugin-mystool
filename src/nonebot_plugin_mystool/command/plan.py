@@ -227,12 +227,12 @@ async def perform_game_sign(
         game_record_status, records = await get_game_record(account)
         if not game_record_status:
             if matcher:
-                await matcher.send(f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试")
+                await matcher.send(f"⚠️账户 {account.display_name} 获取游戏账号信息失败，请重新尝试")
             else:
                 for user_id in user_ids:
                     await send_private_msg(
                         user_id=user_id,
-                        message=f"⚠️账户 {account.bbs_uid} 获取游戏账号信息失败，请重新尝试"
+                        message=f"⚠️账户 {account.display_name} 获取游戏账号信息失败，请重新尝试"
                     )
             continue
         games_has_record = []
@@ -245,12 +245,12 @@ async def perform_game_sign(
             get_info_status, info = await signer.get_info(account.platform)
             if not get_info_status:
                 if matcher:
-                    await matcher.send(f"⚠️账户 {account.bbs_uid} 获取签到记录失败")
+                    await matcher.send(f"⚠️账户 {account.display_name} 获取签到记录失败")
                 else:
                     for user_id in user_ids:
                         await send_private_msg(
                             user_id=user_id,
-                            message=f"⚠️账户 {account.bbs_uid} 获取签到记录失败"
+                            message=f"⚠️账户 {account.display_name} 获取签到记录失败"
                         )
             else:
                 signed = info.is_sign
@@ -267,12 +267,12 @@ async def perform_game_sign(
 
                 if not sign_status and (user.enable_notice or matcher):
                     if sign_status.login_expired:
-                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
+                        message = f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到时服务器返回登录失效，请尝试重新登录绑定账户"
                     elif sign_status.need_verify:
-                        message = (f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到时可能遇到验证码拦截，"
+                        message = (f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到时可能遇到验证码拦截，"
                                    "请尝试使用命令『/账号设置』更改设备平台，若仍失败请手动前往米游社签到")
                     else:
-                        message = f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到失败，请稍后再试"
+                        message = f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到失败，请稍后再试"
                     if matcher:
                         await matcher.send(message)
                     elif user.enable_notice:
@@ -289,12 +289,12 @@ async def perform_game_sign(
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
                 if not get_info_status or not get_award_status:
-                    msg = f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』获取签到结果失败！请手动前往米游社查看"
+                    msg = f"⚠️账户 {account.display_name} 🎮『{signer.name}』获取签到结果失败！请手动前往米游社查看"
                 else:
                     award = awards[info.total_sign_day - 1]
                     if info.is_sign:
                         status = "签到成功！" if not signed else "已经签到过了"
-                        msg = f"🪪账户 {account.bbs_uid}" \
+                        msg = f"🪪账户 {account.display_name}" \
                               f"\n🎮『{signer.name}』" \
                               f"\n🎮状态: {status}" \
                               f"\n{signer.record.nickname}·{signer.record.level}" \
@@ -305,7 +305,7 @@ async def perform_game_sign(
                         onebot_img_msg = OneBotV11MessageSegment.image(img_file)
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
-                        msg = (f"⚠️账户 {account.bbs_uid} 🎮『{signer.name}』签到失败！请尝试重新签到，"
+                        msg = (f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到失败！请尝试重新签到，"
                                "若多次失败请尝试重新登录绑定账户")
                 if matcher:
                     try:
@@ -329,12 +329,12 @@ async def perform_game_sign(
 
         if not games_has_record:
             if matcher:
-                await matcher.send(f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到")
+                await matcher.send(f"⚠️您的米游社账户 {account.display_name} 下不存在任何游戏账号，已跳过签到")
             else:
                 for user_id in user_ids:
                     await send_private_msg(
                         user_id=user_id,
-                        message=f"⚠️您的米游社账户 {account.bbs_uid} 下不存在任何游戏账号，已跳过签到"
+                        message=f"⚠️您的米游社账户 {account.display_name} 下不存在任何游戏账号，已跳过签到"
                     )
 
     # 如果全部登录失效，则关闭通知
@@ -361,20 +361,20 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
         if not missions_state_status:
             if missions_state_status.login_expired:
                 if matcher:
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                    await matcher.send(f'⚠️账户 {account.display_name} 登录失效，请重新登录')
                 else:
                     for user_id in user_ids:
                         await send_private_msg(
                             user_id=user_id,
-                            message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录'
+                            message=f'⚠️账户 {account.display_name} 登录失效，请重新登录'
                         )
             if matcher:
-                await matcher.send(f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+                await matcher.send(f'⚠️账户 {account.display_name} 获取任务完成情况请求失败，你可以手动前往App查看')
             else:
                 for user_id in user_ids:
                     await send_private_msg(
                         user_id=user_id,
-                        message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看'
+                        message=f'⚠️账户 {account.display_name} 获取任务完成情况请求失败，你可以手动前往App查看'
                     )
             continue
         myb_before_mission = missions_state.current_myb
@@ -387,11 +387,11 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
                 if not class_type:
                     if matcher:
                         await matcher.send(
-                            f'⚠️🆔账户 {account.bbs_uid} 米游币任务目标分区『{class_name}』未找到，将跳过该分区')
+                            f'⚠️🆔账户 {account.display_name} 米游币任务目标分区『{class_name}』未找到，将跳过该分区')
                     continue
                 mission_obj = class_type(account)
                 if matcher:
-                    await matcher.send(f'🆔账户 {account.bbs_uid} ⏳开始在分区『{class_type.name}』执行米游币任务...')
+                    await matcher.send(f'🆔账户 {account.display_name} ⏳开始在分区『{class_type.name}』执行米游币任务...')
 
                 # 执行任务
                 sign_status, read_status, like_status, share_status = (
@@ -413,7 +413,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
 
                 if matcher:
                     await matcher.send(
-                        f"🆔账户 {account.bbs_uid} 🎮『{class_type.name}』米游币任务执行情况：\n"
+                        f"🆔账户 {account.display_name} 🎮『{class_type.name}』米游币任务执行情况：\n"
                         f"📅签到：{'✓' if sign_status else '✕'} +{sign_points or '0'} 米游币🪙\n"
                         f"📰阅读：{'✓' if read_status else '✕'}\n"
                         f"❤️点赞：{'✓' if like_status else '✕'}\n"
@@ -426,22 +426,22 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
             if not missions_state_status:
                 if missions_state_status.login_expired:
                     if matcher:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        await matcher.send(f'⚠️账户 {account.display_name} 登录失效，请重新登录')
                     else:
                         for user_id in user_ids:
                             await send_private_msg(
                                 user_id=user_id,
-                                message=f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录'
+                                message=f'⚠️账户 {account.display_name} 登录失效，请重新登录'
                             )
                     continue
                 if matcher:
                     await matcher.send(
-                        f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看')
+                        f'⚠️账户 {account.display_name} 获取任务完成情况请求失败，你可以手动前往App查看')
                 else:
                     for user_id in user_ids:
                         await send_private_msg(
                             user_id=user_id,
-                            message=f'⚠️账户 {account.bbs_uid} 获取任务完成情况请求失败，你可以手动前往App查看'
+                            message=f'⚠️账户 {account.display_name} 获取任务完成情况请求失败，你可以手动前往App查看'
                         )
                 continue
             if all(current == mission.threshold for mission, current in missions_state.state_dict.values()):
@@ -450,7 +450,7 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
                 notice_string = "⚠️今日米游币任务未全部完成"
 
             msg = f"{notice_string}" \
-                  f"\n🆔账户 {account.bbs_uid}"
+                  f"\n🆔账户 {account.display_name}"
             for key_name, (mission, current) in missions_state.state_dict.items():
                 if key_name == BaseMission.SIGN:
                     mission_name = "📅签到"
@@ -494,12 +494,12 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
             if not genshin_board_status:
                 if matcher:
                     if genshin_board_status.login_expired:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        await matcher.send(f'⚠️账户 {account.display_name} 登录失效，请重新登录')
                     elif genshin_board_status.no_genshin_account:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何原神账户，请绑定后再重试')
+                        await matcher.send(f'⚠️账户 {account.display_name} 没有绑定任何原神账户，请绑定后再重试')
                     elif genshin_board_status.need_verify:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                        await matcher.send(f'⚠️账户 {account.display_name} 获取实时便笺时被人机验证阻拦')
+                    await matcher.send(f'⚠️账户 {account.display_name} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
 
             msg = ''
@@ -551,7 +551,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                     return
 
             msg += "❖原神·实时便笺❖" \
-                   f"\n🆔账户 {account.bbs_uid}" \
+                   f"\n🆔账户 {account.display_name}" \
                    f"\n⏳树脂数量：{note.current_resin} / 160" \
                    f"\n⏱️树脂{note.resin_recovery_text}" \
                    f"\n🕰️探索派遣：{note.current_expedition_num} / {note.max_expedition_num}" \
@@ -581,12 +581,12 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
             if not starrail_board_status:
                 if matcher:
                     if starrail_board_status.login_expired:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 登录失效，请重新登录')
+                        await matcher.send(f'⚠️账户 {account.display_name} 登录失效，请重新登录')
                     elif starrail_board_status.no_starrail_account:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 没有绑定任何星铁账户，请绑定后再重试')
+                        await matcher.send(f'⚠️账户 {account.display_name} 没有绑定任何星铁账户，请绑定后再重试')
                     elif starrail_board_status.need_verify:
-                        await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺时被人机验证阻拦')
-                    await matcher.send(f'⚠️账户 {account.bbs_uid} 获取实时便笺请求失败，你可以手动前往App查看')
+                        await matcher.send(f'⚠️账户 {account.display_name} 获取实时便笺时被人机验证阻拦')
+                    await matcher.send(f'⚠️账户 {account.display_name} 获取实时便笺请求失败，你可以手动前往App查看')
                 continue
 
             msg = ''
@@ -638,7 +638,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
-                   f"\n🆔账户 {account.bbs_uid}" \
+                   f"\n🆔账户 {account.display_name}" \
                    f"\n⏳开拓力数量：{note.current_stamina} / {note.max_stamina}" \
                    f"\n⏱开拓力{note.stamina_recover_text}" \
                    f"\n📒每日实训：{note.current_train_score} / {note.max_train_score}" \

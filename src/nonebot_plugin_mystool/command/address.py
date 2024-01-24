@@ -63,7 +63,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, bbs_uid=Ar
     state['address_list'] = address_list
     if not address_status:
         if address_status.login_expired:
-            await address_matcher.finish(f"⚠️账户 {account.bbs_uid} 登录失效，请重新登录")
+            await address_matcher.finish(f"⚠️账户 {account.display_name} 登录失效，请重新登录")
         await address_matcher.finish("⚠️获取失败，请稍后重新尝试")
 
     if address_list:
@@ -96,6 +96,6 @@ async def _(_: Union[GeneralPrivateMessageEvent], state: T_State, address_id=Arg
         account: UserAccount = state["account"]
         account.address = address
         PluginDataManager.write_plugin_data()
-        await address_matcher.finish(f"🎉已成功设置账户 {account.bbs_uid} 的地址")
+        await address_matcher.finish(f"🎉已成功设置账户 {account.display_name} 的地址")
     else:
         await address_matcher.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")
