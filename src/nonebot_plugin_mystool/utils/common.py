@@ -366,7 +366,10 @@ async def send_private_msg(
         bots = nonebot.get_bots().values()
 
     # 获取 PlatformTarget 对象
-    if guild_id or ((user := PluginDataManager.plugin_data.users.get(user_id)) and user_id in user.qq_guild.keys()):
+    if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
+        target = TargetQQPrivate(user_id=user_id_int)
+        logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 聊天私信 user_id: {user_id_int}")
+    else:
         if guild_id is None:
             if user := PluginDataManager.plugin_data.users.get(user_id):
                 if not (guild_id := user.qq_guild.get(user_id)):
@@ -376,8 +379,8 @@ async def send_private_msg(
                 logger.error(f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
                 return False, None
         target = TargetQQGuildDirect(recipient_id=user_id_int, source_guild_id=guild_id)
-    else:
-        target = TargetQQPrivate(user_id=user_id_int)
+        logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 频道私信"
+                    f" recipient_id: {user_id_int}, source_guild_id: {guild_id}")
 
     # 发送
 
