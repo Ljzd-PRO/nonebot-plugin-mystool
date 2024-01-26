@@ -23,7 +23,7 @@ from ..api.common import get_game_record, get_good_detail, get_good_list, good_e
     get_device_fp, \
     good_exchange
 from ..command.common import CommandRegistry
-from ..model import Good, GameRecord, ExchangeStatus, plugin_env, PluginDataManager, plugin_config, UserAccount, \
+from ..model import Good, GameRecord, ExchangeStatus, PluginDataManager, plugin_config, UserAccount, \
     ExchangePlan, ExchangeResult, CommandUsage
 from ..utils import COMMAND_BEGIN, logger, get_last_command_sep, GeneralMessageEvent, \
     send_private_msg, get_unique_users, \
@@ -340,7 +340,7 @@ async def _(event: Union[GeneralMessageEvent], arg=ArgPlainText("content")):
         await get_good_image.reject('⚠️您的输入有误，请重新输入')
 
     img_path = time.strftime(
-        f'{plugin_env.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
+        f'{plugin_config.good_list_image_config.SAVE_PATH}/%m-%d-{arg[0]}.jpg', time.localtime())
     if os.path.exists(img_path):
         with open(img_path, 'rb') as f:
             image_bytes = io.BytesIO(f.read())
@@ -507,7 +507,7 @@ def image_process(game: str, _lock: Lock = None):
         if not image_bytes:
             return False
         date = time.strftime('%m-%d', time.localtime())
-        path = plugin_env.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
+        path = plugin_config.good_list_image_config.SAVE_PATH / f"{date}-{game}.jpg"
         with open(path, 'wb') as f:
             f.write(image_bytes)
         logger.info(f"{plugin_config.preference.log_head}已完成 {game} 分区的商品列表图片生成")
@@ -523,7 +523,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
     :param is_auto: True为每日自动生成，False为用户手动更新
     :param callback: 回调函数，参数为生成成功与否
     """
-    for root, _, files in os.walk(plugin_env.good_list_image_config.SAVE_PATH, topdown=False):
+    for root, _, files in os.walk(plugin_config.good_list_image_config.SAVE_PATH, topdown=False):
         for name in files:
             date = time.strftime('%m-%d', time.localtime())
             # 若图片开头为当日日期，则退出函数不执行
@@ -534,7 +534,7 @@ def generate_image(is_auto=True, callback: Callable[[bool], Any] = None):
             if name.endswith('.jpg'):
                 os.remove(os.path.join(root, name))
 
-    if plugin_env.good_list_image_config.MULTI_PROCESS:
+    if plugin_config.good_list_image_config.MULTI_PROCESS:
         _lock: Lock = Manager().Lock()
         with Pool() as pool:
             for game in "bh3", "hk4e", "bh2", "hkrpg", "nxx", "bbs":
