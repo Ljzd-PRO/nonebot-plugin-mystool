@@ -233,7 +233,7 @@ async def _(bot: Bot, event: Union[GeneralGroupMessageEvent]):
     send_result, action_failed = await send_private_msg(
         user_id=event.get_user_id(),
         message=msg_text,
-        guild_id=event.guild_id if isinstance(event, MessageCreateEvent) else None,
+        guild_id=int(event.guild_id) if isinstance(event, MessageCreateEvent) else None,
         use=bot
     )
     if send_result:
