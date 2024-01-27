@@ -14,7 +14,19 @@
 
 ## 📣 更新内容
 
-### 2024.1.23 - v2.0.0-beta.1
+### 2024.1.24 - [v2.0.1-beta.1](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.1-beta.1)
+
+- 更新插件配置的 `preference.github_proxy` 默认值为 `https://mirror.ghproxy.com/`
+> [!NOTE]
+> `preference.github_proxy` 用于使用代理以更快地从 GitHub 下载 Source Han Sans 思源黑体 字体。 \
+> 只有新生成的配置文件会使用新默认值，对于之前创建的配置文件，如果想使用新默认值则需要手动修改。
+
+- 显示米游社账号时除了显示米游社UID，还会显示登录时获取到的手机尾号4位，方便辨识账号 (#242)
+> [!IMPORTANT]
+> 目前还在考虑是否需要通过一个用户设置选项，来控制是否显示手机尾号，并默认关闭，以保护用户隐私 \
+> 如果觉得有必要可以在 [Discussion 讨论页面](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/discussions/247) 的对应话题提出或投票。
+
+### 2024.1.27 - v2.0.0
 
 - 项目结构重构，解决了开发时容易出现循环导入 (circular import) 之类的问题，结束了之前的混乱。~~虽然可能还是很乱（~~ :octocat:
 - 命令帮助信息相关代码重构
@@ -22,6 +34,8 @@
 - 插件配置中设备信息和 Salt 配置重构，从 `.env` 和环境变量中读取，与V1版本不兼容
 - 插件数据相关代码重构，新的配置文件为 `configV2.json`，与V1版本不兼容
 - 修复兑换计划添加的相关代码的Bug
+
+- 修复商品兑换图片生成相关问题 (v2.0.0)
 
 > [!NOTE]
 > 不需要担心插件配置和数据文件的兼容性，插件启动（导入）时会自动将V1版本的插件数据文件进行备份和升级
