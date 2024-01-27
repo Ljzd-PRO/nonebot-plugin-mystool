@@ -1,20 +1,18 @@
-"""
-### 米游社的游戏签到相关API
-"""
 from typing import List, Optional, Tuple, Literal, Set, Type
 from urllib.parse import urlencode
 
 import httpx
 import tenacity
 
-from .data_model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData
-from .plugin_data import PluginDataManager
-from .simple_api import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, device_login, device_save
-from .user_data import UserAccount
-from .utils import logger, generate_ds, \
+from ..api.common import ApiResultHandler, HEADERS_API_TAKUMI_MOBILE, is_incorrect_return, \
+    device_login, device_save
+from ..model import GameRecord, BaseApiStatus, Award, GameSignInfo, GeetestResult, MmtData, plugin_config, plugin_env, \
+    UserAccount
+from ..utils import logger, generate_ds, \
     get_async_retry
 
-_conf = PluginDataManager.plugin_data
+__all__ = ["BaseGameSign", "GenshinImpactSign", "HonkaiImpact3Sign", "HoukaiGakuen2Sign", "TearsOfThemisSign",
+           "StarRailSign"]
 
 
 class BaseGameSign:
@@ -34,7 +32,7 @@ class BaseGameSign:
         "Origin": "https://webstatic.mihoyo.com",
         "Connection": "keep-alive",
         "Accept": "application/json, text/plain, */*",
-        "User-Agent": _conf.device_config.USER_AGENT_MOBILE,
+        "User-Agent": plugin_env.device_config.USER_AGENT_MOBILE,
         "Accept-Language": "zh-CN,zh-Hans;q=0.9",
         "Referer": "https://webstatic.mihoyo.com/",
         "Accept-Encoding": "gzip, deflate, br"
@@ -78,7 +76,7 @@ class BaseGameSign:
                 with attempt:
                     async with httpx.AsyncClient() as client:
                         res = await client.get(self.url_reward, headers=self.headers_reward,
-                                               timeout=_conf.preference.timeout)
+                                               timeout=plugin_config.preference.timeout)
                     award_list = []
                     for award in res.json()["data"]["awards"]:
                         award_list.append(Award.parse_obj(award))
@@ -109,7 +107,8 @@ class BaseGameSign:
                     headers["DS"] = generate_ds() if platform == "ios" else generate_ds(platform="android")
                     async with httpx.AsyncClient() as client:
                         res = await client.get(self.url_info, headers=headers,
-                                               cookies=self.account.cookies.dict(), timeout=_conf.preference.timeout)
+                                               cookies=self.account.cookies.dict(),
+                                               timeout=plugin_config.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -161,11 +160,11 @@ class BaseGameSign:
             await device_login(self.account)
             await device_save(self.account)
             headers["x-rpc-device_id"] = self.account.device_id_android
-            headers["x-rpc-device_model"] = _conf.device_config.X_RPC_DEVICE_MODEL_ANDROID
-            headers["User-Agent"] = _conf.device_config.USER_AGENT_ANDROID
-            headers["x-rpc-device_name"] = _conf.device_config.X_RPC_DEVICE_NAME_ANDROID
-            headers["x-rpc-channel"] = _conf.device_config.X_RPC_CHANNEL_ANDROID
-            headers["x-rpc-sys_version"] = _conf.device_config.X_RPC_SYS_VERSION_ANDROID
+            headers["x-rpc-device_model"] = plugin_env.device_config.X_RPC_DEVICE_MODEL_ANDROID
+            headers["User-Agent"] = plugin_env.device_config.USER_AGENT_ANDROID
+            headers["x-rpc-device_name"] = plugin_env.device_config.X_RPC_DEVICE_NAME_ANDROID
+            headers["x-rpc-channel"] = plugin_env.device_config.X_RPC_CHANNEL_ANDROID
+            headers["x-rpc-sys_version"] = plugin_env.device_config.X_RPC_SYS_VERSION_ANDROID
             headers["x-rpc-client_type"] = "2"
             headers["DS"] = generate_ds(data=content)
             headers.pop("x-rpc-platform")
@@ -184,7 +183,7 @@ class BaseGameSign:
                             self.url_sign,
                             headers=headers,
                             cookies=self.account.cookies.dict(),
-                            timeout=_conf.preference.timeout,
+                            timeout=plugin_config.preference.timeout,
                             json=content
                         )
 
@@ -201,8 +200,8 @@ class BaseGameSign:
                         return BaseApiStatus(invalid_ds=True), None
                     elif api_result.data.get("risk_code") != 0:
                         logger.warning(
-                            f"{_conf.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
-                        logger.debug(f"{_conf.preference.log_head}网络请求返回: {res.text}")
+                            f"{plugin_config.preference.log_head}游戏签到 - 用户 {self.account.bbs_uid} 可能被人机验证阻拦")
+                        logger.debug(f"{plugin_config.preference.log_head}网络请求返回: {res.text}")
                         return BaseApiStatus(need_verify=True), MmtData.parse_obj(api_result.data)
                     else:
                         logger.success(f"游戏签到 - 用户 {self.account.bbs_uid} 签到成功")

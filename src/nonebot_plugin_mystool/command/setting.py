@@ -1,6 +1,3 @@
-"""
-### 用户设置相关
-"""
 from typing import Union
 
 from nonebot import on_command
@@ -8,17 +5,23 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from .myb_missions_api import BaseMission
-from .plugin_data import PluginDataManager, write_plugin_data
-from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent
+from ..api import BaseMission
+from ..command.common import CommandRegistry
+from ..model import PluginDataManager, plugin_config, UserAccount, CommandUsage
+from ..utils import COMMAND_BEGIN, GeneralMessageEvent
 
-_conf = PluginDataManager.plugin_data
+__all__ = ["setting", "account_setting", "global_setting"]
 
-setting = on_command(_conf.preference.command_start + '设置', priority=4, block=True)
-setting.name = "设置"
-setting.usage = '如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{HEAD}账号设置』命令。' \
-                '\n如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{HEAD}通知设置』命令。'
+setting = on_command(plugin_config.preference.command_start + '设置', priority=4, block=True)
+
+CommandRegistry.set_usage(
+    setting,
+    CommandUsage(
+        name="设置",
+        description="如需配置是否开启每日任务、设备平台、频道任务等相关选项，请使用『{HEAD}账号设置』命令。\n"
+                    "如需设置米游币任务和游戏签到后是否进行QQ通知，请使用『{HEAD}通知设置』命令。"
+    )
+)
 
 
 @setting.handle()
@@ -28,9 +31,15 @@ async def _(_: Union[GeneralMessageEvent]):
     await setting.send(msg)
 
 
-account_setting = on_command(_conf.preference.command_start + '账号设置', priority=5, block=True)
-account_setting.name = "账号设置"
-account_setting.usage = "配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
+account_setting = on_command(plugin_config.preference.command_start + '账号设置', priority=5, block=True)
+
+CommandRegistry.set_usage(
+    account_setting,
+    CommandUsage(
+        name="账号设置",
+        description="配置游戏自动签到、米游币任务是否开启、设备平台、频道任务相关选项"
+    )
+)
 
 
 @account_setting.handle()
@@ -38,11 +47,11 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State)
     """
     账号设置命令触发
     """
-    user = _conf.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await account_setting.finish(
-            f"⚠️你尚未绑定米游社账户，请先使用『{_conf.preference.command_start}登录』进行登录")
+            f"⚠️你尚未绑定米游社账户，请先使用『{plugin_config.preference.command_start}登录』进行登录")
     if len(user_account) == 1:
         uid = next(iter(user_account.values())).bbs_uid
         state["bbs_uid"] = uid
@@ -61,7 +70,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
     if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
 
-    user_account = _conf.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if not (account := user_account.get(bbs_uid)):
         await account_setting.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     state['account'] = account
@@ -75,7 +84,15 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State,
 
     # 筛选出用户数据中的missionGame对应的游戏全称
     user_setting += "\n\n4️⃣ 执行米游币任务的频道：" + \
-                    "\n- " + "、".join(map(lambda x: f"『{x.name}』", account.mission_games))
+                    "\n- " + "、".join(
+        map(
+            lambda x: f"『{x.name}』" if x else "『N/A』",
+            map(
+                BaseMission.available_games.get,
+                account.mission_games
+            )
+        )
+    )
     user_setting += f"\n\n5️⃣ 实时便笺体力提醒：{'开' if account.enable_resin else '关'}"
     user_setting += f"\n6️⃣更改便笺体力提醒阈值 \
                       \n   当前原神提醒阈值：{account.user_resin_threshold} \
@@ -92,16 +109,16 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
     根据所选更改相应账户的相应设置
     """
     account: UserAccount = state['account']
-    user_account = _conf.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if setting_id == '退出':
         await account_setting.finish('🚪已成功退出')
     elif setting_id == '1':
         account.enable_mission = not account.enable_mission
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await account_setting.finish(f"📅米游币任务自动执行已 {'✅开启' if account.enable_mission else '❌关闭'}")
     elif setting_id == '2':
         account.enable_game_sign = not account.enable_game_sign
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await account_setting.finish(f"📅米哈游游戏自动签到已 {'✅开启' if account.enable_game_sign else '❌关闭'}")
     elif setting_id == '3':
         if account.platform == "ios":
@@ -110,10 +127,10 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
         else:
             account.platform = "ios"
             platform_show = "iOS"
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await account_setting.finish(f"📲设备平台已更改为 {platform_show}")
     elif setting_id == '4':
-        games_show = "、".join(map(lambda x: f"『{x.name}』", BaseMission.available_games))
+        games_show = "、".join(map(lambda x: f"『{x.name}』", BaseMission.available_games.values()))
         await account_setting.send(
             "请发送你想要执行米游币任务的频道："
             "\n❕多个频道请用空格分隔，如 “原神 崩坏3 综合”"
@@ -124,7 +141,7 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
         state["setting_item"] = "mission_games"
     elif setting_id == '5':
         account.enable_resin = not account.enable_resin
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await account_setting.finish(f"📅原神、星穹铁道便笺提醒已 {'✅开启' if account.enable_resin else '❌关闭'}")
     elif setting_id == '6':
         await account_setting.send(
@@ -140,7 +157,7 @@ async def _(event: Union[GeneralMessageEvent], state: T_State, setting_id=ArgStr
         await account_setting.reject(f"⚠️确认删除账号 {account.phone_number} ？发送 \"确认删除\" 以确定。")
     elif setting_id == '确认删除' and state["prepare_to_delete"]:
         user_account.pop(account.bbs_uid)
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await account_setting.finish(f"已删除账号 {account.phone_number} 的数据")
     else:
         await account_setting.reject("⚠️您的输入有误，请重新输入")
@@ -186,7 +203,7 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
             if 0 <= resin_threshold <= 160:
                 # 输入有效的数字范围，将 resin_threshold 赋值为输入的整数
                 account.user_resin_threshold = resin_threshold
-                write_plugin_data()
+                PluginDataManager.write_plugin_data()
                 await account_setting.finish("更改原神便笺树脂提醒阈值成功\n"
                                              f"⏰当前提醒阈值：{resin_threshold}")
             else:
@@ -201,7 +218,7 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
             if 0 <= stamina_threshold <= 180:
                 # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
                 account.user_stamina_threshold = stamina_threshold
-                write_plugin_data()
+                PluginDataManager.write_plugin_data()
                 await account_setting.finish("更改崩铁便笺开拓力提醒阈值成功\n"
                                              f"⏰当前提醒阈值：{stamina_threshold}")
             else:
@@ -209,24 +226,31 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
 
     elif state["setting_item"] == "mission_games":
         games_input = setting_value.split()
-        mission_games = set()
+        mission_games = []
         for game in games_input:
-            game_filter = filter(lambda x: x.name == game, BaseMission.available_games)
-            game_obj = next(game_filter, None)
-            if game_obj is None:
+            subclass_filter = filter(lambda x: x[1].name == game, BaseMission.available_games.items())
+            subclass_pair = next(subclass_filter, None)
+            if subclass_pair is None:
                 await account_setting.reject("⚠️您的输入有误，请重新输入")
             else:
-                mission_games.add(game_obj)
+                game_name, _ = subclass_pair
+                mission_games.append(game_name)
 
         account.mission_games = mission_games
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         setting_value = setting_value.replace(" ", "、")
         await account_setting.finish(f"💬执行米游币任务的频道已更改为『{setting_value}』")
 
 
-global_setting = on_command(_conf.preference.command_start + '通知设置', priority=5, block=True)
-global_setting.name = "通知设置"
-global_setting.usage = "设置每日签到后是否进行QQ通知"
+global_setting = on_command(plugin_config.preference.command_start + '通知设置', priority=5, block=True)
+
+CommandRegistry.set_usage(
+    global_setting,
+    CommandUsage(
+        name="通知设置",
+        description="设置每日签到后是否进行QQ通知"
+    )
+)
 
 
 @global_setting.handle()
@@ -234,7 +258,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
     """
     通知设置命令触发
     """
-    user = _conf.users[event.get_user_id()]
+    user = PluginDataManager.plugin_data.users[event.get_user_id()]
     await matcher.send(
         f"自动通知每日计划任务结果：{'🔔开' if user.enable_notice else '🔕关'}"
         "\n请问您是否需要更改呢？\n请回复“是”或“否”\n🚪发送“退出”即可退出")
@@ -245,12 +269,12 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, choice=ArgStr()
     """
     根据选择变更通知设置
     """
-    user = _conf.users[event.get_user_id()]
+    user = PluginDataManager.plugin_data.users[event.get_user_id()]
     if choice == '退出':
         await matcher.finish("🚪已成功退出")
     elif choice == '是':
         user.enable_notice = not user.enable_notice
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await matcher.finish(f"自动通知每日计划任务结果 已 {'🔔开启' if user.enable_notice else '🔕关闭'}")
     elif choice == '否':
         await matcher.finish("没有做修改哦~")

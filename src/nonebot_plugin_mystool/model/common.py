@@ -1,14 +1,25 @@
-"""
-### 米游社API的客户端调用所用的数据模型
-"""
 import inspect
 import time
 from abc import abstractmethod
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Literal, NamedTuple, no_type_check, Union, Dict, Any, TypeVar, Tuple
 
 import pytz
 from pydantic import BaseModel
+
+__all__ = ["root_path", "data_path", "BaseModelWithSetter", "BaseModelWithUpdate", "Good", "GameRecord", "GameInfo",
+           "Address", "MmtData",
+           "Award", "GameSignInfo", "MissionData", "MissionState", "GenshinNote", "StarRailNote", "GenshinNoteNotice",
+           "StarRailNoteNotice", "BaseApiStatus", "CreateMobileCaptchaStatus", "GetCookieStatus", "GetGoodDetailStatus",
+           "ExchangeStatus", "MissionStatus", "GetFpStatus", "BoardStatus", "GenshinNoteStatus", "StarRailNoteStatus",
+           "GeetestResult", "GeetestResultV4", "CommandUsage"]
+
+root_path = Path(__name__).parent.absolute()
+'''NoneBot2 机器人根目录'''
+
+data_path = root_path / "data" / "nonebot-plugin-mystool"
+'''插件数据保存目录'''
 
 
 class BaseModelWithSetter(BaseModel):
@@ -138,8 +149,8 @@ class Good(BaseModelWithUpdate):
         elif self.time == 0:
             return None
         elif self.time_limited:
-            from .plugin_data import PluginDataManager
-            if zone := PluginDataManager.plugin_data.preference.timezone:
+            from ..model.config import plugin_config
+            if zone := plugin_config.preference.timezone:
                 tz_info = pytz.timezone(zone)
                 date_time = datetime.fromtimestamp(self.time, tz_info)
             else:
@@ -384,7 +395,8 @@ class GenshinNote(BaseModel):
                 return '已准备就绪'
             else:
                 return f"{self.transformer['recovery_time']['Day']} 天" \
-                       f"{self.transformer['recovery_time']['Hour']} 小时 {self.transformer['recovery_time']['Minute']} 分钟"
+                       f"{self.transformer['recovery_time']['Hour']} 小时 " \
+                       f"{self.transformer['recovery_time']['Minute']} 分钟"
         except KeyError:
             return None
 
@@ -447,6 +459,30 @@ class StarRailNote(BaseModel):
                 return f"将在{recovery_datetime.strftime('%m-%d %H:%M')}回满"
         except KeyError:
             return None
+
+
+class GenshinNoteNotice(GenshinNote):
+    """
+    原神便笺通知状态
+    """
+    current_resin: bool = False
+    """是否达到阈值"""
+    current_resin_full: bool = False
+    """是否溢出"""
+    current_home_coin: bool = False
+    transformer: bool = False
+
+
+class StarRailNoteNotice(StarRailNote):
+    """
+    星穹铁道便笺通知状态
+    """
+    current_stamina: bool = False
+    """是否达到阈值"""
+    current_stamina_full: bool = False
+    """是否溢出"""
+    current_train_score: bool = False
+    current_rogue_score: bool = False
 
 
 class BaseApiStatus(BaseModel):
@@ -602,3 +638,12 @@ class GeetestResultV4(BaseModel):
     pass_token: str
     gen_time: str
     captcha_output: str
+
+
+class CommandUsage(BaseModel):
+    """
+    插件命令用法信息
+    """
+    name: Optional[str]
+    description: Optional[str]
+    usage: Optional[str]

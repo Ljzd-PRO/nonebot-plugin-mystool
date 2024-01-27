@@ -1,6 +1,3 @@
-"""
-### 米游社一些简单API相关
-"""
 import time
 from typing import List, Optional, Tuple, Dict, Any, Union, Type
 from urllib.parse import urlencode
@@ -10,17 +7,13 @@ import tenacity
 from pydantic import ValidationError, BaseModel
 from requests.utils import dict_from_cookiejar
 
-from .data_model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
+from ..model import GameRecord, GameInfo, Good, Address, BaseApiStatus, MmtData, GeetestResult, \
     GetCookieStatus, \
     CreateMobileCaptchaStatus, GetGoodDetailStatus, ExchangeStatus, GeetestResultV4, GenshinNote, GenshinNoteStatus, \
-    GetFpStatus, StarRailNoteStatus, StarRailNote
-from .plugin_data import PluginDataManager
-from .user_data import UserAccount, BBSCookies, ExchangePlan, ExchangeResult
-from .utils import generate_device_id, logger, generate_ds, \
+    GetFpStatus, StarRailNoteStatus, StarRailNote, UserAccount, BBSCookies, ExchangePlan, ExchangeResult, plugin_env, \
+    plugin_config
+from ..utils import generate_device_id, logger, generate_ds, \
     get_async_retry, generate_seed_id, generate_fp_locally
-
-_conf = PluginDataManager.plugin_data
-device_config = PluginDataManager.device_config
 
 URL_LOGIN_TICKET_BY_CAPTCHA = "https://webapi.account.mihoyo.com/Api/login_by_mobilecaptcha"
 URL_LOGIN_TICKET_BY_PASSWORD = "https://webapi.account.mihoyo.com/Api/login_by_password"
@@ -58,17 +51,17 @@ URL_VERIFY_VERIFICATION = "https://bbs-api.miyoushe.com/misc/api/verifyVerificat
 HEADERS_WEBAPI = {
     "Host": "webapi.account.mihoyo.com",
     "Connection": "keep-alive",
-    "sec-ch-ua": device_config.UA,
+    "sec-ch-ua": plugin_env.device_config.UA,
     "DNT": "1",
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_PC,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_PC,
     "sec-ch-ua-mobile": "?0",
-    "User-Agent": device_config.USER_AGENT_PC,
+    "User-Agent": plugin_env.device_config.USER_AGENT_PC,
     "x-rpc-device_id": None,
     "Accept": "application/json, text/plain, */*",
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_PC,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_PC,
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
     "x-rpc-client_type": "4",
-    "sec-ch-ua-platform": device_config.UA_PLATFORM,
+    "sec-ch-ua-platform": plugin_env.device_config.UA_PLATFORM,
     "Origin": "https://user.mihoyo.com",
     "Sec-Fetch-Site": "same-site",
     "Sec-Fetch-Mode": "cors",
@@ -88,15 +81,15 @@ HEADERS_PASSPORT_API = {
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "x-rpc-game_biz": "bbs_cn",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": device_config.USER_AGENT_OTHER,
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "User-Agent": plugin_env.device_config.USER_AGENT_OTHER,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
     # 抓包时 "2.47.1"
 
     "x-rpc-sdk_version": "1.6.1",
     "Connection": "keep-alive",
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION
 }
 HEADERS_API_TAKUMI_PC = {
     "Host": "api-takumi.mihoyo.com",
@@ -105,28 +98,28 @@ HEADERS_API_TAKUMI_PC = {
     "Accept-Encoding": "gzip, deflate, br",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
-    "User-Agent": device_config.USER_AGENT_PC,
+    "User-Agent": plugin_env.device_config.USER_AGENT_PC,
     "Referer": "https://bbs.mihoyo.com/",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9"
 }
 HEADERS_API_TAKUMI_MOBILE = {
     "Host": "api-takumi.mihoyo.com",
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_MOBILE,
-    "User-Agent": device_config.USER_AGENT_MOBILE,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "User-Agent": plugin_env.device_config.USER_AGENT_MOBILE,
     "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
-    "x-rpc-channel": device_config.X_RPC_CHANNEL,
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
+    "x-rpc-channel": plugin_env.device_config.X_RPC_CHANNEL,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "x-rpc-device_id": None,
     "x-rpc-client_type": "5",
     "Accept": "application/json, text/plain, */*",
     "Content-Type": "application/json;charset=utf-8",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION,
-    "x-rpc-platform": device_config.X_RPC_PLATFORM,
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION,
+    "x-rpc-platform": plugin_env.device_config.X_RPC_PLATFORM,
     "DS": None
 }
 HEADERS_GAME_RECORD = {
@@ -134,7 +127,7 @@ HEADERS_GAME_RECORD = {
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
-    "User-Agent": device_config.USER_AGENT_MOBILE,
+    "User-Agent": plugin_env.device_config.USER_AGENT_MOBILE,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
@@ -146,23 +139,23 @@ HEADERS_BBS_API = {
     "x-rpc-device_id": generate_device_id(),
     "x-rpc-verify_key": "bll8iq97cem8",
     "x-rpc-client_type": "1",
-    "x-rpc-channel": device_config.X_RPC_CHANNEL,
+    "x-rpc-channel": plugin_env.device_config.X_RPC_CHANNEL,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION,
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
-    "User-Agent": device_config.USER_AGENT_OTHER,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
+    "User-Agent": plugin_env.device_config.USER_AGENT_OTHER,
     "Connection": "keep-alive",
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_MOBILE
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE
 }
 HEADERS_MYB = {
     "Host": "api-takumi.mihoyo.com",
     "Origin": "https://webstatic.mihoyo.com",
     "Connection": "keep-alive",
     "Accept": "application/json, text/plain, */*",
-    "User-Agent": device_config.USER_AGENT_MOBILE,
+    "User-Agent": plugin_env.device_config.USER_AGENT_MOBILE,
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Referer": "https://webstatic.mihoyo.com/",
     "Accept-Encoding": "gzip, deflate, br"
@@ -170,18 +163,18 @@ HEADERS_MYB = {
 HEADERS_DEVICE = {
     "DS": None,
     "x-rpc-client_type": "2",
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION_ANDROID,
-    "x-rpc-channel": device_config.X_RPC_CHANNEL_ANDROID,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION_ANDROID,
+    "x-rpc-channel": plugin_env.device_config.X_RPC_CHANNEL_ANDROID,
     "x-rpc-device_id": None,
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_ANDROID,
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_ANDROID,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_ANDROID,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_ANDROID,
     "Referer": "https://app.mihoyo.com",
     "Content-Type": "application/json; charset=UTF-8",
     "Host": "bbs-api.mihoyo.com",
     "Connection": "Keep-Alive",
     "Accept-Encoding": "gzip",
-    "User-Agent": device_config.USER_AGENT_ANDROID_OTHER
+    "User-Agent": plugin_env.device_config.USER_AGENT_ANDROID_OTHER
 }
 HEADERS_GOOD_LIST = {
     "Host":
@@ -196,7 +189,7 @@ HEADERS_GOOD_LIST = {
     "x-rpc-client_type":
         "5",
     "User-Agent":
-        device_config.USER_AGENT_MOBILE,
+        plugin_env.device_config.USER_AGENT_MOBILE,
     "Referer":
         "https://user.mihoyo.com/",
     "Accept-Language":
@@ -222,9 +215,9 @@ HEADERS_EXCHANGE = {
     "Referer":
         "https://webstatic.miyoushe.com/",
     "User-Agent":
-        device_config.USER_AGENT_MOBILE,
+        plugin_env.device_config.USER_AGENT_MOBILE,
     "x-rpc-app_version":
-        device_config.X_RPC_APP_VERSION,
+        plugin_env.device_config.X_RPC_APP_VERSION,
     "x-rpc-channel":
         "appstore",
     "x-rpc-client_type":
@@ -234,11 +227,11 @@ HEADERS_EXCHANGE = {
     "x-rpc-device_fp": None,
     "x-rpc-device_id": None,
     "x-rpc-device_model":
-        device_config.X_RPC_DEVICE_MODEL_MOBILE,
+        plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE,
     "x-rpc-device_name":
-        device_config.X_RPC_DEVICE_NAME_MOBILE,
+        plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
     "x-rpc-sys_version":
-        device_config.X_RPC_SYS_VERSION
+        plugin_env.device_config.X_RPC_SYS_VERSION
 }
 HEADERS_ADDRESS = {
     "Host": "api-takumi.mihoyo.com",
@@ -247,7 +240,7 @@ HEADERS_ADDRESS = {
     "Connection": "keep-alive",
     "x-rpc-device_id": None,
     "x-rpc-client_type": "5",
-    "User-Agent": device_config.USER_AGENT_MOBILE,
+    "User-Agent": plugin_env.device_config.USER_AGENT_MOBILE,
     "Referer": "https://user.mihoyo.com/",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br"
@@ -261,22 +254,22 @@ HEADERS_GENSHIN_STATUS_WIDGET = {
     "x-rpc-channel": "appstore",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
-    "User-Agent": device_config.USER_AGENT_WIDGET,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
+    "User-Agent": plugin_env.device_config.USER_AGENT_WIDGET,
     "Connection": "keep-alive",
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION
 }
 HEADERS_GENSHIN_STATUS_BBS = {
     "DS": None,
     "x-rpc-device_id": None,
     "Accept": "application/json,text/plain,*/*",
     "Origin": "https://webstatic.mihoyo.com",
-    "User-agent": device_config.USER_AGENT_ANDROID,
+    "User-agent": plugin_env.device_config.USER_AGENT_ANDROID,
     "Referer": "https://webstatic.mihoyo.com/",
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
     "X-Requested-With": "com.mihoyo.hyperion",
     "x-rpc-client_type": "5",
     "x-rpc-tool_version": "v4.2.2-ys",
@@ -287,19 +280,19 @@ HEADERS_STARRAIL_STATUS_WIDGET = {
     "Accept": "*/*",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "User-Agent": device_config.USER_AGENT_WIDGET,
+    "User-Agent": plugin_env.device_config.USER_AGENT_WIDGET,
 
     # "DS": None,
     "Referer": "https://app.mihoyo.com",
-    "x-rpc-app_version": device_config.X_RPC_APP_VERSION,
-    "x-rpc-channel": device_config.X_RPC_CHANNEL,
+    "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
+    "x-rpc-channel": plugin_env.device_config.X_RPC_CHANNEL,
     "x-rpc-client_type": "2",
     "x-rpc-page": '',
     "x-rpc-device_fp": '',
     "x-rpc-device_id": '',
-    "x-rpc-device_model": device_config.X_RPC_DEVICE_MODEL_MOBILE,
-    "x-rpc-device_name": device_config.X_RPC_DEVICE_NAME_MOBILE,
-    "x-rpc-sys_version": device_config.X_RPC_SYS_VERSION,
+    "x-rpc-device_model": plugin_env.device_config.X_RPC_DEVICE_MODEL_MOBILE,
+    "x-rpc-device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_MOBILE,
+    "x-rpc-sys_version": plugin_env.device_config.X_RPC_SYS_VERSION,
 
     "Connection": "keep-alive",
     "Host": "api-takumi-record.mihoyo.com"
@@ -400,7 +393,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Tuple[Bas
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GAME_RECORD.format(account.bbs_uid), headers=HEADERS_GAME_RECORD,
                                            cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                           timeout=_conf.preference.timeout)
+                                           timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -431,7 +424,7 @@ async def get_game_list(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Lis
             with attempt:
                 headers["DS"] = generate_ds()
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_GAME_LIST, headers=headers, timeout=_conf.preference.timeout)
+                    res = await client.get(URL_GAME_LIST, headers=headers, timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 return BaseApiStatus(success=True), list(
                     map(GameInfo.parse_obj, api_result.data["list"]))
@@ -458,7 +451,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_MYB, headers=HEADERS_MYB,
                                            cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                           timeout=_conf.preference.timeout)
+                                           timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -484,9 +477,9 @@ async def device_login(account: UserAccount, retry: bool = True):
     :param retry: 是否允许重试
     """
     data = {
-        "app_version": device_config.X_RPC_APP_VERSION,
+        "app_version": plugin_env.device_config.X_RPC_APP_VERSION,
         "device_id": account.device_id_android,
-        "device_name": device_config.X_RPC_DEVICE_NAME_ANDROID,
+        "device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_ANDROID,
         "os_version": "30",
         "platform": "Android",
         "registration_id": "1a0018970a5c00e814d"
@@ -500,7 +493,7 @@ async def device_login(account: UserAccount, retry: bool = True):
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_LOGIN, headers=headers, json=data,
                                             cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                            timeout=_conf.preference.timeout)
+                                            timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -529,9 +522,9 @@ async def device_save(account: UserAccount, retry: bool = True):
     :param retry: 是否允许重试
     """
     data = {
-        "app_version": device_config.X_RPC_APP_VERSION,
+        "app_version": plugin_env.device_config.X_RPC_APP_VERSION,
         "device_id": account.device_id_android,
-        "device_name": device_config.X_RPC_DEVICE_NAME_ANDROID,
+        "device_name": plugin_env.device_config.X_RPC_DEVICE_NAME_ANDROID,
         "os_version": "30",
         "platform": "Android",
         "registration_id": "1a0018970a5c00e814d"
@@ -545,7 +538,7 @@ async def device_save(account: UserAccount, retry: bool = True):
                 async with httpx.AsyncClient() as client:
                     res = await client.post(URL_DEVICE_SAVE, headers=headers, json=data,
                                             cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                            timeout=_conf.preference.timeout)
+                                            timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
@@ -579,7 +572,7 @@ async def get_good_detail(good: Union[Good, str], retry: bool = True) -> Tuple[G
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    res = await client.get(URL_CHECK_GOOD.format(good_id), timeout=_conf.preference.timeout)
+                    res = await client.get(URL_CHECK_GOOD.format(good_id), timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 # -2109 商品不存在；-2105 商品已下架
                 if api_result.retcode == -2109 or api_result.message == -2105:
@@ -612,7 +605,7 @@ async def get_good_games(retry: bool = True) -> Tuple[BaseApiStatus, Optional[Li
                     res = await client.get(URL_GOOD_LIST.format(page=1,
                                                                 game=""),
                                            headers=HEADERS_GOOD_LIST,
-                                           timeout=_conf.preference.timeout)
+                                           timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 return BaseApiStatus(success=True), list(map(lambda x: (x["name"], x["key"]), api_result.data["games"]))
     except tenacity.RetryError as e:
@@ -645,7 +638,7 @@ async def get_good_list(game: str = "", retry: bool = True) -> Tuple[
                 async with httpx.AsyncClient() as client:
                     res = await client.get(URL_GOOD_LIST.format(page=page,
                                                                 game=game), headers=HEADERS_GOOD_LIST,
-                                           timeout=_conf.preference.timeout)
+                                           timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 goods = map(Good.parse_obj, api_result.data["list"])
                 # 判断是否已经读完所有商品
@@ -682,7 +675,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
                     res = await client.get(URL_ADDRESS.format(
                         round(time.time() * 1000)), headers=headers,
                         cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                        timeout=_conf.preference.timeout)
+                        timeout=plugin_config.preference.timeout)
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
@@ -727,7 +720,7 @@ async def check_registrable(phone_number: int, keep_client: bool = False, retry:
         # await client.options(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
         #                      headers=headers, timeout=conf.preference.timeout)
         return await client.get(URL_REGISTRABLE.format(mobile=phone_number, t=time_now),
-                                headers=headers, timeout=_conf.preference.timeout)
+                                headers=headers, timeout=plugin_config.preference.timeout)
 
     try:
         async for attempt in get_async_retry(retry):
@@ -784,7 +777,7 @@ async def create_mmt(client: Optional[httpx.AsyncClient] = None,
         # await client.options(URL_CREATE_MMT.format(now=time_now, t=time_now),
         #                      headers=headers, timeout=conf.preference.timeout)
         return await client.get(URL_CREATE_MMT.format(now=time_now, t=time_now),
-                                headers=headers, timeout=_conf.preference.timeout)
+                                headers=headers, timeout=plugin_config.preference.timeout)
 
     try:
         async for attempt in get_async_retry(retry):
@@ -862,7 +855,7 @@ async def create_mobile_captcha(phone_number: str,
         return await client.post(URL_CREATE_MOBILE_CAPTCHA,
                                  params=content,
                                  headers=headers,
-                                 timeout=_conf.preference.timeout)
+                                 timeout=plugin_config.preference.timeout)
 
     try:
         async for attempt in get_async_retry(retry):
@@ -936,7 +929,7 @@ async def get_login_ticket_by_captcha(phone_number: str,
         return await client.post(URL_LOGIN_TICKET_BY_CAPTCHA,
                                  headers=headers,
                                  content=encoded_params,
-                                 timeout=_conf.preference.timeout
+                                 timeout=plugin_config.preference.timeout
                                  )
 
     try:
@@ -994,7 +987,7 @@ async def get_multi_token_by_login_ticket(cookies: BBSCookies, retry: bool = Tru
                     res = await client.get(
                         URL_MULTI_TOKEN_BY_LOGIN_TICKET.format(cookies.login_ticket, cookies.bbs_uid),
                         headers=HEADERS_API_TAKUMI_PC,
-                        timeout=_conf.preference.timeout)
+                        timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.warning(f"通过 login_ticket 获取 stoken: 登录失效")
@@ -1043,7 +1036,7 @@ async def get_cookie_token_by_captcha(phone_number: str, captcha: int, retry: bo
                                                 "action_type": "login",
                                                 "token_type": 6
                                             },
-                                            timeout=_conf.preference.timeout
+                                            timeout=plugin_config.preference.timeout
                                             )
                 api_result = ApiResultHandler(res.json())
                 if api_result.wrong_captcha:
@@ -1100,7 +1093,7 @@ async def get_login_ticket_by_password(account: str, password: str, mmt_data: Mm
                         URL_LOGIN_TICKET_BY_PASSWORD,
                         content=encoded_params,
                         headers=headers,
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 cookies = BBSCookies.parse_obj(dict_from_cookiejar(res.cookies.jar))
                 api_result = ApiResultHandler(res.json())
@@ -1146,7 +1139,7 @@ async def get_cookie_token_by_stoken(cookies: BBSCookies, device_id: str = None,
                         URL_COOKIE_TOKEN_BY_STOKEN,
                         cookies=cookies.dict(v2_stoken=True, cookie_type=True),
                         headers=headers,
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
                 if api_result.success:
@@ -1196,12 +1189,12 @@ async def get_stoken_v2_by_v1(cookies: BBSCookies, device_id: str = None, retry:
         async for attempt in get_async_retry(retry):
             with attempt:
                 async with httpx.AsyncClient() as client:
-                    headers.setdefault("DS", generate_ds(salt=_conf.salt_config.SALT_PROD))
+                    headers.setdefault("DS", generate_ds(salt=plugin_env.salt_config.SALT_PROD))
                     res = await client.post(
                         URL_STOKEN_V2_BY_V1,
                         cookies={"stoken": cookies.stoken_v1, "stuid": cookies.bbs_uid},
                         headers=headers,
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
                 if api_result.success:
@@ -1255,7 +1248,7 @@ async def get_ltoken_by_stoken(cookies: BBSCookies, device_id: str = None, retry
                         URL_LTOKEN_BY_STOKEN,
                         cookies=cookies.dict(v2_stoken=True, cookie_type=True),
                         headers=headers,
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
                 if api_result.success:
@@ -1294,7 +1287,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
         "platform": "5",
         "seed_time": str(int(time.time() * 1000)),
         "ext_fields": "{\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit\/605.1.15 "
-                      f"(KHTML, like Gecko) miHoYoBBS\/{device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
+                      f"(KHTML, like Gecko) miHoYoBBS\/{plugin_env.device_config.X_RPC_APP_VERSION}\",\"browserScreenSize"
                       "\":243750,\"maxTouchPoints\":5,"
                       "\"isTouchSupported\":true,\"browserLanguage\":\"zh-CN\",\"browserPlat\":\"iPhone\","
                       "\"browserTimeZone\":\"Asia\/Shanghai\",\"webGlRender\":\"Apple GPU\",\"webGlVendor\":\"Apple "
@@ -1312,7 +1305,7 @@ async def get_device_fp(device_id: str, retry: bool = True) -> Tuple[GetFpStatus
                     res = await client.post(
                         URL_GET_DEVICE_FP,
                         json=content,
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
                 if api_result.data["code"] == 403 or api_result.data["msg"] == "传入的参数有误":
@@ -1365,7 +1358,7 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
             res = await client.post(
                 URL_EXCHANGE, headers=headers, json=content,
                 cookies=plan.account.cookies.dict(cookie_type=True),
-                timeout=_conf.preference.timeout)
+                timeout=plugin_config.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
             logger.info(
@@ -1424,7 +1417,7 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
             res = client.post(
                 URL_EXCHANGE, headers=headers, json=content,
                 cookies=plan.account.cookies.dict(cookie_type=True),
-                timeout=_conf.preference.timeout)
+                timeout=plugin_config.preference.timeout)
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
             logger.info(
@@ -1493,7 +1486,7 @@ async def genshin_note(account: UserAccount) -> Tuple[
                                 headers=headers,
                                 cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                                 params=params,
-                                timeout=_conf.preference.timeout
+                                timeout=plugin_config.preference.timeout
                             )
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
@@ -1518,7 +1511,7 @@ async def genshin_note(account: UserAccount) -> Tuple[
                                     URL_GENSHEN_NOTE_WIDGET,
                                     headers=headers,
                                     cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                                    timeout=_conf.preference.timeout
+                                    timeout=plugin_config.preference.timeout
                                 )
                             api_result = ApiResultHandler(res.json())
                             return GenshinNoteStatus(success=True), \
@@ -1571,7 +1564,7 @@ async def starrail_note(account: UserAccount) -> Tuple[
                             cookies = account.cookies.dict(v2_stoken=True, cookie_type=True)
                             res = await client.get(url, headers=headers,
                                                    cookies=cookies,
-                                                   timeout=_conf.preference.timeout)
+                                                   timeout=plugin_config.preference.timeout)
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(
@@ -1622,7 +1615,7 @@ async def create_verification(account: UserAccount = None, retry: bool = True) -
                         URL_CREATE_VERIFICATION,
                         headers=headers,
                         cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
-                        timeout=_conf.preference.timeout
+                        timeout=plugin_config.preference.timeout
                     )
                 api_result = ApiResultHandler(res.json())
                 return BaseApiStatus(success=True), MmtData.parse_obj(api_result.data)
@@ -1670,7 +1663,7 @@ async def verify_verification(
                         headers=headers,
                         cookies=account.cookies.dict(v2_stoken=True, cookie_type=True),
                         json=content,
-                        timeout=_conf.preference.timeout)
+                        timeout=plugin_config.preference.timeout)
                 api_result = ApiResultHandler(res.json())
                 if api_result.retcode == 0:
                     return BaseApiStatus(success=True)

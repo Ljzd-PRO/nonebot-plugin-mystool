@@ -1,12 +1,10 @@
-import pkgutil
-from pathlib import Path
-
 from nonebot.plugin import PluginMetadata
 
-from .plugin_data import VERSION
+from . import _version
 
+__version__ = _version.__version__
 __plugin_meta__ = PluginMetadata(
-    name=f"❖米游社小助手插件❖\n版本 - {VERSION}\n",
+    name=f"❖米游社小助手插件❖\n版本 - {__version__}\n",
     description="米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录\n",
     usage=
     "\n🔐 {HEAD}登录 ➢ 登录绑定米游社账户"
@@ -26,8 +24,14 @@ __plugin_meta__ = PluginMetadata(
     "\n📖 {HEAD}帮助 ➢ 查看帮助信息"
     "\n🔍 {HEAD}帮助 <功能名> ➢ 查看目标功能详细说明"
     "\n\n⚠️你的数据将经过机器人服务器，请确定你信任服务器所有者再使用。",
-    extra={"version": VERSION}
+    extra={"version": __version__}
 )
+
+# 升级 V1 版本插件数据文件
+
+from .model.upgrade import upgrade_plugin_data
+
+upgrade_plugin_data()
 
 # 在此处使用 get_driver() 防止多进程生成图片时反复调用
 
@@ -38,9 +42,12 @@ from nonebot import get_driver
 init()  # 初始化Driver对象
 get_driver().on_startup(CommandBegin.set_command_begin)
 
-# 加载其它代码
+# 加载命令
 
-FILE_PATH = Path(__file__).parent.absolute()
+from .command import *
 
-for _, file, _ in pkgutil.iter_modules([str(FILE_PATH)]):
-    __import__(file, globals(), level=1)
+# 加载其他代码
+
+from .api import *
+from .model import *
+from .utils import *

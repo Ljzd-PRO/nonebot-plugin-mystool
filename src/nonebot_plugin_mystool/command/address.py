@@ -1,6 +1,3 @@
-"""
-### 米游社收货地址相关
-"""
 import asyncio
 from typing import Union
 
@@ -9,24 +6,33 @@ from nonebot.internal.params import ArgStr
 from nonebot.matcher import Matcher
 from nonebot.params import T_State
 
-from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_address
-from .user_data import UserAccount
-from .utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent
+from ..api.common import get_address
+from ..command.common import CommandRegistry
+from ..model import CommandUsage
+from ..model import PluginDataManager, plugin_config, UserAccount
+from ..utils import COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+    GeneralGroupMessageEvent
 
-_conf = PluginDataManager.plugin_data
+__all__ = [
+    "address_matcher"
+]
 
-address_matcher = on_command(_conf.preference.command_start + '地址', priority=4, block=True)
+address_matcher = on_command(plugin_config.preference.command_start + '地址', priority=4, block=True)
 
-address_matcher.name = '地址'
-address_matcher.usage = '跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置'
+CommandRegistry.set_usage(
+    address_matcher,
+    CommandUsage(
+        name="地址",
+        description="跟随指引，获取地址ID，用于兑换米游币商品。在获取地址ID前，如果你还没有设置米游社收获地址，请前往官网或App设置"
+    )
+)
 
 
 @address_matcher.handle()
 async def _(event: Union[GeneralMessageEvent], matcher: Matcher, state: T_State):
     if isinstance(event, GeneralGroupMessageEvent):
         await address_matcher.finish("⚠️为了保护您的隐私，请私聊进行地址设置。")
-    user = _conf.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     user_account = user.accounts if user else None
     if not user_account:
         await address_matcher.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
@@ -47,7 +53,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, bbs_uid=Ar
     if bbs_uid == '退出':
         await address_matcher.finish('🚪已成功退出')
 
-    user_account = _conf.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if bbs_uid not in user_account:
         await address_matcher.reject('⚠️您发送的账号不在以上账号内，请重新发送')
     account = user_account[bbs_uid]
@@ -89,7 +95,7 @@ async def _(_: Union[GeneralPrivateMessageEvent], state: T_State, address_id=Arg
     if address is not None:
         account: UserAccount = state["account"]
         account.address = address
-        write_plugin_data()
+        PluginDataManager.write_plugin_data()
         await address_matcher.finish(f"🎉已成功设置账户 {account.bbs_uid} 的地址")
     else:
         await address_matcher.reject("⚠️您发送的地址ID与查询结果不匹配，请重新发送")

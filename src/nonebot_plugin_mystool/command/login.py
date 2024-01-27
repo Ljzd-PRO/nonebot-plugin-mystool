@@ -1,6 +1,3 @@
-"""
-### 米游社登录获取Cookie相关
-"""
 import json
 from typing import Union
 
@@ -12,33 +9,40 @@ from nonebot.internal.matcher import Matcher
 from nonebot.internal.params import ArgStr
 from nonebot.params import ArgPlainText, T_State
 
-from .data_model import CreateMobileCaptchaStatus
-from .plugin_data import PluginDataManager, write_plugin_data
-from .simple_api import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, get_stoken_v2_by_v1, \
+from ..api.common import get_login_ticket_by_captcha, get_multi_token_by_login_ticket, \
+    get_stoken_v2_by_v1, \
     get_ltoken_by_stoken, get_cookie_token_by_stoken, get_device_fp, create_mmt, create_mobile_captcha
-from .user_data import UserAccount, UserData
-from .utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, GeneralGroupMessageEvent, \
+from ..command.common import CommandRegistry
+from ..model import CreateMobileCaptchaStatus, PluginDataManager, plugin_config, UserAccount, UserData, CommandUsage
+from ..utils import logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralPrivateMessageEvent, \
+    GeneralGroupMessageEvent, \
     generate_qr_img, get_validate, read_blacklist, read_whitelist, generate_device_id
 
-_conf = PluginDataManager.plugin_data
+__all__ = ["get_cookie", "output_cookies"]
 
-get_cookie = on_command(_conf.preference.command_start + '登录', priority=4, block=True)
-get_cookie.name = '登录'
-get_cookie.usage = '跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。'
+get_cookie = on_command(plugin_config.preference.command_start + '登录', priority=4, block=True)
+
+CommandRegistry.set_usage(
+    get_cookie,
+    CommandUsage(
+        name="登录",
+        description="跟随指引，通过电话获取短信方式绑定米游社账户，配置完成后会自动开启签到、米游币任务，后续可制定米游币自动兑换计划。"
+    )
+)
 
 
 @get_cookie.handle()
 async def handle_first_receive(event: Union[GeneralMessageEvent]):
     if isinstance(event, GeneralGroupMessageEvent):
         await get_cookie.finish("⚠️为了保护您的隐私，请私聊进行登录。")
-    user_num = len(set(_conf.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
-    if _conf.preference.enable_blacklist:
+    user_num = len(set(PluginDataManager.plugin_data.users.values()))  # 由于加入了用户数据绑定功能，可能存在重复的用户数据对象，需要去重
+    if plugin_config.preference.enable_blacklist:
         if event.get_user_id() in read_blacklist():
             await get_cookie.finish("⚠️您已被加入黑名单，无法使用本功能")
-    elif _conf.preference.enable_whitelist:
+    elif plugin_config.preference.enable_whitelist:
         if event.get_user_id() not in read_whitelist():
             await get_cookie.finish("⚠️您不在白名单内，无法使用本功能")
-    if user_num <= _conf.preference.max_user or _conf.preference.max_user in [-1, 0]:
+    if user_num <= plugin_config.preference.max_user or plugin_config.preference.max_user in [-1, 0]:
         # QQ频道可能无法发送链接，需要发送二维码
         login_url = "https://user.mihoyo.com/#/login/captcha"
         msg_text = "登录过程概览：\n" \
@@ -73,7 +77,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
         await get_cookie.reject("⚠️手机号应为11位数字，请重新输入")
     else:
         state['phone'] = phone
-    user = _conf.users.get(event.get_user_id())
+    user = PluginDataManager.plugin_data.users.get(event.get_user_id())
     if user:
         account_filter = filter(lambda x: x.phone_number == phone, user.accounts.values())
         account = next(account_filter, None)
@@ -88,7 +92,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, phone: str
             if captcha_status:
                 await get_cookie.send("检测到无需进行人机验证，已发送短信验证码，请查收")
                 return
-        elif _conf.preference.geetest_url:
+        elif plugin_config.preference.geetest_url:
             await get_cookie.send("⏳正在尝试完成人机验证，请稍后...")
             # TODO: 人机验证待支持 GT4
             geetest_result = await get_validate(gt=mmt_data.gt)
@@ -124,8 +128,8 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
         await get_cookie.reject("⚠️验证码应为数字，请重新输入")
     else:
         user_id = event.get_user_id()
-        _conf.users.setdefault(user_id, UserData())
-        user = _conf.users[user_id]
+        PluginDataManager.plugin_data.users.setdefault(user_id, UserData())
+        user = PluginDataManager.plugin_data.users[user_id]
         # 如果是QQ频道，需要记录频道ID
         if isinstance(event, DirectMessageCreateEvent):
             user.qq_guilds.setdefault(user_id, set())
@@ -134,7 +138,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
         login_status, cookies = await get_login_ticket_by_captcha(phone_number, int(captcha), device_id)
         if login_status:
             logger.success(f"用户 {cookies.bbs_uid} 成功获取 login_ticket: {cookies.login_ticket}")
-            account = _conf.users[user_id].accounts.get(cookies.bbs_uid)
+            account = PluginDataManager.plugin_data.users[user_id].accounts.get(cookies.bbs_uid)
             """当前的账户数据对象"""
             if not account or not account.cookies:
                 user.accounts.update({
@@ -150,7 +154,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
             fp_status, account.device_fp = await get_device_fp(device_id)
             if fp_status:
                 logger.success(f"用户 {cookies.bbs_uid} 成功获取 device_fp: {account.device_fp}")
-            write_plugin_data()
+            PluginDataManager.write_plugin_data()
 
             # 2. 通过 login_ticket 获取 stoken 和 ltoken
             if login_status or account:
@@ -158,30 +162,30 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
                 if login_status:
                     logger.success(f"用户 {phone_number} 成功获取 stoken: {cookies.stoken}")
                     account.cookies.update(cookies)
-                    write_plugin_data()
+                    PluginDataManager.write_plugin_data()
 
                     # 3. 通过 stoken_v1 获取 stoken_v2 和 mid
                     login_status, cookies = await get_stoken_v2_by_v1(account.cookies, device_id)
                     if login_status:
                         logger.success(f"用户 {phone_number} 成功获取 stoken_v2: {cookies.stoken_v2}")
                         account.cookies.update(cookies)
-                        write_plugin_data()
+                        PluginDataManager.write_plugin_data()
 
                         # 4. 通过 stoken_v2 获取 ltoken
                         login_status, cookies = await get_ltoken_by_stoken(account.cookies, device_id)
                         if login_status:
                             logger.success(f"用户 {phone_number} 成功获取 ltoken: {cookies.ltoken}")
                             account.cookies.update(cookies)
-                            write_plugin_data()
+                            PluginDataManager.write_plugin_data()
 
                             # 5. 通过 stoken_v2 获取 cookie_token
                             login_status, cookies = await get_cookie_token_by_stoken(account.cookies, device_id)
                             if login_status:
                                 logger.success(f"用户 {phone_number} 成功获取 cookie_token: {cookies.cookie_token}")
                                 account.cookies.update(cookies)
-                                write_plugin_data()
+                                PluginDataManager.write_plugin_data()
 
-                                logger.success(f"{_conf.preference.log_head}米游社账户 {phone_number} 绑定成功")
+                                logger.success(f"{plugin_config.preference.log_head}米游社账户 {phone_number} 绑定成功")
                                 await get_cookie.finish(f"🎉米游社账户 {phone_number} 绑定成功")
 
         if not login_status:
@@ -215,12 +219,19 @@ async def _(event: Union[GeneralPrivateMessageEvent], state: T_State, captcha: s
 
 
 output_cookies = on_command(
-    _conf.preference.command_start + '导出Cookies',
-    aliases={_conf.preference.command_start + '导出Cookie', _conf.preference.command_start + '导出账号',
-             _conf.preference.command_start + '导出cookie', _conf.preference.command_start + '导出cookies'}, priority=4,
+    plugin_config.preference.command_start + '导出Cookies',
+    aliases={plugin_config.preference.command_start + '导出Cookie', plugin_config.preference.command_start + '导出账号',
+             plugin_config.preference.command_start + '导出cookie',
+             plugin_config.preference.command_start + '导出cookies'}, priority=4,
     block=True)
-output_cookies.name = '导出Cookies'
-output_cookies.usage = '导出绑定的米游社账号的Cookies数据'
+
+CommandRegistry.set_usage(
+    output_cookies,
+    CommandUsage(
+        name="导出Cookies",
+        description="导出绑定的米游社账号的Cookies数据"
+    )
+)
 
 
 @output_cookies.handle()
@@ -230,7 +241,7 @@ async def handle_first_receive(event: Union[GeneralMessageEvent], state: T_State
     """
     if isinstance(event, GeneralGroupMessageEvent):
         await output_cookies.finish("⚠️为了保护您的隐私，请私聊进行Cookies导出。")
-    user_account = _conf.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if not user_account:
         await output_cookies.finish(f"⚠️你尚未绑定米游社账户，请先使用『{COMMAND_BEGIN}登录』进行登录")
     elif len(user_account) == 1:
@@ -250,7 +261,7 @@ async def _(event: Union[GeneralPrivateMessageEvent], matcher: Matcher, bbs_uid=
     """
     if bbs_uid == '退出':
         await matcher.finish('🚪已成功退出')
-    user_account = _conf.users[event.get_user_id()].accounts
+    user_account = PluginDataManager.plugin_data.users[event.get_user_id()].accounts
     if bbs_uid in user_account:
         await output_cookies.finish(json.dumps(user_account[bbs_uid].cookies.dict(cookie_type=True), indent=4))
     else:
