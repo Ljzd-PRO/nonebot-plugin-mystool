@@ -14,7 +14,7 @@
 
 ## 📣 更新内容
 
-### 2024.1.24 - [v2.0.1-beta.1](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.1-beta.1)
+### 2024.1.28 - v2.0.1
 
 - 更新插件配置的 `preference.github_proxy` 默认值为 `https://mirror.ghproxy.com/`
 > [!NOTE]
