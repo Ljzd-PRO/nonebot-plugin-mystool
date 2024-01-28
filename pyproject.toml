@@ -33,7 +33,7 @@ nonebot-adapter-onebot = "^2.3.1"
 nonebot-adapter-qq = "^1.1.2"
 tenacity = "^8.2.3"
 qrcode = "^7.4.2"
-pydantic = "^1.10.0"
+pydantic = "^1.10.14"
 nonebot2 = ">=2.0.0"
 pytz = "^2023.3.post1"
 
