@@ -8,7 +8,7 @@ import time
 import uuid
 from copy import deepcopy
 from pathlib import Path
-from typing import (TYPE_CHECKING, Dict, Literal,
+from typing import (Dict, Literal,
                     Union, Optional, Tuple, Iterable, List)
 from urllib.parse import urlencode
 
@@ -16,6 +16,7 @@ import httpx
 import nonebot.log
 import nonebot.plugin
 import tenacity
+from loguru import Logger
 from nonebot import Adapter, Bot
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, PrivateMessageEvent, GroupMessageEvent, \
@@ -27,12 +28,10 @@ from nonebot.adapters.qq.exception import ActionFailed as QQGuildActionFailed, A
 from nonebot.adapters.qq.models import DMS
 from nonebot.exception import ActionFailed
 from nonebot.log import logger
+from nonebot.log import logger
 from qrcode import QRCode
 
 from ..model import GeetestResult, PluginDataManager, Preference, plugin_config, plugin_env, UserData
-
-if TYPE_CHECKING:
-    from loguru import Logger
 
 __all__ = ["GeneralMessageEvent", "GeneralPrivateMessageEvent", "GeneralGroupMessageEvent", "CommandBegin",
            "get_last_command_sep", "COMMAND_BEGIN", "set_logger", "logger", "PLUGIN", "custom_attempt_times",
@@ -308,7 +307,7 @@ def blur_phone(phone: Union[str, int]) -> str:
     """
     if isinstance(phone, int):
         phone = str(phone)
-    return f"{phone[:3]}****{phone[-4:]}"
+    return f"☎️{phone[-4:]}"
 
 
 def generate_qr_img(data: str):

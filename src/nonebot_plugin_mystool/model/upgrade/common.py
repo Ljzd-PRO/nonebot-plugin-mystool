@@ -1,6 +1,6 @@
 from typing import Union, Optional, Dict, TYPE_CHECKING
 
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseSettings
 
 from ..._version import __version__

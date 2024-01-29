@@ -397,7 +397,7 @@ async def get_game_record(account: UserAccount, retry: bool = True) -> Tuple[Bas
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"获取用户游戏数据(GameRecord) - 用户 {account.bbs_uid} 登录失效")
+                        f"获取用户游戏数据(GameRecord) - 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True), None
                 return BaseApiStatus(success=True), list(
@@ -455,7 +455,7 @@ async def get_user_myb(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"获取用户米游币 - 用户 {account.bbs_uid} 登录失效")
+                        f"获取用户米游币 - 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True), None
                 return BaseApiStatus(success=True), int(api_result.data["points"])
@@ -497,7 +497,7 @@ async def device_login(account: UserAccount, retry: bool = True):
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"设备登录(device_login) - 用户 {account.bbs_uid} 登录失效")
+                        f"设备登录(device_login) - 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True)
                 if res.json()["message"] != "OK":
@@ -542,7 +542,7 @@ async def device_save(account: UserAccount, retry: bool = True):
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"设备保存(device_save) - 用户 {account.bbs_uid} 登录失效")
+                        f"设备保存(device_save) - 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True)
                 if res.json()["message"] != "OK":
@@ -679,7 +679,7 @@ async def get_address(account: UserAccount, retry: bool = True) -> Tuple[BaseApi
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
-                            f"获取地址数据 - 用户 {account.bbs_uid} 登录失效")
+                            f"获取地址数据 - 用户 {account.display_name} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return BaseApiStatus(login_expired=True), None
                 address_list = list(map(Address.parse_obj, api_result.data["list"]))
@@ -1362,28 +1362,28 @@ async def good_exchange(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Ex
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
             logger.info(
-                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 登录失效 - 请求发送时间: {start_time}")
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.display_name} 登录失效 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(login_expired=True), None
         if api_result.success:
             logger.info(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换成功！可以自行确认 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 兑换成功！可以自行确认 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(success=True), ExchangeResult(result=True, return_data=res.json(), plan=plan)
         else:
             logger.info(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换失败，可以自行确认 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 兑换失败，可以自行确认 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(success=True), ExchangeResult(result=False, return_data=res.json(), plan=plan)
     except Exception as e:
         if is_incorrect_return(e):
             logger.error(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 服务器没有正确返回 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 服务器没有正确返回 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(incorrect_return=True), None
         else:
             logger.exception(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 请求失败 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 请求失败 - 请求发送时间: {start_time}")
             return ExchangeStatus(network_error=True), None
 
 
@@ -1421,28 +1421,28 @@ def good_exchange_sync(plan: ExchangePlan) -> Tuple[ExchangeStatus, Optional[Exc
         api_result = ApiResultHandler(res.json())
         if api_result.login_expired:
             logger.info(
-                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.bbs_uid} 登录失效 - 请求发送时间: {start_time}")
+                f"米游币商品兑换 - 执行兑换: 用户 {plan.account.display_name} 登录失效 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(login_expired=True), None
         if api_result.success:
             logger.info(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换成功！可以自行确认 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 兑换成功！可以自行确认 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(success=True), ExchangeResult(result=True, return_data=res.json(), plan=plan)
         else:
             logger.info(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 兑换失败，可以自行确认 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 兑换失败，可以自行确认 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(success=True), ExchangeResult(result=False, return_data=res.json(), plan=plan)
     except Exception as e:
         if is_incorrect_return(e):
             logger.error(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 服务器没有正确返回 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 服务器没有正确返回 - 请求发送时间: {start_time}")
             logger.debug(f"网络请求返回: {res.text}")
             return ExchangeStatus(incorrect_return=True), None
         else:
             logger.exception(
-                f"米游币商品兑换: 用户 {plan.account.bbs_uid} 商品 {plan.good.goods_id} 请求失败 - 请求发送时间: {start_time}")
+                f"米游币商品兑换: 用户 {plan.account.display_name} 商品 {plan.good.goods_id} 请求失败 - 请求发送时间: {start_time}")
             return ExchangeStatus(network_error=True), None
 
 
@@ -1491,17 +1491,17 @@ async def genshin_note(account: UserAccount) -> Tuple[
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(
-                                f"原神实时便笺: 用户 {account.bbs_uid} 登录失效")
+                                f"原神实时便笺: 用户 {account.display_name} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
                             return GenshinNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
-                                f"原神实时便笺: 用户 {account.bbs_uid} DS 校验失败")
+                                f"原神实时便笺: 用户 {account.display_name} DS 校验失败")
                             logger.debug(f"网络请求返回: {res.text}")
                         if api_result.retcode == 1034:
                             logger.info(
-                                f"原神实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
+                                f"原神实时便笺: 用户 {account.display_name} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
                         if not api_result.success:
                             headers["DS"] = generate_ds()
@@ -1568,17 +1568,17 @@ async def starrail_note(account: UserAccount) -> Tuple[
                         api_result = ApiResultHandler(res.json())
                         if api_result.login_expired:
                             logger.info(
-                                f"崩铁实时便笺: 用户 {account.bbs_uid} 登录失效")
+                                f"崩铁实时便笺: 用户 {account.display_name} 登录失效")
                             logger.debug(f"网络请求返回: {res.text}")
                             return StarRailNoteStatus(login_expired=True), None
 
                         if api_result.invalid_ds:
                             logger.info(
-                                f"崩铁实时便笺: 用户 {account.bbs_uid} DS 校验失败")
+                                f"崩铁实时便笺: 用户 {account.display_name} DS 校验失败")
                             logger.debug(f"网络请求返回: {res.text}")
                         if api_result.retcode == 1034:
                             logger.info(
-                                f"崩铁实时便笺: 用户 {account.bbs_uid} 可能被验证码阻拦")
+                                f"崩铁实时便笺: 用户 {account.display_name} 可能被验证码阻拦")
                             logger.debug(f"网络请求返回: {res.text}")
                         return StarRailNoteStatus(success=True), StarRailNote.parse_obj(api_result.data)
             except tenacity.RetryError as e:
@@ -1593,8 +1593,10 @@ async def starrail_note(account: UserAccount) -> Tuple[
         return StarRailNoteStatus(no_starrail_account=True), None
 
 
-async def create_verification(account: UserAccount = None, retry: bool = True) -> Tuple[
-    BaseApiStatus, Optional[MmtData]]:
+async def create_verification(
+        account: UserAccount = None,
+        retry: bool = True
+) -> Tuple[BaseApiStatus, Optional[MmtData]]:
     """
     创建人机验证任务 - 一般用于米游社讨论区签到
 

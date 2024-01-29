@@ -134,17 +134,17 @@ class BaseMission:
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.error(
-                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 登录失效")
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(login_expired=True), None
                     elif api_result.invalid_ds:
                         logger.error(
-                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} DS 校验失败")
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(invalid_ds=True), None
                     elif api_result.retcode == 1034:
                         logger.error(
-                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 需要完成人机验证")
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} 需要完成人机验证")
                         logger.debug(f"网络请求返回: {res.text}")
                         if plugin_config.preference.geetest_url:
                             create_status, mmt_data = await create_verification(self.account)
@@ -152,15 +152,15 @@ class BaseMission:
                                 if geetest_result := await get_validate(mmt_data.gt, mmt_data.challenge):
                                     if await verify_verification(mmt_data, geetest_result, self.account):
                                         logger.success(
-                                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 人机验证通过")
+                                            f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} 人机验证通过")
                                         continue
                         else:
                             logger.info(
-                                f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 未配置极验人机验证打码平台")
+                                f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} 未配置极验人机验证打码平台")
                         return MissionStatus(need_verify=True), None
                     elif api_result.retcode == 1008:
                         logger.warning(
-                            f"米游币任务 - 讨论区签到: 用户 {self.account.bbs_uid} 今日已经签到过了")
+                            f"米游币任务 - 讨论区签到: 用户 {self.account.display_name} 今日已经签到过了")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(success=True, already_signed=True), 0
                     return MissionStatus(success=True), api_result.data["points"]
@@ -236,12 +236,12 @@ class BaseMission:
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
-                                    f"米游币任务 - 阅读: 用户 {self.account.bbs_uid} 登录失效")
+                                    f"米游币任务 - 阅读: 用户 {self.account.display_name} 登录失效")
                                 logger.debug(f"网络请求返回: {res.text}")
                                 return MissionStatus(login_expired=True)
                             if api_result.invalid_ds:
                                 logger.info(
-                                    f"米游币任务 - 阅读: 用户 {self.account.bbs_uid} DS 校验失败")
+                                    f"米游币任务 - 阅读: 用户 {self.account.display_name} DS 校验失败")
                                 logger.debug(f"网络请求返回: {res.text}")
                                 return MissionStatus(invalid_ds=True)
                             if api_result.message == "帖子不存在":
@@ -297,12 +297,12 @@ class BaseMission:
                             api_result = ApiResultHandler(res.json())
                             if api_result.login_expired:
                                 logger.info(
-                                    f"米游币任务 - 点赞: 用户 {self.account.bbs_uid} 登录失效")
+                                    f"米游币任务 - 点赞: 用户 {self.account.display_name} 登录失效")
                                 logger.debug(f"网络请求返回: {res.text}")
                                 return MissionStatus(login_expired=True)
                             if api_result.invalid_ds:
                                 logger.info(
-                                    f"米游币任务 - 点赞: 用户 {self.account.bbs_uid} DS 校验失败")
+                                    f"米游币任务 - 点赞: 用户 {self.account.display_name} DS 校验失败")
                                 logger.debug(f"网络请求返回: {res.text}")
                                 return MissionStatus(invalid_ds=True)
                             if api_result.message == "帖子不存在":
@@ -351,12 +351,12 @@ class BaseMission:
                     api_result = ApiResultHandler(res.json())
                     if api_result.login_expired:
                         logger.info(
-                            f"米游币任务 - 分享: 用户 {self.account.bbs_uid} 登录失效")
+                            f"米游币任务 - 分享: 用户 {self.account.display_name} 登录失效")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(login_expired=True)
                     if api_result.invalid_ds:
                         logger.info(
-                            f"米游币任务 - 分享: 用户 {self.account.bbs_uid} DS 校验失败")
+                            f"米游币任务 - 分享: 用户 {self.account.display_name} DS 校验失败")
                         logger.debug(f"网络请求返回: {res.text}")
                         return MissionStatus(invalid_ds=True)
                     if api_result.message == "帖子不存在":
@@ -466,7 +466,7 @@ async def get_missions(account: UserAccount, retry: bool = True) -> Tuple[BaseAp
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"获取米游币任务列表: 用户 {account.bbs_uid} 登录失效")
+                        f"获取米游币任务列表: 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True), None
                 mission_list: List[MissionData] = []
@@ -503,7 +503,7 @@ async def get_missions_state(account: UserAccount, retry: bool = True) -> Tuple[
                 api_result = ApiResultHandler(res.json())
                 if api_result.login_expired:
                     logger.info(
-                        f"获取米游币任务完成情况: 用户 {account.bbs_uid} 登录失效")
+                        f"获取米游币任务完成情况: 用户 {account.display_name} 登录失效")
                     logger.debug(f"网络请求返回: {res.text}")
                     return BaseApiStatus(login_expired=True), None
                 state_dict = {}

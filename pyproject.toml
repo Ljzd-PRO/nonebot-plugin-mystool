@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "v2.0.0"
+version = "v2.0.1"
 description = "QQ聊天、频道机器人插件 | 米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录、原神崩铁便笺提醒"
 license = "MIT"
 authors = [
@@ -33,7 +33,7 @@ nonebot-adapter-onebot = "^2.3.1"
 nonebot-adapter-qq = "^1.1.2"
 tenacity = "^8.2.3"
 qrcode = "^7.4.2"
-pydantic = "^1.10.0"
+pydantic = "^1.10.14"
 nonebot2 = ">=2.0.0"
 pytz = "^2023.3.post1"
 

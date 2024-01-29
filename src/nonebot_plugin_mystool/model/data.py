@@ -5,9 +5,10 @@ from typing import Union, Optional, Any, Dict, TYPE_CHECKING, AbstractSet, \
 from uuid import UUID, uuid4
 
 from httpx import Cookies
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseModel, ValidationError, validator
 
+from ..utils import blur_phone
 from .._version import __version__
 from ..model.common import data_path, BaseModelWithSetter, Address, BaseModelWithUpdate, Good, GameRecord
 
@@ -271,6 +272,13 @@ class UserAccount(BaseModelWithSetter):
     def bbs_uid(self, value: str):
         self.cookies.bbs_uid = value
 
+    @property
+    def display_name(self):
+        """
+        显示名称
+        """
+        return f"{self.bbs_uid}({blur_phone(self.phone_number)})"
+
 
 class ExchangePlan(BaseModel):
     """
@@ -345,7 +353,7 @@ def uuid4_validate(v):
     """
     try:
         UUID(v, version=4)
-    except:
+    except Exception:
         return False
     else:
         return True
@@ -459,7 +467,7 @@ class PluginDataManager:
             except (ValidationError, JSONDecodeError):
                 logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {plugin_data_path} 格式是否正确")
                 raise
-            except:
+            except Exception:
                 logger.exception(
                     f"读取插件数据文件失败，请检查插件数据文件 {plugin_data_path} 是否存在且有权限读取和写入")
                 raise
@@ -467,6 +475,7 @@ class PluginDataManager:
             cls.plugin_data = PluginData()
             try:
                 str_data = cls.plugin_data.json(indent=4)
+                plugin_data_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(plugin_data_path, "w", encoding="utf-8") as f:
                     f.write(str_data)
             except (AttributeError, TypeError, ValueError, PermissionError):

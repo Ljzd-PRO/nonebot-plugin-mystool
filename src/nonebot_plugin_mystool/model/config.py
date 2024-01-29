@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Union, Optional, Tuple, Any, Dict, TYPE_CHECKING
 
 import nonebot
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseModel, BaseSettings, validator
 
 from ..model.common import data_path
@@ -25,7 +25,7 @@ class Preference(BaseModel):
     """
     偏好设置
     """
-    github_proxy: Optional[str] = "https://ghproxy.com/"
+    github_proxy: Optional[str] = "https://mirror.ghproxy.com/"
     """GitHub加速代理 最终会拼接在原GitHub链接前面"""
     enable_connection_test: bool = True
     """是否开启连接测试"""
@@ -243,6 +243,7 @@ else:
     plugin_config = PluginConfig()
     try:
         str_data = plugin_config.json(indent=4)
+        plugin_config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(plugin_config_path, "w", encoding="utf-8") as f:
             f.write(str_data)
     except (AttributeError, TypeError, ValueError, PermissionError):

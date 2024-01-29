@@ -9,7 +9,7 @@ from typing import Union, Optional, Any, Dict, TYPE_CHECKING, AbstractSet, \
 from uuid import UUID, uuid4
 
 from httpx import Cookies
-from loguru import logger
+from nonebot.log import logger
 from pydantic import BaseModel, ValidationError, validator
 
 from ..._version import __version__
@@ -349,7 +349,7 @@ def uuid4_validate(v):
     """
     try:
         UUID(v, version=4)
-    except:
+    except Exception:
         return False
     else:
         return True
@@ -463,7 +463,7 @@ class PluginDataManager:
             except (ValidationError, JSONDecodeError):
                 logger.exception(f"读取插件数据文件失败，请检查插件数据文件 {plugin_data_path} 格式是否正确")
                 raise
-            except:
+            except Exception:
                 logger.exception(
                     f"读取插件数据文件失败，请检查插件数据文件 {plugin_data_path} 是否存在且有权限读取和写入")
                 raise
