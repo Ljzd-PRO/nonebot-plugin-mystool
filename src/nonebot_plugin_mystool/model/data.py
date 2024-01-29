@@ -481,6 +481,7 @@ class PluginDataManager:
             cls.plugin_data = PluginData()
             try:
                 str_data = cls.plugin_data.json(indent=4)
+                plugin_data_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(plugin_data_path, "w", encoding="utf-8") as f:
                     f.write(str_data)
             except (AttributeError, TypeError, ValueError, PermissionError):

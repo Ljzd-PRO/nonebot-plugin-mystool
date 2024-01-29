@@ -16,6 +16,8 @@
 
 ### 2024.1.28 - v2.0.1
 
+- 修复插件无法自动创建 `data` 目录以创建配置文件和数据文件的问题 (v2.0.1)
+
 - 更新插件配置的 `preference.github_proxy` 默认值为 `https://mirror.ghproxy.com/`
 > [!NOTE]
 > `preference.github_proxy` 用于使用代理以更快地从 GitHub 下载 Source Han Sans 思源黑体 字体。 \
