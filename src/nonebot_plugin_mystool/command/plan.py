@@ -601,38 +601,27 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                         if note.current_stamina >= note.max_stamina:
                             starrail_notice.current_stamina_full = True
                             msg += '❕您的开拓力已经溢出\n'
+                            if note.current_train_score != note.max_train_score:
+                                msg += '❕您的每日实训未完成\n'
                             do_notice = True
                         elif not starrail_notice.current_stamina:
                             starrail_notice.current_stamina_full = False
                             starrail_notice.current_stamina = True
                             msg += '❕您的开拓力已达到提醒阈值\n'
+                            if note.current_train_score != note.max_train_score:
+                                msg += '❕您的每日实训未完成\n'
                             do_notice = True
                 else:
                     starrail_notice.current_stamina = False
                     starrail_notice.current_stamina_full = False
 
-                # 每日实训状态提醒
-                if note.current_train_score != note.max_train_score:
-                    # 防止重复提醒
-                    # if not starrail_notice.current_train_score:
-                    if not starrail_notice.current_train_score \
-                            and plugin_config.preference.notice_time:  # 注意此处添加notice_time是为了防止每日首次推送通知在4:00后一段时间
-                        starrail_notice.current_train_score = True  # notice_time = plan_time +1h
-                        msg += '❕您的每日实训未完成\n'  # 通知逻辑变动后，如不添加notice_time，便笺检查在xx:20,便笺检查间隔1h，则每日首次通知在04:20
-                        do_notice = True
-                else:
-                    starrail_notice.current_train_score = False
-
                 # 每周模拟宇宙积分提醒
                 if note.current_rogue_score != note.max_rogue_score:
-                    # 防止重复提醒
-                    if not starrail_notice.current_rogue_score \
-                            and plugin_config.preference.notice_time:  # notice_time同理
-                        starrail_notice.current_rogue_score = True
+                    if plugin_config.preference.notice_time:  
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
                 else:
-                    starrail_notice.current_rogue_score = False
+                    return
 
                 if not do_notice:
                     return

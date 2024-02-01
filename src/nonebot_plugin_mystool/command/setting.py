@@ -180,7 +180,7 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, notice_game=ArgStr())
         elif notice_game == "2":
             await account_setting.send(
                 "请输入想要所需阈值数字，开拓力达到该值时将进行通知："
-                "可用范围 [0, 180]"
+                "可用范围 [0, 240]"
                 "\n\n🚪发送“退出”即可退出"
             )
             state["setting_item"] = "setting_notice_value_sr"
@@ -215,14 +215,14 @@ async def _(_: Union[GeneralMessageEvent], state: T_State, setting_value=ArgStr(
         except ValueError:
             await account_setting.reject("⚠️请输入有效的数字。")
         else:
-            if 0 <= stamina_threshold <= 180:
+            if 0 <= stamina_threshold <= 240:
                 # 输入有效的数字范围，将 stamina_threshold 赋值为输入的整数
                 account.user_stamina_threshold = stamina_threshold
                 PluginDataManager.write_plugin_data()
                 await account_setting.finish("更改崩铁便笺开拓力提醒阈值成功\n"
                                              f"⏰当前提醒阈值：{stamina_threshold}")
             else:
-                await account_setting.reject("⚠️输入的数字范围应在 0 到 180 之间。")
+                await account_setting.reject("⚠️输入的数字范围应在 0 到 240 之间。")
 
     elif state["setting_item"] == "mission_games":
         games_input = setting_value.split()
