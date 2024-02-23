@@ -620,8 +620,6 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     if plugin_config.preference.notice_time:  
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
-                else:
-                    return
 
                 if not do_notice:
                     return
