@@ -26,7 +26,7 @@ from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_p
     get_unique_users, get_validate, read_admin_list
 
 __all__ = [
-    "manually_game_sign", "manually_bbs_sign", "manually_genshin_note_check", "manually_starrail_note_check"
+    "manually_game_sign", "manually_bbs_sign", "manually_genshin_note_check", "manually_starrail_note_check", "manually_rrjf"
 ]
 
 manually_game_sign = on_command(plugin_config.preference.command_start + '签到', priority=5, block=True)
@@ -548,6 +548,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                     genshin_notice.transformer = True
 
                 if not do_notice:
+                    logger.info(f"原神实时便笺：账户 {account.display_name} 树脂:{note.current_resin},未满足推送条件")
                     return
 
             msg += "❖原神·实时便笺❖" \
@@ -624,6 +625,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     return
 
                 if not do_notice:
+                    logger.info(f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
@@ -663,6 +665,7 @@ async def daily_schedule():
         user_ids = [user_id] + list(get_all_bind(user_id))
         await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
+        await api_rrjf(user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
 
 
@@ -679,3 +682,55 @@ async def auto_note_check():
         await genshin_note_check(user=user, user_ids=user_ids)
         await starrail_note_check(user=user, user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}自动便笺检查执行完成")
+
+
+
+#—————————————————————————————————————————————————————————————————————————————#
+from pydantic import BaseModel
+import httpx
+class rrjf_result(BaseModel):
+    """
+    人人图像相关返回数据初始化
+    """
+    integral: int
+    """剩余积分"""
+
+manually_rrjf = on_command(plugin_config.preference.command_start + '积分', priority=5, block=True)
+manually_rrjf.name = '积分'
+manually_rrjf.usage = '手动查看打码平台的积分信息'
+
+@manually_rrjf.handle()
+async def key_rrjf(event: Union[GeneralMessageEvent], matcher: Matcher):
+    """
+    手动查询打码积分函数
+    :param url:api_link
+    :param integral:api返回内容中的积分位置
+    """
+    user_id = event.get_user_id()
+    await api_rrjf(user_ids=[user_id], matcher=matcher)
+
+
+async def api_rrjf(user_ids: Iterable[str],matcher: Matcher = None):
+    appkey = plugin_config.preference.geetest_params.get("appkey")
+    url = f"http://api.rrocr.com/api/integral.html?appkey={appkey}"
+    msg = ""
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            if response.status_code == 200:
+                rrjf_data = response.json()
+                rrjf_res = rrjf_result.parse_obj(rrjf_data)
+                remaining_verification = int(rrjf_res.integral) // 25
+                msg = f"剩余可用积分：{rrjf_res.integral}" \
+                       f"\n剩余验证次数：{remaining_verification}"
+                if matcher:
+                    await matcher.send(msg)
+                else:
+                    for user_id in user_ids:
+                        await send_private_msg(user_id=user_id, message=msg)
+
+            else:
+                print("错误:", response.status_code)
+    except httpx.RequestError as e:
+        print("发生错误:", str(e))
