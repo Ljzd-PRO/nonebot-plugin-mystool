@@ -548,6 +548,7 @@ async def genshin_note_check(user: UserData, user_ids: Iterable[str], matcher: M
                     genshin_notice.transformer = True
 
                 if not do_notice:
+                    logger.info(f"原神实时便笺：账户 {account.display_name} 树脂:{note.current_resin},未满足推送条件")
                     return
 
             msg += "❖原神·实时便笺❖" \
@@ -622,6 +623,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                         do_notice = True
 
                 if not do_notice:
+                    logger.info(f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
