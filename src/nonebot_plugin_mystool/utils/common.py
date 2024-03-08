@@ -33,7 +33,6 @@ from nonebot.adapters.onebot.v11 import MessageEvent as OneBotV11MessageEvent, P
     Adapter as OneBotV11Adapter, Bot as OneBotV11Bot
 from nonebot.adapters.qq import DirectMessageCreateEvent, MessageCreateEvent, \
     Adapter as QQGuildAdapter, Bot as QQGuildBot, MessageEvent
-from nonebot.exception import ActionFailed
 from nonebot.log import logger
 from nonebot.log import logger
 from qrcode import QRCode
@@ -343,7 +342,7 @@ async def send_private_msg(
         message: Union[str, MessageSegmentFactory, AggregatedMessageFactory],
         use: Union[Bot, Adapter] = None,
         guild_id: int = None
-) -> Tuple[bool, Optional[ActionFailed]]:
+) -> Tuple[bool, Optional[Exception]]:
     """
     主动发送私信消息
 
@@ -365,45 +364,32 @@ async def send_private_msg(
     else:
         bots = nonebot.get_bots().values()
 
-    # 获取 PlatformTarget 对象
-    if isinstance(use, (OneBotV11Bot, OneBotV11Adapter)):
-        target = TargetQQPrivate(user_id=user_id_int)
-        logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 聊天私信 user_id: {user_id_int}")
-    else:
-        if guild_id is None:
-            if user := PluginDataManager.plugin_data.users.get(user_id):
-                if not (guild_id := user.qq_guild.get(user_id)):
-                    logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
-                    return False, None
-            else:
-                logger.error(f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
-                return False, None
-        target = TargetQQGuildDirect(recipient_id=user_id_int, source_guild_id=guild_id)
-        logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 频道私信"
-                    f" recipient_id: {user_id_int}, source_guild_id: {guild_id}")
-
-    # 发送
-
-    exception = None
-    error_flag = True
-
     for bot in bots:
         try:
+            # 获取 PlatformTarget 对象
+            if isinstance(bot, OneBotV11Bot):
+                target = TargetQQPrivate(user_id=user_id_int)
+                logger.info(
+                    f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 聊天私信 user_id: {user_id_int}")
+            else:
+                if guild_id is None:
+                    if user := PluginDataManager.plugin_data.users.get(user_id):
+                        if not (guild_id := user.qq_guild.get(user_id)):
+                            logger.error(f"{plugin_config.preference.log_head}用户 {user_id} 数据中没有任何频道ID")
+                            return False, None
+                    else:
+                        logger.error(
+                            f"{plugin_config.preference.log_head}用户数据中不存在用户 {user_id}，无法获取频道ID")
+                        return False, None
+                target = TargetQQGuildDirect(recipient_id=user_id_int, source_guild_id=guild_id)
+                logger.info(f"{plugin_config.preference.log_head}向用户 {user_id} 发送 QQ 频道私信"
+                            f" recipient_id: {user_id_int}, source_guild_id: {guild_id}")
+
             await message.send_to(target=target, bot=bot)
         except Exception as e:
-            exception = e
+            return False, e
         else:
-            error_flag = False
-
-    if error_flag:
-        try:
-            await message.send_to(target=target)
-        except Exception as e:
-            exception = e
-        else:
-            error_flag = False
-
-    return not error_flag, exception
+            return True, None
 
 
 def get_unique_users() -> Iterable[Tuple[str, UserData]]:

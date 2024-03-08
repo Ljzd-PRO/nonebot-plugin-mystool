@@ -110,10 +110,13 @@ class Preference(BaseModel):
 
     @property
     def notice_time(self) -> bool:
-        now_time = datetime.now().time()
-        note_time = datetime.strptime(self.plan_time, "%H:%M")
-        note_time = note_time + timedelta(hours=1)
-        return now_time > note_time.time()
+        now_hour = datetime.now().hour
+        now_minute = datetime.now().minute
+        set_time = "20:00"
+        notice_time = int(set_time[:2]) * 60 + int(set_time[3:])
+        start_time = notice_time - self.resin_interval
+        end_time = notice_time + self.resin_interval
+        return start_time <= (now_hour * 60 + now_minute) % (24 * 60) <= end_time
 
 
 class GoodListImageConfig(BaseModel):
