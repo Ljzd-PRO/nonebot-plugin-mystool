@@ -1,7 +1,3 @@
-from nonebot.log import logger
-
-logger.info("插件目前为V2版本，可能不稳定，如果出现异常可以更换 v1.4.4 版本")
-
 from nonebot.plugin import PluginMetadata
 
 from . import _version
