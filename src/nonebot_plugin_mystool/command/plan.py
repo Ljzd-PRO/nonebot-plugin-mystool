@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from ..api import BaseGameSign
 from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
-from ..api.weibo import weibo_code
+from ..api.weibo import WeiboCode
 from ..command.common import CommandRegistry
 from ..command.exchange import generate_image
 from ..model import (MissionStatus, PluginDataManager, plugin_config, UserData, CommandUsage, GenshinNoteNotice,
@@ -191,8 +191,7 @@ CommandRegistry.set_usage(
     )
 )
 
-
-weibo_check = on_command(plugin_config.preference.command_start + '微博兑换码',priority=5,block=True)
+weibo_check = on_command(plugin_config.preference.command_start + '微博兑换码', priority=5, block=True)
 
 
 @manually_starrail_note_check.handle()
@@ -622,12 +621,13 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
 
                 # 每周模拟宇宙积分提醒
                 if note.current_rogue_score != note.max_rogue_score:
-                    if plugin_config.preference.notice_time:  
+                    if plugin_config.preference.notice_time:
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
 
                 if not do_notice:
-                    logger.info(f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
+                    logger.info(
+                        f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
@@ -655,8 +655,8 @@ async def weibo_code_check(user: UserData, user_ids: Iterable[str]):
     for account in user.accounts.values():
         if account.enable_weibo:
             # account = UserAccount(account) 
-            weibo = weibo_code(account)
-            msg = await weibo.get_codelist()
+            weibo = WeiboCode(account)
+            msg = await weibo.get_code_list()
             for user_id in user_ids:
                 await send_private_msg(user_id=user_id, message=msg)
 
@@ -702,7 +702,7 @@ async def auto_note_check():
 
 
 @scheduler.scheduled_job("cron",
-                         hour=str(int(plugin_config.preference.plan_time.split(':')[0])+1),
+                         hour=str(int(plugin_config.preference.plan_time.split(':')[0]) + 1),
                          minute=plugin_config.preference.plan_time.split(':')[1],
                          id="weibo_schedule")
 async def auto_weibo_check():
@@ -717,7 +717,7 @@ async def auto_weibo_check():
 
 
 @weibo_check.handle()
-async def weibo_schedule(event: Union[GeneralMessageEvent],matcher: Matcher):
+async def weibo_schedule(event: Union[GeneralMessageEvent], matcher: Matcher):
     if isinstance(event, GeneralGroupMessageEvent):
         await matcher.send("⚠️为了保护您的隐私，请私聊进行查询。")
     else:

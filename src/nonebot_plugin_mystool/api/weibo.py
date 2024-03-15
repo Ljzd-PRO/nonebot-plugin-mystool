@@ -1,6 +1,8 @@
 import re
 from urllib.parse import unquote
+
 import httpx
+
 from ..utils import logger
 
 
@@ -8,6 +10,7 @@ def cookie_to_dict(cookie):
     if cookie and '=' in cookie:
         cookie = dict([line.strip().split('=', 1) for line in cookie.split(';')])
     return cookie
+
 
 def nested_lookup(obj, key, with_keys=False, fetch_first=False):
     result = list(_nested_lookup(obj, key, with_keys=with_keys))
@@ -33,14 +36,16 @@ def _nested_lookup(obj, key, with_keys=False):
             if isinstance(v, list) or isinstance(v, dict):
                 yield from _nested_lookup(v, key, with_keys=with_keys)
 
-class weibo_code(object):
+
+class WeiboCode(object):
     def __init__(self, account):
         """
         params: s=xxxxxx; gsid=xxxxxx; aid=xxxxxx; from=xxxxxx
         """
         self.params = cookie_to_dict(account.weibo_params.replace('&', ';')) if account.weibo_params else None
         self.cookie = cookie_to_dict(account.weibo_cookie)
-        self.container_id = {'原神':'100808fc439dedbb06ca5fd858848e521b8716','星铁':'100808e1f868bf9980f09ab6908787d7eaf0f0'}
+        self.container_id = {'原神': '100808fc439dedbb06ca5fd858848e521b8716',
+                             '星铁': '100808e1f868bf9980f09ab6908787d7eaf0f0'}
         self.ua = 'WeiboOverseas/4.4.6 (iPhone; iOS 14.0.1; Scale/2.00)'
         self.headers = {'User-Agent': self.ua}
         self.follow_data_url = 'https://api.weibo.cn/2/cardlist'
@@ -49,7 +54,7 @@ class weibo_code(object):
         self.draw_url = 'https://games.weibo.cn/prize/aj/lottery'
 
     @property
-    async def get_ticketid(self):
+    async def get_ticket_id(self):
         logger.info('开始获取微博兑换码ticket_id')
         ticket_id = {}
         for key, value in self.container_id.items():
@@ -83,11 +88,12 @@ class weibo_code(object):
             'msg'] == 'recently' else False
         if responses['msg'] == 'fail':
             responses['msg'] = responses['data']['fail_desc1']
-        result = {'success': True, 'id': id, 'code': code} if code else {'success': False, 'id': id, 'response': responses['msg']}
-        return result['code'] if result['success']  else responses['msg']
-    
-    async def get_codelist(self):
-        ticket_id = await self.get_ticketid
+        result = {'success': True, 'id': id, 'code': code} if code else {'success': False, 'id': id,
+                                                                         'response': responses['msg']}
+        return result['code'] if result['success'] else responses['msg']
+
+    async def get_code_list(self):
+        ticket_id = await self.get_ticket_id
         msg = ""
         code = {key: [] for key in ticket_id.keys()}
         for key, value in ticket_id.items():
