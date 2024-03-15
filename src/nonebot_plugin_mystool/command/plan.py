@@ -27,7 +27,7 @@ from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, Genera
     get_unique_users, get_validate, read_admin_list
 
 __all__ = [
-    "manually_game_sign", "manually_bbs_sign", "manually_genshin_note_check", "manually_starrail_note_check", "manually_rrjf"
+    "manually_game_sign", "manually_bbs_sign", "manually_genshin_note_check", "manually_starrail_note_check"
 ]
 
 manually_game_sign = on_command(plugin_config.preference.command_start + '签到', priority=5, block=True)
