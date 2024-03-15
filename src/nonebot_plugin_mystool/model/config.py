@@ -256,11 +256,12 @@ else:
         logger.info(f"插件配置文件 {plugin_config_path} 不存在，已创建默认插件配置文件。")
 
 
-@_driver.on_startup
-def _():
-    """将 ``PluginMetadata.config`` 设为定义的插件配置对象 ``plugin_config``"""
-    plugin = nonebot.plugin.get_plugin(plugin_config.preference.plugin_name)
-    plugin.metadata.config = plugin_config
+# TODO: 可能产生 #271 的问题 https://github.com/Ljzd-PRO/nonebot-plugin-mystool/issues/271
+# @_driver.on_startup
+# def _():
+#     """将 ``PluginMetadata.config`` 设为定义的插件配置对象 ``plugin_config``"""
+#     plugin = nonebot.plugin.get_plugin(plugin_config.preference.plugin_name)
+#     plugin.metadata.config = plugin_config
 
 
 plugin_env = PluginEnv()
