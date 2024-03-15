@@ -17,12 +17,13 @@ from pydantic import BaseModel
 from ..api import BaseGameSign
 from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
+from ..api.weibo import WeiboCode
 from ..command.common import CommandRegistry
 from ..command.exchange import generate_image
 from ..model import (MissionStatus, PluginDataManager, plugin_config, UserData, CommandUsage, GenshinNoteNotice,
                      StarRailNoteNotice)
-from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
-    get_all_bind, \
+from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralGroupMessageEvent, \
+    send_private_msg, get_all_bind, \
     get_unique_users, get_validate, read_admin_list
 
 __all__ = [
@@ -189,6 +190,8 @@ CommandRegistry.set_usage(
         description="手动查看星穹铁道实时便笺，即开拓力、每日实训、每周模拟宇宙积分等信息"
     )
 )
+
+weibo_check = on_command(plugin_config.preference.command_start + '微博兑换码', priority=5, block=True)
 
 
 @manually_starrail_note_check.handle()
@@ -618,12 +621,13 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
 
                 # 每周模拟宇宙积分提醒
                 if note.current_rogue_score != note.max_rogue_score:
-                    if plugin_config.preference.notice_time:  
+                    if plugin_config.preference.notice_time:
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
 
                 if not do_notice:
-                    logger.info(f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
+                    logger.info(
+                        f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
@@ -639,6 +643,22 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
             else:
                 for user_id in user_ids:
                     await send_private_msg(user_id=user_id, message=msg)
+
+
+async def weibo_code_check(user: UserData, user_ids: Iterable[str]):
+    """
+    是否开启微博兑换码功能的函数，并发送给用户任务执行消息。
+
+    :param user: 用户对象
+    :param user_ids: 发送通知的所有用户ID
+    """
+    for account in user.accounts.values():
+        if account.enable_weibo:
+            # account = UserAccount(account) 
+            weibo = WeiboCode(account)
+            msg = await weibo.get_code_list()
+            for user_id in user_ids:
+                await send_private_msg(user_id=user_id, message=msg)
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
@@ -679,3 +699,28 @@ async def auto_note_check():
         await genshin_note_check(user=user, user_ids=user_ids)
         await starrail_note_check(user=user, user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}自动便笺检查执行完成")
+
+
+@scheduler.scheduled_job("cron",
+                         hour=str(int(plugin_config.preference.plan_time.split(':')[0]) + 1),
+                         minute=plugin_config.preference.plan_time.split(':')[1],
+                         id="weibo_schedule")
+async def auto_weibo_check():
+    """
+    每日检查微博活动签到兑换码函数
+    """
+    logger.info(f"{plugin_config.preference.log_head}开始执行微博自动任务")
+    for user_id, user in get_unique_users():
+        user_ids = [user_id] + list(get_all_bind(user_id))
+        await weibo_code_check(user=user, user_ids=user_ids)
+    logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
+
+
+@weibo_check.handle()
+async def weibo_schedule(event: Union[GeneralMessageEvent], matcher: Matcher):
+    if isinstance(event, GeneralGroupMessageEvent):
+        await matcher.send("⚠️为了保护您的隐私，请私聊进行查询。")
+    else:
+        user_id = event.get_user_id()
+        user = PluginDataManager.plugin_data.users.get(user_id)
+        await weibo_code_check(user=user, user_ids=[user_id])
