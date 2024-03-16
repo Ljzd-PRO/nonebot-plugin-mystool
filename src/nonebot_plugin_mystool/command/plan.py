@@ -681,8 +681,8 @@ async def daily_schedule():
     logger.info(f"{plugin_config.preference.log_head}开始执行每日自动任务")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
-        await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
+        await perform_bbs_sign(user=user, user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
 
 
