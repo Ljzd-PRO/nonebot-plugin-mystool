@@ -102,7 +102,7 @@ class WeiboCode:
             msg += f"{key}微博兑换码：" \
                    "\n1️⃣" \
                    f"  \n{values[0]}" \
-                   f"\n2️⃣" \
+                   "\n2️⃣" \
                    f"  \n{values[1]}" \
                    f"\n3️⃣" \
                    f"  \n{values[2]}"
