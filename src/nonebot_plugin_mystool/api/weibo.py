@@ -38,7 +38,7 @@ def _nested_lookup(obj, key, with_keys=False):
                 yield from _nested_lookup(v, key, with_keys=with_keys)
 
 
-class WeiboCode(object):
+class WeiboCode:
     def __init__(self, account: UserAccount):
         self.params = cookie_to_dict(account.weibo_params.replace('&', ';')) if account.weibo_params else None
         """params: s=xxxxxx; gsid=xxxxxx; aid=xxxxxx; from=xxxxxx"""
