@@ -61,7 +61,7 @@
 ```
 
 > [!NOTE]
-> 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Config#commandstart)
+> 此处没有使用 [🔗 插件命令头](https://github.com/Ljzd-PRO/nonebot-plugin-mystool/wiki/Configuration-Preference#command_start)
 
 ## 其他
 
