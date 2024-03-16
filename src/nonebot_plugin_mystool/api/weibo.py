@@ -100,7 +100,7 @@ class WeiboCode:
                 code[key].append(await self.get_code(item))
         for key, values in code.items():
             msg += f"{key}微博兑换码：" \
-                   f"\n1️⃣" \
+                   "\n1️⃣" \
                    f"  \n{values[0]}" \
                    f"\n2️⃣" \
                    f"  \n{values[1]}" \
