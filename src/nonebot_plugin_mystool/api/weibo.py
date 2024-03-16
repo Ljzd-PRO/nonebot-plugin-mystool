@@ -34,7 +34,7 @@ def _nested_lookup(obj, key, with_keys=False):
                     yield k, v
                 else:
                     yield v
-            if isinstance(v, list) or isinstance(v, dict):
+            if isinstance(v, (list, dict)):
                 yield from _nested_lookup(v, key, with_keys=with_keys)
 
 
