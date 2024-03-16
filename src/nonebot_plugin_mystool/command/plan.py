@@ -12,6 +12,7 @@ from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot_plugin_apscheduler import scheduler
+from nonebot_plugin_saa import Image
 from pydantic import BaseModel
 
 from ..api import BaseGameSign
@@ -288,7 +289,7 @@ async def perform_game_sign(
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or matcher:
-                onebot_img_msg, qq_guild_img_msg = "", ""
+                onebot_img_msg, saa_img, qq_guild_img_msg = "", "", ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
                 if not get_info_status or not get_award_status:
@@ -306,6 +307,7 @@ async def perform_game_sign(
                               f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
                         onebot_img_msg = OneBotV11MessageSegment.image(img_file)
+                        saa_img = Image(img_file)
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = (f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到失败！请尝试重新签到，"
@@ -323,7 +325,7 @@ async def perform_game_sign(
                     for adapter in get_adapters().values():
                         if isinstance(adapter, OneBotV11Adapter):
                             for user_id in user_ids:
-                                await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
+                                await send_private_msg(use=adapter, user_id=user_id, message=msg + saa_img)
                         elif isinstance(adapter, QQGuildAdapter):
                             for user_id in user_ids:
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg)
