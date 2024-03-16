@@ -104,6 +104,6 @@ class WeiboCode:
                    f"  \n{values[0]}" \
                    "\n2️⃣" \
                    f"  \n{values[1]}" \
-                   f"\n3️⃣" \
+                   "\n3️⃣" \
                    f"  \n{values[2]}"
         return msg
