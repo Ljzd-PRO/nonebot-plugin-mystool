@@ -245,7 +245,7 @@ class UserAccount(BaseModelWithSetter):
     '''是否开启微博兑换码功能'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
-    mission_games: List[str] = []
+    mission_games: List[str] = ["BBSMission"]
     '''在哪些板块执行米游币任务计划 为 BaseMission 子类名称'''
     user_stamina_threshold: int = 240
     '''崩铁便笺体力提醒阈值，0为一直提醒'''

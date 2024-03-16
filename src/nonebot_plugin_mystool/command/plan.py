@@ -387,6 +387,9 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
         # 在此处进行判断。因为如果在多个分区执行任务，会在完成之前就已经达成米游币任务目标，导致其他分区任务不会执行。
         finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
         if not finished:
+            if not account.mission_games:
+                await matcher.send(
+                    f'⚠️🆔账户 {account.display_name} 未设置米游币任务目标分区，将跳过执行')
             for class_name in account.mission_games:
                 class_type = BaseMission.available_games.get(class_name)
                 if not class_type:
