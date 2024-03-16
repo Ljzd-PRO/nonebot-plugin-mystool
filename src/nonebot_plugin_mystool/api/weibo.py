@@ -3,7 +3,7 @@ from urllib.parse import unquote
 
 import httpx
 
-from .. import UserAccount
+from ..model import UserAccount
 from ..utils import logger
 
 

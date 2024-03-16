@@ -713,7 +713,7 @@ async def auto_weibo_check():
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
         await weibo_code_check(user=user, user_ids=user_ids)
-    logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
+    logger.info(f"{plugin_config.preference.log_head}微博自动任务执行完成")
 
 
 @weibo_check.handle()
