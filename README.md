@@ -18,16 +18,16 @@
 > v2.0.0 突破性更新
 > https://github.com/Ljzd-PRO/nonebot-plugin-mystool/releases/tag/v2.0.0
 
-### 2024.3.8 - v2.2.0
+### 2024.3.8 - v2.3.0
 
 #### 💡 新特性
-- 在未开启 崩坏：星穹铁道 便笺通知的情况下输出便笺检查结果日志
+- 增加微博超话兑换码推送功能 - by @Joseandluue (#272)
+- 更改每日任务执行顺序。先执行游戏签到，再执行米游币任务，以降低执行米游币任务时出现人机验证的概率 - by @Sakamakiiizayoi @Joseandluue
 
 #### 🐛 Bug 修复
-- 修复 OneBotV11 适配器私信发送失败的问题 (#260, #264)
-- 修复 崩坏：星穹铁道 便笺提醒失效的问题 - by @Joseandluue
-- 更改 崩坏：星穹铁道 便笺检查的每日实训/模拟宇宙通知逻辑 - by @Joseandluue
-- 更正 崩坏：星穹铁道 便笺检查的开拓力阈值范围 - by @Joseandluue
+- 修复每日任务自动进行游戏签到后，QQ聊天的主动私信推送失败的问题 (#270)
+- 更改 `UserAccount.mission_games`（用户米游币任务目标分区） 默认值为 `["BBSMission"]`，并在执行时检查该配置是否未空 (#261)
+- 修复可能出现的启动失败的问题（`AttributeError: 'NoneType' object has no attribute 'metadata'`） (#271)
 
 ## ⚡ 功能和特性
 

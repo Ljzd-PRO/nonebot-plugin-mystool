@@ -12,17 +12,19 @@ from nonebot.exception import ActionFailed
 from nonebot.internal.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot_plugin_apscheduler import scheduler
+from nonebot_plugin_saa import Image
 from pydantic import BaseModel
 
 from ..api import BaseGameSign
 from ..api import BaseMission, get_missions_state
 from ..api.common import genshin_note, get_game_record, starrail_note
+from ..api.weibo import WeiboCode
 from ..command.common import CommandRegistry
 from ..command.exchange import generate_image
 from ..model import (MissionStatus, PluginDataManager, plugin_config, UserData, CommandUsage, GenshinNoteNotice,
                      StarRailNoteNotice)
-from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, send_private_msg, \
-    get_all_bind, \
+from ..utils import get_file, logger, COMMAND_BEGIN, GeneralMessageEvent, GeneralGroupMessageEvent, \
+    send_private_msg, get_all_bind, \
     get_unique_users, get_validate, read_admin_list
 
 __all__ = [
@@ -190,6 +192,8 @@ CommandRegistry.set_usage(
     )
 )
 
+weibo_check = on_command(plugin_config.preference.command_start + '微博兑换码', priority=5, block=True)
+
 
 @manually_starrail_note_check.handle()
 async def _(event: Union[GeneralMessageEvent], matcher: Matcher):
@@ -285,7 +289,7 @@ async def perform_game_sign(
 
             # 用户打开通知或手动签到时，进行通知
             if user.enable_notice or matcher:
-                onebot_img_msg, qq_guild_img_msg = "", ""
+                onebot_img_msg, saa_img, qq_guild_img_msg = "", "", ""
                 get_info_status, info = await signer.get_info(account.platform)
                 get_award_status, awards = await signer.get_rewards()
                 if not get_info_status or not get_award_status:
@@ -303,6 +307,7 @@ async def perform_game_sign(
                               f"\n\n📅本月签到次数：{info.total_sign_day}"
                         img_file = await get_file(award.icon)
                         onebot_img_msg = OneBotV11MessageSegment.image(img_file)
+                        saa_img = Image(img_file)
                         qq_guild_img_msg = QQGuildMessageSegment.file_image(img_file)
                     else:
                         msg = (f"⚠️账户 {account.display_name} 🎮『{signer.name}』签到失败！请尝试重新签到，"
@@ -320,7 +325,7 @@ async def perform_game_sign(
                     for adapter in get_adapters().values():
                         if isinstance(adapter, OneBotV11Adapter):
                             for user_id in user_ids:
-                                await send_private_msg(use=adapter, user_id=user_id, message=msg + onebot_img_msg)
+                                await send_private_msg(use=adapter, user_id=user_id, message=msg + saa_img)
                         elif isinstance(adapter, QQGuildAdapter):
                             for user_id in user_ids:
                                 await send_private_msg(use=adapter, user_id=user_id, message=msg)
@@ -382,6 +387,9 @@ async def perform_bbs_sign(user: UserData, user_ids: Iterable[str], matcher: Mat
         # 在此处进行判断。因为如果在多个分区执行任务，会在完成之前就已经达成米游币任务目标，导致其他分区任务不会执行。
         finished = all(current == mission.threshold for mission, current in missions_state.state_dict.values())
         if not finished:
+            if not account.mission_games:
+                await matcher.send(
+                    f'⚠️🆔账户 {account.display_name} 未设置米游币任务目标分区，将跳过执行')
             for class_name in account.mission_games:
                 class_type = BaseMission.available_games.get(class_name)
                 if not class_type:
@@ -618,12 +626,13 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
 
                 # 每周模拟宇宙积分提醒
                 if note.current_rogue_score != note.max_rogue_score:
-                    if plugin_config.preference.notice_time:  
+                    if plugin_config.preference.notice_time:
                         msg += '❕您的模拟宇宙积分还没打满\n\n'
                         do_notice = True
 
                 if not do_notice:
-                    logger.info(f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
+                    logger.info(
+                        f"崩铁实时便笺：账户 {account.display_name} 开拓力:{note.current_stamina},未满足推送条件")
                     return
 
             msg += "❖星穹铁道·实时便笺❖" \
@@ -639,6 +648,22 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
             else:
                 for user_id in user_ids:
                     await send_private_msg(user_id=user_id, message=msg)
+
+
+async def weibo_code_check(user: UserData, user_ids: Iterable[str]):
+    """
+    是否开启微博兑换码功能的函数，并发送给用户任务执行消息。
+
+    :param user: 用户对象
+    :param user_ids: 发送通知的所有用户ID
+    """
+    for account in user.accounts.values():
+        if account.enable_weibo:
+            # account = UserAccount(account) 
+            weibo = WeiboCode(account)
+            msg = await weibo.get_code_list()
+            for user_id in user_ids:
+                await send_private_msg(user_id=user_id, message=msg)
 
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
@@ -661,8 +686,8 @@ async def daily_schedule():
     logger.info(f"{plugin_config.preference.log_head}开始执行每日自动任务")
     for user_id, user in get_unique_users():
         user_ids = [user_id] + list(get_all_bind(user_id))
-        await perform_bbs_sign(user=user, user_ids=user_ids)
         await perform_game_sign(user=user, user_ids=user_ids)
+        await perform_bbs_sign(user=user, user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}每日自动任务执行完成")
 
 
@@ -679,3 +704,28 @@ async def auto_note_check():
         await genshin_note_check(user=user, user_ids=user_ids)
         await starrail_note_check(user=user, user_ids=user_ids)
     logger.info(f"{plugin_config.preference.log_head}自动便笺检查执行完成")
+
+
+@scheduler.scheduled_job("cron",
+                         hour=str(int(plugin_config.preference.plan_time.split(':')[0]) + 1),
+                         minute=plugin_config.preference.plan_time.split(':')[1],
+                         id="weibo_schedule")
+async def auto_weibo_check():
+    """
+    每日检查微博活动签到兑换码函数
+    """
+    logger.info(f"{plugin_config.preference.log_head}开始执行微博自动任务")
+    for user_id, user in get_unique_users():
+        user_ids = [user_id] + list(get_all_bind(user_id))
+        await weibo_code_check(user=user, user_ids=user_ids)
+    logger.info(f"{plugin_config.preference.log_head}微博自动任务执行完成")
+
+
+@weibo_check.handle()
+async def weibo_schedule(event: Union[GeneralMessageEvent], matcher: Matcher):
+    if isinstance(event, GeneralGroupMessageEvent):
+        await matcher.send("⚠️为了保护您的隐私，请私聊进行查询。")
+    else:
+        user_id = event.get_user_id()
+        user = PluginDataManager.plugin_data.users.get(user_id)
+        await weibo_code_check(user=user, user_ids=[user_id])

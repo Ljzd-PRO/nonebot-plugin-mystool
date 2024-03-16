@@ -241,14 +241,20 @@ class UserAccount(BaseModelWithSetter):
     '''是否开启米游社游戏签到计划'''
     enable_resin: bool = True
     '''是否开启便笺提醒'''
+    enable_weibo: bool = False
+    '''是否开启微博兑换码功能'''
     platform: Literal["ios", "android"] = "ios"
     '''设备平台'''
-    mission_games: List[str] = []
+    mission_games: List[str] = ["BBSMission"]
     '''在哪些板块执行米游币任务计划 为 BaseMission 子类名称'''
     user_stamina_threshold: int = 240
     '''崩铁便笺体力提醒阈值，0为一直提醒'''
     user_resin_threshold: int = 160
     '''原神便笺树脂提醒阈值，0为一直提醒'''
+    weibo_cookie: str = ""
+    '''微博查询活动签到用的 cookie'''
+    weibo_params: str = ""
+    '''微博查询活动签到用的 params'''
 
     def __init__(self, **data: Any):
         if not data.get("device_id_ios") or not data.get("device_id_android"):
