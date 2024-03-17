@@ -650,7 +650,7 @@ async def starrail_note_check(user: UserData, user_ids: Iterable[str], matcher: 
                     await send_private_msg(user_id=user_id, message=msg)
 
 
-async def weibo_code_check(user: UserData, user_ids: Iterable[str]):
+async def weibo_code_check(user: UserData, user_ids: Iterable[str], matcher: Matcher = None):
     """
     是否开启微博兑换码功能的函数，并发送给用户任务执行消息。
 
@@ -662,9 +662,13 @@ async def weibo_code_check(user: UserData, user_ids: Iterable[str]):
             # account = UserAccount(account) 
             weibo = WeiboCode(account)
             msg = await weibo.get_code_list()
-            for user_id in user_ids:
-                await send_private_msg(user_id=user_id, message=msg)
-
+            if matcher:
+                await matcher.send(msg)
+            else:
+                if not msg:
+                    for user_id in user_ids:
+                        await send_private_msg(user_id=user_id, message=msg)
+                break
 
 @scheduler.scheduled_job("cron", hour='0', minute='0', id="daily_goodImg_update")
 def daily_update():
@@ -728,4 +732,4 @@ async def weibo_schedule(event: Union[GeneralMessageEvent], matcher: Matcher):
     else:
         user_id = event.get_user_id()
         user = PluginDataManager.plugin_data.users.get(user_id)
-        await weibo_code_check(user=user, user_ids=[user_id])
+        await weibo_code_check(user=user, user_ids=[user_id], matcher=matcher)
