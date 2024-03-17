@@ -93,17 +93,20 @@ class WeiboCode:
 
     async def get_code_list(self):
         ticket_id = await self.get_ticket_id
-        msg = ""
-        code = {key: [] for key in ticket_id.keys()}
-        for key, value in ticket_id.items():
-            for item in value:
-                code[key].append(await self.get_code(item))
-        for key, values in code.items():
-            msg += f"{key}微博兑换码：" \
-                   "\n1️⃣" \
-                   f"  \n{values[0]}" \
-                   "\n2️⃣" \
-                   f"  \n{values[1]}" \
-                   "\n3️⃣" \
-                   f"  \n{values[2]}"
-        return msg
+        if not ticket_id:
+            msg = ""
+            code = {key: [] for key in ticket_id.keys()}
+            for key, value in ticket_id.items():
+                for item in value:
+                    code[key].append(await self.get_code(item))
+            for key, values in code.items():
+                msg += f"{key}微博兑换码：" \
+                    f"\n1️⃣" \
+                    f"  \n{values[0]}" \
+                    f"\n2️⃣" \
+                    f"  \n{values[1]}" \
+                    f"\n3️⃣" \
+                    f"  \n{values[2]}"
+            return msg
+        else: 
+            return None
