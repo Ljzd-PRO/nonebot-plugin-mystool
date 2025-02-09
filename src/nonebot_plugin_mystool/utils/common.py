@@ -232,14 +232,13 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
         return f"{t},{r},{c}"
 
 
-async def get_validate(user: UserData, gt: str = None, challenge: str = None, retry: bool = True):
+async def get_validate(user: UserData, gt: str = None, challenge: str = None):
     """
     使用打码平台获取人机验证validate
 
     :param user: 用户数据对象
     :param gt: 验证码gt
     :param challenge: challenge
-    :param retry: 是否允许重试
     :return: 如果配置了平台URL，且 gt, challenge 不为空，返回 GeetestResult
     """
     if not plugin_config.preference.global_geetest:

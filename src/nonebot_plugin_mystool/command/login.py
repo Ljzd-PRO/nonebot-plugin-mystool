@@ -69,7 +69,6 @@ async def handle_first_receive(event: Union[GeneralMessageEvent]):
                 msg_img = QQGuildMessageSegment.file_image(image_bytes)
             else:
                 await get_cookie.finish("⚠️发送二维码失败，无法登录")
-                return
             try:
                 await get_cookie.send(msg_img)
             except (ActionFailed, AuditException) as e:

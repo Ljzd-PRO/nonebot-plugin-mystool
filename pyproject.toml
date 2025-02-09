@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "nonebot-plugin-mystool"
-version = "v2.9.0"
+version = "v2.10.0"
 description = "QQ聊天、频道机器人插件 | 米游社工具-每日米游币任务、游戏签到、商品兑换、免抓包登录、原神崩铁便笺提醒"
 license = "MIT"
 authors = [
-  "Ljzd-PRO <ljzd@office.ljzd-pro.asia>",
+  "Ljzd-PRO <me@ljzd.link>",
   "Everything0519 <598139245@qq.com>"
 ]
 readme = "README.md"
@@ -24,7 +24,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
-httpx = ">=0.24.1,<0.28.0"
+httpx = ">=0.24.1,<0.29.0"
 nonebot_plugin_apscheduler = ">=0.2.0"
 nonebot-plugin-send-anything-anywhere = ">=0.5,<0.8"
 ntplib = "^0.4.0"

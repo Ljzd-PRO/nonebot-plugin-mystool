@@ -72,8 +72,8 @@ class Preference(BaseModel):
     '''每日自动签到和米游社任务的定时任务执行时间，格式为HH:MM'''
     resin_interval: int = 60
     '''每次检查原神便笺间隔，单位为分钟'''
-    global_geetest: bool = True
-    '''是否开启使用全局极验Geetest，默认开启'''
+    global_geetest: bool = False
+    '''是否使用插件配置的全局打码接口，而不是用户个人配置的打码接口，默认关闭'''
     geetest_url: Optional[str]
     '''极验Geetest人机验证打码接口URL'''
     geetest_params: Optional[Dict[str, Any]] = None
