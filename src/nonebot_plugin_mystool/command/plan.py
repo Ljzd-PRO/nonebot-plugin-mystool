@@ -61,7 +61,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                 if specified_user_id == "*":
                     await manually_game_sign.send("⏳开始为所有用户执行游戏签到...")
                     for user_id_, user_ in get_unique_users():
-                        msgs_list.append(f"⏳开始为用户 {user_id_} 执行游戏签到...")
+                        await manually_game_sign.send(f"⏳开始为用户 {user_id_} 执行游戏签到...")
                         await perform_game_sign(
                             bot=bot,
                             user=user_,
@@ -74,7 +74,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                     specified_user = PluginDataManager.plugin_data.users.get(specified_user_id)
                     if not specified_user:
                         await manually_game_sign.finish(f"⚠️未找到用户 {specified_user_id}", at_sender=True)
-                    msgs_list.append(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
+                    await manually_game_sign.send(f"⏳开始为用户 {specified_user_id} 执行游戏签到...")
                     await perform_game_sign(
                         bot=bot,
                         user=specified_user,
@@ -84,7 +84,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                         msgs_list=msgs_list
                     )
     else:
-        msgs_list.append("⏳开始游戏签到...")
+        await manually_game_sign.send("⏳开始游戏签到...")
         await perform_game_sign(bot=bot, user=user, user_ids=[user_id], matcher=matcher, event=event,
                                 msgs_list=msgs_list)
 
@@ -117,9 +117,9 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                 await manually_bbs_sign.finish("⚠️你暂无权限执行此操作，只有管理员名单中的用户可以执行此操作")
             else:
                 if specified_user_id == "*":
-                    msgs_list.append("⏳开始为所有用户执行米游币任务...")
+                    await manually_bbs_sign.send("⏳开始为所有用户执行米游币任务...")
                     for user_id_, user_ in get_unique_users():
-                        msgs_list.append(f"⏳开始为用户 {user_id_} 执行米游币任务...")
+                        await manually_bbs_sign.send(f"⏳开始为用户 {user_id_} 执行米游币任务...")
                         await perform_bbs_sign(
                             bot=bot,
                             user=user_,
@@ -132,7 +132,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                     specified_user = PluginDataManager.plugin_data.users.get(specified_user_id)
                     if not specified_user:
                         await manually_bbs_sign.finish(f"⚠️未找到用户 {specified_user_id}")
-                    msgs_list.append(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
+                    await manually_bbs_sign.send(f"⏳开始为用户 {specified_user_id} 执行米游币任务...")
                     await perform_bbs_sign(
                         bot=bot,
                         user=specified_user,
@@ -142,7 +142,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                         msgs_list=msgs_list
                     )
     else:
-        msgs_list.append("⏳开始执行米游币任务...")
+        await manually_bbs_sign.send("⏳开始执行米游币任务...")
         await perform_bbs_sign(bot=bot, user=user, user_ids=[user_id], matcher=matcher, event=event,
                                msgs_list=msgs_list)
 
