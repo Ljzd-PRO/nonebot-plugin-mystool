@@ -671,20 +671,20 @@ strenum = ">=0.4.8,<0.5.0"
 
 [[package]]
 name = "nonebot2"
-version = "2.4.0"
+version = "2.4.1"
 description = "An asynchronous python bot framework."
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "nonebot2-2.4.0-py3-none-any.whl", hash = "sha256:7c712e05561afa4795c9135a5b27a43d076220f4538ffec518e68c344e3e51d4"},
-    {file = "nonebot2-2.4.0.tar.gz", hash = "sha256:4b10e33d389847500c9bde9ef3c5533b604a90ca1529750245f1aaf82b28f1e1"},
+    {file = "nonebot2-2.4.1-py3-none-any.whl", hash = "sha256:fec95f075efc89dbe9ce148618b413b02f46ba284200367749b035e794695111"},
+    {file = "nonebot2-2.4.1.tar.gz", hash = "sha256:8fea364318501ed79721403a8ecd76587bc884d58c356260f691a8bbda9b05e6"},
 ]
 
 [package.dependencies]
 anyio = ">=4.4.0,<5.0.0"
 exceptiongroup = ">=1.2.2,<2.0.0"
 loguru = ">=0.6.0,<1.0.0"
-pydantic = ">=1.10.0,<2.5.0 || >2.5.0,<2.5.1 || >2.5.1,<3.0.0"
+pydantic = ">=1.10.0,<2.5.0 || >2.5.0,<2.5.1 || >2.5.1,<2.10.0 || >2.10.0,<2.10.1 || >2.10.1,<3.0.0"
 pygtrie = ">=2.4.1,<3.0.0"
 python-dotenv = ">=0.21.0,<2.0.0"
 tomli = {version = ">=2.0.1,<3.0.0", markers = "python_version < \"3.11\""}
@@ -692,10 +692,10 @@ typing-extensions = ">=4.4.0,<5.0.0"
 yarl = ">=1.7.2,<2.0.0"
 
 [package.extras]
-aiohttp = ["aiohttp[speedups] (>=3.9.0b0,<4.0.0)"]
-all = ["Quart (>=0.18.0,<1.0.0)", "aiohttp[speedups] (>=3.9.0b0,<4.0.0)", "fastapi (>=0.93.0,<1.0.0)", "httpx[http2] (>=0.20.0,<1.0.0)", "uvicorn[standard] (>=0.20.0,<1.0.0)", "websockets (>=10.0)"]
+aiohttp = ["aiohttp[speedups] (>=3.11.0,<4.0.0)"]
+all = ["Quart (>=0.18.0,<1.0.0)", "aiohttp[speedups] (>=3.11.0,<4.0.0)", "fastapi (>=0.93.0,<1.0.0)", "httpx[http2] (>=0.26.0,<1.0.0)", "uvicorn[standard] (>=0.20.0,<1.0.0)", "websockets (>=10.0)"]
 fastapi = ["fastapi (>=0.93.0,<1.0.0)", "uvicorn[standard] (>=0.20.0,<1.0.0)"]
-httpx = ["httpx[http2] (>=0.20.0,<1.0.0)"]
+httpx = ["httpx[http2] (>=0.26.0,<1.0.0)"]
 quart = ["Quart (>=0.18.0,<1.0.0)", "uvicorn[standard] (>=0.20.0,<1.0.0)"]
 websockets = ["websockets (>=10.0)"]
 
