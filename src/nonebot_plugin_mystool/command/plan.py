@@ -119,7 +119,7 @@ async def _(event: Union[GeneralMessageEvent], matcher: Matcher, command_arg=Com
                 if specified_user_id == "*":
                     msgs_list.append("⏳开始为所有用户执行米游币任务...")
                     for user_id_, user_ in get_unique_users():
-                        await msgs_list.append(f"⏳开始为用户 {user_id_} 执行米游币任务...")
+                        msgs_list.append(f"⏳开始为用户 {user_id_} 执行米游币任务...")
                         await perform_bbs_sign(
                             bot=bot,
                             user=user_,
