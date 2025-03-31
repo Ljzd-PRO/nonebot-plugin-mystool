@@ -36,7 +36,7 @@ tenacity = ">=8.2.3,<10.0.0"
 qrcode = ">=7.4.2,<9.0.0"
 pydantic = "^1.10.14"
 nonebot2 = ">=2.0.0"
-pytz = ">=2023.4,<2025.0"
+pytz = ">=2023.4,<2026.0"
 
 [tool.poetry.group.test.dependencies]
 flake8 = ">=6.1,<8.0"
