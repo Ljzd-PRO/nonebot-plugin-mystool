@@ -15,7 +15,7 @@ URL_SIGN = "https://bbs-api.mihoyo.com/apihub/app/api/signIn"
 URL_GET_POST = "https://bbs-api.miyoushe.com/post/api/feeds/posts?fresh_action=1&gids={}&is_first_initialize=false" \
                "&last_id="
 URL_READ = "https://bbs-api.miyoushe.com/post/api/getPostFull?post_id={}"
-URL_LIKE = "https://bbs-api.miyoushe.com/apihub/sapi/upvotePost"
+URL_LIKE = "https://bbs-api.miyoushe.com/post/api/post/upvote"
 URL_SHARE = "https://bbs-api.miyoushe.com/apihub/api/getShareConf?entity_id={}&entity_type=1"
 URL_MISSION = "https://api-takumi.mihoyo.com/apihub/wapi/getMissions?point_sn=myb"
 URL_MISSION_STATE = "https://api-takumi.mihoyo.com/apihub/wapi/getUserMissionsState?point_sn=myb"
@@ -62,7 +62,6 @@ HEADERS_GET_POSTS = {
 
 # 旧的API
 HEADERS_OLD = {
-    "Host": "bbs-api.mihoyo.com",
     "Referer": "https://app.mihoyo.com",
     'User-Agent': plugin_env.device_config.USER_AGENT_ANDROID_OTHER,
     "x-rpc-app_version": plugin_env.device_config.X_RPC_APP_VERSION,
@@ -117,7 +116,7 @@ class BaseMission:
         :param retry: 是否允许重试
         :return: (BaseApiStatus, 签到获得的米游币数量)
         """
-        content = {"gids": self.gids}
+        content = {"gids": str(self.gids)}
         retrying = get_async_retry(retry)
         retrying.retry = retrying.retry and tenacity.retry_if_result(lambda x: x is None)
         try:
