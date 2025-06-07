@@ -221,7 +221,7 @@ def generate_ds(data: Union[str, dict, list, None] = None, params: Union[str, di
             params = ""
 
         if not isinstance(data, str):
-            data = json.dumps(data)
+            data = json.dumps(data).replace(" ", "")
         if not isinstance(params, str):
             params = urlencode(params)
 

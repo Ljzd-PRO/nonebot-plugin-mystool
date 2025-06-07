@@ -478,7 +478,9 @@ async def _():
             if not good_detail_status or not good.time or good.time < time.time():
                 # 若商品不存在则删除
                 # 若重启时兑换超时则删除该兑换
-                user.exchange_plans.remove(plan)
+                _ = list(user.exchange_plans)
+                _.remove(plan)
+                user.exchange_plans = set(_)
                 PluginDataManager.write_plugin_data()
                 continue
             else:
