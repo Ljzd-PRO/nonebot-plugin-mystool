@@ -4,13 +4,9 @@
 
 #### 🐛 修复
 
-- 修复为全部用户执行米游社任务的 **`/任务 *`** 命令 (#390)
-  - `TypeError: object NoneType can't be used in 'await' expression`
-- 修复为全部用户执行米游社任务和游戏签到的 **`/任务 *`** **`/签到 *`** 命令**开始执行提示**被包含在合并转发的问题 (#366)
+- 修复签到、点赞、分享任务失败 (#410) by @Do1e
 
-#### 🔧 杂项
-
-- 偏好设置中 `global_geetest` 默认值改为 `False` (#373)
+[//]: # (#### 🔧 杂项)
 
 ### 更新方式
 
@@ -32,4 +28,4 @@
 - V1 (`>=v1.0.0, <v2.0.0`) 插件配置/数据文件为 _`plugin_data.json`_
 - `<v1.0.0` 插件配置文件为 _`pluginConfig.json`_
 
-**Full Changelog**: https://github.com/Ljzd-PRO/nonebot-plugin-mystool/compare/v2.9.0…v2.10.0
+**Full Changelog**: https://github.com/Ljzd-PRO/nonebot-plugin-mystool/compare/v2.10.0…v2.10.1
