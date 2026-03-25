@@ -4,7 +4,7 @@
 
 #### 🐛 修复
 
-- 修复签到、点赞、分享任务失败 (#410) by @Do1e
+- 修正讨论区签到、人机验证创建失败问题 (#421) by @Sakamakiiizayoi
 
 [//]: # (#### 🔧 杂项)
 
@@ -28,4 +28,4 @@
 - V1 (`>=v1.0.0, <v2.0.0`) 插件配置/数据文件为 _`plugin_data.json`_
 - `<v1.0.0` 插件配置文件为 _`pluginConfig.json`_
 
-**Full Changelog**: https://github.com/Ljzd-PRO/nonebot-plugin-mystool/compare/v2.10.0…v2.10.1
+**Full Changelog**: https://github.com/Ljzd-PRO/nonebot-plugin-mystool/compare/v2.10.1…v2.10.2
